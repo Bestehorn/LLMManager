@@ -184,3 +184,5 @@ notebooks/exported_cris_profiles.json
 notebooks/exported_model_profiles.json
 notebooks/model_ids_cache_updated.json
 notebooks/cris_profiles_cache_updated.json
+notebooks/model_ids_custom_cache.json
+notebooks/cris_profiles_custom_cache.json
