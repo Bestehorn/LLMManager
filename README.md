@@ -7,6 +7,8 @@ A robust wrapper for AWS Bedrock's Converse API with multi-region and Cross-Regi
 - **Multi-region support** - Automatically try models across different AWS regions
 - **Model fallback** - Gracefully handle errors by switching to alternative models
 - **Cross-Region Inference Service (CRIS) optimization** - Automatically use CRIS when available
+- **Automatic updates** - Fetch the latest model IDs and CRIS profiles directly from AWS documentation
+- **Local caching** - Cache model and CRIS data to reduce web requests
 - **Comprehensive error handling** - Recover from throttling and other API errors
 - **Flexible authentication** - Support for AWS CLI profiles, access keys, or IAM roles
 - **Support for all Bedrock features** - Text generation, image handling, system prompts, guardrails, and more
@@ -28,7 +30,7 @@ pip install git+https://github.com/username/bestehorn-llm-manager.git
 ```python
 from src import LLMManager, Fields, Roles
 
-# Initialize with AWS profile
+# Initialize with AWS profile using auto-updating model data
 llm_manager = LLMManager(
     profile_name="default",  # Your AWS profile
     regions=["us-east-1", "us-west-2"],  # Preferred regions
@@ -60,8 +62,43 @@ The package consists of several key components:
 2. **BedrockResponse** - Class for encapsulating and accessing response data
 3. **ModelIDParser** - Utility for parsing model information from AWS documentation
 4. **CRISProfileParser** - Utility for parsing CRIS profile information
+5. **ModelProfileCollection** - Class for managing and caching model data with timestamps
+6. **CRISProfileCollection** - Class for managing and caching CRIS profile data with timestamps
 
 ## Advanced Usage
+
+### Automatic Model and CRIS Profile Updates
+
+The LLMManager now supports automatically retrieving and parsing model IDs and CRIS profiles directly from AWS documentation:
+
+```python
+# Initialize with auto-updating and web-based sources
+llm_manager = LLMManager(
+    # Standard authentication parameters
+    profile_name="default",
+    regions=["us-east-1", "us-west-2"],
+    model_ids=["anthropic.claude-3-sonnet-20240229-v1:0"],
+    
+    # Auto-update configuration
+    model_ids_url="https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html",
+    cris_profiles_url="https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html",
+    model_ids_cache_file="model_ids_cache.json",
+    cris_profiles_cache_file="cris_profiles_cache.json",
+    max_profile_age=86400,  # 1 day in seconds
+    force_model_id_update=True,  # Force update regardless of cache
+    force_cris_profile_update=False  # Use cache if available and not expired
+)
+
+# Export the current profiles to JSON files
+model_success, cris_success = llm_manager.export_profiles_to_json(
+    model_file_path="exported_models.json",
+    cris_file_path="exported_cris.json"
+)
+
+# Access the profile collections
+model_collection = llm_manager.get_model_profile_collection()
+cris_collection = llm_manager.get_cris_profile_collection()
+```
 
 See the Jupyter notebook `notebooks/HelloWorldLLMManager.ipynb` for detailed examples, including:
 

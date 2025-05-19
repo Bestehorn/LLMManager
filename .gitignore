@@ -172,3 +172,15 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+cris_profiles_cache.json
+cris_profiles_test_export.json
+model_ids_cache.json
+cris_profile_definitions.txt
+converse_api_doc.txt
+.gitignore
+models_test_export.json
+model_ids.txt
+notebooks/exported_cris_profiles.json
+notebooks/exported_model_profiles.json
+notebooks/model_ids_cache_updated.json
+notebooks/cris_profiles_cache_updated.json

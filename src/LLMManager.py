@@ -4,6 +4,7 @@ LLMManager class for AWS Bedrock Converse API.
 import time
 import logging
 import json
+import os
 from typing import Any, Dict, List, Optional, Set, Tuple, Union, Callable
 
 import boto3
@@ -11,8 +12,8 @@ from botocore.exceptions import ClientError
 
 from src.BedrockResponse import BedrockResponse
 from src.ConverseFieldConstants import Fields, Roles, StopReasons, PerformanceConfig, GuardrailTrace
-from src.ModelIDParser import ModelIDParser, ModelInfo
-from src.CRISProfileParser import CRISProfileParser, CRISProfile
+from src.ModelIDParser import ModelIDParser, ModelInfo, ModelProfileCollection, DEFAULT_MODEL_IDS_URL, DEFAULT_MODEL_IDS_JSON_CACHE
+from src.CRISProfileParser import CRISProfileParser, CRISProfile, CRISProfileCollection, DEFAULT_CRIS_PROFILES_URL, DEFAULT_CRIS_PROFILES_JSON_CACHE
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -36,6 +37,13 @@ class LLMManager:
         aws_session_token: Optional[str] = None,
         model_data_path: str = "model_ids.txt",
         cris_profile_data_path: str = "cris_profile_definitions.txt",
+        model_ids_url: str = DEFAULT_MODEL_IDS_URL,
+        cris_profiles_url: str = DEFAULT_CRIS_PROFILES_URL,
+        model_ids_cache_file: str = DEFAULT_MODEL_IDS_JSON_CACHE,
+        cris_profiles_cache_file: str = DEFAULT_CRIS_PROFILES_JSON_CACHE,
+        max_profile_age: int = 86400,  # 1 day in seconds
+        force_model_id_update: bool = False,
+        force_cris_profile_update: bool = False,
         log_level: int = logging.INFO
     ):
         """
@@ -48,8 +56,15 @@ class LLMManager:
             aws_access_key_id: AWS access key ID for authentication
             aws_secret_access_key: AWS secret access key for authentication
             aws_session_token: AWS session token for authentication
-            model_data_path: Path to the model data file
-            cris_profile_data_path: Path to the CRIS profile data file
+            model_data_path: Path to the model data file (legacy parameter, kept for API compatibility)
+            cris_profile_data_path: Path to the CRIS profile data file (legacy parameter, kept for API compatibility)
+            model_ids_url: URL to fetch model IDs from
+            cris_profiles_url: URL to fetch CRIS profiles from
+            model_ids_cache_file: Path to the model IDs cache file
+            cris_profiles_cache_file: Path to the CRIS profiles cache file
+            max_profile_age: Maximum age of cache files in seconds
+            force_model_id_update: Force update of model IDs from URL
+            force_cris_profile_update: Force update of CRIS profiles from URL
             log_level: Logging level
         """
         # Configure logging
@@ -76,8 +91,20 @@ class LLMManager:
         self.cris_parser = CRISProfileParser(log_level=log_level)
         
         # Load model and CRIS data
-        self._load_model_data(model_data_path)
-        self._load_cris_profile_data(cris_profile_data_path)
+        self._load_model_data(
+            model_data_path=model_data_path,
+            model_ids_url=model_ids_url,
+            model_ids_cache_file=model_ids_cache_file,
+            max_profile_age=max_profile_age,
+            force_update=force_model_id_update
+        )
+        self._load_cris_profile_data(
+            cris_profile_data_path=cris_profile_data_path,
+            cris_profiles_url=cris_profiles_url,
+            cris_profiles_cache_file=cris_profiles_cache_file,
+            max_profile_age=max_profile_age,
+            force_update=force_cris_profile_update
+        )
 
     def _create_session(self) -> boto3.Session:
         """
@@ -115,30 +142,132 @@ class LLMManager:
             except Exception as e:
                 logger.warning(f"Failed to initialize client for region {region}: {str(e)}")
 
-    def _load_model_data(self, model_data_path: str) -> None:
+    def _load_model_data(
+        self, 
+        model_data_path: str, 
+        model_ids_url: str,
+        model_ids_cache_file: str,
+        max_profile_age: int,
+        force_update: bool
+    ) -> None:
         """
-        Load model data from the specified file.
+        Load model data from various sources based on availability and settings.
+        
+        Priority:
+        1. URL source if forced update is requested
+        2. Cache file if available and not expired
+        3. URL source as fallback
         
         Args:
-            model_data_path: Path to the model data file
+            model_data_path: Path to the legacy model data file (unused, kept for API compatibility)
+            model_ids_url: URL to fetch model IDs from
+            model_ids_cache_file: Path to the model IDs cache file
+            max_profile_age: Maximum age of cache files in seconds
+            force_update: Force update from URL regardless of cache status
         """
         try:
-            self.model_parser.parse_from_file(model_data_path)
-            logger.info(f"Loaded data for {len(self.model_parser.models)} models")
+            # Try to load from URL if forced update requested
+            if force_update:
+                logger.info("Forced update of model data from URL")
+                self.model_parser.parse_from_url(
+                    url=model_ids_url,
+                    cache_file=model_ids_cache_file,
+                    save_cache=True
+                )
+                logger.info(f"Loaded data for {len(self.model_parser.models)} models from URL")
+                return
+            
+            # Try to load from cache if not expired
+            cache_loaded = False
+            if os.path.exists(model_ids_cache_file):
+                collection = ModelProfileCollection.from_json(model_ids_cache_file)
+                if collection and not collection.is_expired(max_profile_age):
+                    self.model_parser.set_model_collection(collection)
+                    logger.info(f"Loaded model collection from cache (age: {int(time.time()) - collection.timestamp} seconds)")
+                    cache_loaded = True
+                else:
+                    logger.info("Model cache file is expired or invalid")
+            
+            if cache_loaded:
+                return
+            
+            # Try to load from URL as fallback
+            try:
+                self.model_parser.parse_from_url(
+                    url=model_ids_url,
+                    cache_file=model_ids_cache_file,
+                    save_cache=True
+                )
+                logger.info(f"Loaded data for {len(self.model_parser.models)} models from URL")
+            except Exception as e:
+                logger.warning(f"Failed to load model data from URL: {str(e)}")
+                logger.warning("Using empty model profile data")
+                
         except Exception as e:
             logger.error(f"Failed to load model data: {str(e)}")
             # Proceed with empty model data
 
-    def _load_cris_profile_data(self, cris_profile_data_path: str) -> None:
+    def _load_cris_profile_data(
+        self, 
+        cris_profile_data_path: str, 
+        cris_profiles_url: str,
+        cris_profiles_cache_file: str,
+        max_profile_age: int,
+        force_update: bool
+    ) -> None:
         """
-        Load Cross Region Inference Profile data from the specified file.
+        Load CRIS profile data from various sources based on availability and settings.
+        
+        Priority:
+        1. URL source if forced update is requested
+        2. Cache file if available and not expired
+        3. URL source as fallback
         
         Args:
-            cris_profile_data_path: Path to the CRIS profile data file
+            cris_profile_data_path: Path to the legacy CRIS profile data file (unused, kept for API compatibility)
+            cris_profiles_url: URL to fetch CRIS profiles from
+            cris_profiles_cache_file: Path to the CRIS profiles cache file
+            max_profile_age: Maximum age of cache files in seconds
+            force_update: Force update from URL regardless of cache status
         """
         try:
-            self.cris_parser.parse_from_file(cris_profile_data_path)
-            logger.info(f"Loaded data for {len(self.cris_parser.profiles)} CRIS profiles")
+            # Try to load from URL if forced update requested
+            if force_update:
+                logger.info("Forced update of CRIS profile data from URL")
+                self.cris_parser.parse_from_url(
+                    url=cris_profiles_url,
+                    cache_file=cris_profiles_cache_file,
+                    save_cache=True
+                )
+                logger.info(f"Loaded data for {len(self.cris_parser.profiles)} CRIS profiles from URL")
+                return
+            
+            # Try to load from cache if not expired
+            cache_loaded = False
+            if os.path.exists(cris_profiles_cache_file):
+                collection = CRISProfileCollection.from_json(cris_profiles_cache_file)
+                if collection and not collection.is_expired(max_profile_age):
+                    self.cris_parser.set_cris_profile_collection(collection)
+                    logger.info(f"Loaded CRIS profile collection from cache (age: {int(time.time()) - collection.timestamp} seconds)")
+                    cache_loaded = True
+                else:
+                    logger.info("CRIS profile cache file is expired or invalid")
+            
+            if cache_loaded:
+                return
+            
+            # Try to load from URL as fallback
+            try:
+                self.cris_parser.parse_from_url(
+                    url=cris_profiles_url,
+                    cache_file=cris_profiles_cache_file,
+                    save_cache=True
+                )
+                logger.info(f"Loaded data for {len(self.cris_parser.profiles)} CRIS profiles from URL")
+            except Exception as e:
+                logger.warning(f"Failed to load CRIS profile data from URL: {str(e)}")
+                logger.warning("Using empty CRIS profile data")
+                
         except Exception as e:
             logger.error(f"Failed to load CRIS profile data: {str(e)}")
             # Proceed with empty CRIS profile data
@@ -387,6 +516,58 @@ class LLMManager:
             Fields.CONTENT: content
         }
     
+    def get_model_profile_collection(self) -> ModelProfileCollection:
+        """
+        Get the current model profile collection.
+        
+        Returns:
+            ModelProfileCollection object containing model profile data
+        """
+        return self.model_parser.get_model_collection()
+    
+    def get_cris_profile_collection(self) -> CRISProfileCollection:
+        """
+        Get the current CRIS profile collection.
+        
+        Returns:
+            CRISProfileCollection object containing CRIS profile data
+        """
+        return self.cris_parser.get_cris_profile_collection()
+    
+    def export_profiles_to_json(
+        self, 
+        model_file_path: str = "model_profiles_export.json", 
+        cris_file_path: str = "cris_profiles_export.json"
+    ) -> Tuple[bool, bool]:
+        """
+        Export the current profile collections to JSON files.
+        
+        Args:
+            model_file_path: Path to save the model profiles JSON
+            cris_file_path: Path to save the CRIS profiles JSON
+            
+        Returns:
+            Tuple of (model_success, cris_success) indicating if each export succeeded
+        """
+        model_success = False
+        cris_success = False
+        
+        try:
+            self.get_model_profile_collection().to_json(model_file_path)
+            model_success = True
+            logger.info(f"Exported model profiles to {model_file_path}")
+        except Exception as e:
+            logger.error(f"Failed to export model profiles: {str(e)}")
+        
+        try:
+            self.get_cris_profile_collection().to_json(cris_file_path)
+            cris_success = True
+            logger.info(f"Exported CRIS profiles to {cris_file_path}")
+        except Exception as e:
+            logger.error(f"Failed to export CRIS profiles: {str(e)}")
+            
+        return model_success, cris_success
+
     def create_system_message(self, text: str) -> Dict[str, Any]:
         """
         Create a system message for the Converse API.

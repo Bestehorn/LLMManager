@@ -14,6 +14,8 @@ setup(
     install_requires=[
         "boto3>=1.26.0",
         "botocore>=1.29.0",
+        "requests>=2.28.0",
+        "beautifulsoup4>=4.11.0",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
