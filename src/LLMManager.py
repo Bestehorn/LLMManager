@@ -14,6 +14,7 @@ from src.BedrockResponse import BedrockResponse
 from src.ConverseFieldConstants import Fields, Roles, StopReasons, PerformanceConfig, GuardrailTrace
 from src.ModelIDParser import ModelIDParser, ModelInfo, ModelProfileCollection, DEFAULT_MODEL_IDS_URL, DEFAULT_MODEL_IDS_JSON_CACHE
 from src.CRISProfileParser import CRISProfileParser, CRISProfile, CRISProfileCollection, DEFAULT_CRIS_PROFILES_URL, DEFAULT_CRIS_PROFILES_JSON_CACHE
+from src.content import ContentBuilder, ContentItem, TextContent, ImageContent, DocumentContent, VideoContent
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -581,3 +582,142 @@ class LLMManager:
         return {
             Fields.TEXT: text
         }
+
+    def create_content_builder(self) -> ContentBuilder:
+        """
+        Create a new content builder for constructing complex messages.
+        
+        Returns:
+            A new ContentBuilder instance
+        """
+        return ContentBuilder()
+    
+    def create_multi_content_message(
+        self,
+        content_items: List[ContentItem],
+        role: str = Roles.USER
+    ) -> Dict[str, Any]:
+        """
+        Create a message with multiple content items.
+        
+        Args:
+            content_items: List of content items
+            role: The role of the message sender (user or assistant)
+            
+        Returns:
+            A message object compatible with the Converse API
+        """
+        return {
+            Fields.ROLE: role,
+            Fields.CONTENT: [item.to_dict() for item in content_items]
+        }
+    
+    def create_document_message(
+        self,
+        document_bytes: bytes, 
+        document_name: str,
+        document_format: str,
+        text: Optional[str] = None,
+        role: str = Roles.USER
+    ) -> Dict[str, Any]:
+        """
+        Create a document message for the Converse API.
+        
+        Args:
+            document_bytes: Raw document bytes
+            document_name: Name of the document (e.g., "report.pdf")
+            document_format: Format of the document (pdf, docx, etc.)
+            text: Optional text to include with the document
+            role: The role of the message sender (user)
+            
+        Returns:
+            A message object compatible with the Converse API
+        """
+        builder = self.create_content_builder()
+        builder.add_document(
+            document_bytes=document_bytes,
+            document_name=document_name,
+            document_format=document_format
+        )
+        
+        if text:
+            builder.add_text(text)
+            
+        return builder.build(role)
+    
+    def create_multi_image_message(
+        self,
+        image_data_list: List[Tuple[bytes, str]],
+        text: Optional[str] = None,
+        role: str = Roles.USER
+    ) -> Dict[str, Any]:
+        """
+        Create a message with multiple images for the Converse API.
+        
+        Args:
+            image_data_list: List of tuples containing (image_bytes, image_format)
+            text: Optional text to include with the images
+            role: The role of the message sender (user)
+            
+        Returns:
+            A message object compatible with the Converse API
+        """
+        builder = self.create_content_builder()
+        
+        for image_bytes, image_format in image_data_list:
+            builder.add_image(
+                image_bytes=image_bytes,
+                image_format=image_format
+            )
+        
+        if text:
+            builder.add_text(text)
+            
+        return builder.build(role)
+    
+    def create_multi_file_message(
+        self,
+        files: List[Dict[str, Any]],
+        text: Optional[str] = None,
+        role: str = Roles.USER
+    ) -> Dict[str, Any]:
+        """
+        Create a message with multiple files (images and/or documents) for the Converse API.
+        
+        Args:
+            files: List of file dictionaries, each containing:
+                  - 'type': 'image', 'document', or 'video'
+                  - 'bytes': Raw file bytes
+                  - 'format': File format (e.g., 'jpeg', 'pdf', 'docx')
+                  - 'name': File name (required for documents)
+            text: Optional text to include with the files
+            role: The role of the message sender (user)
+            
+        Returns:
+            A message object compatible with the Converse API
+        """
+        builder = self.create_content_builder()
+        
+        for file in files:
+            file_type = file.get('type')
+            if file_type == 'image':
+                builder.add_image(
+                    image_bytes=file['bytes'],
+                    image_format=file.get('format', 'jpeg')
+                )
+            elif file_type == 'document':
+                builder.add_document(
+                    document_bytes=file['bytes'],
+                    document_name=file['name'],
+                    document_format=file['format']
+                )
+            elif file_type == 'video':
+                builder.add_video(
+                    video_bytes=file['bytes'],
+                    video_format=file['format']
+                )
+        
+        if text:
+            builder.add_text(text)
+            
+        return builder.build(role)

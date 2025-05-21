@@ -16,6 +16,8 @@ class Fields:
     S3_LOCATION = "s3Location"
     URI = "uri"
     BUCKET_OWNER = "bucketOwner"
+    BUCKET = "bucket"
+    KEY = "key"
     DOCUMENT = "document"
     NAME = "name"
     VIDEO = "video"
