@@ -186,3 +186,5 @@ notebooks/model_ids_cache_updated.json
 notebooks/cris_profiles_cache_updated.json
 notebooks/model_ids_custom_cache.json
 notebooks/cris_profiles_custom_cache.json
+docs/demo_models.json
+docs/demo_bedrock_models.html
