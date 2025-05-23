@@ -1,0 +1,24 @@
+Amazon Bedrock has a documentation page that contains all models supported by Bedrock at this URL: https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html
+The main content of this page is a table that has several columns:
+ - Provider 
+ - Model name
+ - Model ID
+ - Regions supported
+ - Input modalities
+ - Output modalities
+ - Streaming supported
+ - Inference parameters
+ - Hyperparameters
+I want to implement a Manager class that should be placed in src/bedrock/ModelManager.py that downloads this documentation page to a local, configurable file (the default should be docs/FoundationalModels.htm) and then parses the information into JSON.
+The JSON should be a dictionary-like structure that contains two key items: the date/time of the retrieval as a timestamp and a dict-like structure "models" where the key is the model name.
+This structure should map this model name to the remaining data in this table.
+Columns that only map to Yes/no values should be mapped to the corresponding boolean values.
+Write a documentation for this class and also the definition of the output file.
+Create a notebook to be stored in notebooks directory called ModelIDManager that demonstrates the functionality of this manager.
+The parsing of the HTML should be implemented using BeatifulSoup.
+
+The produced code must adhere to software development best practices and be easily extensible/modifiable. Also the code must be readable. The code is for production use and not just a small experiment. This will serve as a foundation for further functionality and therefore the code has to be maintainable. Typization/Typing must be adhered in all cases and strictly.
+Names of fields in JSON should generally accessed through str constants instead of explicitly writing the str into the code (str literals).  For instance, if a JSON object my_json_obj contains a field "content", then the code should not use my_json_obj["content"] but instead define a constant FIELD_CONTENT="content" and then use that constant for accessing the variable with my_json_obj[FIELD_CONTENT].
+Use object oriented design principles to divide functions and provide useful abstractions to avoid code duplication. Use abstractions and interfaces where possible. Avoid having one large, unmanageable file with hundreds or thousands of lines of code. Classes should be in a single file with a corresponding name. Abstractions and inheritance should also be visible from the class name / file name.
+Provide logging where necessary, but do not use excessive logging for default/successful cases. Use the logging library for generating logging output. 
+To improve readability of the code, function calls should - wherever possible - use named parameters at the function call. For instance, if a function f() takes two parameters a and b of type int and str respectively, then the call to the function should be f(a=5, b="abc") instead of f(5,"abc"). This makes code easier to read as is immediately conveys - assuming parameters have been given proper names when writing the function - which parameter gets which value. 
