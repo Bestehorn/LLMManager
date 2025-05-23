@@ -154,11 +154,16 @@ class BedrockHTMLParser(BaseDocumentationParser):
             Dictionary mapping model names to model information
         """
         models: Dict[str, BedrockModelInfo] = {}
-        tbody = table.find("tbody")
-        if not tbody or not isinstance(tbody, Tag):
-            tbody = table
         
-        for row_element in tbody.find_all("tr"):
+        # First try to find tbody, but handle tables without explicit tbody
+        tbody = table.find("tbody")
+        if tbody and isinstance(tbody, Tag):
+            rows_container = tbody
+        else:
+            # Fallback to searching the entire table but skip thead
+            rows_container = table
+        
+        for row_element in rows_container.find_all("tr"):
             if isinstance(row_element, Tag) and self._is_data_row(row=row_element):
                 try:
                     model_name, model_info = self._extract_model_from_row(row=row_element)
@@ -182,8 +187,46 @@ class BedrockHTMLParser(BaseDocumentationParser):
         Returns:
             True if this is a data row
         """
-        cells = [cell for cell in row.find_all(["td", "th"]) if isinstance(cell, Tag)]
-        return len(cells) >= len(self._column_indices)
+        # Skip rows that are inside thead elements
+        if row.find_parent("thead"):
+            return False
+        
+        # Get all cell elements
+        all_cells = row.find_all(["td", "th"])
+        if not all_cells:
+            return False
+        
+        # Separate td and th cells with proper type checking
+        td_cells = []
+        th_cells = []
+        
+        for cell in all_cells:
+            if isinstance(cell, Tag):
+                if cell.name == "td":
+                    td_cells.append(cell)
+                elif cell.name == "th":
+                    th_cells.append(cell)
+        
+        # Skip rows that are primarily header cells (th elements)
+        if len(th_cells) > len(td_cells):
+            return False
+        
+        # Skip rows with no td cells (likely header rows)
+        if len(td_cells) == 0:
+            return False
+        
+        # Check if we have enough cells and they contain actual data (not just column names)
+        if len(td_cells) >= len(self._column_indices):
+            # Additional validation: check if the first cell contains column header text
+            if td_cells and isinstance(td_cells[0], Tag):
+                first_cell_text = td_cells[0].get_text(strip=True)
+                # Skip if the first cell contains typical column header text
+                header_indicators = {"Provider", "Model name", "Model ID", "Regions supported"}
+                if first_cell_text in header_indicators:
+                    return False
+            return True
+        
+        return False
     
     def _extract_model_from_row(self, row: Tag) -> tuple[Optional[str], Optional[BedrockModelInfo]]:
         """
