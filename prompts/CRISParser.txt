@@ -1,0 +1,49 @@
+Amazon Bedrock has a documentation page that contains all models that can be accessed through Criss Region Inference (CRIS) in Bedrock at this URL: https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html#inference-profiles-support-system 
+The main content of this page is a are entries like the following HTML snippet:
+<awsui-expandable-section variant="container" header="US Nova Lite" id="cross-region-ip-us.amazon.nova-lite-v1:0" expanded="false"><p>To call the US Nova Lite inference profile, specify the following inference profile ID in one of the source Regions:</p><pre class="programlisting"><div class="code-btn-container"><div class="btn-copy-code" title="Copy"><awsui-icon name="copy"></awsui-icon></div></div><!--DEBUG: cli (bash)--><code class="bash hljs">us.amazon.nova-lite-v1:0</code></pre><p>The following table shows the source Regions from which you can call the inference profile and the destination Regions to which the requests can be routed:</p><div class="table-container"><div class="table-contents"><table id="w568aac23c21b7c21b1b9"><thead>
+    <tr>
+        <th>Source Region</th>
+        <th>Destination Regions</th>
+    </tr>
+</thead>
+    <tbody><tr>
+        <td tabindex="-1">us-west-2</td>
+        <td tabindex="-1">
+            <p>us-east-1</p>
+            <p>us-east-2</p>
+            <p>us-west-2</p>
+        </td>
+    </tr>
+    <tr>
+        <td tabindex="-1">us-east-2</td>
+        <td tabindex="-1">
+            <p>us-east-1</p>
+            <p>us-east-2</p>
+            <p>us-west-2</p>
+        </td>
+    </tr>
+    <tr>
+        <td tabindex="-1">us-east-1</td>
+        <td tabindex="-1">
+            <p>us-east-1</p>
+            <p>us-east-2</p>
+            <p>us-west-2</p>
+        </td>
+    </tr>
+</tbody></table></div></div><div class="cliqW3-iotPf1iy+KsGwgg== awsui_root_gwq0h_piid9_211 awsui_root_4mvj3_1h74t_6 awsui_root_14iqq_1wfhd_189 awsui_variant-default_14iqq_1wfhd_230 awsui_refresh_14iqq_1wfhd_238"><div id=":r31:" class="awsui_content-wrapper_14iqq_1wfhd_309"><div class="awsui_refresh_14iqq_1wfhd_238 awsui_header_14iqq_1wfhd_350 awsui_header_164jl_1ns0c_5"></div>
+
+
+
+I want to implement a Manager class that should be placed in src/bedrock/CRISManager.py that downloads this documentation page to a local, configurable file (the default should be docs/CRIS.htm) and then parses the information into JSON.
+The JSON should be a dictionary-like structure that contains two key items: the date/time of the retrieval as a timestamp and a dict-like structure "CRIS" where the key is the model name.
+This structure should map this model name to the remaining data in this table, i.e., in the above example, the model name is "Nova Lite" and the entry is or the US CRIS endpoint in the US.
+The JSON should have the ability to differentiate between source regions and destination regions.
+Write a documentation for this class and also the definition of the output file.
+Create a notebook to be stored in notebooks directory called CRISManager that demonstrates the functionality of this manager.
+The parsing of the HTML should be implemented using BeatifulSoup.
+
+The produced code must adhere to software development best practices and be easily extensible/modifiable. Also the code must be readable. The code is for production use and not just a small experiment. This will serve as a foundation for further functionality and therefore the code has to be maintainable. Typization/Typing must be adhered in all cases and strictly.
+Names of fields in JSON should generally accessed through str constants instead of explicitly writing the str into the code (str literals).  For instance, if a JSON object my_json_obj contains a field "content", then the code should not use my_json_obj["content"] but instead define a constant FIELD_CONTENT="content" and then use that constant for accessing the variable with my_json_obj[FIELD_CONTENT].
+Use object oriented design principles to divide functions and provide useful abstractions to avoid code duplication. Use abstractions and interfaces where possible. Avoid having one large, unmanageable file with hundreds or thousands of lines of code. Classes should be in a single file with a corresponding name. Abstractions and inheritance should also be visible from the class name / file name.
+Provide logging where necessary, but do not use excessive logging for default/successful cases. Use the logging library for generating logging output. 
+To improve readability of the code, function calls should - wherever possible - use named parameters at the function call. For instance, if a function f() takes two parameters a and b of type int and str respectively, then the call to the function should be f(a=5, b="abc") instead of f(5,"abc"). This makes code easier to read as is immediately conveys - assuming parameters have been given proper names when writing the function - which parameter gets which value. 
