@@ -17,6 +17,11 @@ class CRISJSONFields:
     
     # Backward compatibility field
     INFERENCE_PROFILE_ID: Final[str] = "inference_profile_id"
+    
+    # Regional variant fields
+    REGION_PREFIX: Final[str] = "region_prefix"
+    REGIONAL_VARIANTS: Final[str] = "regional_variants"
+    ALL_INFERENCE_PROFILES: Final[str] = "all_inference_profiles"
 
 
 class CRISHTMLSelectors:
@@ -121,6 +126,10 @@ class CRISErrorMessages:
     CONFLICTING_INFERENCE_PROFILES: Final[str] = "Conflicting data for inference profile: {profile_id}"
     INVALID_INFERENCE_PROFILE: Final[str] = "Invalid inference profile ID: {profile_id}"
     NO_INFERENCE_PROFILES: Final[str] = "Model {model_name} has no inference profiles"
+    
+    # Regional variant error messages
+    INVALID_REGION_PREFIX: Final[str] = "Invalid region prefix: {region_prefix}"
+    NO_REGIONAL_VARIANTS: Final[str] = "Model {model_name} has no regional variants"
 
 
 class CRISValidationPatterns:
