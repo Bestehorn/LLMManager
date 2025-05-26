@@ -196,3 +196,8 @@ notebooks/docs/FoundationalModels.htm
 .gitignore
 notebooks/docs/UnifiedModels.json
 notebooks/docs/FoundationalModels.json
+workspace/
+workspace/docs/FoundationalModels.json
+workspace/docs/FoundationalModels.htm
+workspace/docs/CRIS.json
+workspace/docs/UnifiedModels.json
