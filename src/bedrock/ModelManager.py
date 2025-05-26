@@ -36,7 +36,7 @@ from pathlib import Path
 from typing import Optional
 
 from .downloaders.html_downloader import HTMLDocumentationDownloader
-from .parsers.bedrock_parser import BedrockHTMLParser
+from .parsers.enhanced_bedrock_parser import EnhancedBedrockHTMLParser
 from .serializers.json_serializer import JSONModelSerializer
 from .models.data_structures import ModelCatalog, BedrockModelInfo
 from .models.constants import URLs, FilePaths, LogMessages
@@ -90,7 +90,7 @@ class ModelManager:
         
         # Initialize components with dependency injection
         self._downloader = HTMLDocumentationDownloader(timeout=download_timeout)
-        self._parser = BedrockHTMLParser()
+        self._parser = EnhancedBedrockHTMLParser()
         self._serializer = JSONModelSerializer()
         
         # Setup logging

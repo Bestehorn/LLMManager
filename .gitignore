@@ -192,3 +192,7 @@ notebooks/docs/CRIS.htm
 .gitignore
 docs/CRIS.htm
 notebooks/docs/CRIS.json
+notebooks/docs/FoundationalModels.htm
+.gitignore
+notebooks/docs/UnifiedModels.json
+notebooks/docs/FoundationalModels.json
