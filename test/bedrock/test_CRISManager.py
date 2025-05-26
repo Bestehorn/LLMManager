@@ -205,7 +205,10 @@ class TestCRISManagerLoadCachedData:
     
     def test_load_cached_data_success(self, temp_dir):
         """Test successful loading of cached data."""
-        manager = CRISManager(json_output_path=temp_dir / "cris.json")
+        json_file = temp_dir / "cris.json"
+        json_file.write_text('{"test": "data"}')  # Create the file so exists() returns True
+        
+        manager = CRISManager(json_output_path=json_file)
         
         # Create mock cached data
         mock_catalog_data = {
@@ -516,10 +519,11 @@ class TestCRISManagerPrivateMethods:
         html_file = temp_dir / "old.html"
         html_file.write_text("content")
         
-        # Modify file timestamp to be old
+        # Modify file timestamp to be old using os.utime
+        import os
         old_time = datetime.now() - timedelta(hours=2)
         old_timestamp = old_time.timestamp()
-        html_file.touch(times=(old_timestamp, old_timestamp))
+        os.utime(html_file, (old_timestamp, old_timestamp))
         
         manager = CRISManager(html_output_path=html_file)
         
@@ -529,11 +533,20 @@ class TestCRISManagerPrivateMethods:
     
     def test_is_html_file_recent_os_error(self, temp_dir):
         """Test checking if HTML file is recent with OS error."""
-        manager = CRISManager(html_output_path=temp_dir / "test.html")
+        html_file = temp_dir / "test.html"
+        html_file.write_text("content")  # Create the file first so exists() passes
         
-        # Mock path.stat() to raise OSError
-        with patch.object(Path, 'stat', side_effect=OSError("Permission denied")):
-            result = manager._is_html_file_recent()
+        manager = CRISManager(html_output_path=html_file)
+        
+        # Mock the html_output_path with a mock that raises OSError on stat()
+        mock_path = Mock()
+        mock_path.exists.return_value = True  # File exists
+        mock_path.stat.side_effect = OSError("Permission denied")  # But stat() fails
+        
+        # Replace the manager's path with our mock
+        manager.html_output_path = mock_path
+        
+        result = manager._is_html_file_recent()
         
         assert result is False
 
