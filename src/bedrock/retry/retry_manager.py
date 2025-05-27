@@ -143,9 +143,40 @@ class RetryManager:
         
         return False
     
+    def is_content_compatibility_error(self, error: Exception) -> Tuple[bool, Optional[str]]:
+        """
+        Determine if an error is due to content type incompatibility with the current model.
+        
+        Content compatibility errors should trigger model switching rather than feature disabling.
+        
+        Args:
+            error: The error to evaluate
+            
+        Returns:
+            Tuple of (is_content_error, content_type)
+        """
+        error_message = str(error).lower()
+        
+        # Map error patterns to content types that require model switching
+        content_error_patterns = {
+            'video_processing': ['video', 'doesn\'t support the video'],
+            'image_processing': ['image', 'doesn\'t support the image'],
+            'document_processing': ['document', 'doesn\'t support the document']
+        }
+        
+        for content_type, patterns in content_error_patterns.items():
+            for pattern in patterns:
+                if pattern in error_message:
+                    return True, content_type
+        
+        return False, None
+    
     def should_disable_feature_and_retry(self, error: Exception) -> Tuple[bool, Optional[str]]:
         """
         Determine if we should disable a feature and retry.
+        
+        This method now only handles API-level features. Content compatibility errors
+        (image, video, document processing) should trigger model switching instead.
         
         Args:
             error: The error to evaluate
@@ -156,20 +187,22 @@ class RetryManager:
         if not self._config.enable_feature_fallback:
             return False, None
         
+        # Check if this is a content compatibility error - those should trigger model switching
+        is_content_error, _ = self.is_content_compatibility_error(error)
+        if is_content_error:
+            return False, None
+        
         error_message = str(error).lower()
         
-        # Map error patterns to features that might need to be disabled
-        feature_error_patterns = {
+        # Map error patterns to API-level features that can be safely disabled
+        api_feature_error_patterns = {
             'guardrails': ['guardrail', 'content filter'],
             'tool_use': ['tool', 'function'],
             'prompt_caching': ['cache', 'caching'],
-            'streaming': ['stream'],
-            'document_processing': ['document'],
-            'image_processing': ['image'],
-            'video_processing': ['video']
+            'streaming': ['stream']
         }
         
-        for feature, patterns in feature_error_patterns.items():
+        for feature, patterns in api_feature_error_patterns.items():
             for pattern in patterns:
                 if pattern in error_message:
                     return True, feature
@@ -204,6 +237,8 @@ class RetryManager:
     ) -> List[Tuple[str, str, ModelAccessInfo]]:
         """
         Generate list of model/region combinations to try based on retry strategy.
+        
+        For content compatibility issues, prioritize trying different models over regions.
         
         Args:
             models: List of model names/IDs
@@ -265,8 +300,9 @@ class RetryManager:
         """
         Execute an operation with retry logic and content filtering.
         
-        This method implements the fix for the image analysis issue by properly
-        managing content filtering and restoration across retry attempts.
+        This method implements the fix for content compatibility errors by properly
+        distinguishing between content errors (which require model switching) and
+        API feature errors (which can be disabled).
         
         Args:
             operation: Function to execute (e.g., bedrock client converse call)
@@ -392,7 +428,22 @@ class RetryManager:
                     )
                 )
                 
-                # Check if we should try feature fallback
+                # Check if this is a content compatibility error
+                is_content_error, content_type = self.is_content_compatibility_error(error)
+                if is_content_error:
+                    self._logger.info(
+                        f"Content compatibility error for {content_type} with model {model}. "
+                        f"Trying next model instead of disabling feature."
+                    )
+                    # Continue to next target without feature fallback
+                    if attempt_num < len(retry_targets):
+                        delay = self.calculate_retry_delay(attempt_num)
+                        if delay > 0:
+                            self._logger.debug(f"Waiting {delay}s before trying next model")
+                            time.sleep(delay)
+                    continue
+                
+                # Check if we should try feature fallback for non-content errors
                 should_fallback, feature_to_disable = self.should_disable_feature_and_retry(error)
                 if should_fallback and feature_to_disable and feature_to_disable not in disabled_features:
                     self._logger.warning(
