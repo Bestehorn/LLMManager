@@ -9,12 +9,12 @@ from datetime import datetime
 from typing import Dict, Any, List
 
 from src.LLMManager import LLMManager
-from bedrock.models.llm_manager_structures import AuthConfig, RetryConfig, AuthenticationType, RetryStrategy
-from bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
-from bedrock.exceptions.llm_manager_exceptions import (
+from src.bedrock.models.llm_manager_structures import AuthConfig, RetryConfig, AuthenticationType, RetryStrategy
+from src.bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
+from src.bedrock.exceptions.llm_manager_exceptions import (
     ConfigurationError, RequestValidationError, AuthenticationError, RetryExhaustedError
 )
-from bedrock.models.llm_manager_constants import ConverseAPIFields, ContentLimits
+from src.bedrock.models.llm_manager_constants import ConverseAPIFields, ContentLimits
 
 
 class TestLLMManager:
@@ -363,22 +363,20 @@ class TestLLMManager:
     def test_converse_no_retry_targets_raises_error(self, mock_datetime, basic_llm_manager):
         """Test converse method when no retry targets are available."""
         # Mock retry manager to return empty targets
-        basic_llm_manager._retry_manager.generate_retry_targets.return_value = []
-        
-        messages = [{"role": "user", "content": [{"text": "Hello"}]}]
-        
-        with pytest.raises(ConfigurationError, match="No valid model/region combinations available"):
-            basic_llm_manager.converse(messages=messages)
+        with patch.object(basic_llm_manager._retry_manager, 'generate_retry_targets', return_value=[]):
+            messages = [{"role": "user", "content": [{"text": "Hello"}]}]
+            
+            with pytest.raises(ConfigurationError, match="No valid model/region combinations available"):
+                basic_llm_manager.converse(messages=messages)
     
     def test_converse_stream_no_retry_targets_raises_error(self, basic_llm_manager):
         """Test converse_stream method when no retry targets are available."""
         # Mock retry manager to return empty targets  
-        basic_llm_manager._retry_manager.generate_retry_targets.return_value = []
-        
-        messages = [{"role": "user", "content": [{"text": "Hello"}]}]
-        
-        with pytest.raises(ConfigurationError, match="No valid model/region combinations available for streaming"):
-            basic_llm_manager.converse_stream(messages=messages)
+        with patch.object(basic_llm_manager._retry_manager, 'generate_retry_targets', return_value=[]):
+            messages = [{"role": "user", "content": [{"text": "Hello"}]}]
+            
+            with pytest.raises(ConfigurationError, match="No valid model/region combinations available for streaming"):
+                basic_llm_manager.converse_stream(messages=messages)
 
 
 class TestLLMManagerIntegration:

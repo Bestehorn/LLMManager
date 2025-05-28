@@ -9,18 +9,18 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from bedrock.UnifiedModelManager import UnifiedModelManager
-from bedrock.auth.auth_manager import AuthManager
-from bedrock.retry.retry_manager import RetryManager
-from bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
-from bedrock.models.llm_manager_structures import (
+from src.bedrock.UnifiedModelManager import UnifiedModelManager
+from src.bedrock.auth.auth_manager import AuthManager
+from src.bedrock.retry.retry_manager import RetryManager
+from src.bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
+from src.bedrock.models.llm_manager_structures import (
     AuthConfig, RetryConfig, AuthenticationType, RetryStrategy
 )
-from bedrock.models.llm_manager_constants import (
+from src.bedrock.models.llm_manager_constants import (
     ConverseAPIFields, LLMManagerConfig, LLMManagerLogMessages, 
     LLMManagerErrorMessages, ContentLimits
 )
-from bedrock.exceptions.llm_manager_exceptions import (
+from src.bedrock.exceptions.llm_manager_exceptions import (
     LLMManagerError, ConfigurationError, RequestValidationError,
     AuthenticationError, RetryExhaustedError
 )

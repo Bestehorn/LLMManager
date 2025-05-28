@@ -236,22 +236,29 @@ class ContentFilter:
         # Convert model name to lowercase for pattern matching
         model_lower = model_name.lower()
         
-        # Check if model supports multimodal features
-        for model_family in FeatureAvailability.MULTIMODAL_MODELS:
-            if model_family in model_lower:
-                supported_features.update([
-                    'image_processing',
-                    'document_processing',
-                    'video_processing'
-                ])
+        # Check if this is a text-only model first
+        is_text_only = False
+        for text_only_pattern in FeatureAvailability.TEXT_ONLY_MODELS:
+            if text_only_pattern.lower() in model_lower:
+                is_text_only = True
+                self._logger.debug(f"Model {model_name} identified as text-only")
                 break
-        else:
-            # Text-only model
-            self._logger.debug(f"Model {model_name} appears to be text-only")
+        
+        # If not explicitly text-only, check for multimodal capabilities
+        if not is_text_only:
+            for multimodal_pattern in FeatureAvailability.MULTIMODAL_MODELS:
+                if multimodal_pattern.lower() in model_lower:
+                    supported_features.update([
+                        'image_processing',
+                        'document_processing',
+                        'video_processing'
+                    ])
+                    self._logger.debug(f"Model {model_name} identified as multimodal")
+                    break
         
         # Check tool use support
-        for model_family in FeatureAvailability.TOOL_USE_SUPPORTED_MODELS:
-            if model_family in model_lower:
+        for tool_pattern in FeatureAvailability.TOOL_USE_SUPPORTED_MODELS:
+            if tool_pattern.lower() in model_lower:
                 supported_features.add('tool_use')
                 break
         

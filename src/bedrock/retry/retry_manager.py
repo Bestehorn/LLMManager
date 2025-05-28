@@ -368,7 +368,7 @@ class RetryManager:
                     for feature in features_to_restore:
                         if feature in disabled_features:
                             disabled_features.remove(feature)
-                            warnings.append(f"Restored {feature} for model {model}")
+                        warnings.append(f"Restored {feature} for model {model}")
                 
                 # Prepare operation arguments with current target
                 current_args = operation_args.copy()

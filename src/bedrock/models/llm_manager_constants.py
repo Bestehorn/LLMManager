@@ -257,18 +257,24 @@ class FeatureAvailability:
         "video_processing"
     )
     
-    # Model families with specific capabilities
+    # Model families with specific capabilities (patterns for matching model names)
     TEXT_ONLY_MODELS: Final[tuple] = (
         "ai21",
-        "cohere"
+        "cohere",
+        "jamba",
+        "jurassic"
     )
     
     MULTIMODAL_MODELS: Final[tuple] = (
-        "anthropic.claude-3",
+        "claude",
+        "nova",
+        "anthropic.claude",
         "amazon.nova"
     )
     
     TOOL_USE_SUPPORTED_MODELS: Final[tuple] = (
+        "claude",
+        "nova", 
         "anthropic.claude",
         "amazon.nova"
     )
