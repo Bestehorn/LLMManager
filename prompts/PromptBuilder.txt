@@ -1,0 +1,34 @@
+I want to simplify the building of prompts with the LLMManager through a separate component ConverseMessageBuilder that builds items that later go into the messages parameter of the converse() function for the LLMManager. Currently, the messages are built like this:
+messages = [
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "text": "Please analyze this image in detail. What do you see? Describe the architecture, setting, and any notable features. Also identify what landmark this is."
+                    },
+                    {
+                        "image": {
+                            "format": "jpeg",
+                            "source": {
+                                "bytes": image_bytes
+                            }
+                        }
+                    }
+                ]
+            }
+        ]
+
+First and foremost, there should be an enum class that has the default roles so these can be used during creation of the message. The ConverseMessageBuilder should use a factory like approach where a message is constructed programmatically like this:
+my_message = create_message(role=RolesEnum.USER).add_text(text=""Please analyze this image in detail. What do you see? Describe the architecture, setting, and any notable features. Also identify what landmark this is.").add_image_bytes(format=ImageFormatEnum.JPEG, bytes=image_bytes).add_text(text="Also analyze this PDF document:").add_document_bytes(format=DocFormatEnum.PDF, bytes=pdf_bytes).build()
+And the converse() function of LLMManager should then take [my_message] for processing with Bedrock.
+
+How would this get implemented while adhering to the coding standards for this project: The produced code must adhere to software development best practices and be easily extensible/modifiable. Also the code must be readable. The code is for production use and not just a small experiment. This will serve as a foundation for further functionality and therefore the code has to be maintainable. Typization/Typing must be adhered in all cases and strictly.
+Names of fields in JSON should generally accessed through str constants instead of explicitly writing the str into the code (str literals).  For instance, if a JSON object my_json_obj contains a field "content", then the code should not use my_json_obj["content"] but instead define a constant FIELD_CONTENT="content" and then use that constant for accessing the variable with my_json_obj[FIELD_CONTENT].
+Use object oriented design principles to divide functions and provide useful abstractions to avoid code duplication. Use abstractions and interfaces where possible. Avoid having one large, unmanageable file with hundreds or thousands of lines of code. Classes should be in a single file with a corresponding name. Abstractions and inheritance should also be visible from the class name / file name.
+
+Before implementing new classes, modules or functions, always review the functions already available and how these functions could be used for implementing additional functionality or whatever else is requested. If functions need changes to be usable, provide this as an option and review these changes with regards to breaking existing functionality.  Breaking existing functionality should always be avoided.
+
+Provide logging where necessary, but do not use excessive logging for default/successful cases. Use the logging library for generating logging output. 
+To improve readability of the code, function calls should - wherever possible - use named parameters at the function call. For instance, if a function f() takes two parameters a and b of type int and str respectively, then the call to the function should be f(a=5, b="abc") instead of f(5,"abc"). This makes code easier to read as is immediately conveys - assuming parameters have been given proper names when writing the function - which parameter gets which value. 
+
+The project also has a coding strategy: the directory "test" mirrors the directory "src", i.e., for every file in "src", there is a corresponding file with the unit tests for that specific file in src and the complete directory structure in test mirrors src. When functions, classes or files are added to the src tree, corresponding tests must be introduced to the corresponding unit test file. When functions, classes or files are modified, the corresponding files in the test must be adapted to provide adequate testing for the new modified functionality. In general, the tests in "test" must always be in sync with the code in "src" and test configuration files must be adapted if modified functionaluty requires this. As a last step to any code submission, the tests must be run. If any tests fail, subsequented changes to the new code must be introduced to ensure that the new code is properly tested and works. Editing must continue until this state is reached. If changes require the removal of previously existing tests, such removal must be explicitly flagged to the user as this is a critical change.

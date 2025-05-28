@@ -1,0 +1,534 @@
+"""
+ConverseMessageBuilder - Fluent interface for building Converse API messages.
+Provides a convenient way to construct messages with automatic format detection.
+"""
+
+import logging
+from typing import Dict, List, Optional, Any, Union
+
+from .message_builder_enums import RolesEnum, ImageFormatEnum, DocumentFormatEnum, VideoFormatEnum
+from .message_builder_constants import (
+    MessageBuilderConfig, MessageBuilderLogMessages, MessageBuilderErrorMessages,
+    SupportedFormats
+)
+from .llm_manager_constants import ConverseAPIFields
+from .file_type_detector.file_type_detector import FileTypeDetector
+from ..exceptions.llm_manager_exceptions import RequestValidationError
+
+
+class ConverseMessageBuilder:
+    """
+    Fluent interface for building Converse API messages.
+    
+    Provides methods to add different types of content (text, images, documents, videos)
+    with automatic format detection and validation.
+    
+    Example:
+        message = ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_text(text="Analyze this image")
+            .add_image_bytes(bytes=image_data, filename="photo.jpg")
+            .build()
+    """
+    
+    def __init__(self, role: RolesEnum) -> None:
+        """
+        Initialize the message builder with a role.
+        
+        Args:
+            role: The role for this message (USER or ASSISTANT)
+            
+        Raises:
+            RequestValidationError: If role is invalid
+        """
+        self._logger = logging.getLogger(__name__)
+        
+        # Validate role
+        if not isinstance(role, RolesEnum):
+            valid_roles = [r.value for r in RolesEnum]
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.INVALID_ROLE.format(
+                    role=role,
+                    valid_roles=valid_roles
+                )
+            )
+        
+        self._role = role
+        self._content_blocks: List[Dict[str, Any]] = []
+        self._file_detector = FileTypeDetector()
+        
+        self._logger.debug(
+            f"Initialized ConverseMessageBuilder with role: {role.value}"
+        )
+    
+    def add_text(self, text: str) -> 'ConverseMessageBuilder':
+        """
+        Add a text content block to the message.
+        
+        Args:
+            text: Text content to add
+            
+        Returns:
+            Self for method chaining
+            
+        Raises:
+            RequestValidationError: If text is empty or invalid
+        """
+        if not text or not text.strip():
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="text")
+            )
+        
+        self._validate_content_block_limit()
+        
+        text_block = {
+            ConverseAPIFields.TEXT: text.strip()
+        }
+        
+        self._content_blocks.append(text_block)
+        
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type="text",
+                size=len(text.encode('utf-8'))
+            )
+        )
+        
+        return self
+    
+    def add_image_bytes(
+        self,
+        bytes: bytes,
+        format: Optional[ImageFormatEnum] = None,
+        filename: Optional[str] = None
+    ) -> 'ConverseMessageBuilder':
+        """
+        Add an image content block to the message.
+        
+        Args:
+            bytes: Raw image bytes
+            format: Optional image format (auto-detected if not provided)
+            filename: Optional filename for format detection and logging
+            
+        Returns:
+            Self for method chaining
+            
+        Raises:
+            RequestValidationError: If image data is invalid or format unsupported
+        """
+        if not bytes:
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="image")
+            )
+        
+        self._validate_content_block_limit()
+        self._validate_content_size(
+            content_size=len(bytes),
+            max_size=MessageBuilderConfig.MAX_IMAGE_SIZE_BYTES,
+            content_type="image"
+        )
+        
+        # Auto-detect format if not provided
+        if format is None:
+            detection_result = self._file_detector.detect_image_format(
+                content=bytes,
+                filename=filename
+            )
+            
+            if not detection_result.is_successful:
+                raise RequestValidationError(
+                    MessageBuilderErrorMessages.DETECTION_FAILED.format(
+                        filename=filename or "unnamed_file",
+                        error=detection_result.error_message
+                    )
+                )
+            
+            detected_format = detection_result.detected_format
+            
+            # Log the auto-detection
+            self._logger.info(
+                MessageBuilderLogMessages.AUTO_DETECTION_SUCCESS.format(
+                    filename=filename or "unnamed_file",
+                    detected_type=detected_format,
+                    method=detection_result.detection_method.value,
+                    confidence=detection_result.confidence
+                )
+            )
+            
+            # Convert string format to enum
+            try:
+                format = ImageFormatEnum(detected_format)
+            except ValueError:
+                raise RequestValidationError(
+                    MessageBuilderErrorMessages.UNSUPPORTED_FORMAT.format(
+                        content_type="image",
+                        format=detected_format
+                    )
+                )
+        
+        # Validate format is supported
+        if format.value not in SupportedFormats.IMAGE_FORMATS:
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.INVALID_FORMAT.format(
+                    content_type="image",
+                    format=format.value,
+                    supported_formats=SupportedFormats.IMAGE_FORMATS
+                )
+            )
+        
+        # Build image content block
+        image_block = {
+            ConverseAPIFields.IMAGE: {
+                ConverseAPIFields.FORMAT: format.value,
+                ConverseAPIFields.SOURCE: {
+                    ConverseAPIFields.BYTES: bytes
+                }
+            }
+        }
+        
+        self._content_blocks.append(image_block)
+        
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type=f"image ({format.value})",
+                size=len(bytes)
+            )
+        )
+        
+        return self
+    
+    def add_document_bytes(
+        self,
+        bytes: bytes,
+        format: Optional[DocumentFormatEnum] = None,
+        filename: Optional[str] = None,
+        name: Optional[str] = None
+    ) -> 'ConverseMessageBuilder':
+        """
+        Add a document content block to the message.
+        
+        Args:
+            bytes: Raw document bytes
+            format: Optional document format (auto-detected if not provided)
+            filename: Optional filename for format detection and logging
+            name: Optional document name for the API
+            
+        Returns:
+            Self for method chaining
+            
+        Raises:
+            RequestValidationError: If document data is invalid or format unsupported
+        """
+        if not bytes:
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="document")
+            )
+        
+        self._validate_content_block_limit()
+        self._validate_content_size(
+            content_size=len(bytes),
+            max_size=MessageBuilderConfig.MAX_DOCUMENT_SIZE_BYTES,
+            content_type="document"
+        )
+        
+        # Auto-detect format if not provided
+        if format is None:
+            detection_result = self._file_detector.detect_document_format(
+                content=bytes,
+                filename=filename
+            )
+            
+            if not detection_result.is_successful:
+                raise RequestValidationError(
+                    MessageBuilderErrorMessages.DETECTION_FAILED.format(
+                        filename=filename or "unnamed_file",
+                        error=detection_result.error_message
+                    )
+                )
+            
+            detected_format = detection_result.detected_format
+            
+            # Log the auto-detection
+            self._logger.info(
+                MessageBuilderLogMessages.AUTO_DETECTION_SUCCESS.format(
+                    filename=filename or "unnamed_file",
+                    detected_type=detected_format,
+                    method=detection_result.detection_method.value,
+                    confidence=detection_result.confidence
+                )
+            )
+            
+            # Convert string format to enum
+            try:
+                format = DocumentFormatEnum(detected_format)
+            except ValueError:
+                raise RequestValidationError(
+                    MessageBuilderErrorMessages.UNSUPPORTED_FORMAT.format(
+                        content_type="document",
+                        format=detected_format
+                    )
+                )
+        
+        # Validate format is supported
+        if format.value not in SupportedFormats.DOCUMENT_FORMATS:
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.INVALID_FORMAT.format(
+                    content_type="document",
+                    format=format.value,
+                    supported_formats=SupportedFormats.DOCUMENT_FORMATS
+                )
+            )
+        
+        # Build document content block
+        document_block = {
+            ConverseAPIFields.DOCUMENT: {
+                ConverseAPIFields.FORMAT: format.value,
+                ConverseAPIFields.SOURCE: {
+                    ConverseAPIFields.BYTES: bytes
+                }
+            }
+        }
+        
+        # Add document name if provided
+        if name:
+            document_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.NAME] = name
+        elif filename:
+            # Use filename as document name if no explicit name provided
+            document_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.NAME] = filename
+        
+        self._content_blocks.append(document_block)
+        
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type=f"document ({format.value})",
+                size=len(bytes)
+            )
+        )
+        
+        return self
+    
+    def add_video_bytes(
+        self,
+        bytes: bytes,
+        format: Optional[VideoFormatEnum] = None,
+        filename: Optional[str] = None
+    ) -> 'ConverseMessageBuilder':
+        """
+        Add a video content block to the message.
+        
+        Args:
+            bytes: Raw video bytes
+            format: Optional video format (auto-detected if not provided)
+            filename: Optional filename for format detection and logging
+            
+        Returns:
+            Self for method chaining
+            
+        Raises:
+            RequestValidationError: If video data is invalid or format unsupported
+        """
+        if not bytes:
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="video")
+            )
+        
+        self._validate_content_block_limit()
+        self._validate_content_size(
+            content_size=len(bytes),
+            max_size=MessageBuilderConfig.MAX_VIDEO_SIZE_BYTES,
+            content_type="video"
+        )
+        
+        # Auto-detect format if not provided
+        if format is None:
+            detection_result = self._file_detector.detect_video_format(
+                content=bytes,
+                filename=filename
+            )
+            
+            if not detection_result.is_successful:
+                raise RequestValidationError(
+                    MessageBuilderErrorMessages.DETECTION_FAILED.format(
+                        filename=filename or "unnamed_file",
+                        error=detection_result.error_message
+                    )
+                )
+            
+            detected_format = detection_result.detected_format
+            
+            # Log the auto-detection
+            self._logger.info(
+                MessageBuilderLogMessages.AUTO_DETECTION_SUCCESS.format(
+                    filename=filename or "unnamed_file",
+                    detected_type=detected_format,
+                    method=detection_result.detection_method.value,
+                    confidence=detection_result.confidence
+                )
+            )
+            
+            # Convert string format to enum
+            try:
+                format = VideoFormatEnum(detected_format)
+            except ValueError:
+                raise RequestValidationError(
+                    MessageBuilderErrorMessages.UNSUPPORTED_FORMAT.format(
+                        content_type="video",
+                        format=detected_format
+                    )
+                )
+        
+        # Validate format is supported
+        if format.value not in SupportedFormats.VIDEO_FORMATS:
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.INVALID_FORMAT.format(
+                    content_type="video",
+                    format=format.value,
+                    supported_formats=SupportedFormats.VIDEO_FORMATS
+                )
+            )
+        
+        # Build video content block
+        video_block = {
+            ConverseAPIFields.VIDEO: {
+                ConverseAPIFields.FORMAT: format.value,
+                ConverseAPIFields.SOURCE: {
+                    ConverseAPIFields.BYTES: bytes
+                }
+            }
+        }
+        
+        self._content_blocks.append(video_block)
+        
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type=f"video ({format.value})",
+                size=len(bytes)
+            )
+        )
+        
+        return self
+    
+    def build(self) -> Dict[str, Any]:
+        """
+        Build and return the complete message dictionary.
+        
+        Returns:
+            Dictionary compatible with LLMManager.converse() messages parameter
+            
+        Raises:
+            RequestValidationError: If message validation fails
+        """
+        # Validate we have content blocks
+        if not self._content_blocks:
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.NO_CONTENT_BLOCKS
+            )
+        
+        self._logger.debug(
+            MessageBuilderLogMessages.MESSAGE_BUILD_STARTED.format(
+                role=self._role.value,
+                block_count=len(self._content_blocks)
+            )
+        )
+        
+        # Build the message dictionary
+        message = {
+            ConverseAPIFields.ROLE: self._role.value,
+            ConverseAPIFields.CONTENT: self._content_blocks.copy()
+        }
+        
+        self._logger.info(
+            MessageBuilderLogMessages.MESSAGE_BUILD_COMPLETED.format(
+                block_count=len(self._content_blocks)
+            )
+        )
+        
+        return message
+    
+    def _validate_content_block_limit(self) -> None:
+        """
+        Validate that we haven't exceeded the content block limit.
+        
+        Raises:
+            RequestValidationError: If limit is exceeded
+        """
+        current_count = len(self._content_blocks)
+        max_count = MessageBuilderConfig.MAX_CONTENT_BLOCKS_PER_MESSAGE
+        
+        if current_count >= max_count:
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.CONTENT_BLOCK_LIMIT_EXCEEDED.format(
+                    limit=max_count
+                )
+            )
+        
+        # Warning at 80% of limit
+        warning_threshold = int(max_count * 0.8)
+        if current_count >= warning_threshold:
+            self._logger.warning(
+                MessageBuilderLogMessages.CONTENT_BLOCK_LIMIT_WARNING.format(
+                    count=current_count,
+                    limit=max_count
+                )
+            )
+    
+    def _validate_content_size(
+        self, 
+        content_size: int, 
+        max_size: int, 
+        content_type: str
+    ) -> None:
+        """
+        Validate content size against limits.
+        
+        Args:
+            content_size: Size of content in bytes
+            max_size: Maximum allowed size in bytes
+            content_type: Type of content for error messages
+            
+        Raises:
+            RequestValidationError: If size limit is exceeded
+        """
+        if content_size > max_size:
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.CONTENT_SIZE_EXCEEDED.format(
+                    size=content_size,
+                    limit=max_size,
+                    content_type=content_type
+                )
+            )
+        
+        # Warning at 80% of limit
+        warning_threshold = int(max_size * 0.8)
+        if content_size >= warning_threshold:
+            self._logger.warning(
+                MessageBuilderLogMessages.CONTENT_SIZE_WARNING.format(
+                    size=content_size,
+                    limit=max_size,
+                    content_type=content_type
+                )
+            )
+    
+    @property
+    def role(self) -> RolesEnum:
+        """Get the role for this message."""
+        return self._role
+    
+    @property
+    def content_block_count(self) -> int:
+        """Get the current number of content blocks."""
+        return len(self._content_blocks)
+    
+    def __str__(self) -> str:
+        """String representation of the builder."""
+        return (
+            f"ConverseMessageBuilder(role={self._role.value}, "
+            f"content_blocks={len(self._content_blocks)})"
+        )
+    
+    def __repr__(self) -> str:
+        """Detailed string representation of the builder."""
+        return (
+            f"ConverseMessageBuilder(role={self._role.value}, "
+            f"content_blocks={len(self._content_blocks)}, "
+            f"detector={self._file_detector.__class__.__name__})"
+        )
