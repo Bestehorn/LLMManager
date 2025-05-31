@@ -18,6 +18,10 @@ class RolesEnum(str, Enum):
     
     USER = ConverseAPIFields.ROLE_USER
     ASSISTANT = ConverseAPIFields.ROLE_ASSISTANT
+    
+    def __str__(self) -> str:
+        """Return the string value of the enum."""
+        return self.value
 
 
 class ImageFormatEnum(str, Enum):

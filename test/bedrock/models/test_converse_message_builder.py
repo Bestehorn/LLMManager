@@ -163,7 +163,28 @@ class TestAddImageBytesMethod:
         with pytest.raises(RequestValidationError):
             # We need to create a scenario where format validation fails
             # This is a bit contrived since our enum only has supported formats
-            pass  # Skip this test for now since enum prevents invalid formats
+            # Mock the detector to return an unsupported format
+            with patch('src.bedrock.models.converse_message_builder.FileTypeDetector') as mock_detector_class:
+                mock_detector = Mock()
+                mock_detector_class.return_value = mock_detector
+                
+                from src.bedrock.models.file_type_detector.base_detector import DetectionResult
+                from src.bedrock.models.message_builder_enums import DetectionMethodEnum
+                
+                # Mock detection result with unsupported format
+                mock_result = DetectionResult(
+                    detected_format="bmp",  # Unsupported format
+                    confidence=0.95,
+                    detection_method=DetectionMethodEnum.CONTENT,
+                    filename="test.bmp"
+                )
+                mock_detector.detect_image_format.return_value = mock_result
+                
+                # This should raise RequestValidationError due to unsupported format
+                builder.add_image_bytes(
+                    bytes=image_data,
+                    filename="test.bmp"
+                )
 
 
 class TestAddDocumentBytesMethod:

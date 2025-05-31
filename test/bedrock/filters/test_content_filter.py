@@ -102,7 +102,9 @@ class TestContentFilter:
         content_blocks = messages[0][ConverseAPIFields.CONTENT]
         assert len(content_blocks) == 1  # Only text block should remain
         assert ConverseAPIFields.TEXT in content_blocks[0]
-        assert ConverseAPIFields.IMAGE not in str(content_blocks)
+        # Check that no image blocks remain in the content
+        image_blocks = [block for block in content_blocks if ConverseAPIFields.IMAGE in block]
+        assert len(image_blocks) == 0
         
         # Check that filter state is updated
         assert 'image_processing' in filter_state.disabled_features
