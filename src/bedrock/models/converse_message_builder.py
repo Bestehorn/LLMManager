@@ -4,6 +4,7 @@ Provides a convenient way to construct messages with automatic format detection.
 """
 
 import logging
+from pathlib import Path
 from typing import Dict, List, Optional, Any, Union
 
 from .message_builder_enums import RolesEnum, ImageFormatEnum, DocumentFormatEnum, VideoFormatEnum
@@ -196,6 +197,67 @@ class ConverseMessageBuilder:
         
         return self
     
+    def add_local_image(
+        self,
+        path_to_local_file: str,
+        format: Optional[ImageFormatEnum] = None,
+        max_size_mb: float = 3.75
+    ) -> 'ConverseMessageBuilder':
+        """
+        Add an image content block from a local file path.
+        
+        Args:
+            path_to_local_file: Path to the local image file
+            format: Optional image format (auto-detected if not provided)
+            max_size_mb: Maximum allowed size in MB
+            
+        Returns:
+            Self for method chaining
+            
+        Raises:
+            RequestValidationError: If file cannot be read or is invalid
+            FileNotFoundError: If the file does not exist
+            ValueError: If image is too large and cannot be resized
+        """
+        file_path = Path(path_to_local_file)
+        
+        # Validate file exists
+        if not file_path.exists():
+            raise FileNotFoundError(f"Image file not found: {path_to_local_file}")
+        
+        if not file_path.is_file():
+            raise RequestValidationError(f"Path is not a file: {path_to_local_file}")
+        
+        # Check file size
+        file_size_mb = file_path.stat().st_size / (1024 * 1024)
+        max_size_bytes = int(max_size_mb * 1024 * 1024)
+        
+        if file_size_mb > max_size_mb:
+            self._logger.warning(
+                f"Image {file_path.name} is {file_size_mb:.2f}MB, exceeds limit of {max_size_mb}MB"
+            )
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.CONTENT_SIZE_EXCEEDED.format(
+                    size=file_path.stat().st_size,
+                    limit=max_size_bytes,
+                    content_type="image"
+                )
+            )
+        
+        # Read the file
+        try:
+            with open(file_path, "rb") as image_file:
+                image_bytes = image_file.read()
+        except Exception as e:
+            raise RequestValidationError(f"Failed to read image file {path_to_local_file}: {e}")
+        
+        # Use the existing add_image_bytes method
+        return self.add_image_bytes(
+            bytes=image_bytes,
+            format=format,
+            filename=file_path.name
+        )
+    
     def add_document_bytes(
         self,
         bytes: bytes,
@@ -306,6 +368,69 @@ class ConverseMessageBuilder:
         
         return self
     
+    def add_local_document(
+        self,
+        path_to_local_file: str,
+        format: Optional[DocumentFormatEnum] = None,
+        name: Optional[str] = None,
+        max_size_mb: float = 4.5
+    ) -> 'ConverseMessageBuilder':
+        """
+        Add a document content block from a local file path.
+        
+        Args:
+            path_to_local_file: Path to the local document file
+            format: Optional document format (auto-detected if not provided)
+            name: Optional document name for the API
+            max_size_mb: Maximum allowed size in MB
+            
+        Returns:
+            Self for method chaining
+            
+        Raises:
+            RequestValidationError: If file cannot be read or is invalid
+            FileNotFoundError: If the file does not exist
+        """
+        file_path = Path(path_to_local_file)
+        
+        # Validate file exists
+        if not file_path.exists():
+            raise FileNotFoundError(f"Document file not found: {path_to_local_file}")
+        
+        if not file_path.is_file():
+            raise RequestValidationError(f"Path is not a file: {path_to_local_file}")
+        
+        # Check file size
+        file_size_mb = file_path.stat().st_size / (1024 * 1024)
+        max_size_bytes = int(max_size_mb * 1024 * 1024)
+        
+        if file_size_mb > max_size_mb:
+            self._logger.warning(
+                f"Document {file_path.name} is {file_size_mb:.2f}MB, exceeds limit of {max_size_mb}MB"
+            )
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.CONTENT_SIZE_EXCEEDED.format(
+                    size=file_path.stat().st_size,
+                    limit=max_size_bytes,
+                    content_type="document"
+                )
+            )
+        
+        # Read the file
+        try:
+            with open(file_path, "rb") as document_file:
+                document_bytes = document_file.read()
+        except Exception as e:
+            raise RequestValidationError(f"Failed to read document file {path_to_local_file}: {e}")
+        
+        # Use the existing add_document_bytes method
+        return self.add_document_bytes(
+            bytes=document_bytes,
+            format=format,
+            filename=file_path.name,
+            name=name
+        )
+    
     def add_video_bytes(
         self,
         bytes: bytes,
@@ -406,6 +531,66 @@ class ConverseMessageBuilder:
         )
         
         return self
+    
+    def add_local_video(
+        self,
+        path_to_local_file: str,
+        format: Optional[VideoFormatEnum] = None,
+        max_size_mb: float = 100.0
+    ) -> 'ConverseMessageBuilder':
+        """
+        Add a video content block from a local file path.
+        
+        Args:
+            path_to_local_file: Path to the local video file
+            format: Optional video format (auto-detected if not provided)
+            max_size_mb: Maximum allowed size in MB
+            
+        Returns:
+            Self for method chaining
+            
+        Raises:
+            RequestValidationError: If file cannot be read or is invalid
+            FileNotFoundError: If the file does not exist
+        """
+        file_path = Path(path_to_local_file)
+        
+        # Validate file exists
+        if not file_path.exists():
+            raise FileNotFoundError(f"Video file not found: {path_to_local_file}")
+        
+        if not file_path.is_file():
+            raise RequestValidationError(f"Path is not a file: {path_to_local_file}")
+        
+        # Check file size
+        file_size_mb = file_path.stat().st_size / (1024 * 1024)
+        max_size_bytes = int(max_size_mb * 1024 * 1024)
+        
+        if file_size_mb > max_size_mb:
+            self._logger.warning(
+                f"Video {file_path.name} is {file_size_mb:.2f}MB, exceeds limit of {max_size_mb}MB"
+            )
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.CONTENT_SIZE_EXCEEDED.format(
+                    size=file_path.stat().st_size,
+                    limit=max_size_bytes,
+                    content_type="video"
+                )
+            )
+        
+        # Read the file
+        try:
+            with open(file_path, "rb") as video_file:
+                video_bytes = video_file.read()
+        except Exception as e:
+            raise RequestValidationError(f"Failed to read video file {path_to_local_file}: {e}")
+        
+        # Use the existing add_video_bytes method
+        return self.add_video_bytes(
+            bytes=video_bytes,
+            format=format,
+            filename=file_path.name
+        )
     
     def build(self) -> Dict[str, Any]:
         """
