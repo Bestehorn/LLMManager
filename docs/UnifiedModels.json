@@ -1,0 +1,3046 @@
+{
+  "retrieval_timestamp": "2025-06-01T23:06:07.811327",
+  "unified_models": {
+    "Claude 3 Haiku": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-claude.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+      "model_name": "Claude 3 Haiku",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Anthropic",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "ap-northeast-1"
+        },
+        "ap-northeast-2": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "ap-northeast-2"
+        },
+        "ap-south-1": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "ap-south-1"
+        },
+        "ap-southeast-1": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "ca-central-1"
+        },
+        "eu-central-1": {
+          "access_method": "both",
+          "inference_profile_id": "eu.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "eu-central-1"
+        },
+        "eu-central-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "eu-central-2"
+        },
+        "eu-west-1": {
+          "access_method": "both",
+          "inference_profile_id": "eu.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "both",
+          "inference_profile_id": "eu.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "both",
+          "inference_profile_id": "us.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-gov-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "us-gov-west-1"
+        },
+        "us-west-2": {
+          "access_method": "both",
+          "inference_profile_id": "us.anthropic.claude-3-haiku-20240307-v1:0",
+          "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Claude 3 Opus": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-claude.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "anthropic.claude-3-opus-20240229-v1:0",
+      "model_name": "Claude 3 Opus",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Anthropic",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-3-opus-20240229-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "both",
+          "inference_profile_id": "us.anthropic.claude-3-opus-20240229-v1:0",
+          "model_id": "anthropic.claude-3-opus-20240229-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Claude 3 Sonnet": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-claude.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+      "model_name": "Claude 3 Sonnet",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Anthropic",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-sonnet-20240229-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-1"
+        },
+        "ap-northeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-sonnet-20240229-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-2"
+        },
+        "ap-south-1": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-sonnet-20240229-v1:0",
+          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "region": "ap-south-1"
+        },
+        "ap-southeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-sonnet-20240229-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-sonnet-20240229-v1:0",
+          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "region": "ca-central-1"
+        },
+        "eu-central-1": {
+          "access_method": "both",
+          "inference_profile_id": "eu.anthropic.claude-3-sonnet-20240229-v1:0",
+          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "region": "eu-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "both",
+          "inference_profile_id": "eu.anthropic.claude-3-sonnet-20240229-v1:0",
+          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "both",
+          "inference_profile_id": "eu.anthropic.claude-3-sonnet-20240229-v1:0",
+          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "both",
+          "inference_profile_id": "us.anthropic.claude-3-sonnet-20240229-v1:0",
+          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "both",
+          "inference_profile_id": "us.anthropic.claude-3-sonnet-20240229-v1:0",
+          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Claude 3.5 Haiku": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-claude.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "anthropic.claude-3-5-haiku-20241022-v1:0",
+      "model_name": "Claude 3.5 Haiku",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Anthropic",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-3-5-haiku-20241022-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-3-5-haiku-20241022-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "both",
+          "inference_profile_id": "us.anthropic.claude-3-5-haiku-20241022-v1:0",
+          "model_id": "anthropic.claude-3-5-haiku-20241022-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Claude 3.5 Sonnet": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-claude.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+      "model_name": "Claude 3.5 Sonnet",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Anthropic",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "region": "ap-northeast-1"
+        },
+        "ap-northeast-2": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "region": "ap-northeast-2"
+        },
+        "ap-south-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": null,
+          "region": "ap-south-1"
+        },
+        "ap-southeast-1": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-2"
+        },
+        "eu-central-1": {
+          "access_method": "both",
+          "inference_profile_id": "eu.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "region": "eu-central-1"
+        },
+        "eu-central-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "region": "eu-central-2"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": null,
+          "region": "eu-west-1"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": null,
+          "region": "eu-west-3"
+        },
+        "us-east-1": {
+          "access_method": "both",
+          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-gov-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "region": "us-gov-west-1"
+        },
+        "us-west-2": {
+          "access_method": "both",
+          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Claude 3.5 Sonnet v2": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-claude.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+      "model_name": "Claude 3.5 Sonnet v2",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Anthropic",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "model_id": null,
+          "region": "ap-northeast-1"
+        },
+        "ap-northeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "model_id": null,
+          "region": "ap-northeast-2"
+        },
+        "ap-northeast-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "model_id": null,
+          "region": "ap-northeast-3"
+        },
+        "ap-south-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "model_id": null,
+          "region": "ap-south-1"
+        },
+        "ap-south-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "model_id": null,
+          "region": "ap-south-2"
+        },
+        "ap-southeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "model_id": null,
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "both",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "region": "ap-southeast-2"
+        },
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "both",
+          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Claude 3.7 Sonnet": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-claude.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
+      "model_name": "Claude 3.7 Sonnet",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Anthropic",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-1"
+        },
+        "ap-northeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-2"
+        },
+        "ap-northeast-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-3"
+        },
+        "ap-south-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "ap-south-1"
+        },
+        "ap-south-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "ap-south-2"
+        },
+        "ap-southeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-2"
+        },
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "eu-central-1"
+        },
+        "eu-north-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "eu-north-1"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "eu-west-1"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "eu-west-3"
+        },
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Claude Opus 4": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-claude.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "anthropic.claude-opus-4-20250514-v1:0",
+      "model_name": "Claude Opus 4",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Anthropic",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-opus-4-20250514-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-opus-4-20250514-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-opus-4-20250514-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Claude Sonnet 4": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-claude.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+      "model_name": "Claude Sonnet 4",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Anthropic",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-1"
+        },
+        "ap-northeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-2"
+        },
+        "ap-northeast-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-3"
+        },
+        "ap-south-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "ap-south-1"
+        },
+        "ap-south-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "ap-south-2"
+        },
+        "ap-southeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-2"
+        },
+        "eu-south-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "eu-south-2"
+        },
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Command": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/cm-hp-cohere-command.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-cohere-command.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "cohere.command-text-v14",
+      "model_name": "Command",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Cohere",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.command-text-v14",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.command-text-v14",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Command Light": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/cm-hp-cohere-command.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-cohere-command.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "cohere.command-light-text-v14",
+      "model_name": "Command Light",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Cohere",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.command-light-text-v14",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.command-light-text-v14",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Command R": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-cohere-command-r-plus.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "cohere.command-r-v1:0",
+      "model_name": "Command R",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Cohere",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.command-r-v1:0",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.command-r-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Command R+": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-cohere-command-r-plus.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "cohere.command-r-plus-v1:0",
+      "model_name": "Command R+",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Cohere",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.command-r-plus-v1:0",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.command-r-plus-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "DeepSeek-R1": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://www.deepseek.com/",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "deepseek.r1-v1:0",
+      "model_name": "DeepSeek-R1",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "DeepSeek",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.deepseek.r1-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.deepseek.r1-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.deepseek.r1-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Embed English": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-embed.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "cohere.embed-english-v3",
+      "model_name": "Embed English",
+      "output_modalities": [
+        "Embedding"
+      ],
+      "provider": "Cohere",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "ap-northeast-1"
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "ap-south-1"
+        },
+        "ap-southeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "ca-central-1"
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "eu-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-english-v3",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Embed Multilingual": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-embed.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "cohere.embed-multilingual-v3",
+      "model_name": "Embed Multilingual",
+      "output_modalities": [
+        "Embedding"
+      ],
+      "provider": "Cohere",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "ap-northeast-1"
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "ap-south-1"
+        },
+        "ap-southeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "ca-central-1"
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "eu-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.embed-multilingual-v3",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Jamba 1.5 Large": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-jamba.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "ai21.jamba-1-5-large-v1:0",
+      "model_name": "Jamba 1.5 Large",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "AI21 Labs",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "ai21.jamba-1-5-large-v1:0",
+          "region": "us-east-1"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Jamba 1.5 Mini": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-jamba.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "ai21.jamba-1-5-mini-v1:0",
+      "model_name": "Jamba 1.5 Mini",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "AI21 Labs",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "ai21.jamba-1-5-mini-v1:0",
+          "region": "us-east-1"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 3 70B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "meta.llama3-70b-instruct-v1:0",
+      "model_name": "Llama 3 70B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-70b-instruct-v1:0",
+          "region": "ap-south-1"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-70b-instruct-v1:0",
+          "region": "ca-central-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-70b-instruct-v1:0",
+          "region": "eu-west-2"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-70b-instruct-v1:0",
+          "region": "us-east-1"
+        },
+        "us-gov-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-70b-instruct-v1:0",
+          "region": "us-gov-west-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-70b-instruct-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 3 8B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "meta.llama3-8b-instruct-v1:0",
+      "model_name": "Llama 3 8B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-8b-instruct-v1:0",
+          "region": "ap-south-1"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-8b-instruct-v1:0",
+          "region": "ca-central-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-8b-instruct-v1:0",
+          "region": "eu-west-2"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-8b-instruct-v1:0",
+          "region": "us-east-1"
+        },
+        "us-gov-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-8b-instruct-v1:0",
+          "region": "us-gov-west-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-8b-instruct-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 3.1 405B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "meta.llama3-1-405b-instruct-v1:0",
+      "model_name": "Llama 3.1 405B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-1-405b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "meta.llama3-1-405b-instruct-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 3.1 70B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "meta.llama3-1-70b-instruct-v1:0",
+      "model_name": "Llama 3.1 70B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-1-70b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-1-70b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "both",
+          "inference_profile_id": "us.meta.llama3-1-70b-instruct-v1:0",
+          "model_id": "meta.llama3-1-70b-instruct-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 3.1 8B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "meta.llama3-1-8b-instruct-v1:0",
+      "model_name": "Llama 3.1 8B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-1-8b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-1-8b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "both",
+          "inference_profile_id": "us.meta.llama3-1-8b-instruct-v1:0",
+          "model_id": "meta.llama3-1-8b-instruct-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 3.2 11B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "meta.llama3-2-11b-instruct-v1:0",
+      "model_name": "Llama 3.2 11B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-11b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-11b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-11b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 3.2 1B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "meta.llama3-2-1b-instruct-v1:0",
+      "model_name": "Llama 3.2 1B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
+          "region": "eu-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
+          "region": "eu-west-1"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
+          "region": "eu-west-3"
+        },
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 3.2 3B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "meta.llama3-2-3b-instruct-v1:0",
+      "model_name": "Llama 3.2 3B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
+          "region": "eu-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
+          "region": "eu-west-1"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
+          "region": "eu-west-3"
+        },
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 3.2 90B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "meta.llama3-2-90b-instruct-v1:0",
+      "model_name": "Llama 3.2 90B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-90b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-90b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-2-90b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 3.3 70B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "meta.llama3-3-70b-instruct-v1:0",
+      "model_name": "Llama 3.3 70B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-3-70b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "both",
+          "inference_profile_id": "us.meta.llama3-3-70b-instruct-v1:0",
+          "model_id": "meta.llama3-3-70b-instruct-v1:0",
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama3-3-70b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 4 Maverick 17B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "meta.llama4-maverick-17b-instruct-v1:0",
+      "model_name": "Llama 4 Maverick 17B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama4-maverick-17b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama4-maverick-17b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama4-maverick-17b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Llama 4 Scout 17B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-meta.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "meta.llama4-scout-17b-instruct-v1:0",
+      "model_name": "Llama 4 Scout 17B Instruct",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Meta",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama4-scout-17b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama4-scout-17b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.meta.llama4-scout-17b-instruct-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Mistral 7B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "mistral.mistral-7b-instruct-v0:2",
+      "model_name": "Mistral 7B Instruct",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Mistral AI",
+      "region_access": {
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-7b-instruct-v0:2",
+          "region": "ap-south-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-7b-instruct-v0:2",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-7b-instruct-v0:2",
+          "region": "ca-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-7b-instruct-v0:2",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-7b-instruct-v0:2",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-7b-instruct-v0:2",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-7b-instruct-v0:2",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-7b-instruct-v0:2",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-7b-instruct-v0:2",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Mistral Large (24.02)": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "mistral.mistral-large-2402-v1:0",
+      "model_name": "Mistral Large (24.02)",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Mistral AI",
+      "region_access": {
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-large-2402-v1:0",
+          "region": "ap-south-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-large-2402-v1:0",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-large-2402-v1:0",
+          "region": "ca-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-large-2402-v1:0",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-large-2402-v1:0",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-large-2402-v1:0",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-large-2402-v1:0",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-large-2402-v1:0",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-large-2402-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Mistral Large (24.07)": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "mistral.mistral-large-2407-v1:0",
+      "model_name": "Mistral Large (24.07)",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Mistral AI",
+      "region_access": {
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-large-2407-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Mistral Small (24.02)": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "mistral.mistral-small-2402-v1:0",
+      "model_name": "Mistral Small (24.02)",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Mistral AI",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mistral-small-2402-v1:0",
+          "region": "us-east-1"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Mixtral 8x7B Instruct": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+      "model_name": "Mixtral 8x7B Instruct",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Mistral AI",
+      "region_access": {
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+          "region": "ap-south-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+          "region": "ca-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "mistral.mixtral-8x7b-instruct-v0:1",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Nova Canvas": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/customize-fine-tune-hyperparameters.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/image-gen-req-resp-structure.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "amazon.nova-canvas-v1:0",
+      "model_name": "Nova Canvas",
+      "output_modalities": [
+        "Image"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-canvas-v1:0",
+          "region": "ap-northeast-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-canvas-v1:0",
+          "region": "eu-west-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-canvas-v1:0",
+          "region": "us-east-1"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Nova Lite": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/customize-fine-tune-hyperparameters.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/getting-started-schema.html",
+      "input_modalities": [
+        "Text",
+        "Image",
+        "Video"
+      ],
+      "model_id": "amazon.nova-lite-v1:0",
+      "model_name": "Nova Lite",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-1"
+        },
+        "ap-northeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-2"
+        },
+        "ap-south-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "ap-south-1"
+        },
+        "ap-southeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-2"
+        },
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "eu-central-1"
+        },
+        "eu-north-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "eu-north-1"
+        },
+        "eu-south-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "eu-south-1"
+        },
+        "eu-south-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "eu-south-2"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "eu-west-1"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "eu-west-3"
+        },
+        "us-east-1": {
+          "access_method": "both",
+          "inference_profile_id": "us.amazon.nova-lite-v1:0",
+          "model_id": "amazon.nova-lite-v1:0",
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-gov-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-lite-v1:0",
+          "region": "us-gov-west-1"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.amazon.nova-lite-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Nova Micro": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/customize-fine-tune-hyperparameters.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/getting-started-schema.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "amazon.nova-micro-v1:0",
+      "model_name": "Nova Micro",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-1"
+        },
+        "ap-northeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-2"
+        },
+        "ap-south-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "ap-south-1"
+        },
+        "ap-southeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-2"
+        },
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "eu-central-1"
+        },
+        "eu-north-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "eu-north-1"
+        },
+        "eu-south-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "eu-south-1"
+        },
+        "eu-south-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "eu-south-2"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "eu-west-1"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "eu-west-3"
+        },
+        "us-east-1": {
+          "access_method": "both",
+          "inference_profile_id": "us.amazon.nova-micro-v1:0",
+          "model_id": "amazon.nova-micro-v1:0",
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-gov-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-micro-v1:0",
+          "region": "us-gov-west-1"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.amazon.nova-micro-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Nova Premier": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/customize-fine-tune-hyperparameters.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/getting-started-schema.html",
+      "input_modalities": [
+        "Text",
+        "Image",
+        "Video"
+      ],
+      "model_id": "amazon.nova-premier-v1:0",
+      "model_name": "Nova Premier",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.amazon.nova-premier-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.amazon.nova-premier-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.amazon.nova-premier-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Nova Pro": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/customize-fine-tune-hyperparameters.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/getting-started-schema.html",
+      "input_modalities": [
+        "Text",
+        "Image",
+        "Video"
+      ],
+      "model_id": "amazon.nova-pro-v1:0",
+      "model_name": "Nova Pro",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-1"
+        },
+        "ap-northeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "ap-northeast-2"
+        },
+        "ap-south-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "ap-south-1"
+        },
+        "ap-southeast-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "apac.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "ap-southeast-2"
+        },
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "eu-central-1"
+        },
+        "eu-north-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "eu-north-1"
+        },
+        "eu-south-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "eu-south-1"
+        },
+        "eu-south-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "eu-south-2"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "eu-west-1"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "eu-west-3"
+        },
+        "us-east-1": {
+          "access_method": "both",
+          "inference_profile_id": "us.amazon.nova-pro-v1:0",
+          "model_id": "amazon.nova-pro-v1:0",
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-gov-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-pro-v1:0",
+          "region": "us-gov-west-1"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.amazon.nova-pro-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Nova Reel": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/customize-fine-tune-hyperparameters.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/video-gen-access.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "amazon.nova-reel-v1:0",
+      "model_name": "Nova Reel",
+      "output_modalities": [
+        "Video"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-reel-v1:0",
+          "region": "ap-northeast-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-reel-v1:0",
+          "region": "eu-west-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-reel-v1:0",
+          "region": "us-east-1"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Nova Reel_v2": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/customize-fine-tune-hyperparameters.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/video-gen-access.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "amazon.nova-reel-v1:1",
+      "model_name": "Nova Reel_v2",
+      "output_modalities": [
+        "Video"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-reel-v1:1",
+          "region": "us-east-1"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Nova Sonic": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/customize-fine-tune-hyperparameters.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/nova/latest/userguide/video-gen-access.html",
+      "input_modalities": [
+        "Speech"
+      ],
+      "model_id": "amazon.nova-sonic-v1:0",
+      "model_name": "Nova Sonic",
+      "output_modalities": [
+        "Speech",
+        "Text"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.nova-sonic-v1:0",
+          "region": "us-east-1"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Palmyra X4": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-writer-palmyra.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "writer.palmyra-x4-v1:0",
+      "model_name": "Palmyra X4",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Writer",
+      "region_access": {
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.writer.palmyra-x4-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Palmyra X5": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-writer-palmyra.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "writer.palmyra-x5-v1:0",
+      "model_name": "Palmyra X5",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Writer",
+      "region_access": {
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.writer.palmyra-x5-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Pixtral Large (25.02)": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-mistral.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "mistral.pixtral-large-2502-v1:0",
+      "model_name": "Pixtral Large (25.02)",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Mistral AI",
+      "region_access": {
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
+          "region": "eu-central-1"
+        },
+        "eu-north-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
+          "region": "eu-north-1"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
+          "region": "eu-west-1"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "inference_profile_id": "eu.mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
+          "region": "eu-west-3"
+        },
+        "us-east-1": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
+          "region": "us-east-2"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "inference_profile_id": "us.mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Ray v2": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://lumalabs.ai/learning-hub",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "luma.ray-v2:0",
+      "model_name": "Ray v2",
+      "output_modalities": [
+        "Video"
+      ],
+      "provider": "Luma AI",
+      "region_access": {
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "luma.ray-v2:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Rerank 1.0": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": null,
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "amazon.rerank-v1:0",
+      "model_name": "Rerank 1.0",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.rerank-v1:0",
+          "region": "ap-northeast-1"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.rerank-v1:0",
+          "region": "ca-central-1"
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.rerank-v1:0",
+          "region": "eu-central-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.rerank-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Rerank 3.5": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.cohere.com/reference/rerank",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "cohere.rerank-v3-5:0",
+      "model_name": "Rerank 3.5",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Cohere",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.rerank-v3-5:0",
+          "region": "ap-northeast-1"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.rerank-v3-5:0",
+          "region": "ca-central-1"
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.rerank-v3-5:0",
+          "region": "eu-central-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "cohere.rerank-v3-5:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Stable Diffusion 3.5 Large": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-stability-diffusion.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "stability.sd3-5-large-v1:0",
+      "model_name": "Stable Diffusion 3.5 Large",
+      "output_modalities": [
+        "Image"
+      ],
+      "provider": "Stability AI",
+      "region_access": {
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "stability.sd3-5-large-v1:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Stable Image Core 1.0": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-stability-diffusion.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "stability.stable-image-core-v1:1",
+      "model_name": "Stable Image Core 1.0",
+      "output_modalities": [
+        "Image"
+      ],
+      "provider": "Stability AI",
+      "region_access": {
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "stability.stable-image-core-v1:1",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Stable Image Ultra 1.0": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-stability-diffusion.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "stability.stable-image-ultra-v1:1",
+      "model_name": "Stable Image Ultra 1.0",
+      "output_modalities": [
+        "Image"
+      ],
+      "provider": "Stability AI",
+      "region_access": {
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "stability.stable-image-ultra-v1:1",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Titan Embeddings G1 - Text": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-embed-text.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "amazon.titan-embed-text-v1",
+      "model_name": "Titan Embeddings G1 - Text",
+      "output_modalities": [
+        "Embedding"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v1",
+          "region": "ap-northeast-1"
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v1",
+          "region": "eu-central-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v1",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v1",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Titan Image Generator G1": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/cm-hp-titan-image.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-image.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "amazon.titan-image-generator-v1",
+      "model_name": "Titan Image Generator G1",
+      "output_modalities": [
+        "Image"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-image-generator-v1",
+          "region": "ap-south-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-image-generator-v1",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-image-generator-v1",
+          "region": "eu-west-2"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-image-generator-v1",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-image-generator-v1",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Titan Image Generator G1 v2": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/cm-hp-titan-image.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-image.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "amazon.titan-image-generator-v2:0",
+      "model_name": "Titan Image Generator G1 v2",
+      "output_modalities": [
+        "Image"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-image-generator-v2:0",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-image-generator-v2:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Titan Multimodal Embeddings G1": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/cm-hp-titan-mm.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-embed-mm.html",
+      "input_modalities": [
+        "Text",
+        "Image"
+      ],
+      "model_id": "amazon.titan-embed-image-v1",
+      "model_name": "Titan Multimodal Embeddings G1",
+      "output_modalities": [
+        "Embedding"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-image-v1",
+          "region": "ap-south-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-image-v1",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-image-v1",
+          "region": "ca-central-1"
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-image-v1",
+          "region": "eu-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-image-v1",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-image-v1",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-image-v1",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-image-v1",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-image-v1",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-image-v1",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Titan Text Embeddings V2": {
+      "hyperparameters_link": null,
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-embed-text.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "amazon.titan-embed-text-v2:0",
+      "model_name": "Titan Text Embeddings V2",
+      "output_modalities": [
+        "Embedding"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "ap-northeast-1"
+        },
+        "ap-northeast-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "ap-northeast-2"
+        },
+        "ap-northeast-3": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "ap-northeast-3"
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "ap-south-1"
+        },
+        "ap-south-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "ap-south-2"
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "ca-central-1"
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "eu-central-1"
+        },
+        "eu-central-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "eu-central-2"
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "eu-north-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "us-east-1"
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "us-east-2"
+        },
+        "us-gov-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "us-gov-east-1"
+        },
+        "us-gov-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "us-gov-west-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-embed-text-v2:0",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": false
+    },
+    "Titan Text G1 - Express": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/cm-hp-titan-text.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-text.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "amazon.titan-text-express-v1",
+      "model_name": "Titan Text G1 - Express",
+      "output_modalities": [
+        "Text",
+        "Chat"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "ap-northeast-1"
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "ap-south-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "ca-central-1"
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "eu-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "us-east-1"
+        },
+        "us-gov-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "us-gov-west-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-express-v1",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Titan Text G1 - Lite": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/cm-hp-titan-text.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-text.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "amazon.titan-text-lite-v1",
+      "model_name": "Titan Text G1 - Lite",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "ap-south-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-lite-v1",
+          "region": "ap-south-1"
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-lite-v1",
+          "region": "ap-southeast-2"
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-lite-v1",
+          "region": "ca-central-1"
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-lite-v1",
+          "region": "eu-central-1"
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-lite-v1",
+          "region": "eu-west-1"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-lite-v1",
+          "region": "eu-west-2"
+        },
+        "eu-west-3": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-lite-v1",
+          "region": "eu-west-3"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-lite-v1",
+          "region": "sa-east-1"
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-lite-v1",
+          "region": "us-east-1"
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-lite-v1",
+          "region": "us-west-2"
+        }
+      },
+      "streaming_supported": true
+    },
+    "Titan Text G1 - Premier": {
+      "hyperparameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/cm-hp-titan-text.html",
+      "inference_parameters_link": "https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-titan-text.html",
+      "input_modalities": [
+        "Text"
+      ],
+      "model_id": "amazon.titan-text-premier-v1:0",
+      "model_name": "Titan Text G1 - Premier",
+      "output_modalities": [
+        "Text"
+      ],
+      "provider": "Amazon",
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "inference_profile_id": null,
+          "model_id": "amazon.titan-text-premier-v1:0",
+          "region": "us-east-1"
+        }
+      },
+      "streaming_supported": true
+    }
+  }
+}

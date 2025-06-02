@@ -395,6 +395,7 @@ class TestLocalMethodsIntegration:
         mock_stat_results = [
             Mock(st_size=1024 * 1024),    # 1MB - should pass with 2MB limit
             Mock(st_size=3 * 1024 * 1024), # 3MB - should fail with 2MB limit
+            Mock(st_size=3 * 1024 * 1024), # 3MB - should fail with 2MB limit (second call in error message)
         ]
         mock_stat.side_effect = mock_stat_results
         
