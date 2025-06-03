@@ -125,3 +125,6 @@ notebooks/docs/UnifiedModels.json
 .gitignore
 notebooks/docs/CRIS.json
 notebooks/docs/FoundationalModels.json
+docs/CRIS.json
+docs/FoundationalModels.json
+docs/UnifiedModels.json
