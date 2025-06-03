@@ -472,3 +472,290 @@ class TestLLMManagerIntegration:
             
             with pytest.raises(RetryExhaustedError):
                 manager.converse(messages=messages)
+
+
+class TestLLMManagerUncoveredCases:
+    """Test cases for uncovered lines in LLMManager."""
+    
+    @pytest.fixture
+    def mock_unified_model_manager(self):
+        """Create a mock UnifiedModelManager."""
+        mock_manager = Mock()
+        mock_manager.load_cached_data.return_value = True
+        mock_manager.get_model_access_info.return_value = Mock(
+            access_method=Mock(value="direct"),
+            model_id="test-model-id",
+            inference_profile_id="test-profile-id",
+            region="us-east-1"
+        )
+        return mock_manager
+    
+    @pytest.fixture
+    def basic_llm_manager(self, mock_unified_model_manager):
+        """Create a basic LLMManager instance for testing."""
+        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
+            return LLMManager(
+                models=["Claude 3 Haiku"],
+                regions=["us-east-1"]
+            )
+    
+    def test_init_unified_model_manager_load_cached_fails(self):
+        """Test initialization when UnifiedModelManager fails to load cached data."""
+        mock_unified_manager = Mock()
+        mock_unified_manager.load_cached_data.return_value = False
+        mock_unified_manager.refresh_unified_data.return_value = None
+        mock_unified_manager.get_model_access_info.return_value = Mock(
+            access_method=Mock(value="direct"),
+            model_id="test-model-id",
+            inference_profile_id="test-profile-id",
+            region="us-east-1"
+        )
+        
+        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
+            manager = LLMManager(
+                models=["Claude 3 Haiku"],
+                regions=["us-east-1"]
+            )
+            
+            # Verify refresh was called when load_cached_data returned False
+            mock_unified_manager.refresh_unified_data.assert_called_once()
+    
+    def test_init_unified_model_manager_exception(self):
+        """Test initialization when UnifiedModelManager raises exception."""
+        mock_unified_manager = Mock()
+        mock_unified_manager.load_cached_data.side_effect = Exception("Failed to load")
+        mock_unified_manager.get_model_access_info.return_value = None
+        
+        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
+            # Should not raise, just log warning
+            manager = LLMManager(
+                models=["Claude 3 Haiku"],
+                regions=["us-east-1"]
+            )
+            
+            assert manager is not None
+    
+    def test_validate_model_region_combinations_no_valid_combinations(self):
+        """Test validation when no model/region combinations are available."""
+        mock_unified_manager = Mock()
+        mock_unified_manager.load_cached_data.return_value = True
+        mock_unified_manager.get_model_access_info.side_effect = Exception("Not available")
+        
+        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
+            # Should log warning but not raise
+            manager = LLMManager(
+                models=["Claude 3 Haiku"],
+                regions=["us-east-1"]
+            )
+            
+            assert manager is not None
+    
+    def test_validate_content_blocks_invalid_block_type(self, basic_llm_manager):
+        """Test validation of content blocks with invalid block type."""
+        errors = []
+        content_blocks = ["invalid_block", {"text": "valid"}]
+        
+        basic_llm_manager._validate_content_blocks(content_blocks, 0, errors)
+        
+        assert len(errors) == 1
+        assert "block 0 must be a dictionary" in errors[0]
+    
+    def test_execute_converse_success(self, basic_llm_manager):
+        """Test _execute_converse method success."""
+        mock_client = Mock()
+        mock_client.converse.return_value = {"output": {"message": {"content": [{"text": "Response"}]}}}
+        
+        with patch.object(basic_llm_manager._auth_manager, 'get_bedrock_client', return_value=mock_client):
+            result = basic_llm_manager._execute_converse(
+                model_id="test-model",
+                messages=[{"role": "user", "content": [{"text": "Hello"}]}]
+            )
+            
+            assert result == {"output": {"message": {"content": [{"text": "Response"}]}}}
+            mock_client.converse.assert_called_once()
+    
+    def test_execute_converse_no_region_available(self, basic_llm_manager):
+        """Test _execute_converse when no region is available."""
+        with patch.object(basic_llm_manager._auth_manager, 'get_bedrock_client', side_effect=Exception("Auth failed")):
+            with pytest.raises(AuthenticationError, match="Could not authenticate to any specified region"):
+                basic_llm_manager._execute_converse(
+                    model_id="test-model",
+                    messages=[{"role": "user", "content": [{"text": "Hello"}]}]
+                )
+    
+    def test_execute_converse_stream_success(self, basic_llm_manager):
+        """Test _execute_converse_stream method success."""
+        mock_client = Mock()
+        mock_stream_response = Mock()
+        mock_client.converse_stream.return_value = mock_stream_response
+        
+        with patch.object(basic_llm_manager._auth_manager, 'get_bedrock_client', return_value=mock_client):
+            result = basic_llm_manager._execute_converse_stream(
+                model_id="test-model",
+                messages=[{"role": "user", "content": [{"text": "Hello"}]}]
+            )
+            
+            assert result == mock_stream_response
+            mock_client.converse_stream.assert_called_once()
+    
+    def test_execute_converse_stream_no_region_available(self, basic_llm_manager):
+        """Test _execute_converse_stream when no region is available."""
+        with patch.object(basic_llm_manager._auth_manager, 'get_bedrock_client', side_effect=Exception("Auth failed")):
+            with pytest.raises(AuthenticationError, match="Could not authenticate to any specified region"):
+                basic_llm_manager._execute_converse_stream(
+                    model_id="test-model",
+                    messages=[{"role": "user", "content": [{"text": "Hello"}]}]
+                )
+    
+    def test_get_model_access_info_exception(self, basic_llm_manager):
+        """Test get_model_access_info when exception occurs."""
+        basic_llm_manager._unified_model_manager.get_model_access_info.side_effect = Exception("Error")
+        
+        result = basic_llm_manager.get_model_access_info("Claude 3 Haiku", "us-east-1")
+        
+        assert result is None
+    
+    def test_validate_configuration_auth_error(self, basic_llm_manager):
+        """Test validate_configuration when authentication fails."""
+        with patch.object(basic_llm_manager._auth_manager, 'get_auth_info', side_effect=Exception("Auth error")):
+            result = basic_llm_manager.validate_configuration()
+            
+            assert result["valid"] is False
+            assert "Authentication error" in result["errors"][0]
+    
+    def test_validate_configuration_model_region_exception(self, basic_llm_manager):
+        """Test validate_configuration when model/region check throws exception."""
+        # First call for auth succeeds
+        with patch.object(basic_llm_manager._auth_manager, 'get_auth_info', return_value={"auth_type": "default"}):
+            # Model access info throws exception
+            basic_llm_manager._unified_model_manager.get_model_access_info.side_effect = Exception("Check failed")
+            
+            result = basic_llm_manager.validate_configuration()
+            
+            assert len(result["warnings"]) > 0
+            assert "Could not validate" in result["warnings"][0]
+    
+    @patch('LLMManager.datetime')
+    def test_converse_with_api_latency(self, mock_datetime, basic_llm_manager):
+        """Test converse method with API latency in response."""
+        # Setup datetime mock
+        start_time = datetime(2023, 1, 1, 12, 0, 0)
+        end_time = datetime(2023, 1, 1, 12, 0, 1)
+        mock_datetime.now.side_effect = [start_time, end_time]
+        
+        # Mock successful execution with latency
+        mock_result = {
+            "output": {"message": {"content": [{"text": "Response"}]}},
+            "metrics": {"latencyMs": 250}
+        }
+        
+        mock_attempt = Mock()
+        mock_attempt.model_id = "test-model"
+        mock_attempt.region = "us-east-1"
+        mock_attempt.access_method = "direct"
+        mock_attempt.success = True
+        
+        with patch.object(basic_llm_manager._retry_manager, 'generate_retry_targets', return_value=[Mock()]), \
+             patch.object(basic_llm_manager._retry_manager, 'execute_with_retry', return_value=(mock_result, [mock_attempt], [])):
+            
+            messages = [{"role": "user", "content": [{"text": "Hello"}]}]
+            response = basic_llm_manager.converse(messages=messages)
+            
+            assert response.api_latency_ms == 250
+    
+    @patch('LLMManager.datetime')
+    def test_converse_stream_success_flow(self, mock_datetime, basic_llm_manager):
+        """Test successful converse_stream operation."""
+        # Setup datetime mock
+        start_time = datetime(2023, 1, 1, 12, 0, 0)
+        end_time = datetime(2023, 1, 1, 12, 0, 1)
+        mock_datetime.now.side_effect = [start_time, end_time]
+        
+        # Mock successful streaming execution
+        mock_stream = Mock()
+        
+        with patch.object(basic_llm_manager._retry_manager, 'generate_retry_targets', return_value=[Mock()]), \
+             patch.object(basic_llm_manager._retry_manager, 'execute_with_retry', return_value=(mock_stream, [], [])):
+            
+            messages = [{"role": "user", "content": [{"text": "Hello"}]}]
+            response = basic_llm_manager.converse_stream(messages=messages)
+            
+            assert isinstance(response, StreamingResponse)
+            assert response.success is True
+    
+    def test_converse_stream_retry_exhausted(self, basic_llm_manager):
+        """Test converse_stream when retries are exhausted."""
+        with patch.object(basic_llm_manager._retry_manager, 'generate_retry_targets', return_value=[Mock()]), \
+             patch.object(basic_llm_manager._retry_manager, 'execute_with_retry', 
+                          side_effect=RetryExhaustedError(
+                              message="All retries failed", 
+                              attempts_made=3, 
+                              models_tried=["model1"], 
+                              regions_tried=["region1"]
+                          )):
+            
+            messages = [{"role": "user", "content": [{"text": "Hello"}]}]
+            
+            with pytest.raises(RetryExhaustedError):
+                basic_llm_manager.converse_stream(messages=messages)
+    
+    def test_init_with_provided_unified_model_manager(self):
+        """Test initialization with pre-configured UnifiedModelManager."""
+        mock_unified_manager = Mock()
+        mock_unified_manager.get_model_access_info.return_value = Mock(
+            access_method=Mock(value="direct"),
+            model_id="test-model-id",
+            inference_profile_id="test-profile-id",
+            region="us-east-1"
+        )
+        
+        manager = LLMManager(
+            models=["Claude 3 Haiku"],
+            regions=["us-east-1"],
+            unified_model_manager=mock_unified_manager
+        )
+        
+        # Should not create a new UnifiedModelManager
+        assert manager._unified_model_manager == mock_unified_manager
+    
+    def test_init_with_default_inference_config(self):
+        """Test initialization with default inference configuration."""
+        mock_unified_manager = Mock()
+        mock_unified_manager.load_cached_data.return_value = True
+        mock_unified_manager.get_model_access_info.return_value = Mock(
+            access_method=Mock(value="direct"),
+            model_id="test-model-id",
+            inference_profile_id="test-profile-id",
+            region="us-east-1"
+        )
+        
+        default_config = {"temperature": 0.7, "maxTokens": 1000}
+        
+        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
+            manager = LLMManager(
+                models=["Claude 3 Haiku"],
+                regions=["us-east-1"],
+                default_inference_config=default_config
+            )
+            
+            assert manager._default_inference_config == default_config
+    
+    def test_init_with_custom_timeout(self):
+        """Test initialization with custom timeout."""
+        mock_unified_manager = Mock()
+        mock_unified_manager.load_cached_data.return_value = True
+        mock_unified_manager.get_model_access_info.return_value = Mock(
+            access_method=Mock(value="direct"),
+            model_id="test-model-id",
+            inference_profile_id="test-profile-id",
+            region="us-east-1"
+        )
+        
+        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
+            manager = LLMManager(
+                models=["Claude 3 Haiku"],
+                regions=["us-east-1"],
+                timeout=300
+            )
+            
+            assert manager._timeout == 300
