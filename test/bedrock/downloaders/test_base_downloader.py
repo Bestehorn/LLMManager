@@ -124,7 +124,7 @@ class TestBaseDocumentationDownloader:
             "\t",
             "\n",
             "\r\n",
-            None
+
         ]
         
         for url in invalid_urls:

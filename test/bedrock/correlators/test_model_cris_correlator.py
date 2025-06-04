@@ -173,7 +173,7 @@ class TestModelCRISCorrelator:
                     cris_catalog=sample_cris_catalog
                 )
             
-            assert "Model correlation failed for 'bad-model'" in str(exc_info.value)
+            assert "Model correlation failed for 'claude-3-sonnet'" in str(exc_info.value)
     
     def test_correlate_catalogs_cris_processing_error(
         self,

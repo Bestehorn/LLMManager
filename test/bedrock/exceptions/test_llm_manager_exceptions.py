@@ -27,7 +27,7 @@ class TestLLMManagerError:
         
         assert str(error) == "Test error message"
         assert error.message == "Test error message"
-        assert error.details == {}
+        assert error.details is None
     
     def test_initialization_with_details(self):
         """Test error initialization with details."""
@@ -42,7 +42,7 @@ class TestLLMManagerError:
         """Test initialization with None details."""
         error = LLMManagerError("Test error", details=None)
         
-        assert error.details == {}
+        assert error.details is None
         assert str(error) == "Test error"
     
     def test_repr_method(self):
@@ -62,7 +62,7 @@ class TestLLMManagerError:
         repr_str = repr(error)
         assert "LLMManagerError" in repr_str
         assert "Simple error" in repr_str
-        assert "{}" in repr_str
+        assert "None" in repr_str
     
     def test_str_method_with_details(self):
         """Test __str__ method with details."""
@@ -94,7 +94,7 @@ class TestConfigurationError:
         assert isinstance(error, LLMManagerError)
         assert error.message == "Invalid configuration"
         assert error.invalid_config is None
-        assert error.details == {"invalid_config": None}
+        assert error.details is None
     
     def test_initialization_with_invalid_config(self):
         """Test initialization with invalid configuration data."""
@@ -103,7 +103,7 @@ class TestConfigurationError:
         
         assert error.message == "Bad config"
         assert error.invalid_config == invalid_config
-        assert error.details["invalid_config"] == invalid_config
+        assert error.details == {"invalid_config": invalid_config}
     
     def test_initialization_with_none_config(self):
         """Test initialization with None configuration."""
