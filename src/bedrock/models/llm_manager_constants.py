@@ -243,6 +243,31 @@ class ContentLimits:
     DEFAULT_MAX_OUTPUT_TOKENS: Final[int] = 4_096
 
 
+class ResponseValidationConfig:
+    """Configuration constants for response validation."""
+    
+    # Default values
+    DEFAULT_VALIDATION_RETRIES: Final[int] = 3
+    DEFAULT_VALIDATION_DELAY: Final[float] = 0.0
+    
+    # Validation result field constants
+    VALIDATION_SUCCESS: Final[str] = "success"
+    VALIDATION_ERROR_MESSAGE: Final[str] = "error_message"
+    VALIDATION_ERROR_DETAILS: Final[str] = "error_details"
+
+
+class ResponseValidationLogMessages:
+    """Logging message constants for response validation."""
+    
+    # Validation messages
+    VALIDATION_STARTED: Final[str] = "Starting response validation for model '{model}' in region '{region}'"
+    VALIDATION_FAILED: Final[str] = "Response validation failed (attempt {attempt}/{max_attempts}) for model '{model}' in region '{region}': {error}"
+    VALIDATION_SUCCEEDED: Final[str] = "Response validation succeeded for model '{model}' in region '{region}' after {attempts} attempts"
+    VALIDATION_RETRIES_EXHAUSTED: Final[str] = "Response validation retries exhausted for model '{model}' in region '{region}', trying next target"
+    VALIDATION_FUNCTION_ERROR: Final[str] = "Validation function raised exception for model '{model}' in region '{region}': {error}"
+    VALIDATION_CONTENT_LOGGED: Final[str] = "Failed validation content for model '{model}': {content}"
+
+
 class FeatureAvailability:
     """Feature availability constants for different models and regions."""
     

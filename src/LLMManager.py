@@ -14,7 +14,8 @@ from bedrock.auth.auth_manager import AuthManager
 from bedrock.retry.retry_manager import RetryManager
 from bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
 from bedrock.models.llm_manager_structures import (
-    AuthConfig, RetryConfig, AuthenticationType, RetryStrategy
+    AuthConfig, RetryConfig, AuthenticationType, RetryStrategy,
+    ResponseValidationConfig
 )
 from bedrock.models.llm_manager_constants import (
     ConverseAPIFields, LLMManagerConfig, LLMManagerLogMessages, 
@@ -174,7 +175,8 @@ class LLMManager:
         guardrail_config: Optional[Dict[str, Any]] = None,
         tool_config: Optional[Dict[str, Any]] = None,
         request_metadata: Optional[Dict[str, Any]] = None,
-        prompt_variables: Optional[Dict[str, Any]] = None
+        prompt_variables: Optional[Dict[str, Any]] = None,
+        response_validation_config: Optional[ResponseValidationConfig] = None
     ) -> BedrockResponse:
         """
         Send a conversation request to available models with retry logic.
@@ -189,6 +191,7 @@ class LLMManager:
             tool_config: Tool use configuration
             request_metadata: Metadata for the request
             prompt_variables: Variables for prompt templates
+            response_validation_config: Configuration for response validation and retry
             
         Returns:
             BedrockResponse with the conversation result
@@ -230,12 +233,20 @@ class LLMManager:
             )
         
         try:
-            # Execute with retry logic
-            result, attempts, warnings = self._retry_manager.execute_with_retry(
-                operation=self._execute_converse,
-                operation_args=request_args,
-                retry_targets=retry_targets
-            )
+            # Execute with retry logic (with optional response validation)
+            if response_validation_config:
+                result, attempts, warnings = self._retry_manager.execute_with_validation_retry(
+                    operation=self._execute_converse,
+                    operation_args=request_args,
+                    retry_targets=retry_targets,
+                    validation_config=response_validation_config
+                )
+            else:
+                result, attempts, warnings = self._retry_manager.execute_with_retry(
+                    operation=self._execute_converse,
+                    operation_args=request_args,
+                    retry_targets=retry_targets
+                )
             
             # Calculate total duration
             total_duration = (datetime.now() - request_start).total_seconds() * 1000

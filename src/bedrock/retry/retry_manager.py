@@ -11,11 +11,15 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 from botocore.exceptions import ClientError
 
 from ..exceptions.llm_manager_exceptions import RetryExhaustedError, ModelAccessError
-from ..models.llm_manager_structures import RetryConfig, RetryStrategy, RequestAttempt, ContentFilterState
+from ..models.llm_manager_structures import (
+    RetryConfig, RetryStrategy, RequestAttempt, ContentFilterState,
+    ResponseValidationConfig, ValidationAttempt, ValidationResult
+)
 from ..models.llm_manager_constants import (
     RetryableErrorTypes,
     LLMManagerLogMessages,
-    LLMManagerErrorMessages
+    LLMManagerErrorMessages,
+    ResponseValidationLogMessages
 )
 from ..models.access_method import ModelAccessMethod, ModelAccessInfo
 from ..filters.content_filter import ContentFilter
@@ -605,6 +609,390 @@ class RetryManager:
                 filtered_messages.append(message)
         
         return filtered_messages
+    
+    def _execute_response_validation(
+        self,
+        response,
+        validation_config: ResponseValidationConfig,
+        model: str,
+        region: str
+    ) -> Tuple[bool, List[ValidationAttempt]]:
+        """
+        Execute response validation with retry logic.
+        
+        Args:
+            response: BedrockResponse object to validate
+            validation_config: Configuration for validation
+            model: Model name for logging
+            region: Region name for logging
+            
+        Returns:
+            Tuple of (validation_success, validation_attempts)
+        """
+        validation_attempts = []
+        
+        for attempt_num in range(1, validation_config.response_validation_retries + 1):
+            self._logger.debug(
+                ResponseValidationLogMessages.VALIDATION_STARTED.format(
+                    model=model,
+                    region=region
+                )
+            )
+            
+            # Execute validation function safely
+            validation_result, content = self._safe_validate_response(
+                response=response,
+                validation_function=validation_config.response_validation_function
+            )
+            
+            # Create validation attempt record
+            validation_attempt = ValidationAttempt(
+                attempt_number=attempt_num,
+                validation_result=validation_result,
+                failed_content=content if not validation_result.success else None
+            )
+            validation_attempts.append(validation_attempt)
+            
+            if validation_result.success:
+                self._logger.info(
+                    ResponseValidationLogMessages.VALIDATION_SUCCEEDED.format(
+                        model=model,
+                        region=region,
+                        attempts=attempt_num
+                    )
+                )
+                return True, validation_attempts
+            else:
+                # Log validation failure with content
+                self._logger.warning(
+                    ResponseValidationLogMessages.VALIDATION_FAILED.format(
+                        attempt=attempt_num,
+                        max_attempts=validation_config.response_validation_retries,
+                        model=model,
+                        region=region,
+                        error=validation_result.error_message or "Unknown validation error"
+                    )
+                )
+                
+                if content:
+                    self._logger.warning(
+                        ResponseValidationLogMessages.VALIDATION_CONTENT_LOGGED.format(
+                            model=model,
+                            content=content[:500] + "..." if len(content) > 500 else content
+                        )
+                    )
+                
+                # Add delay before next validation attempt if configured
+                if (attempt_num < validation_config.response_validation_retries and 
+                    validation_config.response_validation_delay > 0):
+                    time.sleep(validation_config.response_validation_delay)
+        
+        # All validation attempts failed
+        self._logger.warning(
+            ResponseValidationLogMessages.VALIDATION_RETRIES_EXHAUSTED.format(
+                model=model,
+                region=region
+            )
+        )
+        
+        return False, validation_attempts
+    
+    def _safe_validate_response(
+        self,
+        response,
+        validation_function: Callable
+    ) -> Tuple[ValidationResult, Optional[str]]:
+        """
+        Safely execute validation function and return result with error info.
+        
+        Args:
+            response: BedrockResponse to validate
+            validation_function: Function to validate the response
+            
+        Returns:
+            Tuple of (ValidationResult, content_that_failed)
+        """
+        try:
+            content = response.get_content()
+            result = validation_function(response)
+            return result, content
+        except Exception as e:
+            self._logger.warning(f"Validation function raised exception: {e}")
+            error_result = ValidationResult(
+                success=False,
+                error_message=f"Validation function error: {str(e)}",
+                error_details={"exception_type": type(e).__name__}
+            )
+            content = response.get_content() if hasattr(response, 'get_content') else None
+            return error_result, content
+    
+    def execute_with_validation_retry(
+        self,
+        operation: Callable[..., Any],
+        operation_args: Dict[str, Any],
+        retry_targets: List[Tuple[str, str, ModelAccessInfo]],
+        validation_config: Optional[ResponseValidationConfig] = None,
+        disabled_features: Optional[List[str]] = None
+    ) -> Tuple[Any, List[RequestAttempt], List[str]]:
+        """
+        Execute an operation with both regular retry logic and response validation.
+        
+        This method combines the existing retry functionality with response validation,
+        handling validation retries and switching to different models/regions when
+        validation consistently fails.
+        
+        Args:
+            operation: Function to execute (e.g., bedrock client converse call)
+            operation_args: Arguments to pass to the operation
+            retry_targets: List of (model, region, access_info) to try
+            validation_config: Optional validation configuration
+            disabled_features: List of features to disable for compatibility
+            
+        Returns:
+            Tuple of (result, attempts_made, warnings)
+            
+        Raises:
+            RetryExhaustedError: If all retry attempts fail
+        """
+        # If no validation config, use regular retry logic
+        if validation_config is None:
+            return self.execute_with_retry(
+                operation=operation,
+                operation_args=operation_args,
+                retry_targets=retry_targets,
+                disabled_features=disabled_features
+            )
+        
+        attempts = []
+        warnings = []
+        disabled_features = disabled_features or []
+        
+        # Create filter state to track content filtering
+        filter_state = self._content_filter.create_filter_state(operation_args)
+        
+        from ..models.bedrock_response import BedrockResponse
+        
+        for attempt_num, (model, region, access_info) in enumerate(retry_targets, 1):
+            attempt_start = datetime.now()
+            
+            # Create attempt record
+            attempt = RequestAttempt(
+                model_id=model,
+                region=region,
+                access_method=access_info.access_method.value,
+                attempt_number=attempt_num,
+                start_time=attempt_start
+            )
+            
+            try:
+                # Log attempt
+                if attempt_num == 1:
+                    self._logger.info(
+                        LLMManagerLogMessages.REQUEST_STARTED.format(
+                            model=model,
+                            region=region
+                        )
+                    )
+                else:
+                    self._logger.info(
+                        LLMManagerLogMessages.REQUEST_RETRY.format(
+                            attempt=attempt_num,
+                            max_attempts=len(retry_targets),
+                            model=model,
+                            region=region
+                        )
+                    )
+                
+                # Prepare operation arguments (same logic as regular retry)
+                current_args = self._prepare_operation_args(
+                    operation_args=operation_args,
+                    access_info=access_info,
+                    model=model,
+                    disabled_features=disabled_features,
+                    filter_state=filter_state
+                )
+                
+                # Execute the operation
+                result = operation(**current_args)
+                
+                # Create BedrockResponse object for validation
+                if isinstance(result, BedrockResponse):
+                    bedrock_response = result
+                else:
+                    # If result is raw dict, create BedrockResponse
+                    bedrock_response = BedrockResponse(
+                        success=True,
+                        response_data=result,
+                        model_used=model,
+                        region_used=region,
+                        access_method_used=access_info.access_method.value
+                    )
+                
+                # Execute response validation with retries
+                validation_success, validation_attempts = self._execute_response_validation(
+                    response=bedrock_response,
+                    validation_config=validation_config,
+                    model=model,
+                    region=region
+                )
+                
+                if validation_success:
+                    # Success with validation!
+                    attempt.end_time = datetime.now()
+                    attempt.success = True
+                    attempts.append(attempt)
+                    
+                    # Add validation data to response
+                    if isinstance(result, BedrockResponse):
+                        result.validation_attempts.extend(validation_attempts)
+                        # Add validation error details for failed attempts
+                        for va in validation_attempts:
+                            if not va.validation_result.success:
+                                result.validation_errors.append(va.validation_result.to_dict())
+                    
+                    self._logger.info(
+                        LLMManagerLogMessages.REQUEST_SUCCEEDED.format(
+                            model=model,
+                            region=region,
+                            attempts=attempt_num
+                        )
+                    )
+                    
+                    return result, attempts, warnings
+                else:
+                    # Validation failed, treat as validation error and try next target
+                    attempt.end_time = datetime.now()
+                    attempt.success = False
+                    
+                    # Create a validation error for the attempt
+                    last_validation_error = validation_attempts[-1].validation_result if validation_attempts else None
+                    validation_error_msg = (
+                        last_validation_error.error_message if last_validation_error 
+                        else "Response validation failed"
+                    )
+                    attempt.error = Exception(f"Validation failed: {validation_error_msg}")
+                    attempts.append(attempt)
+                    
+                    # Add validation data to response for debugging
+                    if isinstance(result, BedrockResponse):
+                        result.validation_attempts.extend(validation_attempts)
+                        for va in validation_attempts:
+                            if not va.validation_result.success:
+                                result.validation_errors.append(va.validation_result.to_dict())
+                    
+                    self._logger.warning(
+                        f"Validation failed for model '{model}' in region '{region}', trying next target"
+                    )
+                    
+                    # Add delay before trying next target
+                    if attempt_num < len(retry_targets):
+                        delay = self.calculate_retry_delay(attempt_num)
+                        if delay > 0:
+                            self._logger.debug(f"Waiting {delay}s before trying next target")
+                            time.sleep(delay)
+                    continue
+                
+            except Exception as error:
+                # Handle regular operation errors (same as original retry logic)
+                attempt.end_time = datetime.now()
+                attempt.error = error
+                attempt.success = False
+                attempts.append(attempt)
+                
+                self._logger.warning(
+                    LLMManagerLogMessages.REQUEST_FAILED.format(
+                        model=model,
+                        region=region,
+                        error=str(error)
+                    )
+                )
+                
+                # Apply same feature fallback logic as regular retry
+                should_fallback, feature_to_disable = self.should_disable_feature_and_retry(error)
+                if should_fallback and feature_to_disable and feature_to_disable not in disabled_features:
+                    # ... (same feature fallback logic as in execute_with_retry)
+                    pass
+                
+                # Continue to next target
+                continue
+        
+        # All attempts failed
+        last_errors = [attempt.error for attempt in attempts if attempt.error]
+        models_tried = list(set(attempt.model_id for attempt in attempts))
+        regions_tried = list(set(attempt.region for attempt in attempts))
+        
+        raise RetryExhaustedError(
+            message=LLMManagerErrorMessages.ALL_RETRIES_FAILED.format(
+                model_count=len(models_tried),
+                region_count=len(regions_tried)
+            ),
+            attempts_made=len(attempts),
+            last_errors=last_errors,
+            models_tried=models_tried,
+            regions_tried=regions_tried
+        )
+    
+    def _prepare_operation_args(
+        self,
+        operation_args: Dict[str, Any],
+        access_info: ModelAccessInfo,
+        model: str,
+        disabled_features: List[str],
+        filter_state: ContentFilterState
+    ) -> Dict[str, Any]:
+        """
+        Prepare operation arguments for a specific model/region combination.
+        
+        Args:
+            operation_args: Original operation arguments
+            access_info: Access information for the model
+            model: Model name
+            disabled_features: Features to disable
+            filter_state: Content filter state
+            
+        Returns:
+            Prepared operation arguments
+        """
+        # Check if we should restore features for this model
+        should_restore, features_to_restore = self._content_filter.should_restore_features_for_model(
+            filter_state=filter_state,
+            model_name=model
+        )
+        
+        if should_restore and features_to_restore:
+            self._logger.info(
+                f"Restoring features for model {model}: {', '.join(features_to_restore)}"
+            )
+            # Remove restored features from disabled list
+            for feature in features_to_restore:
+                if feature in disabled_features:
+                    disabled_features.remove(feature)
+        
+        # Prepare operation arguments with current target
+        current_args = operation_args.copy()
+        
+        # Set model ID based on access method
+        if access_info.access_method in [ModelAccessMethod.DIRECT, ModelAccessMethod.BOTH]:
+            current_args['model_id'] = access_info.model_id
+            if access_info.access_method == ModelAccessMethod.BOTH:
+                self._logger.debug(f"Using direct access for {model}")
+        elif access_info.access_method == ModelAccessMethod.CRIS_ONLY:
+            current_args['model_id'] = access_info.inference_profile_id
+            self._logger.debug(f"Using CRIS access for {model}")
+        
+        # Apply content filtering based on current disabled features
+        if disabled_features and self._config.enable_feature_fallback:
+            current_args = self._content_filter.apply_filters(
+                filter_state=filter_state,
+                disabled_features=set(disabled_features)
+            )
+            # Re-add model ID which might have been overwritten
+            if access_info.access_method in [ModelAccessMethod.DIRECT, ModelAccessMethod.BOTH]:
+                current_args['model_id'] = access_info.model_id
+            else:
+                current_args['model_id'] = access_info.inference_profile_id
+        
+        return current_args
     
     def get_retry_stats(self) -> Dict[str, Any]:
         """

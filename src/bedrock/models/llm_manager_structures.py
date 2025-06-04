@@ -7,12 +7,13 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union
 
 from .llm_manager_constants import (
     ConverseAPIFields,
     LLMManagerConfig,
-    RetryableErrorTypes
+    RetryableErrorTypes,
+    ResponseValidationConfig as ValidationConstants
 )
 
 
@@ -150,6 +151,8 @@ class BedrockResponse:
         api_latency_ms: API latency from successful response
         warnings: List of warning messages encountered
         features_disabled: List of features that were disabled for compatibility
+        validation_attempts: List of validation attempts made
+        validation_errors: List of validation error details
     """
     
     success: bool
@@ -162,6 +165,8 @@ class BedrockResponse:
     api_latency_ms: Optional[float] = None
     warnings: List[str] = field(default_factory=list)
     features_disabled: List[str] = field(default_factory=list)
+    validation_attempts: List['ValidationAttempt'] = field(default_factory=list)
+    validation_errors: List[Dict[str, Any]] = field(default_factory=list)
     
     def get_content(self) -> Optional[str]:
         """
@@ -323,6 +328,67 @@ class BedrockResponse:
         """
         return [a.error for a in self.attempts if a.error is not None]
     
+    def had_validation_failures(self) -> bool:
+        """
+        Check if any validation failures occurred during the request.
+        
+        Returns:
+            True if validation failed at least once, False otherwise
+        """
+        return len(self.validation_attempts) > 0
+    
+    def get_validation_attempt_count(self) -> int:
+        """
+        Get the number of validation attempts made.
+        
+        Returns:
+            Number of validation attempts
+        """
+        return len(self.validation_attempts)
+    
+    def get_validation_errors(self) -> List[Dict[str, Any]]:
+        """
+        Get all validation error details.
+        
+        Returns:
+            List of validation error details
+        """
+        return self.validation_errors.copy()
+    
+    def get_last_validation_error(self) -> Optional[Dict[str, Any]]:
+        """
+        Get the last validation error details.
+        
+        Returns:
+            Last validation error details, None if no validation errors
+        """
+        if self.validation_errors:
+            return self.validation_errors[-1]
+        return None
+    
+    def get_validation_metrics(self) -> Dict[str, Any]:
+        """
+        Get validation-specific metrics.
+        
+        Returns:
+            Dictionary with validation metrics
+        """
+        metrics = {
+            "validation_attempts": len(self.validation_attempts),
+            "validation_errors": len(self.validation_errors),
+            "had_validation_failures": self.had_validation_failures()
+        }
+        
+        # Add successful validation attempt number if any
+        successful_validations = [
+            va for va in self.validation_attempts 
+            if va.validation_result.success
+        ]
+        if successful_validations:
+            metrics["successful_validation_attempt"] = successful_validations[0].attempt_number
+        
+        return metrics
+    
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert the response to a dictionary suitable for JSON serialization.
@@ -353,7 +419,16 @@ class BedrockResponse:
                     "error": str(attempt.error) if attempt.error else None
                 }
                 for attempt in self.attempts
-            ]
+            ],
+            "validation_attempts": [
+                {
+                    "attempt_number": va.attempt_number,
+                    "validation_result": va.validation_result.to_dict(),
+                    "failed_content": va.failed_content
+                }
+                for va in self.validation_attempts
+            ],
+            "validation_errors": self.validation_errors
         }
     
     def to_json(self, indent: Optional[int] = None) -> str:
@@ -393,6 +468,17 @@ class BedrockResponse:
             )
             attempts.append(attempt)
         
+        # Reconstruct validation attempts
+        validation_attempts = []
+        for va_data in data.get("validation_attempts", []):
+            validation_result = ValidationResult.from_dict(va_data["validation_result"])
+            validation_attempt = ValidationAttempt(
+                attempt_number=va_data["attempt_number"],
+                validation_result=validation_result,
+                failed_content=va_data.get("failed_content")
+            )
+            validation_attempts.append(validation_attempt)
+        
         return cls(
             success=data["success"],
             response_data=data.get("response_data"),
@@ -403,7 +489,9 @@ class BedrockResponse:
             total_duration_ms=data.get("total_duration_ms"),
             api_latency_ms=data.get("api_latency_ms"),
             warnings=data.get("warnings", []),
-            features_disabled=data.get("features_disabled", [])
+            features_disabled=data.get("features_disabled", []),
+            validation_attempts=validation_attempts,
+            validation_errors=data.get("validation_errors", [])
         )
 
 
@@ -475,3 +563,80 @@ class ContentFilterState:
     original_request: Dict[str, Any]
     disabled_features: set = field(default_factory=set)
     filtered_content: Dict[str, List[FilteredContent]] = field(default_factory=dict)
+
+
+@dataclass
+class ValidationResult:
+    """
+    Result of response validation containing success status and error details.
+    
+    Attributes:
+        success: Whether validation passed
+        error_message: Error message if validation failed
+        error_details: Additional error details if available
+    """
+    
+    success: bool
+    error_message: Optional[str] = None
+    error_details: Optional[Dict[str, Any]] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert validation result to dictionary."""
+        result: Dict[str, Any] = {ValidationConstants.VALIDATION_SUCCESS: self.success}
+        if self.error_message is not None:
+            result[ValidationConstants.VALIDATION_ERROR_MESSAGE] = self.error_message
+        if self.error_details is not None:
+            result[ValidationConstants.VALIDATION_ERROR_DETAILS] = self.error_details
+        return result
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'ValidationResult':
+        """Create ValidationResult from dictionary."""
+        return cls(
+            success=data[ValidationConstants.VALIDATION_SUCCESS],
+            error_message=data.get(ValidationConstants.VALIDATION_ERROR_MESSAGE),
+            error_details=data.get(ValidationConstants.VALIDATION_ERROR_DETAILS)
+        )
+
+
+# Type alias for response validation functions
+ResponseValidationFunction = Callable[['BedrockResponse'], ValidationResult]
+
+
+@dataclass(frozen=True)
+class ResponseValidationConfig:
+    """
+    Configuration for response validation.
+    
+    Attributes:
+        response_validation_function: Function that validates BedrockResponse and returns ValidationResult
+        response_validation_retries: Number of validation retries (default: 3)
+        response_validation_delay: Delay between validation retries in seconds (default: 0.0)
+    """
+    
+    response_validation_function: ResponseValidationFunction
+    response_validation_retries: int = ValidationConstants.DEFAULT_VALIDATION_RETRIES
+    response_validation_delay: float = ValidationConstants.DEFAULT_VALIDATION_DELAY
+    
+    def __post_init__(self) -> None:
+        """Validate response validation configuration."""
+        if self.response_validation_retries < 0:
+            raise ValueError("response_validation_retries must be non-negative")
+        if self.response_validation_delay < 0:
+            raise ValueError("response_validation_delay must be non-negative")
+
+
+@dataclass
+class ValidationAttempt:
+    """
+    Information about a single validation attempt.
+    
+    Attributes:
+        attempt_number: Sequential validation attempt number  
+        validation_result: Result of the validation attempt
+        failed_content: Content that failed validation (for logging)
+    """
+    
+    attempt_number: int
+    validation_result: ValidationResult
+    failed_content: Optional[str] = None
