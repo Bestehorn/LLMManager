@@ -135,7 +135,7 @@ class CRISErrorMessages:
 class CRISValidationPatterns:
     """Regex patterns for CRIS data validation."""
     
-    INFERENCE_PROFILE_PATTERN: Final[str] = r"^[a-z0-9\-\.]+:[0-9]+$"
+    INFERENCE_PROFILE_PATTERN: Final[str] = r"^[a-z0-9\-\.]+([:-][a-z0-9\-]+)?$"
     AWS_REGION_PATTERN: Final[str] = r"^[a-z0-9\-]+$"
     MODEL_NAME_PATTERN: Final[str] = r"^[A-Za-z0-9\s\-\.]+$"
     REGION_PREFIX_PATTERN: Final[str] = r"^(US|EU|APAC)$"

@@ -39,10 +39,10 @@ class ModelCorrelationConstants:
     """Constants for model name correlation between systems."""
     
     # Common prefixes to normalize
-    ANTHROPIC_PREFIX: Final[str] = "Anthropic "
-    META_PREFIX: Final[str] = "Meta "
-    AMAZON_PREFIX: Final[str] = "Amazon "
-    MISTRAL_PREFIX: Final[str] = "Mistral "
+    ANTHROPIC_PREFIX: Final[str] = "anthropic."
+    META_PREFIX: Final[str] = "meta."
+    AMAZON_PREFIX: Final[str] = "amazon."
+    MISTRAL_PREFIX: Final[str] = "mistral."
     
     # Model name mappings (CRIS name -> Standard name)
     MODEL_NAME_MAPPINGS: Final[dict[str, str]] = {

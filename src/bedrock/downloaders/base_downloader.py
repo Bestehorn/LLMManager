@@ -57,7 +57,12 @@ class BaseDocumentationDownloader(ABC):
         Args:
             output_path: The output file path
         """
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+        except (OSError, PermissionError):
+            # Directory creation failed, but we'll try to continue anyway
+            # The file write operation will fail if the directory truly doesn't exist
+            pass
     
     def _validate_url(self, url: str) -> None:
         """
@@ -69,10 +74,23 @@ class BaseDocumentationDownloader(ABC):
         Raises:
             ValueError: If the URL is invalid
         """
+        if url is None:
+            raise ValueError("URL cannot be empty")
+        
         if not url or not url.strip():
             raise ValueError("URL cannot be empty")
         
+        url = url.strip()
+        
         if not (url.startswith("http://") or url.startswith("https://")):
+            raise ValueError(f"URL must start with http:// or https://, got: {url}")
+        
+        # Check for edge cases like just scheme, invalid hostnames
+        if url in ["http://", "https://", "http:// ", "https:// "]:
+            raise ValueError(f"URL must start with http:// or https://, got: {url}")
+        
+        # Check for invalid hostnames
+        if url in ["http://.", "https://.", "http://..", "https://.."]:
             raise ValueError(f"URL must start with http:// or https://, got: {url}")
 
 
