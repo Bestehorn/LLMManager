@@ -659,6 +659,39 @@ class LLMManager:
         """
         return self._retry_manager.get_retry_stats()
     
+    def converse_with_request(self, 
+                             request,
+                             response_validation_config: Optional[ResponseValidationConfig] = None
+                             ) -> BedrockResponse:
+        """
+        Send a conversation request using BedrockConverseRequest object.
+        
+        This method provides compatibility with the new parallel processing
+        request structure while using the existing retry and error handling logic.
+        
+        Args:
+            request: BedrockConverseRequest containing all parameters
+            response_validation_config: Optional validation configuration
+            
+        Returns:
+            BedrockResponse with the conversation result
+            
+        Raises:
+            RequestValidationError: If request validation fails
+            RetryExhaustedError: If all retry attempts fail
+            AuthenticationError: If authentication fails
+        """
+        # Import here to avoid circular imports
+        from bedrock.models.parallel_structures import BedrockConverseRequest
+        
+        # Convert BedrockConverseRequest to existing converse() parameters
+        converse_args = request.to_converse_args()
+        
+        return self.converse(
+            response_validation_config=response_validation_config,
+            **converse_args
+        )
+    
     def __repr__(self) -> str:
         """Return string representation of the LLMManager."""
         return (
