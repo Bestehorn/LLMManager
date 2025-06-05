@@ -3,7 +3,7 @@ Tests for ParallelLLMManager class.
 """
 
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, patch
 from typing import List
 
 from bedrock.ParallelLLMManager import ParallelLLMManager
@@ -101,8 +101,7 @@ class TestParallelLLMManager:
             assert result == mock_response
             mock_llm_manager.converse.assert_called_once()
     
-    @patch('bedrock.ParallelLLMManager.asyncio.run')
-    def test_converse_parallel_basic_success(self, mock_asyncio_run):
+    def test_converse_parallel_basic_success(self):
         """Test basic parallel processing success."""
         models = ["claude-3-haiku"]
         regions = ["us-east-1", "us-west-2"]
@@ -112,7 +111,6 @@ class TestParallelLLMManager:
             "req_test1_123456": BedrockResponse(success=True),
             "req_test2_123457": BedrockResponse(success=True)
         }
-        mock_asyncio_run.return_value = mock_responses
         
         with patch('bedrock.ParallelLLMManager.LLMManager'):
             parallel_manager = ParallelLLMManager(models=models, regions=regions)
@@ -131,16 +129,18 @@ class TestParallelLLMManager:
             
             with patch.object(parallel_manager._request_validator, 'validate_batch_requests'):
                 with patch.object(parallel_manager._region_distributor, 'distribute_requests') as mock_distribute:
-                    mock_distribute.return_value = [
-                        Mock(request_id="req_test1_123456", assigned_regions=["us-east-1"]),
-                        Mock(request_id="req_test2_123457", assigned_regions=["us-west-2"])
-                    ]
-                    
-                    result = parallel_manager.converse_parallel(requests)
-                    
-                    assert isinstance(result, ParallelResponse)
-                    assert result.success
-                    assert len(result.request_responses) == 2
+                    with patch.object(parallel_manager._parallel_executor, 'execute_requests_parallel') as mock_execute:
+                        mock_distribute.return_value = [
+                            Mock(request_id="req_test1_123456", assigned_regions=["us-east-1"]),
+                            Mock(request_id="req_test2_123457", assigned_regions=["us-west-2"])
+                        ]
+                        mock_execute.return_value = mock_responses
+                        
+                        result = parallel_manager.converse_parallel(requests)
+                        
+                        assert isinstance(result, ParallelResponse)
+                        assert result.success
+                        assert len(result.request_responses) == 2
     
     def test_get_underlying_llm_manager(self):
         """Test getting the underlying LLMManager instance."""

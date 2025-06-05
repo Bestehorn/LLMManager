@@ -5,7 +5,6 @@ Provides parallel execution of multiple requests across multiple regions with in
 load balancing, error handling, and comprehensive response aggregation.
 """
 
-import asyncio
 import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -26,7 +25,7 @@ from .models.llm_manager_structures import (
 from .models.bedrock_response import BedrockResponse
 from .validators.request_validator import RequestValidator
 from .distributors.region_distribution_manager import RegionDistributionManager
-from .executors.parallel_executor import ParallelExecutor
+from .executors.thread_parallel_executor import ThreadParallelExecutor
 from .exceptions.parallel_exceptions import (
     ParallelProcessingError, ParallelExecutionError, ParallelConfigurationError
 )
@@ -122,7 +121,7 @@ class ParallelLLMManager:
         self._region_distributor = RegionDistributionManager(
             load_balancing_strategy=self._parallel_config.load_balancing_strategy
         )
-        self._parallel_executor = ParallelExecutor(config=self._parallel_config)
+        self._parallel_executor = ThreadParallelExecutor(config=self._parallel_config)
         
         self._logger.info(
             ParallelLogMessages.PARALLEL_MANAGER_INITIALIZED.format(
@@ -200,13 +199,11 @@ class ParallelLLMManager:
             request_map = {request.request_id: request for request in requests if request.request_id}
             
             # Step 4: Execute requests in parallel
-            execution_responses = asyncio.run(
-                self._parallel_executor.execute_requests_parallel(
-                    assignments=assignments,
-                    request_map=request_map,
-                    execute_single_request_func=self._create_single_request_executor(
-                        response_validation_config=response_validation_config
-                    )
+            execution_responses = self._parallel_executor.execute_requests_parallel(
+                assignments=assignments,
+                request_map=request_map,
+                execute_single_request_func=self._create_single_request_executor(
+                    response_validation_config=response_validation_config
                 )
             )
             
