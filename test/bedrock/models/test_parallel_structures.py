@@ -74,7 +74,7 @@ class TestBedrockConverseRequest:
         
         assert args["messages"] == messages
         assert args["system"] == system
-        assert args["inferenceConfig"] == inference_config
+        assert args["inference_config"] == inference_config  # Fixed: now snake_case
         assert "request_id" not in args  # Should not be in converse args
     
     def test_to_converse_args_with_optional_fields(self):
@@ -134,6 +134,108 @@ class TestBedrockConverseRequest:
         assert "BedrockConverseRequest" in repr_str
         assert "test_123" in repr_str
         assert "messages=1" in repr_str
+    
+    def test_image_content_serialization(self):
+        """Test that requests with image bytes content can be processed without JSON serialization errors."""
+        # Create a message with image content (similar to MessageBuilder output)
+        test_image_bytes = b"fake_image_data_for_testing_purposes"
+        
+        message_with_image = {
+            "role": "user",
+            "content": [
+                {"text": "Analyze this image"},
+                {
+                    "image": {
+                        "format": "jpeg",
+                        "source": {
+                            "bytes": test_image_bytes  # This would cause JSON serialization error
+                        }
+                    }
+                }
+            ]
+        }
+        
+        # This should not raise a JSON serialization error during request ID generation
+        request = BedrockConverseRequest(
+            messages=[message_with_image],
+            inference_config={"maxTokens": 800, "temperature": 0.3}
+        )
+        
+        # Verify request was created successfully
+        assert request.request_id is not None
+        assert request.request_id.startswith("req_")
+        assert len(request.messages) == 1
+        
+        # Verify original bytes are preserved in the message structure
+        image_block = None
+        for content_block in message_with_image["content"]:
+            if "image" in content_block:
+                image_block = content_block
+                break
+        
+        assert image_block is not None
+        assert image_block["image"]["source"]["bytes"] == test_image_bytes
+        
+        # Verify to_converse_args() works with the image content
+        converse_args = request.to_converse_args()
+        assert "messages" in converse_args
+        assert len(converse_args["messages"]) == 1
+    
+    def test_sanitize_content_for_hashing(self):
+        """Test the content sanitization method for different data types."""
+        messages = [{"role": "user", "content": [{"text": "test"}]}]
+        request = BedrockConverseRequest(messages=messages)
+        
+        # Test various content types
+        test_cases = [
+            # Simple types
+            ("text", "hello world"),
+            ("bytes", b"binary data"),
+            ("number", 42),
+            ("boolean", True),
+            ("none", None),
+            
+            # Complex structures with bytes
+            ("dict_with_bytes", {"text": "hello", "image": {"bytes": b"image_data"}}),
+            ("list_with_bytes", ["text", b"bytes", {"nested": b"more_bytes"}]),
+            
+            # Nested structure similar to actual message content
+            ("message_structure", {
+                "role": "user",
+                "content": [
+                    {"text": "analyze this"},
+                    {"image": {"source": {"bytes": b"fake_image_data"}}}
+                ]
+            })
+        ]
+        
+        for test_name, test_content in test_cases:
+            # Sanitize the content
+            sanitized = request._sanitize_content_for_hashing(test_content)
+            
+            # Should be able to JSON serialize the result
+            try:
+                json.dumps(sanitized)
+            except TypeError as e:
+                pytest.fail(f"Failed to JSON serialize sanitized content for test '{test_name}': {e}")
+            
+            # Verify bytes objects are replaced with hash strings
+            if isinstance(test_content, bytes):
+                assert isinstance(sanitized, str)
+                assert sanitized.startswith("<bytes_hash:")
+                assert sanitized.endswith(">")
+            elif isinstance(test_content, dict) and any(isinstance(v, bytes) for v in test_content.values()):
+                # For dictionaries with bytes values, check that bytes are replaced
+                def check_no_bytes(obj):
+                    if isinstance(obj, bytes):
+                        return False
+                    elif isinstance(obj, dict):
+                        return all(check_no_bytes(v) for v in obj.values())
+                    elif isinstance(obj, list):
+                        return all(check_no_bytes(item) for item in obj)
+                    return True
+                
+                assert check_no_bytes(sanitized), f"Sanitized content still contains bytes objects for test '{test_name}'"
 
 
 class TestParallelProcessingConfig:

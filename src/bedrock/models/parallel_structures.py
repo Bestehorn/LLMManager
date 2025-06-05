@@ -80,7 +80,7 @@ class BedrockConverseRequest:
         """
         # Create hash from request content for uniqueness
         content_data = {
-            ParallelProcessingFields.MESSAGES: self.messages,
+            ParallelProcessingFields.MESSAGES: self._sanitize_content_for_hashing(self.messages),
             ParallelProcessingFields.SYSTEM: self.system,
             ParallelProcessingFields.INFERENCE_CONFIG: self.inference_config
         }
@@ -93,33 +93,63 @@ class BedrockConverseRequest:
         
         return f"{ParallelConfig.REQUEST_ID_PREFIX}{ParallelConfig.REQUEST_ID_SEPARATOR}{content_hash}{ParallelConfig.REQUEST_ID_SEPARATOR}{timestamp}"
     
+    def _sanitize_content_for_hashing(self, content: Any) -> Any:
+        """
+        Sanitize content for JSON serialization by replacing bytes objects with their hashes.
+        
+        This method recursively processes content structures and replaces any bytes objects
+        with their SHA-256 hash representation, enabling JSON serialization while maintaining
+        uniqueness for request ID generation.
+        
+        Args:
+            content: Content to sanitize (can be dict, list, bytes, or primitive types)
+            
+        Returns:
+            Sanitized content safe for JSON serialization
+        """
+        if isinstance(content, bytes):
+            # Replace bytes with their hash for uniqueness while enabling JSON serialization
+            return f"<bytes_hash:{hashlib.sha256(content).hexdigest()[:16]}>"
+        
+        elif isinstance(content, dict):
+            # Recursively sanitize dictionary values
+            return {key: self._sanitize_content_for_hashing(value) for key, value in content.items()}
+        
+        elif isinstance(content, list):
+            # Recursively sanitize list items
+            return [self._sanitize_content_for_hashing(item) for item in content]
+        
+        else:
+            # Return primitive types as-is (str, int, float, bool, None)
+            return content
+    
     def to_converse_args(self) -> Dict[str, Any]:
         """
         Convert to dictionary format compatible with LLMManager.converse().
         
         Returns:
-            Dictionary with converse API arguments
+            Dictionary with converse API arguments using Python parameter names
         """
         args: Dict[str, Any] = {
-            ConverseAPIFields.MESSAGES: self.messages
+            "messages": self.messages
         }
         
         if self.system is not None:
-            args[ConverseAPIFields.SYSTEM] = self.system
+            args["system"] = self.system
         if self.inference_config is not None:
-            args[ConverseAPIFields.INFERENCE_CONFIG] = self.inference_config
+            args["inference_config"] = self.inference_config
         if self.additional_model_request_fields is not None:
-            args[ConverseAPIFields.ADDITIONAL_MODEL_REQUEST_FIELDS] = self.additional_model_request_fields
+            args["additional_model_request_fields"] = self.additional_model_request_fields
         if self.additional_model_response_field_paths is not None:
-            args[ConverseAPIFields.ADDITIONAL_MODEL_RESPONSE_FIELD_PATHS] = self.additional_model_response_field_paths
+            args["additional_model_response_field_paths"] = self.additional_model_response_field_paths
         if self.guardrail_config is not None:
-            args[ConverseAPIFields.GUARDRAIL_CONFIG] = self.guardrail_config
+            args["guardrail_config"] = self.guardrail_config
         if self.tool_config is not None:
-            args[ConverseAPIFields.TOOL_CONFIG] = self.tool_config
+            args["tool_config"] = self.tool_config
         if self.request_metadata is not None:
-            args[ConverseAPIFields.REQUEST_METADATA] = self.request_metadata
+            args["request_metadata"] = self.request_metadata
         if self.prompt_variables is not None:
-            args[ConverseAPIFields.PROMPT_VARIABLES] = self.prompt_variables
+            args["prompt_variables"] = self.prompt_variables
         
         return args
     
