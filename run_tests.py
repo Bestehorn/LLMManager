@@ -17,6 +17,7 @@ Usage:
 """
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -66,6 +67,26 @@ Examples:
     )
     
     parser.add_argument(
+        '--aws-integration', action='store_true',
+        help='Run AWS integration tests (requires AWS credentials and enabled environment)'
+    )
+    
+    parser.add_argument(
+        '--aws-fast', action='store_true',
+        help='Run only fast AWS integration tests (< 30 seconds)'
+    )
+    
+    parser.add_argument(
+        '--aws-low-cost', action='store_true',
+        help='Run only low-cost AWS integration tests (< $0.01 estimated)'
+    )
+    
+    parser.add_argument(
+        '--aws-profile', type=str, metavar='PROFILE',
+        help='AWS CLI profile name to use for integration tests'
+    )
+    
+    parser.add_argument(
         '--fast', action='store_true',
         help='Skip slow tests (marked with @pytest.mark.slow)'
     )
@@ -107,6 +128,11 @@ Examples:
     
     args = parser.parse_args()
     
+    # Set AWS profile environment variable if provided
+    if args.aws_profile:
+        os.environ['AWS_INTEGRATION_TEST_PROFILE'] = args.aws_profile
+        print(f"Using AWS profile: {args.aws_profile}")
+    
     # Install dependencies if requested
     if args.install_deps:
         install_cmd = [sys.executable, '-m', 'pip', 'install', '-r', 'requirements-test.txt']
@@ -124,6 +150,12 @@ Examples:
         pytest_cmd.extend(['-m', 'unit'])
     elif args.integration:
         pytest_cmd.extend(['-m', 'integration'])
+    elif args.aws_integration:
+        pytest_cmd.extend(['-m', 'aws_integration'])
+    elif args.aws_fast:
+        pytest_cmd.extend(['-m', 'aws_integration and aws_fast'])
+    elif args.aws_low_cost:
+        pytest_cmd.extend(['-m', 'aws_integration and aws_low_cost'])
     
     # Add speed options
     if args.fast:

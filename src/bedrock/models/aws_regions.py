@@ -73,3 +73,35 @@ def is_cross_region_inference(region_text: str) -> bool:
         True if region supports cross-region inference, False otherwise
     """
     return region_text.strip().endswith(RegionSuffixes.CROSS_REGION_INDICATOR)
+
+
+def get_all_regions() -> list[str]:
+    """
+    Get all AWS region identifiers.
+    
+    Returns:
+        List of all available AWS region identifiers
+    """
+    return [
+        AWSRegions.US_EAST_1,
+        AWSRegions.US_EAST_2,
+        AWSRegions.US_WEST_1,
+        AWSRegions.US_WEST_2,
+        AWSRegions.US_GOV_EAST_1,
+        AWSRegions.US_GOV_WEST_1,
+        AWSRegions.AP_NORTHEAST_1,
+        AWSRegions.AP_NORTHEAST_2,
+        AWSRegions.AP_NORTHEAST_3,
+        AWSRegions.AP_SOUTH_1,
+        AWSRegions.AP_SOUTH_2,
+        AWSRegions.AP_SOUTHEAST_1,
+        AWSRegions.AP_SOUTHEAST_2,
+        AWSRegions.EU_CENTRAL_1,
+        AWSRegions.EU_CENTRAL_2,
+        AWSRegions.EU_NORTH_1,
+        AWSRegions.EU_WEST_1,
+        AWSRegions.EU_WEST_2,
+        AWSRegions.EU_WEST_3,
+        AWSRegions.CA_CENTRAL_1,
+        AWSRegions.SA_EAST_1,
+    ]

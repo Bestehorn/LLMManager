@@ -20,6 +20,11 @@ src_path = Path(__file__).parent.parent / "src"
 if str(src_path) not in sys.path:
     sys.path.insert(0, str(src_path))
 
+# Import integration testing components
+from src.bedrock.testing.integration_config import IntegrationTestConfig, load_integration_config
+from src.bedrock.testing.aws_test_client import AWSTestClient
+from src.bedrock.testing.integration_markers import IntegrationTestMarkers
+
 
 @pytest.fixture
 def temp_dir():
@@ -152,6 +157,65 @@ def mock_file_system(temp_dir):
 def mock_logger():
     """Mock logger for testing logging behavior."""
     return Mock()
+
+
+# Integration test fixtures
+@pytest.fixture
+def integration_config():
+    """Load integration test configuration from environment."""
+    try:
+        return load_integration_config()
+    except Exception:
+        # Return disabled config if loading fails
+        return IntegrationTestConfig(enabled=False)
+
+
+@pytest.fixture
+def aws_test_client(integration_config):
+    """Create AWS test client for integration tests."""
+    if not integration_config.enabled:
+        pytest.skip("Integration tests are not enabled")
+    
+    return AWSTestClient(config=integration_config)
+
+
+@pytest.fixture
+def integration_test_session(aws_test_client):
+    """Create a test session for tracking integration test requests."""
+    session_id = f"test_session_{int(datetime.now().timestamp())}"
+    session = aws_test_client.start_test_session(session_id=session_id)
+    
+    yield session
+    
+    # Clean up session
+    summary = aws_test_client.end_test_session()
+    if summary:
+        print(f"\nIntegration test session summary: {summary}")
+
+
+@pytest.fixture
+def sample_test_messages():
+    """Sample messages for testing Bedrock converse API."""
+    return [
+        {
+            "role": "user",
+            "content": [
+                {
+                    "text": "Hello! This is a test message for integration testing. Please respond with a simple greeting."
+                }
+            ]
+        }
+    ]
+
+
+@pytest.fixture
+def simple_inference_config():
+    """Simple inference configuration for testing."""
+    return {
+        "maxTokens": 100,
+        "temperature": 0.1,
+        "topP": 0.9
+    }
 
 
 # Pytest configuration hooks

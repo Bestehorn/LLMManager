@@ -18,7 +18,11 @@ The testing framework follows best practices for Python testing using pytest and
 ├── test/                           # Test directory (mirrors src/)
 │   ├── __init__.py                # Test package initialization
 │   ├── conftest.py                # Shared fixtures and configuration
-│   └── bedrock/                   # Tests for src/bedrock/
+│   ├── integration/               # Integration tests (real API calls)
+│   │   ├── __init__.py
+│   │   ├── test_integration_auth.py      # AWS authentication tests
+│   │   └── test_integration_bedrock_api.py # Bedrock API tests
+│   └── bedrock/                   # Unit tests for src/bedrock/
 │       ├── __init__.py
 │       ├── test_CRISManager.py    # Tests for CRISManager.py
 │       ├── models/
@@ -27,12 +31,16 @@ The testing framework follows best practices for Python testing using pytest and
 │       ├── parsers/
 │       ├── downloaders/
 │       ├── serializers/
-│       └── correlators/
+│       ├── correlators/
+│       └── testing/               # Tests for testing utilities
+│           ├── __init__.py
+│           └── test_integration_config.py
 ├── pytest.ini                     # Pytest configuration
 ├── requirements-test.txt           # Testing dependencies
 ├── run_tests.py                   # Python test runner
 ├── run_tests.bat                  # Windows batch test runner
-└── docs/TESTING.md                # This documentation
+├── docs/TESTING.md                # This documentation
+└── docs/INTEGRATION_TESTING.md    # AWS integration testing guide
 ```
 
 ## Key Features
@@ -47,11 +55,24 @@ The testing framework follows best practices for Python testing using pytest and
 
 Tests are organized using pytest markers:
 
+**Standard Test Types:**
 - `@pytest.mark.unit` - Unit tests (default for all tests)
 - `@pytest.mark.integration` - Integration tests
 - `@pytest.mark.slow` - Slow-running tests
 - `@pytest.mark.network` - Tests requiring network access
 - `@pytest.mark.aws` - Tests requiring AWS access
+
+**AWS Integration Test Types:**
+- `@pytest.mark.aws_integration` - Tests requiring real AWS Bedrock API access
+- `@pytest.mark.aws_fast` - Fast integration tests (< 30 seconds)
+- `@pytest.mark.aws_slow` - Slow integration tests (> 30 seconds)
+- `@pytest.mark.aws_low_cost` - Low-cost tests (< $0.01 estimated)
+- `@pytest.mark.aws_medium_cost` - Medium-cost tests ($0.01 - $0.10 estimated)
+- `@pytest.mark.aws_high_cost` - High-cost tests (> $0.10 estimated)
+- `@pytest.mark.aws_bedrock_runtime` - Tests using Bedrock Runtime API
+- `@pytest.mark.aws_streaming` - Tests using streaming responses
+
+For detailed information about AWS integration testing, see [`docs/INTEGRATION_TESTING.md`](INTEGRATION_TESTING.md).
 
 ### 3. Coverage Requirements
 
@@ -95,23 +116,23 @@ python run_tests.py --unit
 # Run only integration tests
 python run_tests.py --integration
 
-# Skip slow tests (for quick feedback)
-python run_tests.py --fast
+# AWS Integration Testing (requires AWS credentials)
+python run_tests.py --aws-integration              # Run all AWS integration tests
+python run_tests.py --aws-fast                     # Run fast AWS tests only
+python run_tests.py --aws-low-cost                 # Run low-cost AWS tests only
+python run_tests.py --aws-profile=profile-name     # Use specific AWS profile
 
-# Run tests in parallel
-python run_tests.py --parallel
+# Speed and performance options
+python run_tests.py --fast                         # Skip slow tests (for quick feedback)
+python run_tests.py --parallel                     # Run tests in parallel
 
-# Generate HTML reports
-python run_tests.py --html
+# Reporting options
+python run_tests.py --html                         # Generate HTML reports
+python run_tests.py --verbose                      # Verbose output
 
-# Verbose output
-python run_tests.py --verbose
-
-# Stop on first failure
-python run_tests.py --fail-fast
-
-# Install dependencies automatically
-python run_tests.py --install-deps
+# Control options
+python run_tests.py --fail-fast                    # Stop on first failure
+python run_tests.py --install-deps                 # Install dependencies automatically
 ```
 
 ### Windows Users
