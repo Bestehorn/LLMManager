@@ -237,13 +237,13 @@ def _get_test_models() -> Dict[str, str]:
     Get test models from environment configuration.
     
     Returns:
-        Dictionary mapping provider names to model IDs
+        Dictionary mapping provider names to model friendly names
     """
-    # Default test models (using cheaper/faster models)
+    # Default test models (using friendly names that match UnifiedModelManager)
     default_models = {
-        "anthropic": "anthropic.claude-3-haiku-20240307-v1:0",
-        "amazon": "amazon.titan-text-lite-v1",
-        "meta": "meta.llama3-8b-instruct-v1:0"
+        "anthropic": "Claude 3 Haiku",
+        "amazon": "Titan Text G1 - Lite",
+        "meta": "Llama 3 8B Instruct"
     }
     
     # Allow override via environment variables

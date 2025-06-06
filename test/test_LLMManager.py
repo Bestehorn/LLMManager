@@ -502,7 +502,7 @@ class TestLLMManagerUncoveredCases:
     def test_init_unified_model_manager_load_cached_fails(self):
         """Test initialization when UnifiedModelManager fails to load cached data."""
         mock_unified_manager = Mock()
-        mock_unified_manager.load_cached_data.return_value = False
+        mock_unified_manager.load_cached_data.return_value = None  # No cached data
         mock_unified_manager.refresh_unified_data.return_value = None
         mock_unified_manager.get_model_access_info.return_value = Mock(
             access_method=Mock(value="direct"),
@@ -517,7 +517,7 @@ class TestLLMManagerUncoveredCases:
                 regions=["us-east-1"]
             )
             
-            # Verify refresh was called when load_cached_data returned False
+            # Verify refresh was called when load_cached_data returned None
             mock_unified_manager.refresh_unified_data.assert_called_once()
     
     def test_init_unified_model_manager_exception(self):

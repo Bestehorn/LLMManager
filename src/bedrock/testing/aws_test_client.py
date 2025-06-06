@@ -16,6 +16,7 @@ from ..auth.auth_manager import AuthManager
 from ..models.llm_manager_structures import AuthConfig, AuthenticationType
 from ..models.bedrock_response import BedrockResponse
 from ..exceptions.llm_manager_exceptions import LLMManagerError
+from ..UnifiedModelManager import UnifiedModelManager
 from .integration_config import IntegrationTestConfig, IntegrationTestError
 
 
@@ -161,6 +162,15 @@ class AWSTestClient:
         auth_config = self._create_auth_config()
         self._auth_manager = AuthManager(auth_config=auth_config)
         
+        # Initialize unified model manager for model resolution
+        self._unified_model_manager = UnifiedModelManager()
+        try:
+            # Try to load cached data, refresh if not available
+            if not self._unified_model_manager.load_cached_data():
+                self._unified_model_manager.refresh_unified_data()
+        except Exception as e:
+            self._logger.warning(f"Could not initialize model data: {e}")
+        
         # Test session tracking
         self._current_session: Optional[TestSession] = None
         
@@ -185,6 +195,39 @@ class AWSTestClient:
             )
         else:
             return AuthConfig(auth_type=AuthenticationType.AUTO)
+    
+    def _resolve_model_id(self, model_name: str, region: str) -> Optional[str]:
+        """
+        Resolve a model name (friendly name) to the actual model ID for AWS API calls.
+        
+        Args:
+            model_name: Model name (can be friendly name like "Claude 3 Haiku" or actual model ID)
+            region: AWS region
+            
+        Returns:
+            Actual model ID if found, None if not resolvable
+        """
+        try:
+            # Get model access info from unified model manager
+            access_info = self._unified_model_manager.get_model_access_info(
+                model_name=model_name,
+                region=region
+            )
+            
+            if access_info and access_info.model_id:
+                return access_info.model_id
+            
+            # If no access info found, check if model_name is already an actual model ID
+            # (fallback for cases where friendly name resolution fails)
+            if "." in model_name and any(provider in model_name for provider in ["anthropic", "amazon", "meta", "cohere", "ai21"]):
+                return model_name
+            
+            self._logger.debug(f"Could not resolve model name '{model_name}' in region '{region}'")
+            return None
+            
+        except Exception as e:
+            self._logger.debug(f"Error resolving model name '{model_name}': {e}")
+            return None
     
     def start_test_session(self, session_id: str) -> TestSession:
         """
@@ -272,16 +315,16 @@ class AWSTestClient:
     ) -> BedrockResponse:
         """
         Test Bedrock converse API with request tracking.
-        
+
         Args:
-            model_id: Model identifier to test
+            model_id: Model identifier to test (can be friendly name or actual model ID)
             messages: Messages for the conversation
             region: AWS region (uses primary test region if not specified)
             **kwargs: Additional arguments for the converse call
-            
+
         Returns:
             Bedrock response
-            
+
         Raises:
             IntegrationTestError: If the test request fails
         """
@@ -291,14 +334,22 @@ class AWSTestClient:
                 message=f"Model {model_id} is not enabled for testing",
                 details={"model_id": model_id, "enabled_models": list(self.config.test_models.values())}
             )
-        
+
         test_region = region or self.config.get_primary_test_region()
         if not self.config.is_region_enabled(test_region):
             raise IntegrationTestError(
                 message=f"Region {test_region} is not enabled for testing",
                 details={"region": test_region, "enabled_regions": self.config.test_regions}
             )
-        
+
+        # Resolve model name to actual model ID
+        actual_model_id = self._resolve_model_id(model_id, test_region)
+        if not actual_model_id:
+            raise IntegrationTestError(
+                message=f"Could not resolve model ID for {model_id} in region {test_region}",
+                details={"model_name": model_id, "region": test_region}
+            )
+
         # Create request metrics
         request_id = f"{model_id}_{test_region}_{int(time.time())}"
         metrics = TestRequestMetrics(
@@ -306,20 +357,20 @@ class AWSTestClient:
             model_id=model_id,
             region=test_region
         )
-        
+
         try:
             # Get client and make request
             client = self._auth_manager.get_bedrock_client(region=test_region)
-            
-            # Prepare request arguments
+
+            # Prepare request arguments (use actual model ID for API call)
             request_args = {
-                "modelId": model_id,
+                "modelId": actual_model_id,
                 "messages": messages,
                 **kwargs
             }
-            
+
             # Make the API call
-            self._logger.info(f"Making Bedrock converse request: {request_id}")
+            self._logger.info(f"Making Bedrock converse request: {request_id} (using model ID: {actual_model_id})")
             response = client.converse(**request_args)
             
             # Process response
@@ -402,6 +453,14 @@ class AWSTestClient:
                 message=f"Region {test_region} is not enabled for testing",
                 details={"region": test_region, "enabled_regions": self.config.test_regions}
             )
+
+        # Resolve model name to actual model ID
+        actual_model_id = self._resolve_model_id(model_id, test_region)
+        if not actual_model_id:
+            raise IntegrationTestError(
+                message=f"Could not resolve model ID for {model_id} in region {test_region}",
+                details={"model_name": model_id, "region": test_region}
+            )
         
         # Create request metrics
         request_id = f"{model_id}_{test_region}_stream_{int(time.time())}"
@@ -415,9 +474,9 @@ class AWSTestClient:
             # Get client and make streaming request
             client = self._auth_manager.get_bedrock_client(region=test_region)
             
-            # Prepare request arguments
+            # Prepare request arguments (use actual model ID for API call)
             request_args = {
-                "modelId": model_id,
+                "modelId": actual_model_id,
                 "messages": messages,
                 **kwargs
             }

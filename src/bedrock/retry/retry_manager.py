@@ -279,6 +279,7 @@ class RetryManager:
         """
         failed_combinations = failed_combinations or []
         retry_targets = []
+        access_failures = []
         
         if self._config.retry_strategy == RetryStrategy.REGION_FIRST:
             # Try all regions for each model before moving to next model
@@ -294,8 +295,13 @@ class RetryManager:
                         )
                         if access_info:
                             retry_targets.append((model, region, access_info))
+                            self._logger.debug(f"Found access info for {model} in {region}: {access_info.access_method}")
+                        else:
+                            access_failures.append(f"Model '{model}' not available in region '{region}'")
+                            self._logger.debug(f"No access info returned for {model} in {region}")
                     except Exception as e:
                         self._logger.debug(f"Could not get access info for {model} in {region}: {e}")
+                        access_failures.append(f"Error accessing '{model}' in '{region}': {str(e)}")
                         continue
         
         elif self._config.retry_strategy == RetryStrategy.MODEL_FIRST:
@@ -312,9 +318,23 @@ class RetryManager:
                         )
                         if access_info:
                             retry_targets.append((model, region, access_info))
+                        else:
+                            access_failures.append(f"Model '{model}' not available in region '{region}'")
                     except Exception as e:
                         self._logger.debug(f"Could not get access info for {model} in {region}: {e}")
+                        access_failures.append(f"Error accessing '{model}' in '{region}': {str(e)}")
                         continue
+        
+        # Log debug information about retry target generation
+        if retry_targets:
+            self._logger.debug(f"Generated {len(retry_targets)} retry targets for {len(models)} models and {len(regions)} regions")
+        else:
+            self._logger.warning(f"No retry targets generated. Models: {models}, Regions: {regions}")
+            if access_failures:
+                for failure in access_failures[:5]:  # Log first 5 failures to avoid spam
+                    self._logger.debug(f"Access failure: {failure}")
+                if len(access_failures) > 5:
+                    self._logger.debug(f"... and {len(access_failures) - 5} more access failures")
         
         return retry_targets
     

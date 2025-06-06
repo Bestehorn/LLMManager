@@ -61,16 +61,55 @@ User Request → LLMManager → Request Validation → Auth → Retry Logic → 
 - Python 3.9 or higher
 - AWS credentials configured
 - Required dependencies installed
+- **Internet connectivity for model data initialization**
+
+### Model Data Requirements
+
+**Important:** LLMManager requires model data to be available during initialization. This data is downloaded from AWS documentation pages and is essential for the manager to operate properly. 
+
+**First-time setup requirements:**
+- Internet connectivity to download model data from AWS documentation
+- Write permissions to cache directory for storing model data
+- Network access to AWS documentation URLs (not blocked by firewalls)
 
 ### Basic Setup
 
 ```python
 from src.LLMManager import LLMManager
+from src.bedrock.exceptions.llm_manager_exceptions import ConfigurationError
 
-# Minimal setup - uses default authentication
+try:
+    # Minimal setup - uses default authentication
+    # Will download model data on first use
+    manager = LLMManager(
+        models=["Claude 3.5 Sonnet"],
+        regions=["us-east-1"]
+    )
+    print("LLMManager initialized successfully")
+    
+except ConfigurationError as e:
+    print(f"Failed to initialize LLMManager: {e}")
+    # Handle initialization failure - common causes:
+    # - No internet connectivity
+    # - AWS documentation URLs blocked
+    # - Insufficient file system permissions
+    # - Invalid model/region combinations
+```
+
+### Offline Setup (Pre-cached Data)
+
+```python
+from src.bedrock.UnifiedModelManager import UnifiedModelManager
+
+# For environments without internet access, use pre-configured model manager
+unified_manager = UnifiedModelManager()
+# Load from pre-cached data file
+unified_manager.load_cached_data()
+
 manager = LLMManager(
     models=["Claude 3.5 Sonnet"],
-    regions=["us-east-1"]
+    regions=["us-east-1"],
+    unified_model_manager=unified_manager  # Use pre-configured manager
 )
 ```
 
@@ -197,6 +236,20 @@ def __init__(
 - `unified_model_manager`: Pre-configured model manager (optional)
 - `default_inference_config`: Default inference parameters (optional)
 - `timeout`: Request timeout in seconds (default: 30)
+
+**Raises:**
+- `ConfigurationError`: If model data cannot be loaded or refreshed during initialization. This is a **fail-fast** behavior - LLMManager will not initialize if it cannot access the required model data.
+
+**Model Data Initialization:**
+
+LLMManager requires model data to be available during initialization. The initialization process:
+
+1. **Attempts to load cached model data** from previous downloads
+2. **If no cache exists, downloads model data** from AWS documentation pages
+3. **Validates model/region combinations** to ensure at least one valid combination exists
+4. **Raises ConfigurationError immediately** if any step fails
+
+This fail-fast approach ensures that LLMManager instances are always in a valid, operational state.
 
 #### Core Methods
 
@@ -921,6 +974,48 @@ def test_process_user_input():
     result = process_user_input("test input", mock_manager)
     assert result.get_content() == "test response"
 ```
+
+### 6. Integration Testing
+
+For integration tests that validate error handling behavior, ensure proper exception imports:
+
+```python
+import pytest
+from src.LLMManager import LLMManager
+# Import exceptions from the bedrock module directly for proper type matching
+from bedrock.exceptions.llm_manager_exceptions import (
+    ConfigurationError, RequestValidationError, RetryExhaustedError
+)
+
+# ✅ Good: Test that validates proper exception handling
+def test_invalid_model_handling():
+    """Test that ConfigurationError is raised for invalid models."""
+    with pytest.raises(ConfigurationError) as exc_info:
+        manager = LLMManager(
+            models=["NonExistentModel"],
+            regions=["us-east-1"]
+        )
+    
+    # Verify error message contains expected information
+    error_message = str(exc_info.value)
+    assert "NonExistentModel" in error_message
+    assert "not found" in error_message
+
+# ✅ Good: Test that validates request validation
+def test_empty_messages_validation():
+    """Test that RequestValidationError is raised for empty messages."""
+    manager = LLMManager(
+        models=["Claude 3.5 Sonnet"],
+        regions=["us-east-1"]
+    )
+    
+    with pytest.raises(RequestValidationError) as exc_info:
+        manager.converse(messages=[])
+    
+    assert "Messages cannot be empty" in str(exc_info.value)
+```
+
+**Important Note for Testing:** When writing integration tests, import exceptions directly from `bedrock.exceptions.llm_manager_exceptions` rather than `src.bedrock.exceptions.llm_manager_exceptions` to ensure proper exception type matching with pytest.raises().
 
 ---
 

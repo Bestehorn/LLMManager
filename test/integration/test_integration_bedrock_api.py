@@ -11,6 +11,7 @@ from src.bedrock.testing.integration_config import IntegrationTestError
 
 
 @pytest.mark.integration
+@pytest.mark.aws_integration
 class TestBedrockAPIIntegration:
     """Integration tests for Bedrock API functionality."""
     
@@ -231,6 +232,7 @@ class TestBedrockAPIIntegration:
 
 
 @pytest.mark.integration
+@pytest.mark.aws_integration
 class TestBedrockStreamingIntegration:
     """Integration tests for Bedrock streaming API functionality."""
     
@@ -311,6 +313,7 @@ class TestBedrockStreamingIntegration:
 
 
 @pytest.mark.integration
+@pytest.mark.aws_integration
 class TestBedrockErrorHandling:
     """Integration tests for Bedrock API error handling."""
     

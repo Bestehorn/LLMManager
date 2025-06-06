@@ -5,6 +5,7 @@ This module provides common fixtures, utilities, and configuration for all tests
 """
 
 import json
+import os
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -164,19 +165,46 @@ def mock_logger():
 def integration_config():
     """Load integration test configuration from environment."""
     try:
-        return load_integration_config()
-    except Exception:
-        # Return disabled config if loading fails
-        return IntegrationTestConfig(enabled=False)
+        config = load_integration_config()
+        if not config.enabled:
+            skip_reason = _get_integration_skip_reason()
+            pytest.skip(skip_reason)
+        return config
+    except Exception as e:
+        skip_reason = f"Failed to load integration test configuration: {str(e)}"
+        pytest.skip(skip_reason)
 
 
 @pytest.fixture
 def aws_test_client(integration_config):
     """Create AWS test client for integration tests."""
-    if not integration_config.enabled:
-        pytest.skip("Integration tests are not enabled")
+    try:
+        return AWSTestClient(config=integration_config)
+    except Exception as e:
+        skip_reason = f"Failed to create AWS test client: {str(e)}"
+        pytest.skip(skip_reason)
+
+
+def _get_integration_skip_reason() -> str:
+    """Get detailed reason why integration tests are skipped."""
+    reasons = []
     
-    return AWSTestClient(config=integration_config)
+    # Check if integration tests are enabled
+    enabled = os.getenv("AWS_INTEGRATION_TESTS_ENABLED", "false").lower()
+    if enabled not in ("true", "1", "yes", "on"):
+        reasons.append("AWS_INTEGRATION_TESTS_ENABLED is not set to 'true'")
+    
+    # Check AWS credentials
+    aws_profile = os.getenv("AWS_INTEGRATION_TEST_PROFILE")
+    if aws_profile:
+        reasons.append(f"Using AWS profile: {aws_profile}")
+    elif not (os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY")):
+        reasons.append("No AWS credentials found (set AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY or AWS_INTEGRATION_TEST_PROFILE)")
+    
+    if not reasons:
+        reasons.append("Integration tests disabled")
+    
+    return "Integration tests skipped: " + "; ".join(reasons)
 
 
 @pytest.fixture
@@ -226,6 +254,14 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: Slow running tests")
     config.addinivalue_line("markers", "network: Tests requiring network access")
     config.addinivalue_line("markers", "aws: Tests requiring AWS access")
+    config.addinivalue_line("markers", "aws_integration: Tests requiring real AWS Bedrock API access")
+    config.addinivalue_line("markers", "aws_fast: Fast integration tests (< 30 seconds)")
+    config.addinivalue_line("markers", "aws_slow: Slow integration tests (> 30 seconds)")
+    config.addinivalue_line("markers", "aws_low_cost: Low-cost tests (< $0.01 estimated)")
+    config.addinivalue_line("markers", "aws_medium_cost: Medium-cost tests ($0.01 - $0.10 estimated)")
+    config.addinivalue_line("markers", "aws_high_cost: High-cost tests (> $0.10 estimated)")
+    config.addinivalue_line("markers", "aws_bedrock_runtime: Tests using Bedrock Runtime API")
+    config.addinivalue_line("markers", "aws_streaming: Tests using streaming responses")
 
 
 def pytest_collection_modifyitems(config, items):

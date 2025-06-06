@@ -106,14 +106,7 @@ class LLMManager:
             self._unified_model_manager = unified_model_manager
         else:
             self._unified_model_manager = UnifiedModelManager()
-            try:
-                # Try to load cached data first, refresh if needed
-                if not self._unified_model_manager.load_cached_data():
-                    self._logger.info("No cached model data found, refreshing...")
-                    self._unified_model_manager.refresh_unified_data()
-            except Exception as e:
-                self._logger.warning(f"Could not load model data: {e}")
-                # Continue without model data - will fail gracefully on requests
+            self._initialize_model_data()
         
         # Validate model/region combinations
         self._validate_model_region_combinations()
@@ -143,11 +136,122 @@ class LLMManager:
             if not isinstance(region, str) or not region.strip():
                 raise ConfigurationError(f"Invalid region name: {region}")
     
+    def _initialize_model_data(self) -> None:
+        """
+        Initialize model data for the UnifiedModelManager.
+        
+        This method attempts to load cached model data first, and if unavailable,
+        refreshes the data by downloading from AWS documentation. Model data is
+        required for LLMManager to operate properly.
+        
+        Raises:
+            ConfigurationError: If model data cannot be loaded or refreshed
+        """
+        try:
+            # Try to load cached data first
+            cached_catalog = self._load_cached_model_data()
+            if cached_catalog is not None:
+                self._logger.info("Successfully loaded cached model data")
+                return
+            
+            # No cached data available, refresh from AWS
+            self._refresh_model_data_from_aws()
+            self._logger.info("Successfully refreshed model data from AWS documentation")
+            
+        except Exception as e:
+            self._raise_model_data_initialization_error(error=e)
+    
+    def _load_cached_model_data(self) -> Optional[Any]:
+        """
+        Attempt to load cached model data.
+        
+        Returns:
+            Cached model catalog if available, None otherwise
+        """
+        try:
+            return self._unified_model_manager.load_cached_data()
+        except Exception as e:
+            self._logger.debug(f"Could not load cached model data: {e}")
+            return None
+    
+    def _refresh_model_data_from_aws(self) -> None:
+        """
+        Refresh model data by downloading from AWS documentation.
+        
+        Raises:
+            Exception: If model data refresh fails
+        """
+        self._logger.info("No cached model data found, refreshing from AWS documentation...")
+        self._unified_model_manager.refresh_unified_data()
+    
+    def _raise_model_data_initialization_error(self, error: Exception) -> None:
+        """
+        Raise a comprehensive ConfigurationError for model data initialization failure.
+        
+        Args:
+            error: The underlying error that caused the failure
+            
+        Raises:
+            ConfigurationError: Always raises with detailed error message
+        """
+        error_message = self._build_model_data_error_message(error=error)
+        self._logger.error(f"LLMManager initialization failed: {error_message}")
+        raise ConfigurationError(error_message) from error
+    
+    def _build_model_data_error_message(self, error: Exception) -> str:
+        """
+        Build a comprehensive error message for model data initialization failure.
+        
+        Args:
+            error: The underlying error that caused the failure
+            
+        Returns:
+            Detailed error message with troubleshooting guidance
+        """
+        base_message = (
+            "LLMManager initialization failed: Could not load or refresh model data. "
+            "Model data is required for LLMManager to operate properly."
+        )
+        
+        error_details = str(error)
+        
+        # Provide specific guidance based on error type
+        if "network" in error_details.lower() or "connection" in error_details.lower():
+            troubleshooting = (
+                "This appears to be a network connectivity issue. "
+                "Ensure you have internet access and can reach AWS documentation URLs. "
+                "If behind a corporate firewall, contact your network administrator."
+            )
+        elif "timeout" in error_details.lower():
+            troubleshooting = (
+                "This appears to be a network timeout issue. "
+                "Try again with a stable internet connection or increase the download timeout."
+            )
+        elif "permission" in error_details.lower() or "access" in error_details.lower():
+            troubleshooting = (
+                "This appears to be a file system permissions issue. "
+                "Ensure the application has write access to the cache directory."
+            )
+        else:
+            troubleshooting = (
+                "Try running in an environment with internet access to download model data, "
+                "or provide a pre-configured UnifiedModelManager with cached data."
+            )
+        
+        return f"{base_message} {troubleshooting} Original error: {error_details}"
+    
     def _validate_model_region_combinations(self) -> None:
-        """Validate that at least one model/region combination is available."""
+        """
+        Validate that at least one model/region combination is available.
+        
+        Raises:
+            ConfigurationError: If no valid model/region combinations are found
+        """
         available_combinations = 0
+        validation_errors = []
         
         for model in self._models:
+            model_found_in_any_region = False
             for region in self._regions:
                 try:
                     access_info = self._unified_model_manager.get_model_access_info(
@@ -156,14 +260,38 @@ class LLMManager:
                     )
                     if access_info:
                         available_combinations += 1
-                except Exception:
+                        model_found_in_any_region = True
+                except Exception as e:
+                    self._logger.debug(f"Could not validate {model} in {region}: {e}")
                     continue
+            
+            if not model_found_in_any_region:
+                validation_errors.append(f"Model '{model}' not found in any specified region")
         
         if available_combinations == 0:
-            self._logger.warning(
-                "No valid model/region combinations found. "
-                "Requests may fail until model data is refreshed."
+            error_details = []
+            error_details.append(f"Models specified: {self._models}")
+            error_details.append(f"Regions specified: {self._regions}")
+            error_details.extend(validation_errors)
+            
+            # Check if this is due to missing model data
+            try:
+                if not self._unified_model_manager._cached_catalog:
+                    error_details.append("No model data available. Try refreshing model data or ensure internet connectivity.")
+                else:
+                    available_models = self._unified_model_manager.get_model_names()[:10]  # Show first 10
+                    error_details.append(f"Available models (sample): {available_models}")
+            except Exception:
+                error_details.append("Could not retrieve available model information.")
+            
+            error_message = (
+                "No valid model/region combinations found during initialization. "
+                "Please check model names and region availability. "
+                + " ".join(error_details)
             )
+            
+            self._logger.error(error_message)
+            raise ConfigurationError(error_message)
     
     def converse(
         self,

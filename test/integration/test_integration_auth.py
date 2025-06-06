@@ -11,6 +11,7 @@ from src.bedrock.testing.integration_config import IntegrationTestError
 
 
 @pytest.mark.integration
+@pytest.mark.aws_integration
 class TestAuthenticationIntegration:
     """Integration tests for AWS authentication functionality."""
     
@@ -120,6 +121,7 @@ class TestAuthenticationIntegration:
 
 
 @pytest.mark.integration
+@pytest.mark.aws_integration
 class TestEnvironmentValidation:
     """Integration tests for test environment validation."""
     

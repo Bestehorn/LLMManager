@@ -42,6 +42,137 @@ def run_command(cmd, description):
         return False
 
 
+def _configure_aws_integration_environment(args) -> None:
+    """
+    Configure AWS integration test environment based on command line arguments.
+    
+    Args:
+        args: Parsed command line arguments
+    """
+    # Check if AWS integration is explicitly requested
+    if _is_aws_integration_explicitly_requested(args=args):
+        _enable_aws_integration_tests()
+        _configure_aws_profile(args=args)
+    # For --all, only configure AWS if credentials are available
+    elif args.all:
+        if _is_aws_integration_available():
+            print("✅ AWS credentials detected - enabling integration tests")
+            _enable_aws_integration_tests()
+            _configure_aws_profile(args=args)
+        else:
+            # AWS not available for --all, inform user but continue with unit tests only
+            print("ℹ️  AWS integration tests skipped - no AWS credentials detected")
+            print("   Configure AWS credentials to run integration tests with --all")
+            print("   Currently running unit tests only")
+
+
+def _is_aws_integration_explicitly_requested(args) -> bool:
+    """
+    Check if AWS integration tests are explicitly requested via command line arguments.
+    
+    Args:
+        args: Parsed command line arguments
+        
+    Returns:
+        True if AWS integration tests are explicitly requested
+    """
+    return any([
+        args.aws_integration,
+        args.aws_fast,
+        args.aws_low_cost,
+        args.aws_profile is not None
+    ])
+
+
+def _is_aws_integration_available() -> bool:
+    """
+    Check if AWS integration tests can be run (credentials available).
+    
+    Returns:
+        True if AWS credentials are available
+    """
+    return _has_aws_environment_credentials() or _has_aws_profile_credentials()
+
+
+def _has_aws_profile_credentials() -> bool:
+    """
+    Check if AWS credentials are available via AWS CLI configuration.
+    
+    Returns:
+        True if AWS CLI credentials are configured
+    """
+    try:
+        # Try to use AWS CLI to check if credentials are configured
+        result = subprocess.run(
+            ['aws', 'sts', 'get-caller-identity'],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        return result.returncode == 0
+    except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+        # AWS CLI not available or credentials not configured
+        return False
+
+
+def _enable_aws_integration_tests() -> None:
+    """Enable AWS integration tests by setting environment variable."""
+    os.environ['AWS_INTEGRATION_TESTS_ENABLED'] = 'true'
+
+
+def _configure_aws_profile(args) -> None:
+    """
+    Configure AWS profile for integration tests.
+    
+    Args:
+        args: Parsed command line arguments
+    """
+    if args.aws_profile:
+        _set_aws_profile(profile_name=args.aws_profile)
+    else:
+        _handle_default_aws_profile()
+
+
+def _set_aws_profile(profile_name: str) -> None:
+    """
+    Set the AWS profile for integration tests.
+    
+    Args:
+        profile_name: Name of the AWS CLI profile to use
+    """
+    os.environ['AWS_INTEGRATION_TEST_PROFILE'] = profile_name
+    print(f"Using AWS profile: {profile_name}")
+
+
+def _handle_default_aws_profile() -> None:
+    """Handle the case where no AWS profile is explicitly specified."""
+    # Check if AWS credentials are already set via environment variables
+    if _has_aws_environment_credentials():
+        return
+    
+    # Warn about using default profile
+    default_profile = "default"
+    print(f"⚠️  No AWS profile specified, attempting to use default profile: '{default_profile}'")
+    print("   If this profile doesn't exist, tests will fail with authentication errors.")
+    print("   Use --aws-profile=<profile_name> to specify a different profile.")
+    
+    # Set default profile
+    os.environ['AWS_INTEGRATION_TEST_PROFILE'] = default_profile
+
+
+def _has_aws_environment_credentials() -> bool:
+    """
+    Check if AWS credentials are available via environment variables.
+    
+    Returns:
+        True if AWS credentials are set via environment variables
+    """
+    return bool(
+        os.getenv('AWS_ACCESS_KEY_ID') and 
+        os.getenv('AWS_SECRET_ACCESS_KEY')
+    )
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Run tests for the LLMManager project",
@@ -52,6 +183,8 @@ Examples:
   python run_tests.py --unit             # Run only unit tests
   python run_tests.py --fast --parallel  # Quick test run
   python run_tests.py --integration      # Run only integration tests
+  python run_tests.py --all              # Run both unit and AWS integration tests
+  python run_tests.py --aws-integration  # Run only AWS integration tests
   python run_tests.py --html             # Generate HTML reports
         """
     )
@@ -84,6 +217,11 @@ Examples:
     parser.add_argument(
         '--aws-profile', type=str, metavar='PROFILE',
         help='AWS CLI profile name to use for integration tests'
+    )
+    
+    parser.add_argument(
+        '--all', action='store_true',
+        help='Run both mocked unit tests and AWS integration tests'
     )
     
     parser.add_argument(
@@ -128,10 +266,8 @@ Examples:
     
     args = parser.parse_args()
     
-    # Set AWS profile environment variable if provided
-    if args.aws_profile:
-        os.environ['AWS_INTEGRATION_TEST_PROFILE'] = args.aws_profile
-        print(f"Using AWS profile: {args.aws_profile}")
+    # Configure AWS integration test environment
+    _configure_aws_integration_environment(args=args)
     
     # Install dependencies if requested
     if args.install_deps:
@@ -156,6 +292,14 @@ Examples:
         pytest_cmd.extend(['-m', 'aws_integration and aws_fast'])
     elif args.aws_low_cost:
         pytest_cmd.extend(['-m', 'aws_integration and aws_low_cost'])
+    elif args.all:
+        # Check if AWS integration is actually enabled
+        if os.getenv('AWS_INTEGRATION_TESTS_ENABLED') == 'true':
+            # Run both unit tests and aws_integration tests
+            pytest_cmd.extend(['-m', 'unit or aws_integration'])
+        else:
+            # Only run unit tests if AWS integration is not available
+            pytest_cmd.extend(['-m', 'unit'])
     
     # Add speed options
     if args.fast:
