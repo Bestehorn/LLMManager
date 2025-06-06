@@ -1,6 +1,6 @@
 # Testing Framework Documentation
 
-This document describes the comprehensive testing framework implemented for the LLMManager project.
+This document describes the comprehensive testing framework implemented for the LLMManager project, including both unit testing and AWS integration testing capabilities.
 
 ## Overview
 
@@ -8,8 +8,10 @@ The testing framework follows best practices for Python testing using pytest and
 
 - **Mirror Structure**: The `test/` directory mirrors the `src/` directory structure exactly
 - **Comprehensive Coverage**: Unit tests for all functions, classes, and code assets
-- **Automated Testing**: Easy-to-use test runners for different scenarios
+- **AWS Integration Testing**: Real AWS Bedrock API integration tests for production validation
+- **Automated Testing**: Easy-to-use test runners for different scenarios including hybrid test execution
 - **Coverage Reporting**: Detailed coverage reports in multiple formats
+- **Cost-Aware Testing**: AWS integration tests designed to minimize costs while maximizing coverage
 - **CI/CD Ready**: Configured for continuous integration workflows
 
 ## Framework Structure
@@ -116,6 +118,10 @@ python run_tests.py --unit
 # Run only integration tests
 python run_tests.py --integration
 
+# Comprehensive Testing (Enhanced Feature)
+python run_tests.py --all                          # Run both unit AND integration tests
+python run_tests.py --all --aws-profile=my-dev     # Run all tests with specific AWS profile
+
 # AWS Integration Testing (requires AWS credentials)
 python run_tests.py --aws-integration              # Run all AWS integration tests
 python run_tests.py --aws-fast                     # Run fast AWS tests only
@@ -134,6 +140,21 @@ python run_tests.py --verbose                      # Verbose output
 python run_tests.py --fail-fast                    # Stop on first failure
 python run_tests.py --install-deps                 # Install dependencies automatically
 ```
+
+#### Enhanced `--all` Switch
+
+The `--all` switch provides comprehensive testing by combining both unit and integration tests:
+
+- **Intelligent AWS Detection**: Automatically detects AWS credential availability
+- **Graceful Fallback**: Runs unit tests only when AWS credentials aren't available
+- **Clear User Feedback**: Provides informative messages about AWS credential status
+- **Backward Compatibility**: Maintains compatibility with existing test runner options
+
+**AWS Credential Detection:**
+- **Environment Variables**: Checks for `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
+- **AWS CLI Configuration**: Validates credentials using `aws sts get-caller-identity`
+- **Graceful Fallback**: When `--all` is used without AWS credentials, runs unit tests only
+- **Clear Messaging**: Informs users about AWS credential status and provides guidance
 
 ### Windows Users
 
@@ -257,6 +278,157 @@ def test_with_fixture(sample_data):
     result = process_data(sample_data)
     assert result is not None
 ```
+
+## AWS Integration Testing
+
+### Overview
+
+AWS Integration Testing validates the LLMManager project with real AWS Bedrock API calls, providing comprehensive coverage of areas that cannot be effectively tested with mocks alone.
+
+### New AWS Integration Test Files
+
+#### `test/integration/test_integration_llm_manager.py`
+Comprehensive integration tests for the main `LLMManager` class covering:
+
+**Basic Functionality:**
+- Real model initialization with AWS Bedrock
+- Actual converse API calls with real models
+- System message handling
+- Multi-region failover testing
+- Custom retry configuration testing
+
+**Error Handling:**
+- Invalid model name handling with proper exception validation
+- Request validation with real AWS constraints
+- Invalid region error handling
+- Retry exhaustion scenarios
+
+**Advanced Features:**
+- Streaming converse functionality
+- Model access information retrieval
+- Model data refresh operations
+- Response parsing and content extraction
+
+#### `test/integration/test_integration_unified_model_manager.py`
+Comprehensive integration tests for the `UnifiedModelManager` class covering:
+
+**Basic Functionality:**
+- Manager initialization with real network calls
+- Data refresh with actual AWS documentation
+- Model catalog queries with real data
+- Cached data loading and management
+
+**Model Access Testing:**
+- Real model access information retrieval
+- Regional availability queries
+- Access method determination (direct vs CRIS)
+- Recommendation system testing
+
+**Configuration Testing:**
+- Fuzzy matching configuration
+- Error handling with no data scenarios
+- String representation testing
+
+### Integration Test Organization
+
+**Test Structure:**
+Tests are organized into logical classes:
+- **Basic Functionality**: Core operations that should work in normal conditions
+- **Error Handling**: Tests for failure scenarios and error recovery
+- **Advanced Features**: Tests for complex features and edge cases
+- **Configuration**: Tests for various configuration options and settings
+
+**Pytest Markers Used:**
+- `@pytest.mark.aws_integration`: Marks tests requiring real AWS access
+- `@pytest.mark.aws_low_cost`: Tests estimated to cost < $0.01
+- `@pytest.mark.aws_fast`: Tests completing in < 30 seconds
+- `@pytest.mark.integration`: General integration test marker
+
+### Coverage Improvements
+
+The AWS integration tests target high-miss areas from the coverage report:
+
+**Areas Previously Uncovered (Now Tested):**
+
+1. **Authentication Flows**: Real AWS credential handling and region-specific authentication
+2. **API Response Parsing**: Actual Bedrock API response structures and parsing logic
+3. **Retry Logic**: Real failure scenarios and exponential backoff behavior
+4. **Network Error Handling**: Actual network timeouts and connectivity issues
+5. **Model Data Processing**: Real AWS documentation parsing and correlation
+6. **Multi-Region Operations**: Actual cross-region failover and availability checking
+
+**Expected Coverage Improvements:**
+
+- **LLMManager.py**: 13% → 40-50% (targets lines 89-121, 130-144, 148-163, 204-289, 325-378, etc.)
+- **UnifiedModelManager.py**: 26% → 50-60% (targets lines 99-112, 135-170, 179-191, etc.)
+- **Authentication components**: 45% → 70-80%
+- **Retry mechanisms**: 8% → 30-40%
+
+**Overall Project Coverage:**
+- **Before Integration Tests**: 38% overall coverage with `--aws-integration`
+- **After Integration Tests**: 55-65% overall coverage with `--all`
+
+### AWS Integration Usage Examples
+
+#### Run All Tests (Unit + Integration)
+```bash
+python run_tests.py --all --aws-profile my-profile
+```
+
+#### Run Only AWS Integration Tests
+```bash
+python run_tests.py --aws-integration --aws-profile my-profile
+```
+
+#### Run Fast, Low-Cost Integration Tests
+```bash
+python run_tests.py --aws-integration --aws-fast --aws-low-cost --aws-profile my-profile
+```
+
+#### Run with Coverage and HTML Report
+```bash
+python run_tests.py --all --html --aws-profile my-profile
+```
+
+### AWS Integration Best Practices
+
+#### Test Design Principles
+1. **Use Real AWS Calls**: Tests make actual API calls to validate real-world behavior
+2. **Cost Awareness**: Tests are designed to minimize AWS costs while maximizing coverage
+3. **Graceful Degradation**: Tests skip rather than fail when AWS resources are unavailable
+4. **Comprehensive Assertions**: Tests verify not just success but also response structure and content
+
+#### Configuration Requirements
+- AWS credentials must be configured (via profile or environment variables)
+- Test regions must be enabled for Bedrock access
+- Models must be available in the test regions
+
+#### Error Handling in Integration Tests
+- Tests use `pytest.skip()` for infrastructure issues (network, AWS availability)
+- Tests use `pytest.raises()` for expected error conditions
+- All tests include appropriate error messages for debugging
+
+**Important for Integration Tests:** When writing integration tests that validate exception handling, import exceptions directly from `bedrock.exceptions.llm_manager_exceptions` rather than `src.bedrock.exceptions.llm_manager_exceptions` to ensure proper exception type matching with pytest.raises().
+
+```python
+# ✅ Correct import for integration tests
+from bedrock.exceptions.llm_manager_exceptions import ConfigurationError, RequestValidationError
+
+# ❌ Incorrect import (will cause pytest.raises to fail)
+from src.bedrock.exceptions.llm_manager_exceptions import ConfigurationError, RequestValidationError
+```
+
+#### Maintenance Considerations
+
+**Updating Tests:**
+- Add new integration tests when adding AWS-dependent functionality
+- Update test configurations when adding new regions or models
+- Maintain cost-awareness as AWS pricing changes
+
+**Monitoring:**
+- Monitor test execution costs through AWS billing
+- Track test execution times to ensure they remain in "fast" category
+- Update test data when AWS adds new models or regions
 
 ## Coverage Reporting
 
