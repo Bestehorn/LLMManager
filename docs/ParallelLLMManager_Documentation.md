@@ -62,7 +62,7 @@ Multiple Requests → Load Balancer → Parallel Executors → Result Aggregatio
 ### Basic Setup
 
 ```python
-from src.bedrock.ParallelLLMManager import ParallelLLMManager
+from src.ParallelLLMManager import ParallelLLMManager
 from src.bedrock.models.parallel_structures import ParallelProcessingConfig
 
 # Basic parallel manager

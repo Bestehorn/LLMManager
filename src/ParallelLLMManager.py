@@ -10,26 +10,23 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 
 # Import LLMManager from the same directory level
-import sys
-import os
-sys.path.append(os.path.dirname(__file__))
 from LLMManager import LLMManager
 
-from .models.parallel_structures import (
+from bedrock.models.parallel_structures import (
     BedrockConverseRequest, ParallelResponse, ParallelProcessingConfig,
     ParallelExecutionStats, FailureHandlingStrategy, RegionAssignment
 )
-from .models.llm_manager_structures import (
+from bedrock.models.llm_manager_structures import (
     AuthConfig, RetryConfig, ResponseValidationConfig
 )
-from .models.bedrock_response import BedrockResponse
-from .validators.request_validator import RequestValidator
-from .distributors.region_distribution_manager import RegionDistributionManager
-from .executors.thread_parallel_executor import ThreadParallelExecutor
-from .exceptions.parallel_exceptions import (
+from bedrock.models.bedrock_response import BedrockResponse
+from bedrock.validators.request_validator import RequestValidator
+from bedrock.distributors.region_distribution_manager import RegionDistributionManager
+from bedrock.executors.thread_parallel_executor import ThreadParallelExecutor
+from bedrock.exceptions.parallel_exceptions import (
     ParallelProcessingError, ParallelExecutionError, ParallelConfigurationError
 )
-from .models.parallel_constants import (
+from bedrock.models.parallel_constants import (
     ParallelConfig, ParallelLogMessages, ParallelErrorMessages
 )
 

@@ -810,7 +810,7 @@ class LLMManager:
             AuthenticationError: If authentication fails
         """
         # Import here to avoid circular imports
-        from bedrock.models.parallel_structures import BedrockConverseRequest
+        from .bedrock.models.parallel_structures import BedrockConverseRequest
         
         # Convert BedrockConverseRequest to existing converse() parameters
         converse_args = request.to_converse_args()

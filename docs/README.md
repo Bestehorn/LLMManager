@@ -208,7 +208,7 @@ for chunk in streaming_response:
 ### Parallel Processing
 
 ```python
-from src.bedrock.ParallelLLMManager import ParallelLLMManager
+from src.ParallelLLMManager import ParallelLLMManager
 from src.bedrock.models.parallel_structures import ParallelProcessingConfig
 
 config = ParallelProcessingConfig(
@@ -309,6 +309,7 @@ See the `notebooks/` directory for Jupyter notebook examples:
 LLMManager/
 ├── src/                    # Production code
 │   ├── LLMManager.py      # Main interface
+│   ├── ParallelLLMManager.py # Parallel processing interface
 │   └── bedrock/           # Core modules
 │       ├── auth/          # Authentication
 │       ├── models/        # Data structures

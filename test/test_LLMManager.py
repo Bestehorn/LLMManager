@@ -8,13 +8,13 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
 from typing import Dict, Any, List
 
-from LLMManager import LLMManager
-from bedrock.models.llm_manager_structures import AuthConfig, RetryConfig, AuthenticationType, RetryStrategy
-from bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
-from bedrock.exceptions.llm_manager_exceptions import (
+from src.LLMManager import LLMManager
+from src.bedrock.models.llm_manager_structures import AuthConfig, RetryConfig, AuthenticationType, RetryStrategy
+from src.bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
+from src.bedrock.exceptions.llm_manager_exceptions import (
     ConfigurationError, RequestValidationError, AuthenticationError, RetryExhaustedError
 )
-from bedrock.models.llm_manager_constants import ConverseAPIFields, ContentLimits
+from src.bedrock.models.llm_manager_constants import ConverseAPIFields, ContentLimits
 
 
 class TestLLMManager:
@@ -36,7 +36,7 @@ class TestLLMManager:
     @pytest.fixture
     def basic_llm_manager(self, mock_unified_model_manager):
         """Create a basic LLMManager instance for testing."""
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
             return LLMManager(
                 models=["Claude 3 Haiku"],
                 regions=["us-east-1"]
@@ -44,7 +44,7 @@ class TestLLMManager:
     
     def test_init_basic_configuration(self, mock_unified_model_manager):
         """Test basic initialization of LLMManager."""
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
             manager = LLMManager(
                 models=["Claude 3 Haiku", "Claude 3 Sonnet"],
                 regions=["us-east-1", "us-west-2"]
@@ -60,7 +60,7 @@ class TestLLMManager:
             profile_name="test-profile"
         )
         
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
             manager = LLMManager(
                 models=["Claude 3 Haiku"],
                 regions=["us-east-1"],
@@ -76,7 +76,7 @@ class TestLLMManager:
             retry_strategy=RetryStrategy.MODEL_FIRST
         )
         
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
             manager = LLMManager(
                 models=["Claude 3 Haiku"],
                 regions=["us-east-1"],
@@ -237,7 +237,7 @@ class TestLLMManager:
         """Test that default and provided inference configs are merged properly."""
         default_config = {"temperature": 0.5, "maxTokens": 2000}
         
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
             manager = LLMManager(
                 models=["Claude 3 Haiku"],
                 regions=["us-east-1"],
@@ -359,8 +359,7 @@ class TestLLMManager:
         assert "regions=1" in repr_str
         assert "auth=" in repr_str
     
-    @patch('LLMManager.datetime')
-    def test_converse_no_retry_targets_raises_error(self, mock_datetime, basic_llm_manager):
+    def test_converse_no_retry_targets_raises_error(self, basic_llm_manager):
         """Test converse method when no retry targets are available."""
         # Mock retry manager to return empty targets
         with patch.object(basic_llm_manager._retry_manager, 'generate_retry_targets', return_value=[]):
@@ -421,7 +420,7 @@ class TestLLMManagerIntegration:
         
         return mocks
     
-    @patch('LLMManager.datetime')
+    @patch('src.LLMManager.datetime')
     def test_converse_success_flow(self, mock_datetime, mock_components):
         """Test successful converse operation end-to-end."""
         # Setup datetime mock
@@ -429,9 +428,9 @@ class TestLLMManagerIntegration:
         end_time = datetime(2023, 1, 1, 12, 0, 1)
         mock_datetime.now.side_effect = [start_time, end_time]
         
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_components['unified_model_manager']), \
-             patch('LLMManager.AuthManager', return_value=mock_components['auth_manager']), \
-             patch('LLMManager.RetryManager', return_value=mock_components['retry_manager']):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_components['unified_model_manager']), \
+             patch('src.LLMManager.AuthManager', return_value=mock_components['auth_manager']), \
+             patch('src.LLMManager.RetryManager', return_value=mock_components['retry_manager']):
             
             manager = LLMManager(
                 models=["Claude 3 Haiku"],
@@ -459,9 +458,9 @@ class TestLLMManagerIntegration:
             regions_tried=["us-east-1"]
         )
         
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_components['unified_model_manager']), \
-             patch('LLMManager.AuthManager', return_value=mock_components['auth_manager']), \
-             patch('LLMManager.RetryManager', return_value=mock_components['retry_manager']):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_components['unified_model_manager']), \
+             patch('src.LLMManager.AuthManager', return_value=mock_components['auth_manager']), \
+             patch('src.LLMManager.RetryManager', return_value=mock_components['retry_manager']):
             
             manager = LLMManager(
                 models=["Claude 3 Haiku"],
@@ -493,7 +492,7 @@ class TestLLMManagerUncoveredCases:
     @pytest.fixture
     def basic_llm_manager(self, mock_unified_model_manager):
         """Create a basic LLMManager instance for testing."""
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_model_manager):
             return LLMManager(
                 models=["Claude 3 Haiku"],
                 regions=["us-east-1"]
@@ -511,7 +510,7 @@ class TestLLMManagerUncoveredCases:
             region="us-east-1"
         )
         
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
             manager = LLMManager(
                 models=["Claude 3 Haiku"],
                 regions=["us-east-1"]
@@ -526,14 +525,13 @@ class TestLLMManagerUncoveredCases:
         mock_unified_manager.load_cached_data.side_effect = Exception("Failed to load")
         mock_unified_manager.get_model_access_info.return_value = None
         
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
-            # Should not raise, just log warning
-            manager = LLMManager(
-                models=["Claude 3 Haiku"],
-                regions=["us-east-1"]
-            )
-            
-            assert manager is not None
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
+            # Should raise ConfigurationError due to no valid model/region combinations
+            with pytest.raises(ConfigurationError, match="No valid model/region combinations found"):
+                LLMManager(
+                    models=["Claude 3 Haiku"],
+                    regions=["us-east-1"]
+                )
     
     def test_validate_model_region_combinations_no_valid_combinations(self):
         """Test validation when no model/region combinations are available."""
@@ -541,14 +539,13 @@ class TestLLMManagerUncoveredCases:
         mock_unified_manager.load_cached_data.return_value = True
         mock_unified_manager.get_model_access_info.side_effect = Exception("Not available")
         
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
-            # Should log warning but not raise
-            manager = LLMManager(
-                models=["Claude 3 Haiku"],
-                regions=["us-east-1"]
-            )
-            
-            assert manager is not None
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
+            # Should raise ConfigurationError due to no valid model/region combinations
+            with pytest.raises(ConfigurationError, match="No valid model/region combinations found"):
+                LLMManager(
+                    models=["Claude 3 Haiku"],
+                    regions=["us-east-1"]
+                )
     
     def test_validate_content_blocks_invalid_block_type(self, basic_llm_manager):
         """Test validation of content blocks with invalid block type."""
@@ -635,7 +632,7 @@ class TestLLMManagerUncoveredCases:
             assert len(result["warnings"]) > 0
             assert "Could not validate" in result["warnings"][0]
     
-    @patch('LLMManager.datetime')
+    @patch('src.LLMManager.datetime')
     def test_converse_with_api_latency(self, mock_datetime, basic_llm_manager):
         """Test converse method with API latency in response."""
         # Setup datetime mock
@@ -663,7 +660,7 @@ class TestLLMManagerUncoveredCases:
             
             assert response.api_latency_ms == 250
     
-    @patch('LLMManager.datetime')
+    @patch('src.LLMManager.datetime')
     def test_converse_stream_success_flow(self, mock_datetime, basic_llm_manager):
         """Test successful converse_stream operation."""
         # Setup datetime mock
@@ -731,7 +728,7 @@ class TestLLMManagerUncoveredCases:
         
         default_config = {"temperature": 0.7, "maxTokens": 1000}
         
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
             manager = LLMManager(
                 models=["Claude 3 Haiku"],
                 regions=["us-east-1"],
@@ -751,7 +748,7 @@ class TestLLMManagerUncoveredCases:
             region="us-east-1"
         )
         
-        with patch('LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
+        with patch('src.LLMManager.UnifiedModelManager', return_value=mock_unified_manager):
             manager = LLMManager(
                 models=["Claude 3 Haiku"],
                 regions=["us-east-1"],
