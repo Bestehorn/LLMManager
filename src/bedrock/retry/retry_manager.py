@@ -421,16 +421,18 @@ class RetryManager:
                 # Prepare operation arguments with current target
                 current_args = operation_args.copy()
                 
-                # Set model ID based on access method
-                if access_info.access_method in [ModelAccessMethod.DIRECT, ModelAccessMethod.BOTH]:
+                # Set model ID based on access method (compare by value to avoid enum import issues)
+                if access_info.access_method.value in ['direct', 'both']:
                     # Prefer direct access
                     current_args['model_id'] = access_info.model_id
-                    if access_info.access_method == ModelAccessMethod.BOTH:
+                    if access_info.access_method.value == 'both':
                         self._logger.debug(f"Using direct access for {model}")
-                elif access_info.access_method == ModelAccessMethod.CRIS_ONLY:
+                elif access_info.access_method.value == 'cris_only':
                     # Use CRIS profile
                     current_args['model_id'] = access_info.inference_profile_id
                     self._logger.debug(f"Using CRIS access for {model}")
+                else:
+                    self._logger.error(f"UNEXPECTED ACCESS METHOD: {access_info.access_method} (value: {access_info.access_method.value})")
                 
                 # Apply content filtering based on current disabled features
                 if disabled_features and self._config.enable_feature_fallback:
@@ -439,13 +441,13 @@ class RetryManager:
                         disabled_features=set(disabled_features)
                     )
                     # Re-add model ID which might have been overwritten
-                    if access_info.access_method in [ModelAccessMethod.DIRECT, ModelAccessMethod.BOTH]:
+                    if access_info.access_method.value in ['direct', 'both']:
                         current_args['model_id'] = access_info.model_id
                     else:
                         current_args['model_id'] = access_info.inference_profile_id
                 
                 # Execute the operation
-                result = operation(**current_args)
+                result = operation(region=region, **current_args)
                 
                 # Success!
                 attempt.end_time = datetime.now()
@@ -496,12 +498,12 @@ class RetryManager:
                             disabled_features=set(disabled_features)
                         )
                         # Re-add model ID
-                        if access_info.access_method in [ModelAccessMethod.DIRECT, ModelAccessMethod.BOTH]:
+                        if access_info.access_method.value in ['direct', 'both']:
                             fallback_args['model_id'] = access_info.model_id
                         else:
                             fallback_args['model_id'] = access_info.inference_profile_id
                         
-                        result = operation(**fallback_args)
+                        result = operation(region=region, **fallback_args)
                         
                         # Success with fallback!
                         attempt.success = True
@@ -833,7 +835,7 @@ class RetryManager:
                 )
                 
                 # Execute the operation
-                result = operation(**current_args)
+                result = operation(region=region, **current_args)
                 
                 # Create BedrockResponse object for validation
                 if isinstance(result, BedrockResponse):
@@ -991,12 +993,12 @@ class RetryManager:
         # Prepare operation arguments with current target
         current_args = operation_args.copy()
         
-        # Set model ID based on access method
-        if access_info.access_method in [ModelAccessMethod.DIRECT, ModelAccessMethod.BOTH]:
+        # Set model ID based on access method (compare by value to avoid enum import issues)
+        if access_info.access_method.value in ['direct', 'both']:
             current_args['model_id'] = access_info.model_id
-            if access_info.access_method == ModelAccessMethod.BOTH:
+            if access_info.access_method.value == 'both':
                 self._logger.debug(f"Using direct access for {model}")
-        elif access_info.access_method == ModelAccessMethod.CRIS_ONLY:
+        elif access_info.access_method.value == 'cris_only':
             current_args['model_id'] = access_info.inference_profile_id
             self._logger.debug(f"Using CRIS access for {model}")
         
@@ -1007,7 +1009,7 @@ class RetryManager:
                 disabled_features=set(disabled_features)
             )
             # Re-add model ID which might have been overwritten
-            if access_info.access_method in [ModelAccessMethod.DIRECT, ModelAccessMethod.BOTH]:
+            if access_info.access_method.value in ['direct', 'both']:
                 current_args['model_id'] = access_info.model_id
             else:
                 current_args['model_id'] = access_info.inference_profile_id

@@ -23,8 +23,8 @@ if str(src_path) not in sys.path:
 
 # Import integration testing components
 from src.bedrock.testing.integration_config import IntegrationTestConfig, load_integration_config
-from src.bedrock.testing.aws_test_client import AWSTestClient
 from src.bedrock.testing.integration_markers import IntegrationTestMarkers
+from src.bedrock.testing.aws_test_client import AWSTestClient
 
 
 @pytest.fixture
@@ -175,16 +175,6 @@ def integration_config():
         pytest.skip(skip_reason)
 
 
-@pytest.fixture
-def aws_test_client(integration_config):
-    """Create AWS test client for integration tests."""
-    try:
-        return AWSTestClient(config=integration_config)
-    except Exception as e:
-        skip_reason = f"Failed to create AWS test client: {str(e)}"
-        pytest.skip(skip_reason)
-
-
 def _get_integration_skip_reason() -> str:
     """Get detailed reason why integration tests are skipped."""
     reasons = []
@@ -205,20 +195,6 @@ def _get_integration_skip_reason() -> str:
         reasons.append("Integration tests disabled")
     
     return "Integration tests skipped: " + "; ".join(reasons)
-
-
-@pytest.fixture
-def integration_test_session(aws_test_client):
-    """Create a test session for tracking integration test requests."""
-    session_id = f"test_session_{int(datetime.now().timestamp())}"
-    session = aws_test_client.start_test_session(session_id=session_id)
-    
-    yield session
-    
-    # Clean up session
-    summary = aws_test_client.end_test_session()
-    if summary:
-        print(f"\nIntegration test session summary: {summary}")
 
 
 @pytest.fixture
@@ -244,6 +220,16 @@ def simple_inference_config():
         "temperature": 0.1,
         "topP": 0.9
     }
+
+
+@pytest.fixture
+def aws_test_client(integration_config):
+    """Create AWS test client for integration tests."""
+    try:
+        return AWSTestClient(config=integration_config)
+    except Exception as e:
+        skip_reason = f"Failed to create AWS test client: {str(e)}"
+        pytest.skip(skip_reason)
 
 
 # Pytest configuration hooks

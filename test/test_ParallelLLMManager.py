@@ -213,11 +213,8 @@ class TestParallelLLMManager:
                 regions=["us-east-1"]
             )
             
-            try:
+            with pytest.raises(ParallelProcessingError, match="Failed to refresh model data"):
                 parallel_manager.refresh_model_data()
-                assert False, "Should have raised ParallelProcessingError"
-            except ParallelProcessingError as e:
-                assert "Failed to refresh model data" in str(e)
     
     def test_repr(self):
         """Test string representation of ParallelLLMManager."""

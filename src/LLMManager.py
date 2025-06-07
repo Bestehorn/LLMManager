@@ -106,7 +106,12 @@ class LLMManager:
             self._unified_model_manager = unified_model_manager
         else:
             self._unified_model_manager = UnifiedModelManager()
-            self._initialize_model_data()
+        
+        # Ensure model data is available with automatic cache management
+        try:
+            self._unified_model_manager.ensure_data_available()
+        except Exception as e:
+            self._raise_model_data_initialization_error(error=e)
         
         # Validate model/region combinations
         self._validate_model_region_combinations()
@@ -624,54 +629,93 @@ class LLMManager:
         
         return request_args
     
-    def _execute_converse(self, **kwargs) -> Dict[str, Any]:
-        """Execute a single converse request."""
-        model_id = kwargs.pop('model_id')
+    def _execute_converse(self, region: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+        """
+        Execute a single converse request.
         
-        # Get region from retry manager (passed in kwargs)
-        region = None
-        for target_region in self._regions:
-            # Find the region for this model_id
-            try:
-                # This is a bit hacky - we should get the region from the retry target
-                # For now, try the first region that works
-                client = self._auth_manager.get_bedrock_client(region=target_region)
-                region = target_region
-                break
-            except Exception:
-                continue
+        This method is called by the RetryManager with prepared arguments including
+        the model_id. The region should be provided by the RetryManager.
         
-        if not region:
+        Args:
+            region: AWS region to use for the request
+            **kwargs: Prepared arguments for the Bedrock converse API call
+            
+        Returns:
+            Dictionary containing the Bedrock API response
+            
+        Raises:
+            AuthenticationError: If authentication fails
+        """
+        # Determine region - prefer provided region, fallback to first available
+        target_region = region
+        if not target_region:
+            # Fallback: try to find a working region
+            for test_region in self._regions:
+                try:
+                    client = self._auth_manager.get_bedrock_client(region=test_region)
+                    target_region = test_region
+                    break
+                except Exception:
+                    continue
+        
+        if not target_region:
             raise AuthenticationError("Could not authenticate to any specified region")
         
-        client = self._auth_manager.get_bedrock_client(region=region)
+        # Get authenticated client for the region
+        client = self._auth_manager.get_bedrock_client(region=target_region)
         
-        # Execute the converse call
-        response = client.converse(modelId=model_id, **kwargs)
+        # Map model_id to modelId for AWS API compatibility
+        converse_args = kwargs.copy()
+        if 'model_id' in converse_args:
+            converse_args['modelId'] = converse_args.pop('model_id')
+        
+        # Execute the converse call with all prepared arguments
+        response = client.converse(**converse_args)
         
         return response
     
-    def _execute_converse_stream(self, **kwargs) -> Dict[str, Any]:
-        """Execute a single streaming converse request."""
-        model_id = kwargs.pop('model_id')
+    def _execute_converse_stream(self, region: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+        """
+        Execute a single streaming converse request.
         
-        # Get region (same logic as regular converse)
-        region = None
-        for target_region in self._regions:
-            try:
-                client = self._auth_manager.get_bedrock_client(region=target_region)
-                region = target_region
-                break
-            except Exception:
-                continue
+        This method is called by the RetryManager with prepared arguments including
+        the model_id. The region should be provided by the RetryManager.
         
-        if not region:
+        Args:
+            region: AWS region to use for the request
+            **kwargs: Prepared arguments for the Bedrock converse_stream API call
+            
+        Returns:
+            Dictionary containing the Bedrock API streaming response
+            
+        Raises:
+            AuthenticationError: If authentication fails
+        """
+        # Determine region - prefer provided region, fallback to first available
+        target_region = region
+        if not target_region:
+            # Fallback: try to find a working region
+            for test_region in self._regions:
+                try:
+                    client = self._auth_manager.get_bedrock_client(region=test_region)
+                    target_region = test_region
+                    break
+                except Exception:
+                    continue
+        
+        if not target_region:
             raise AuthenticationError("Could not authenticate to any specified region")
         
-        client = self._auth_manager.get_bedrock_client(region=region)
+        # Get authenticated client for the region
+        client = self._auth_manager.get_bedrock_client(region=target_region)
         
-        # Execute the streaming converse call
-        response = client.converse_stream(modelId=model_id, **kwargs)
+        # Map model_id to modelId for AWS API compatibility
+        converse_stream_args = kwargs.copy()
+        if 'model_id' in converse_stream_args:
+            converse_stream_args['modelId'] = converse_stream_args.pop('model_id')
+        
+        # Execute the streaming converse call with all prepared arguments
+        response = client.converse_stream(**converse_stream_args)
         
         return response
     

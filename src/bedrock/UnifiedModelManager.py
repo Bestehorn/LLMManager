@@ -32,9 +32,9 @@ License: MIT
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Any
 
 from .ModelManager import ModelManager
 from .CRISManager import CRISManager
@@ -46,7 +46,8 @@ from .models.unified_constants import (
     UnifiedLogMessages,
     UnifiedErrorMessages,
     UnifiedFilePaths,
-    AccessMethodPriority
+    AccessMethodPriority,
+    CacheManagementConstants
 )
 from .serializers.json_serializer import JSONModelSerializer
 from .downloaders.base_downloader import NetworkError, FileSystemError
@@ -81,23 +82,33 @@ class UnifiedModelManager:
     def __init__(
         self,
         json_output_path: Optional[Path] = None,
-        force_download: bool = True,
+        force_download: bool = False,
         download_timeout: int = 30,
-        enable_fuzzy_matching: Optional[bool] = None
+        enable_fuzzy_matching: Optional[bool] = None,
+        max_cache_age_hours: float = CacheManagementConstants.DEFAULT_MAX_CACHE_AGE_HOURS
     ) -> None:
         """
         Initialize the UnifiedModelManager with configuration options.
         
         Args:
             json_output_path: Custom path for unified JSON output
-            force_download: Whether to always download fresh data
+            force_download: Whether to always download fresh data (default: False for auto-management)
             download_timeout: Request timeout in seconds for downloads
             enable_fuzzy_matching: Whether to enable fuzzy model name matching. 
                                  If None, uses default (True). Fuzzy matching is used
                                  as a last resort when exact mappings fail.
+            max_cache_age_hours: Maximum age of cache data in hours before refresh (default: 24.0)
         """
         self.json_output_path = json_output_path or Path(UnifiedFilePaths.DEFAULT_UNIFIED_JSON_OUTPUT)
         self.force_download = force_download
+        
+        # Validate cache age parameter
+        if not (CacheManagementConstants.MIN_CACHE_AGE_HOURS <= max_cache_age_hours <= CacheManagementConstants.MAX_CACHE_AGE_HOURS):
+            raise UnifiedModelManagerError(
+                f"max_cache_age_hours must be between {CacheManagementConstants.MIN_CACHE_AGE_HOURS} "
+                f"and {CacheManagementConstants.MAX_CACHE_AGE_HOURS} hours"
+            )
+        self.max_cache_age_hours = max_cache_age_hours
         
         # Initialize component managers
         self._model_manager = ModelManager(download_timeout=download_timeout)
@@ -169,26 +180,224 @@ class UnifiedModelManager:
             self._logger.error(error_msg)
             raise UnifiedModelManagerError(error_msg) from e
     
+    def ensure_data_available(self) -> UnifiedModelCatalog:
+        """
+        Ensure model data is available and up-to-date.
+        
+        This method implements the automatic cache management logic:
+        1. Validates existing cache (exists, not corrupted, not expired)
+        2. Automatically refreshes data if cache is invalid
+        3. Returns the available unified catalog
+        
+        Returns:
+            UnifiedModelCatalog with current model data
+            
+        Raises:
+            UnifiedModelManagerError: If data cannot be obtained or refreshed
+        """
+        try:
+            # Check if we need to refresh data
+            cache_status, reason = self._validate_cache()
+            
+            if cache_status == CacheManagementConstants.CACHE_VALID and self._cached_catalog:
+                self._logger.debug("Using valid cached model data")
+                return self._cached_catalog
+            
+            # Cache is invalid, need to refresh
+            self._logger.info(f"Cache validation failed ({cache_status}): {reason}. Refreshing model data...")
+            
+            try:
+                # Force download when cache is invalid to ensure fresh data
+                catalog = self.refresh_unified_data(force_download=True)
+                self._logger.info("Successfully refreshed model data after cache validation failure")
+                return catalog
+                
+            except Exception as refresh_error:
+                error_msg = UnifiedErrorMessages.AUTO_REFRESH_FAILED.format(error=str(refresh_error))
+                self._logger.error(error_msg)
+                raise UnifiedModelManagerError(error_msg) from refresh_error
+                
+        except UnifiedModelManagerError:
+            # Re-raise UnifiedModelManagerError as-is
+            raise
+        except Exception as e:
+            error_msg = f"Critical error in data availability check: {str(e)}"
+            self._logger.error(error_msg)
+            raise UnifiedModelManagerError(error_msg) from e
+
     def load_cached_data(self) -> Optional[UnifiedModelCatalog]:
         """
         Load previously cached unified data from JSON file.
         
+        This method loads cache data but does not validate its age or integrity.
+        For automatic cache management, use ensure_data_available() instead.
+        
         Returns:
-            UnifiedModelCatalog if cached data exists and is valid, None otherwise
+            UnifiedModelCatalog if cached data exists and is readable, None otherwise
         """
         if not self.json_output_path.exists():
-            self._logger.info("No cached unified data found")
+            self._logger.debug("No cached unified data file found")
             return None
         
         try:
             data = self._serializer.load_from_file(input_path=self.json_output_path)
             catalog = UnifiedModelCatalog.from_dict(data=data)
             self._cached_catalog = catalog
-            self._logger.info(f"Loaded cached unified data from {self.json_output_path}")
+            self._logger.debug(f"Loaded cached unified data from {self.json_output_path}")
             return catalog
         except Exception as e:
             self._logger.warning(f"Failed to load cached unified data: {str(e)}")
             return None
+
+    def _validate_cache(self) -> Tuple[str, str]:
+        """
+        Validate the current cache state.
+        
+        Returns:
+            Tuple of (cache_status, reason) where cache_status is one of:
+            - CACHE_VALID: Cache is valid and current
+            - CACHE_MISSING: No cache file exists
+            - CACHE_CORRUPTED: Cache file exists but is unreadable
+            - CACHE_EXPIRED: Cache file is readable but data is too old
+        """
+        # Check if cache file exists
+        if not self.json_output_path.exists():
+            return CacheManagementConstants.CACHE_MISSING, "Cache file does not exist"
+        
+        # Try to load and validate cache
+        try:
+            data = self._serializer.load_from_file(input_path=self.json_output_path)
+            
+            # Check if data has required structure
+            if not isinstance(data, dict) or UnifiedJSONFields.RETRIEVAL_TIMESTAMP not in data:
+                return (
+                    CacheManagementConstants.CACHE_CORRUPTED,
+                    "Cache missing required timestamp field"
+                )
+            
+            # Parse and validate timestamp
+            timestamp_str = data[UnifiedJSONFields.RETRIEVAL_TIMESTAMP]
+            cache_age_hours = self._get_cache_age_hours(timestamp_str=timestamp_str)
+            
+            # Check if cache is expired
+            if cache_age_hours > self.max_cache_age_hours:
+                return (
+                    CacheManagementConstants.CACHE_EXPIRED,
+                    UnifiedErrorMessages.CACHE_EXPIRED.format(
+                        age_hours=cache_age_hours,
+                        max_age_hours=self.max_cache_age_hours
+                    )
+                )
+            
+            # Validate catalog structure
+            try:
+                catalog = UnifiedModelCatalog.from_dict(data=data)
+                if catalog.model_count == 0:
+                    return (
+                        CacheManagementConstants.CACHE_CORRUPTED,
+                        "Cache contains no model data"
+                    )
+                # Cache catalog for efficiency
+                self._cached_catalog = catalog
+                
+            except Exception as e:
+                return (
+                    CacheManagementConstants.CACHE_CORRUPTED,
+                    f"Cache data structure is invalid: {str(e)}"
+                )
+            
+            return CacheManagementConstants.CACHE_VALID, f"Cache is valid (age: {cache_age_hours:.1f} hours)"
+            
+        except Exception as e:
+            return (
+                CacheManagementConstants.CACHE_CORRUPTED,
+                UnifiedErrorMessages.CACHE_CORRUPTED.format(path=self.json_output_path)
+            )
+
+    def _get_cache_age_hours(self, timestamp_str: str) -> float:
+        """
+        Calculate the age of cached data in hours.
+        
+        Args:
+            timestamp_str: ISO timestamp string from cache
+            
+        Returns:
+            Age of cache data in hours
+            
+        Raises:
+            UnifiedModelManagerError: If timestamp cannot be parsed
+        """
+        try:
+            cache_time = None
+            
+            # Try multiple timestamp formats in order of preference
+            timestamp_formats = [
+                CacheManagementConstants.TIMESTAMP_FORMAT,  # With Z suffix and microseconds
+                CacheManagementConstants.TIMESTAMP_FORMAT_FALLBACK,  # With Z suffix, no microseconds  
+                "%Y-%m-%dT%H:%M:%S.%f",  # ISO format with microseconds, no Z
+                "%Y-%m-%dT%H:%M:%S",     # ISO format without microseconds, no Z
+            ]
+            
+            for fmt in timestamp_formats:
+                try:
+                    cache_time = datetime.strptime(timestamp_str, fmt)
+                    break
+                except ValueError:
+                    continue
+            
+            if cache_time is None:
+                raise ValueError(f"No matching timestamp format found for: {timestamp_str}")
+            
+            # Ensure timezone awareness (assume UTC if no timezone)
+            if cache_time.tzinfo is None:
+                cache_time = cache_time.replace(tzinfo=timezone.utc)
+            
+            # Calculate age
+            current_time = datetime.now(timezone.utc)
+            age_delta = current_time - cache_time
+            age_hours = age_delta.total_seconds() / 3600.0
+            
+            return age_hours
+            
+        except Exception as e:
+            error_msg = UnifiedErrorMessages.TIMESTAMP_PARSE_FAILED.format(timestamp=timestamp_str)
+            self._logger.error(f"{error_msg}: {str(e)}")
+            raise UnifiedModelManagerError(error_msg) from e
+
+    def get_cache_status(self) -> Dict[str, Any]:
+        """
+        Get detailed information about the current cache status.
+        
+        Returns:
+            Dictionary with cache status information including:
+            - status: Current cache status
+            - reason: Detailed reason for the status
+            - age_hours: Age of cache in hours (if applicable)
+            - max_age_hours: Maximum allowed cache age
+            - path: Path to cache file
+            - exists: Whether cache file exists
+        """
+        status, reason = self._validate_cache()
+        
+        result = {
+            "status": status,
+            "reason": reason,
+            "max_age_hours": self.max_cache_age_hours,
+            "path": str(self.json_output_path),
+            "exists": self.json_output_path.exists()
+        }
+        
+        # Add age information if cache is readable
+        if status in [CacheManagementConstants.CACHE_VALID, CacheManagementConstants.CACHE_EXPIRED]:
+            try:
+                data = self._serializer.load_from_file(input_path=self.json_output_path)
+                if UnifiedJSONFields.RETRIEVAL_TIMESTAMP in data:
+                    age_hours = self._get_cache_age_hours(data[UnifiedJSONFields.RETRIEVAL_TIMESTAMP])
+                    result["age_hours"] = age_hours
+            except Exception:
+                pass  # Age calculation failed, but status is already set
+        
+        return result
     
     def get_model_access_info(self, model_name: str, region: str) -> Optional[ModelAccessInfo]:
         """

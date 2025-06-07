@@ -982,8 +982,8 @@ For integration tests that validate error handling behavior, ensure proper excep
 ```python
 import pytest
 from src.LLMManager import LLMManager
-# Import exceptions from the bedrock module directly for proper type matching
-from bedrock.exceptions.llm_manager_exceptions import (
+# Import exceptions from the src.bedrock module for proper type matching
+from src.bedrock.exceptions.llm_manager_exceptions import (
     ConfigurationError, RequestValidationError, RetryExhaustedError
 )
 

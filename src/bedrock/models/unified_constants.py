@@ -100,13 +100,37 @@ class UnifiedErrorMessages:
     REGION_NOT_SUPPORTED: Final[str] = "Region '{region}' not supported for model '{model_name}'"
     INVALID_ACCESS_METHOD: Final[str] = "Invalid access method: {method}"
     CORRELATION_FAILED: Final[str] = "Failed to correlate model and CRIS data: {error}"
+    CACHE_VALIDATION_FAILED: Final[str] = "Cache validation failed: {reason}"
+    CACHE_CORRUPTED: Final[str] = "Cache file is corrupted or unreadable: {path}"
+    CACHE_EXPIRED: Final[str] = "Cache data is expired (age: {age_hours:.1f} hours, max: {max_age_hours:.1f} hours)"
+    AUTO_REFRESH_FAILED: Final[str] = "Automatic cache refresh failed: {error}"
+    TIMESTAMP_PARSE_FAILED: Final[str] = "Failed to parse cache timestamp: {timestamp}"
 
 
 class UnifiedFilePaths:
     """Default file path constants for unified system."""
     
-    DEFAULT_UNIFIED_JSON_OUTPUT: Final[str] = "docs/UnifiedModels.json"
-    DEFAULT_CORRELATION_LOG: Final[str] = "docs/ModelCorrelation.log"
+    DEFAULT_UNIFIED_JSON_OUTPUT: Final[str] = "src/docs/UnifiedModels.json"
+    DEFAULT_CORRELATION_LOG: Final[str] = "src/docs/ModelCorrelation.log"
+
+
+class CacheManagementConstants:
+    """Constants for cache management and validation."""
+    
+    # Default cache age settings
+    DEFAULT_MAX_CACHE_AGE_HOURS: Final[float] = 24.0
+    MIN_CACHE_AGE_HOURS: Final[float] = 0.1
+    MAX_CACHE_AGE_HOURS: Final[float] = 168.0  # 1 week
+    
+    # Cache validation status
+    CACHE_VALID: Final[str] = "valid"
+    CACHE_MISSING: Final[str] = "missing"
+    CACHE_CORRUPTED: Final[str] = "corrupted"
+    CACHE_EXPIRED: Final[str] = "expired"
+    
+    # Timestamp format
+    TIMESTAMP_FORMAT: Final[str] = "%Y-%m-%dT%H:%M:%S.%fZ"
+    TIMESTAMP_FORMAT_FALLBACK: Final[str] = "%Y-%m-%dT%H:%M:%SZ"
 
 
 class RegionMarkers:

@@ -154,32 +154,32 @@ class AWSTestClient:
         
         Args:
             config: Integration test configuration
+            
+        Raises:
+            IntegrationTestError: If initialization fails
         """
         self.config = config
         self._logger = logging.getLogger(__name__)
+        
+        # Validate configuration first
+        if not self.config.enabled:
+            raise IntegrationTestError(
+                message="Integration tests are not enabled",
+                details={"config": self.config.to_dict()}
+            )
         
         # Initialize authentication manager
         auth_config = self._create_auth_config()
         self._auth_manager = AuthManager(auth_config=auth_config)
         
         # Initialize unified model manager for model resolution
-        self._unified_model_manager = UnifiedModelManager()
-        try:
-            # Try to load cached data, refresh if not available
-            if not self._unified_model_manager.load_cached_data():
-                self._unified_model_manager.refresh_unified_data()
-        except Exception as e:
-            self._logger.warning(f"Could not initialize model data: {e}")
+        self._initialize_model_manager()
+        
+        # Validate that required test models are available
+        self._validate_test_models()
         
         # Test session tracking
         self._current_session: Optional[TestSession] = None
-        
-        # Validate configuration
-        if not self.config.enabled:
-            raise IntegrationTestError(
-                message="Integration tests are not enabled",
-                details={"config": self.config.to_dict()}
-            )
     
     def _create_auth_config(self) -> AuthConfig:
         """
@@ -195,6 +195,174 @@ class AWSTestClient:
             )
         else:
             return AuthConfig(auth_type=AuthenticationType.AUTO)
+    
+    def _initialize_model_manager(self) -> None:
+        """
+        Initialize the UnifiedModelManager with automatic cache management.
+        
+        Raises:
+            IntegrationTestError: If model data cannot be loaded
+        """
+        self._logger.info("Initializing UnifiedModelManager for integration tests")
+        
+        try:
+            self._unified_model_manager = UnifiedModelManager()
+            
+            # Use the new automatic cache management
+            self._logger.debug("Ensuring model data is available with automatic cache management")
+            catalog = self._unified_model_manager.ensure_data_available()
+            
+            model_count = catalog.model_count
+            self._logger.info(f"Successfully initialized with {model_count} models")
+            
+        except Exception as e:
+            error_msg = f"Failed to initialize UnifiedModelManager: {str(e)}"
+            self._logger.error(error_msg)
+            raise IntegrationTestError(
+                message=error_msg,
+                details={"original_error": str(e)}
+            ) from e
+    
+    def _refresh_model_data_with_retry(self, max_retries: int = 3) -> None:
+        """
+        Refresh model data with retry logic.
+        
+        Args:
+            max_retries: Maximum number of retry attempts
+            
+        Raises:
+            IntegrationTestError: If all retry attempts fail
+        """
+        last_exception = None
+        
+        for attempt in range(max_retries):
+            try:
+                self._logger.info(f"Attempting to refresh model data (attempt {attempt + 1}/{max_retries})")
+                self._unified_model_manager.refresh_unified_data()
+                self._logger.info("Successfully refreshed model data")
+                return
+            except Exception as e:
+                last_exception = e
+                self._logger.warning(f"Model data refresh attempt {attempt + 1} failed: {str(e)}")
+                if attempt < max_retries - 1:
+                    self._logger.info(f"Retrying in 2 seconds...")
+                    time.sleep(2)
+        
+        # All attempts failed
+        error_msg = f"Failed to refresh model data after {max_retries} attempts"
+        self._logger.error(error_msg)
+        raise IntegrationTestError(
+            message=error_msg,
+            details={"last_error": str(last_exception), "attempts": max_retries}
+        ) from last_exception
+    
+    def _validate_test_models(self) -> None:
+        """
+        Validate that configured test models are available in the model data.
+        
+        This method now uses a more tolerant approach - it will log warnings for 
+        missing models but only fail if NO test models are available.
+        
+        Raises:
+            IntegrationTestError: If no test models are available at all
+        """
+        self._logger.info("Validating test model availability")
+        
+        try:
+            # Check if model manager has any data
+            try:
+                available_models = self._unified_model_manager.get_model_names()
+                total_models = len(available_models)
+                self._logger.info(f"Total models available: {total_models}")
+                
+                if total_models == 0:
+                    raise IntegrationTestError(
+                        message="No model data available from UnifiedModelManager",
+                        details={"total_models": total_models}
+                    )
+                
+            except Exception as model_access_error:
+                self._logger.error(f"Cannot access model data: {model_access_error}")
+                raise IntegrationTestError(
+                    message=f"Failed to access model data from UnifiedModelManager: {str(model_access_error)}",
+                    details={"original_error": str(model_access_error)}
+                ) from model_access_error
+            
+            # Show first few models for debugging
+            sample_models = []
+            if available_models:
+                sample_models = sorted(available_models)[:10]
+                self._logger.info(f"Sample available models: {sample_models}")
+            
+            # Check each configured test model
+            missing_models = []
+            found_models = []
+            
+            for provider, model_name in self.config.test_models.items():
+                self._logger.debug(f"Checking model '{model_name}' for provider '{provider}'")
+                
+                try:
+                    if self._unified_model_manager.has_model(model_name=model_name):
+                        found_models.append(f"{provider}: {model_name}")
+                        
+                        # Test model access info for primary region
+                        primary_region = self.config.get_primary_test_region()
+                        access_info = self._unified_model_manager.get_model_access_info(
+                            model_name=model_name, 
+                            region=primary_region
+                        )
+                        if access_info:
+                            self._logger.debug(f"Model '{model_name}' access info: {access_info}")
+                        else:
+                            self._logger.warning(f"Model '{model_name}' found but no access info for region '{primary_region}'")
+                    else:
+                        missing_models.append(f"{provider}: {model_name}")
+                        self._logger.warning(f"Model '{model_name}' not found in model data")
+                        
+                        # Try to find similar model names for debugging
+                        similar_models = [m for m in available_models if model_name.lower() in m.lower() or m.lower() in model_name.lower()]
+                        if similar_models:
+                            self._logger.info(f"Similar models found for '{model_name}': {similar_models[:3]}")
+                        else:
+                            self._logger.warning(f"No similar models found for '{model_name}'")
+                            
+                except Exception as model_check_error:
+                    self._logger.error(f"Error checking model '{model_name}': {model_check_error}")
+                    missing_models.append(f"{provider}: {model_name} (error: {str(model_check_error)})")
+            
+            # Log results
+            if found_models:
+                self._logger.info(f"Found test models: {found_models}")
+            
+            if missing_models:
+                self._logger.warning(f"Missing test models: {missing_models}")
+                
+                # Only fail if NO models were found
+                if not found_models:
+                    raise IntegrationTestError(
+                        message=f"No test models found in model data. Missing: {missing_models}",
+                        details={
+                            "missing_models": missing_models,
+                            "found_models": found_models,
+                            "total_available": total_models,
+                            "sample_available": sample_models,
+                            "configured_models": self.config.test_models
+                        }
+                    )
+                else:
+                    self._logger.info(f"Proceeding with {len(found_models)} available test models (out of {len(self.config.test_models)} configured)")
+            else:
+                self._logger.info(f"All {len(found_models)} test models validated successfully")
+            
+        except Exception as e:
+            if isinstance(e, IntegrationTestError):
+                raise
+            error_msg = f"Failed to validate test models: {str(e)}"
+            self._logger.error(error_msg)
+            raise IntegrationTestError(
+                message=error_msg,
+                details={"original_error": str(e)}
+            ) from e
     
     def _resolve_model_id(self, model_name: str, region: str) -> Optional[str]:
         """
@@ -215,18 +383,20 @@ class AWSTestClient:
             )
             
             if access_info and access_info.model_id:
+                self._logger.debug(f"Resolved model '{model_name}' to '{access_info.model_id}' in region '{region}'")
                 return access_info.model_id
             
             # If no access info found, check if model_name is already an actual model ID
             # (fallback for cases where friendly name resolution fails)
             if "." in model_name and any(provider in model_name for provider in ["anthropic", "amazon", "meta", "cohere", "ai21"]):
+                self._logger.debug(f"Model name '{model_name}' appears to be an actual model ID")
                 return model_name
             
             self._logger.debug(f"Could not resolve model name '{model_name}' in region '{region}'")
             return None
             
         except Exception as e:
-            self._logger.debug(f"Error resolving model name '{model_name}': {e}")
+            self._logger.error(f"Error resolving model name '{model_name}' in region '{region}': {str(e)}")
             return None
     
     def start_test_session(self, session_id: str) -> TestSession:

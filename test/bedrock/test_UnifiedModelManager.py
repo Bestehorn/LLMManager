@@ -12,7 +12,10 @@ from typing import Dict, Any
 from bedrock.UnifiedModelManager import UnifiedModelManager, UnifiedModelManagerError
 from bedrock.models.unified_structures import UnifiedModelInfo, UnifiedModelCatalog
 from bedrock.models.access_method import ModelAccessMethod, ModelAccessInfo, AccessRecommendation
-from bedrock.models.unified_constants import UnifiedFilePaths, UnifiedErrorMessages, AccessMethodPriority
+from bedrock.models.unified_constants import (
+    UnifiedFilePaths, UnifiedErrorMessages, AccessMethodPriority,
+    CacheManagementConstants
+)
 from bedrock.models.data_structures import ModelCatalog, BedrockModelInfo
 from bedrock.models.cris_structures import CRISCatalog
 from bedrock.correlators.model_cris_correlator import ModelCRISCorrelationError
@@ -579,3 +582,337 @@ class TestUnifiedModelManager:
         repr_str = repr(unified_manager)
         
         assert "UnifiedModelManager" in repr_str
+
+
+class TestUnifiedModelManagerCacheManagement:
+    """Test cases for UnifiedModelManager cache management functionality."""
+    
+    @pytest.fixture
+    def cache_manager(self):
+        """Create a UnifiedModelManager for cache testing."""
+        return UnifiedModelManager(max_cache_age_hours=24.0)
+    
+    @pytest.fixture
+    def mock_serializer_with_data(self):
+        """Create a mock serializer that returns valid cache data."""
+        mock = Mock()
+        # Valid cache data with timestamp
+        mock.load_from_file.return_value = {
+            "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",
+            "unified_models": {
+                "Claude 3 Haiku": {"model_name": "Claude 3 Haiku"}
+            }
+        }
+        return mock
+    
+    def test_init_cache_age_validation_valid(self):
+        """Test initialization with valid cache age."""
+        manager = UnifiedModelManager(max_cache_age_hours=12.0)
+        assert manager.max_cache_age_hours == 12.0
+    
+    def test_init_cache_age_validation_too_low(self):
+        """Test initialization with cache age too low."""
+        with pytest.raises(UnifiedModelManagerError, match="max_cache_age_hours must be between"):
+            UnifiedModelManager(max_cache_age_hours=0.05)  # Below minimum
+    
+    def test_init_cache_age_validation_too_high(self):
+        """Test initialization with cache age too high."""
+        with pytest.raises(UnifiedModelManagerError, match="max_cache_age_hours must be between"):
+            UnifiedModelManager(max_cache_age_hours=200.0)  # Above maximum
+    
+    @patch('bedrock.UnifiedModelManager.datetime')
+    def test_get_cache_age_hours_valid_timestamp(self, mock_datetime, cache_manager):
+        """Test cache age calculation with valid timestamp."""
+        # Mock current time with timezone awareness
+        from datetime import timezone
+        current_time = datetime(2023, 1, 1, 14, 0, 0, tzinfo=timezone.utc)  # 2 hours later
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+        
+        # Test with microseconds
+        timestamp_str = "2023-01-01T12:00:00.000000Z"
+        age_hours = cache_manager._get_cache_age_hours(timestamp_str)
+        
+        assert age_hours == 2.0
+    
+    @patch('bedrock.UnifiedModelManager.datetime')
+    def test_get_cache_age_hours_fallback_format(self, mock_datetime, cache_manager):
+        """Test cache age calculation with fallback timestamp format."""
+        # Mock current time with timezone awareness
+        from datetime import timezone
+        current_time = datetime(2023, 1, 1, 15, 0, 0, tzinfo=timezone.utc)  # 3 hours later
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+        
+        # Test without microseconds (fallback format)
+        timestamp_str = "2023-01-01T12:00:00Z"
+        age_hours = cache_manager._get_cache_age_hours(timestamp_str)
+        
+        assert age_hours == 3.0
+    
+    def test_get_cache_age_hours_invalid_timestamp(self, cache_manager):
+        """Test cache age calculation with invalid timestamp."""
+        with pytest.raises(UnifiedModelManagerError, match="Failed to parse cache timestamp"):
+            cache_manager._get_cache_age_hours("invalid-timestamp")
+    
+    def test_validate_cache_file_missing(self, cache_manager, tmp_path):
+        """Test cache validation when file is missing."""
+        cache_manager.json_output_path = tmp_path / "nonexistent.json"
+        
+        status, reason = cache_manager._validate_cache()
+        
+        assert status == CacheManagementConstants.CACHE_MISSING
+        assert "does not exist" in reason
+    
+    def test_validate_cache_corrupted_json(self, cache_manager, tmp_path, mock_serializer_with_data):
+        """Test cache validation with corrupted JSON."""
+        # Create corrupted JSON file
+        json_file = tmp_path / "corrupted.json"
+        json_file.write_text('{"invalid": json}')
+        cache_manager.json_output_path = json_file
+        
+        # Mock serializer to raise exception
+        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class:
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.side_effect = Exception("JSON decode error")
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager._serializer = mock_serializer
+            
+            status, reason = cache_manager._validate_cache()
+        
+        assert status == CacheManagementConstants.CACHE_CORRUPTED
+        assert "corrupted or unreadable" in reason
+    
+    def test_validate_cache_missing_timestamp(self, cache_manager, tmp_path):
+        """Test cache validation with missing timestamp field."""
+        json_file = tmp_path / "no_timestamp.json"
+        json_file.write_text('{"unified_models": {}}')  # Missing timestamp
+        cache_manager.json_output_path = json_file
+        
+        # Mock serializer to return data without timestamp
+        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class:
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {"unified_models": {}}
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager._serializer = mock_serializer
+            
+            status, reason = cache_manager._validate_cache()
+        
+        assert status == CacheManagementConstants.CACHE_CORRUPTED
+        assert "missing required timestamp field" in reason
+    
+    @patch('bedrock.UnifiedModelManager.datetime')
+    def test_validate_cache_expired(self, mock_datetime, cache_manager, tmp_path):
+        """Test cache validation with expired data."""
+        # Mock current time with timezone awareness (25 hours later than cache)
+        from datetime import timezone
+        current_time = datetime(2023, 1, 2, 13, 0, 0, tzinfo=timezone.utc)  # 25 hours later
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+        
+        json_file = tmp_path / "expired.json"
+        json_file.write_text('{}')
+        cache_manager.json_output_path = json_file
+        
+        # Mock serializer to return expired data
+        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class:
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 25 hours ago
+                "unified_models": {"Test": {}}
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager._serializer = mock_serializer
+            
+            status, reason = cache_manager._validate_cache()
+        
+        assert status == CacheManagementConstants.CACHE_EXPIRED
+        assert "expired" in reason
+        assert "25.0 hours" in reason
+    
+    @patch('bedrock.UnifiedModelManager.datetime')
+    def test_validate_cache_valid(self, mock_datetime, cache_manager, tmp_path):
+        """Test cache validation with valid, current data."""
+        # Mock current time with timezone awareness (1 hour later than cache)
+        from datetime import timezone
+        current_time = datetime(2023, 1, 1, 13, 0, 0, tzinfo=timezone.utc)  # 1 hour later
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+        
+        json_file = tmp_path / "valid.json"
+        json_file.write_text('{}')
+        cache_manager.json_output_path = json_file
+        
+        # Mock serializer and catalog
+        mock_catalog = Mock()
+        mock_catalog.model_count = 5
+        
+        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class, \
+             patch.object(UnifiedModelCatalog, 'from_dict', return_value=mock_catalog):
+            
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 1 hour ago
+                "unified_models": {"Test": {}}
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager._serializer = mock_serializer
+            
+            status, reason = cache_manager._validate_cache()
+        
+        assert status == CacheManagementConstants.CACHE_VALID
+        assert "valid" in reason
+        assert "1.0 hours" in reason
+        assert cache_manager._cached_catalog == mock_catalog
+    
+    @patch('bedrock.UnifiedModelManager.datetime')
+    def test_validate_cache_empty_catalog(self, mock_datetime, cache_manager, tmp_path):
+        """Test cache validation with empty catalog."""
+        # Mock current time to make cache appear fresh (1 hour later)
+        from datetime import timezone
+        current_time = datetime(2023, 1, 1, 13, 0, 0, tzinfo=timezone.utc)  # 1 hour later
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+        
+        json_file = tmp_path / "empty.json"
+        json_file.write_text('{}')
+        cache_manager.json_output_path = json_file
+        
+        # Mock serializer and empty catalog
+        mock_catalog = Mock()
+        mock_catalog.model_count = 0  # Empty catalog
+        
+        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class, \
+             patch.object(UnifiedModelCatalog, 'from_dict', return_value=mock_catalog):
+            
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 1 hour ago - fresh enough
+                "unified_models": {}
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager._serializer = mock_serializer
+            
+            status, reason = cache_manager._validate_cache()
+        
+        assert status == CacheManagementConstants.CACHE_CORRUPTED
+        assert "no model data" in reason
+    
+    def test_get_cache_status_missing(self, cache_manager, tmp_path):
+        """Test getting cache status when file is missing."""
+        cache_manager.json_output_path = tmp_path / "missing.json"
+        
+        status_info = cache_manager.get_cache_status()
+        
+        assert status_info["status"] == CacheManagementConstants.CACHE_MISSING
+        assert status_info["exists"] is False 
+        assert status_info["max_age_hours"] == 24.0
+        assert str(tmp_path / "missing.json") in status_info["path"]
+        assert "age_hours" not in status_info  # Age not available for missing files
+    
+    @patch('bedrock.UnifiedModelManager.datetime')
+    def test_get_cache_status_valid_with_age(self, mock_datetime, cache_manager, tmp_path):
+        """Test getting cache status with valid cache including age information."""
+        # Mock current time with timezone awareness
+        from datetime import timezone
+        current_time = datetime(2023, 1, 1, 14, 30, 0, tzinfo=timezone.utc)  # 2.5 hours later
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+        
+        json_file = tmp_path / "valid.json"
+        json_file.write_text('{}')
+        cache_manager.json_output_path = json_file
+        
+        # Mock serializer and catalog
+        mock_catalog = Mock()
+        mock_catalog.model_count = 3
+        
+        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class, \
+             patch.object(UnifiedModelCatalog, 'from_dict', return_value=mock_catalog):
+            
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 2.5 hours ago
+                "unified_models": {"Test": {}}
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager._serializer = mock_serializer
+            
+            status_info = cache_manager.get_cache_status()
+        
+        assert status_info["status"] == CacheManagementConstants.CACHE_VALID
+        assert status_info["exists"] is True
+        assert status_info["age_hours"] == 2.5
+        assert status_info["max_age_hours"] == 24.0
+    
+    def test_ensure_data_available_cache_valid(self, cache_manager):
+        """Test ensure_data_available with valid cache."""
+        # Mock valid cache
+        mock_catalog = Mock()
+        cache_manager._cached_catalog = mock_catalog
+        
+        with patch.object(cache_manager, '_validate_cache', return_value=(CacheManagementConstants.CACHE_VALID, "Valid cache")):
+            result = cache_manager.ensure_data_available()
+        
+        assert result == mock_catalog
+    
+    def test_ensure_data_available_cache_missing_refresh_success(self, cache_manager):
+        """Test ensure_data_available with missing cache that refreshes successfully."""
+        mock_catalog = Mock()
+        
+        with patch.object(cache_manager, '_validate_cache', return_value=(CacheManagementConstants.CACHE_MISSING, "No cache file")), \
+             patch.object(cache_manager, 'refresh_unified_data', return_value=mock_catalog) as mock_refresh:
+            
+            result = cache_manager.ensure_data_available()
+        
+        assert result == mock_catalog
+        mock_refresh.assert_called_once_with(force_download=True)
+    
+    def test_ensure_data_available_cache_expired_refresh_success(self, cache_manager):
+        """Test ensure_data_available with expired cache that refreshes successfully."""
+        mock_catalog = Mock()
+        
+        with patch.object(cache_manager, '_validate_cache', return_value=(CacheManagementConstants.CACHE_EXPIRED, "Cache too old")), \
+             patch.object(cache_manager, 'refresh_unified_data', return_value=mock_catalog) as mock_refresh:
+            
+            result = cache_manager.ensure_data_available()
+        
+        assert result == mock_catalog
+        mock_refresh.assert_called_once_with(force_download=True)
+    
+    def test_ensure_data_available_cache_corrupted_refresh_success(self, cache_manager):
+        """Test ensure_data_available with corrupted cache that refreshes successfully."""
+        mock_catalog = Mock()
+        
+        with patch.object(cache_manager, '_validate_cache', return_value=(CacheManagementConstants.CACHE_CORRUPTED, "Bad JSON")), \
+             patch.object(cache_manager, 'refresh_unified_data', return_value=mock_catalog) as mock_refresh:
+            
+            result = cache_manager.ensure_data_available()
+        
+        assert result == mock_catalog
+        mock_refresh.assert_called_once_with(force_download=True)
+    
+    def test_ensure_data_available_refresh_fails(self, cache_manager):
+        """Test ensure_data_available when refresh fails."""
+        with patch.object(cache_manager, '_validate_cache', return_value=(CacheManagementConstants.CACHE_MISSING, "No cache")), \
+             patch.object(cache_manager, 'refresh_unified_data', side_effect=Exception("Network error")):
+            
+            with pytest.raises(UnifiedModelManagerError, match="Automatic cache refresh failed: Network error"):
+                cache_manager.ensure_data_available()
+    
+    def test_ensure_data_available_critical_error(self, cache_manager):
+        """Test ensure_data_available with critical error during validation."""
+        with patch.object(cache_manager, '_validate_cache', side_effect=Exception("Critical error")):
+            
+            with pytest.raises(UnifiedModelManagerError, match="Critical error in data availability check"):
+                cache_manager.ensure_data_available()
+    
+    def test_ensure_data_available_unified_model_manager_error_propagation(self, cache_manager):
+        """Test that UnifiedModelManagerError is propagated correctly."""
+        original_error = UnifiedModelManagerError("Original error")
+        
+        with patch.object(cache_manager, '_validate_cache', return_value=(CacheManagementConstants.CACHE_MISSING, "No cache")), \
+             patch.object(cache_manager, 'refresh_unified_data', side_effect=original_error):
+            
+            with pytest.raises(UnifiedModelManagerError, match="Automatic cache refresh failed: Original error"):
+                cache_manager.ensure_data_available()

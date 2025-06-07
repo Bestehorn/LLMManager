@@ -660,7 +660,7 @@ class TestLLMManagerUncoveredCases:
             
             assert response.api_latency_ms == 250
     
-    @patch('src.LLMManager.datetime')
+    @patch('src.LLMManager.datetime')  
     def test_converse_stream_success_flow(self, mock_datetime, basic_llm_manager):
         """Test successful converse_stream operation."""
         # Setup datetime mock

@@ -129,3 +129,6 @@ docs/CRIS.json
 docs/FoundationalModels.json
 docs/UnifiedModels.json
 docs/demo_models.json
+src/docs/CRIS.json
+src/docs/UnifiedModels.json
+src/docs/FoundationalModels.json
