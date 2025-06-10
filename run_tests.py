@@ -182,10 +182,17 @@ Examples:
   python run_tests.py                    # Run all tests with coverage
   python run_tests.py --unit             # Run only unit tests
   python run_tests.py --fast --parallel  # Quick test run
-  python run_tests.py --integration      # Run only integration tests
+  python run_tests.py --integration      # Run only integration tests  
   python run_tests.py --all              # Run both unit and AWS integration tests
   python run_tests.py --aws-integration  # Run only AWS integration tests
   python run_tests.py --html             # Generate HTML reports
+  
+  # Targeting specific tests:
+  python run_tests.py test/unit/test_specific.py                           # Run specific test file
+  python run_tests.py test/integration/test_file.py::TestClass             # Run specific test class
+  python run_tests.py test/integration/test_file.py::TestClass::test_method # Run specific test method
+  python run_tests.py --aws-integration test/integration/test_file.py::TestClass::test_method # Run specific test with AWS integration
+  python run_tests.py test/unit/test_a.py test/unit/test_b.py              # Run multiple test files
         """
     )
     
@@ -264,6 +271,12 @@ Examples:
         help='Show what commands would be run without executing them'
     )
     
+    parser.add_argument(
+        'test_targets', nargs='*',
+        help='Specific test files, classes, or methods to run. '
+             'Examples: test/unit/test_file.py, test/integration/test_file.py::TestClass::test_method'
+    )
+    
     args = parser.parse_args()
     
     # Configure AWS integration test environment
@@ -338,8 +351,11 @@ Examples:
             '--self-contained-html'
         ])
     
-    # Add test directory
-    pytest_cmd.append('test/')
+    # Add test targets or default to test directory
+    if args.test_targets:
+        pytest_cmd.extend(args.test_targets)
+    else:
+        pytest_cmd.append('test/')
     
     if args.dry_run:
         print(f"Would run: {' '.join(pytest_cmd)}")

@@ -93,7 +93,7 @@ class TestUnifiedModelManager:
         manager = UnifiedModelManager()
         
         assert manager.json_output_path == Path(UnifiedFilePaths.DEFAULT_UNIFIED_JSON_OUTPUT)
-        assert manager.force_download is True
+        assert manager.force_download is False
     
     def test_init_custom_configuration(self):
         """Test initialization with custom configuration."""
@@ -123,9 +123,9 @@ class TestUnifiedModelManager:
             # Execute
             catalog = manager.refresh_unified_data()
             
-            # Verify workflow
-            mock_model_manager.refresh_model_data.assert_called_once_with(force_download=True)
-            mock_cris_manager.refresh_cris_data.assert_called_once_with(force_download=True)
+            # Verify workflow (uses default force_download=False)
+            mock_model_manager.refresh_model_data.assert_called_once_with(force_download=False)
+            mock_cris_manager.refresh_cris_data.assert_called_once_with(force_download=False)
             mock_correlator.correlate_catalogs.assert_called_once()
             mock_serializer.serialize_dict_to_file.assert_called_once()
             
@@ -535,6 +535,61 @@ class TestUnifiedModelManager:
         
         assert result is True
         unified_manager._cached_catalog.has_model.assert_called_once_with(model_name="Claude 3 Haiku")
+    
+    def test_get_regions_for_model_no_data(self):
+        """Test getting regions for model when no data is available."""
+        manager = UnifiedModelManager()
+        manager._cached_catalog = None
+        
+        with pytest.raises(UnifiedModelManagerError, match=r"No model data available\. Call refresh_unified_data\(\) first"):
+            manager.get_regions_for_model("Claude 3 Haiku")
+    
+    def test_get_regions_for_model_model_not_found(self, unified_manager):
+        """Test getting regions for non-existent model."""
+        result = unified_manager.get_regions_for_model("NonExistent Model")
+        
+        assert result == []
+    
+    def test_get_regions_for_model_success(self, unified_manager):
+        """Test successful retrieval of regions for a model."""
+        # Mock all supported regions
+        all_regions = ["us-east-1", "us-west-2", "eu-west-1", "ap-southeast-1"]
+        unified_manager._cached_catalog.get_all_supported_regions.return_value = all_regions
+        
+        # Mock model info with availability in some regions
+        model_info = unified_manager._cached_catalog.unified_models["Claude 3 Haiku"]
+        model_info.is_available_in_region.side_effect = lambda region: region in ["us-east-1", "eu-west-1"]
+        
+        result = unified_manager.get_regions_for_model("Claude 3 Haiku")
+        
+        # Should return sorted list of available regions
+        assert result == ["eu-west-1", "us-east-1"]
+        
+        # Verify all regions were checked
+        unified_manager._cached_catalog.get_all_supported_regions.assert_called_once()
+        assert model_info.is_available_in_region.call_count == len(all_regions)
+        
+        # Verify each region was checked
+        for region in all_regions:
+            model_info.is_available_in_region.assert_any_call(region=region)
+    
+    def test_get_regions_for_model_no_regions_available(self, unified_manager):
+        """Test getting regions for model when no regions are available."""
+        # Mock all supported regions
+        all_regions = ["us-east-1", "us-west-2", "eu-west-1"]
+        unified_manager._cached_catalog.get_all_supported_regions.return_value = all_regions
+        
+        # Mock model info with no availability in any region
+        model_info = unified_manager._cached_catalog.unified_models["Claude 3 Haiku"]
+        model_info.is_available_in_region.return_value = False
+        
+        result = unified_manager.get_regions_for_model("Claude 3 Haiku")
+        
+        assert result == []
+        
+        # Verify all regions were checked
+        unified_manager._cached_catalog.get_all_supported_regions.assert_called_once()
+        assert model_info.is_available_in_region.call_count == len(all_regions)
     
     def test_get_correlation_stats(self, unified_manager, mock_correlator):
         """Test getting correlation statistics."""

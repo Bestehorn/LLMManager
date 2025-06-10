@@ -97,6 +97,7 @@ class ModelCRISCorrelator:
             unified_models: Dict[str, UnifiedModelInfo] = {}
             
             # Process regular models and correlate with CRIS data
+            failed_models = []
             for model_name, model_info in model_catalog.models.items():
                 if model_name in processed_models:
                     continue
@@ -136,8 +137,9 @@ class ModelCRISCorrelator:
                         f"Has matching CRIS model: {matching_cris_model is not None}. "
                         f"Error details: {str(e)}"
                     )
-                    self._logger.error(f"Model correlation error: {error_context}")
-                    raise ModelCRISCorrelationError(f"Model correlation failed for '{model_name}': {error_context}") from e
+                    self._logger.warning(f"Skipping problematic model '{model_name}': {error_context}")
+                    failed_models.append(model_name)
+                    continue  # Skip this model and continue with others
             
             # Process CRIS-only models (models that don't have regular counterparts)
             for cris_model_name, cris_model_info in cris_catalog.cris_models.items():

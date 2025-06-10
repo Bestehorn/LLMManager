@@ -37,11 +37,19 @@ def unified_model_manager(tmp_path) -> UnifiedModelManager:
     )
     
     try:
-        catalog = manager.refresh_unified_data()
+        # Use ensure_data_available for more robust error handling
+        catalog = manager.ensure_data_available()
         if catalog.model_count == 0:
             pytest.skip("No model data available - cannot run integration tests")
         return manager
     except Exception as e:
+        # Try to load cached data as fallback
+        try:
+            cached_catalog = manager.load_cached_data()
+            if cached_catalog and cached_catalog.model_count > 0:
+                return manager
+        except Exception:
+            pass
         pytest.skip(f"Could not refresh model data: {str(e)}")
 
 

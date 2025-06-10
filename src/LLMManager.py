@@ -9,19 +9,19 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from bedrock.UnifiedModelManager import UnifiedModelManager
-from bedrock.auth.auth_manager import AuthManager
-from bedrock.retry.retry_manager import RetryManager
-from bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
-from bedrock.models.llm_manager_structures import (
+from .bedrock.UnifiedModelManager import UnifiedModelManager
+from .bedrock.auth.auth_manager import AuthManager
+from .bedrock.retry.retry_manager import RetryManager
+from .bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
+from .bedrock.models.llm_manager_structures import (
     AuthConfig, RetryConfig, AuthenticationType, RetryStrategy,
     ResponseValidationConfig
 )
-from bedrock.models.llm_manager_constants import (
+from .bedrock.models.llm_manager_constants import (
     ConverseAPIFields, LLMManagerConfig, LLMManagerLogMessages, 
     LLMManagerErrorMessages, ContentLimits
 )
-from bedrock.exceptions.llm_manager_exceptions import (
+from .bedrock.exceptions.llm_manager_exceptions import (
     LLMManagerError, ConfigurationError, RequestValidationError,
     AuthenticationError, RetryExhaustedError
 )
@@ -107,11 +107,8 @@ class LLMManager:
         else:
             self._unified_model_manager = UnifiedModelManager()
         
-        # Ensure model data is available with automatic cache management
-        try:
-            self._unified_model_manager.ensure_data_available()
-        except Exception as e:
-            self._raise_model_data_initialization_error(error=e)
+        # Initialize model data with proper cache management
+        self._initialize_model_data()
         
         # Validate model/region combinations
         self._validate_model_region_combinations()

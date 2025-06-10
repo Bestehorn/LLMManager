@@ -665,6 +665,35 @@ class UnifiedModelManager:
         
         return self._cached_catalog.has_model(model_name=model_name)
     
+    def get_regions_for_model(self, model_name: str) -> List[str]:
+        """
+        Get all regions where a specific model is available.
+        
+        Args:
+            model_name: The name of the model
+            
+        Returns:
+            Sorted list of regions where the model is available
+            
+        Raises:
+            UnifiedModelManagerError: If no data is available
+        """
+        if not self._cached_catalog:
+            raise UnifiedModelManagerError(UnifiedErrorMessages.NO_MODEL_DATA)
+        
+        if model_name not in self._cached_catalog.unified_models:
+            return []
+        
+        model_info = self._cached_catalog.unified_models[model_name]
+        available_regions = []
+        
+        # Check all supported regions
+        for region in self._cached_catalog.get_all_supported_regions():
+            if model_info.is_available_in_region(region=region):
+                available_regions.append(region)
+        
+        return sorted(available_regions)
+    
     def get_correlation_stats(self) -> Dict[str, int]:
         """
         Get statistics from the last correlation operation.

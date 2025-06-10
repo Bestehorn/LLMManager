@@ -6,14 +6,151 @@ covering areas that have low coverage in unit tests due to mocking.
 """
 
 import pytest
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple, Optional
 
 from src.LLMManager import LLMManager
+from src.bedrock.UnifiedModelManager import UnifiedModelManager, UnifiedModelManagerError
 from src.bedrock.models.llm_manager_structures import AuthConfig, RetryConfig, AuthenticationType, ResponseValidationConfig
 from bedrock.exceptions.llm_manager_exceptions import (
     ConfigurationError, RequestValidationError, RetryExhaustedError
 )
 from src.bedrock.testing.integration_markers import IntegrationTestMarkers
+
+
+# Constants for preferred test regions (in order of preference)
+PREFERRED_TEST_REGIONS = ["us-east-1", "us-west-2"]
+FALLBACK_TEST_REGIONS = ["eu-west-1", "ap-southeast-1"]
+
+
+def _select_preferred_region_from_available(available_regions: List[str]) -> Optional[str]:
+    """
+    Select the most preferred region from available regions for testing.
+    
+    Prioritizes regions that typically have full functionality and account access.
+    
+    Args:
+        available_regions: List of regions where the model is available
+        
+    Returns:
+        Preferred region if available, None if no regions available
+    """
+    if not available_regions:
+        return None
+    
+    # Try preferred regions first
+    for preferred_region in PREFERRED_TEST_REGIONS:
+        if preferred_region in available_regions:
+            return preferred_region
+    
+    # Try fallback regions
+    for fallback_region in FALLBACK_TEST_REGIONS:
+        if fallback_region in available_regions:
+            return fallback_region
+    
+    # If no preferred regions available, use first available region
+    return available_regions[0]
+
+
+def _get_provider_models_with_case_handling(unified_manager: UnifiedModelManager, provider: str) -> Dict[str, Any]:
+    """
+    Get models for a provider with case-insensitive handling.
+    
+    Args:
+        unified_manager: Initialized UnifiedModelManager instance
+        provider: Model provider name
+        
+    Returns:
+        Dictionary of provider models, empty dict if none found
+    """
+    # Try exact case first
+    provider_models = unified_manager.get_models_by_provider(provider=provider)
+    if provider_models:
+        return provider_models
+    
+    # Try capitalized version if exact case fails
+    capitalized_provider = provider.capitalize()
+    if capitalized_provider != provider:
+        provider_models = unified_manager.get_models_by_provider(provider=capitalized_provider)
+        if provider_models:
+            return provider_models
+    
+    # Try lowercase version if exact case fails
+    lowercase_provider = provider.lower()
+    if lowercase_provider != provider:
+        provider_models = unified_manager.get_models_by_provider(provider=lowercase_provider)
+        if provider_models:
+            return provider_models
+    
+    return {}
+
+
+def get_available_test_model_and_region(provider: str = "Anthropic") -> Tuple[Optional[str], Optional[str]]:
+    """
+    Get an available model and region combination for testing.
+    
+    Uses UnifiedModelManager to dynamically discover available models and
+    prioritizes regions that typically have full functionality and account access
+    (us-east-1, us-west-2) over other regions.
+    
+    Args:
+        provider: Model provider to search for (default: "Anthropic")
+        
+    Returns:
+        Tuple of (model_name, region) if available combination found, (None, None) otherwise
+    """
+    try:
+        # Create and initialize UnifiedModelManager
+        unified_manager = UnifiedModelManager()
+        unified_manager.ensure_data_available()
+        
+        # Get models for the specified provider with case handling
+        provider_models = _get_provider_models_with_case_handling(
+            unified_manager=unified_manager, 
+            provider=provider
+        )
+        if not provider_models:
+            return None, None
+        
+        # Try each model to find one with available regions in preferred order
+        for model_name in sorted(provider_models.keys()):
+            available_regions = unified_manager.get_regions_for_model(model_name=model_name)
+            if available_regions:
+                preferred_region = _select_preferred_region_from_available(
+                    available_regions=available_regions
+                )
+                if preferred_region:
+                    return model_name, preferred_region
+        
+        return None, None
+        
+    except UnifiedModelManagerError:
+        # If UnifiedModelManager fails, return None to skip tests
+        return None, None
+    except Exception:
+        # For any other error, return None to skip tests
+        return None, None
+
+
+def get_multiple_test_regions(model_name: str, max_regions: int = 3) -> List[str]:
+    """
+    Get multiple regions where a model is available for testing.
+    
+    Args:
+        model_name: Name of the model to check
+        max_regions: Maximum number of regions to return
+        
+    Returns:
+        List of regions where the model is available (up to max_regions)
+    """
+    try:
+        unified_manager = UnifiedModelManager()
+        unified_manager.ensure_data_available()
+        
+        available_regions = unified_manager.get_regions_for_model(model_name=model_name)
+        return available_regions[:max_regions]
+        
+    except Exception:
+        return []
 
 
 @pytest.mark.integration
@@ -23,31 +160,35 @@ from src.bedrock.testing.integration_markers import IntegrationTestMarkers
 class TestLLMManagerBasicFunctionality:
     """Integration tests for basic LLMManager functionality."""
     
-    def test_llm_manager_initialization_with_real_models(self, integration_config):
+    def test_llm_manager_initialization_with_real_models(self):
         """
-        Test LLMManager initialization with real model data.
-        
-        Args:
-            integration_config: Integration test configuration
+        Test LLMManager initialization with real model data using dynamic discovery.
         """
-        # Get available test models - use actual model IDs instead of friendly names
-        anthropic_model = integration_config.get_test_model_for_provider("anthropic")
-        amazon_model = integration_config.get_test_model_for_provider("amazon")
+        # Get available test models using dynamic discovery
+        anthropic_model, anthropic_region = get_available_test_model_and_region(provider="Anthropic")
+        amazon_model, amazon_region = get_available_test_model_and_region(provider="Amazon")
         
         models = []
-        if anthropic_model:
-            models.append(anthropic_model)  # Use actual model ID
-        if amazon_model:
-            models.append(amazon_model)  # Use actual model ID
+        regions = []
+        
+        if anthropic_model and anthropic_region:
+            models.append(anthropic_model)
+            if anthropic_region not in regions:
+                regions.append(anthropic_region)
+        
+        if amazon_model and amazon_region:
+            models.append(amazon_model)
+            if amazon_region not in regions:
+                regions.append(amazon_region)
         
         if not models:
-            pytest.skip("No test models configured")
+            pytest.skip("No test models available for testing")
         
-        # Initialize with real models and regions - may fail if model data unavailable
+        # Initialize with dynamically discovered models and regions
         try:
             manager = LLMManager(
                 models=models,
-                regions=integration_config.test_regions[:2],  # Use first 2 regions
+                regions=regions,
                 timeout=30
             )
             
@@ -66,27 +207,26 @@ class TestLLMManagerBasicFunctionality:
     
     def test_llm_manager_converse_with_real_model(
         self, 
-        integration_config, 
         sample_test_messages, 
         simple_inference_config
     ):
         """
-        Test LLMManager converse method with real AWS model.
+        Test LLMManager converse method with real AWS model using dynamic discovery.
         
         Args:
-            integration_config: Integration test configuration
             sample_test_messages: Sample messages for testing
             simple_inference_config: Simple inference configuration
         """
-        anthropic_model = integration_config.get_test_model_for_provider("anthropic")
-        if not anthropic_model:
-            pytest.skip("Anthropic model not configured for testing")
+        # Use dynamic model/region discovery
+        model_name, region = get_available_test_model_and_region(provider="Anthropic")
+        if not model_name or not region:
+            pytest.skip("No available Anthropic model/region combination found for testing")
         
-        # Initialize manager with real model ID - may fail if model data unavailable
+        # Initialize manager with dynamically discovered model/region
         try:
             manager = LLMManager(
-                models=[anthropic_model],  # Use actual model ID
-                regions=[integration_config.get_primary_test_region()],
+                models=[model_name],
+                regions=[region],
                 default_inference_config=simple_inference_config
             )
             
@@ -115,31 +255,27 @@ class TestLLMManagerBasicFunctionality:
             assert len(response.attempts) >= 1
             successful_attempt = next((a for a in response.attempts if a.success), None)
             assert successful_attempt is not None
-            assert successful_attempt.model_id == anthropic_model
+            assert successful_attempt.model_id == model_name
             
         except ConfigurationError as e:
-            pytest.skip(f"Could not initialize LLMManager due to model data issues: {str(e)}")
+            pytest.skip(f"Could not initialize LLMManager (Model: \"{model_name}\"; Region: \"{region}\") due to model data issues: {str(e)}")
     
-    def test_llm_manager_converse_with_system_message(
-        self, 
-        integration_config, 
-        sample_test_messages
-    ):
+    def test_llm_manager_converse_with_system_message(self, sample_test_messages):
         """
         Test LLMManager converse with system message.
         
         Args:
-            integration_config: Integration test configuration
             sample_test_messages: Sample messages for testing
         """
-        anthropic_model = integration_config.get_test_model_for_provider("anthropic")
-        if not anthropic_model:
-            pytest.skip("Anthropic model not configured for testing")
+        # Use dynamic model/region discovery
+        model_name, region = get_available_test_model_and_region(provider="Anthropic")
+        if not model_name or not region:
+            pytest.skip("No available Anthropic model/region combination found for testing")
         
         try:
             manager = LLMManager(
-                models=[anthropic_model],  # Use actual model ID
-                regions=[integration_config.get_primary_test_region()]
+                models=[model_name],
+                regions=[region]
             )
             
             system_messages = [
@@ -158,26 +294,42 @@ class TestLLMManagerBasicFunctionality:
             assert response.get_content() is not None
             
         except ConfigurationError as e:
-            pytest.skip(f"Could not initialize LLMManager due to model data issues: {str(e)}")
+            pytest.skip(f"Could not initialize LLMManager (Model: \"{model_name}\"; Region: \"{region}\") due to model data issues: {str(e)}")
     
-    def test_llm_manager_converse_with_multiple_regions(self, integration_config, sample_test_messages):
+    def test_llm_manager_converse_with_multiple_regions(self, sample_test_messages):
         """
-        Test LLMManager with multiple regions for failover.
+        Test LLMManager with multiple regions for failover using dynamic discovery.
         
         Args:
-            integration_config: Integration test configuration
             sample_test_messages: Sample messages for testing
         """
-        anthropic_model = integration_config.get_test_model_for_provider("anthropic")
-        if not anthropic_model:
-            pytest.skip("Anthropic model not configured for testing")
+        # Use dynamic model/region discovery
+        model_name, primary_region = get_available_test_model_and_region(provider="Anthropic")
+        if not model_name or not primary_region:
+            pytest.skip("No available Anthropic model/region combination found for testing")
         
-        # Use multiple regions
-        test_regions = integration_config.test_regions[:3] if len(integration_config.test_regions) >= 3 else integration_config.test_regions
+        # Get multiple regions for the model, prioritizing preferred regions
+        all_regions = get_multiple_test_regions(model_name=model_name, max_regions=3)
+        if not all_regions:
+            pytest.skip(f"No regions available for model {model_name}")
+        
+        # Ensure we have multiple regions for failover testing
+        test_regions = []
+        for preferred_region in PREFERRED_TEST_REGIONS:
+            if preferred_region in all_regions and preferred_region not in test_regions:
+                test_regions.append(preferred_region)
+        
+        # Add any remaining regions up to max
+        for region in all_regions:
+            if region not in test_regions and len(test_regions) < 3:
+                test_regions.append(region)
+        
+        if len(test_regions) < 2:
+            test_regions = [primary_region]  # Fallback to single region
         
         try:
             manager = LLMManager(
-                models=[anthropic_model],  # Use actual model ID
+                models=[model_name],
                 regions=test_regions
             )
             
@@ -194,20 +346,20 @@ class TestLLMManagerBasicFunctionality:
             assert len(response.attempts) >= 1
             
         except ConfigurationError as e:
-            pytest.skip(f"Could not initialize LLMManager due to model data issues: {str(e)}")
+            pytest.skip(f"Could not initialize LLMManager (Model: \"{model_name}\"; Regions: {test_regions}) due to model data issues: {str(e)}")
     
-    def test_llm_manager_with_retry_config(self, integration_config, sample_test_messages):
+    def test_llm_manager_with_retry_config(self, sample_test_messages):
         """
         Test LLMManager with custom retry configuration.
         
         Args:
-            integration_config: Integration test configuration
             sample_test_messages: Sample messages for testing
         """
-        anthropic_model = integration_config.get_test_model_for_provider("anthropic")
-        if not anthropic_model:
-            pytest.skip("Anthropic model not configured for testing")
-        
+        # Use dynamic model/region discovery instead of integration_config
+        model_name, region = get_available_test_model_and_region(provider="Anthropic")
+        if not model_name or not region:
+            pytest.skip("No available Anthropic model/region combination found for testing")
+
         # Configure custom retry behavior
         retry_config = RetryConfig(
             max_retries=2,
@@ -217,16 +369,14 @@ class TestLLMManagerBasicFunctionality:
         )
         
         try:
+            # Initialize LLMManager with retry config using dynamically discovered model/region
             manager = LLMManager(
-                models=[anthropic_model],  # Use actual model ID
-                regions=[integration_config.get_primary_test_region()],
+                models=[model_name],
+                regions=[region],
                 retry_config=retry_config
             )
-        except ConfigurationError as e:
-            # Skip if model data is not available or model/region combination is invalid
-            pytest.skip(f"Could not initialize LLMManager due to model data issues: {str(e)}")
-        
-        try:
+            
+            # Test converse functionality with retry config
             response = manager.converse(
                 messages=sample_test_messages,
                 inference_config={"maxTokens": 30}
@@ -234,16 +384,15 @@ class TestLLMManagerBasicFunctionality:
             
             assert response.success is True
             
-            # Verify retry stats
+            # Verify retry configuration was applied
             retry_stats = manager.get_retry_stats()
             assert isinstance(retry_stats, dict)
             assert "max_retries" in retry_stats
             assert retry_stats["max_retries"] == 2
             
         except ConfigurationError as e:
-            # This can happen if model data isn't properly loaded in test environment
-            # or if there's a timing/context difference between initialization and runtime
-            pytest.skip(f"Model/region data unavailable in test environment: {str(e)}")
+            # Skip if LLMManager cannot be initialized due to model data issues
+            pytest.skip(f"Could not initialize LLMManager (Model: \"{model_name}\"; Region: \"{region}\") due to model data issues: {str(e)}")
 
 
 @pytest.mark.integration

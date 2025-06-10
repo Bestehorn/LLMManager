@@ -8,6 +8,7 @@ test environment setup.
 
 import os
 import logging
+import subprocess
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict, Any
 from pathlib import Path
@@ -51,7 +52,7 @@ class IntegrationTestConfig:
         log_level: Logging level for integration tests
     """
     
-    enabled: bool = field(default_factory=lambda: _get_env_bool("AWS_INTEGRATION_TESTS_ENABLED", False))
+    enabled: bool = field(default_factory=lambda: _determine_integration_enabled())
     aws_profile: Optional[str] = field(default_factory=lambda: os.getenv("AWS_INTEGRATION_TEST_PROFILE"))
     test_regions: List[str] = field(default_factory=lambda: _get_test_regions())
     test_models: Dict[str, str] = field(default_factory=lambda: _get_test_models())
@@ -253,6 +254,94 @@ def _get_test_models() -> Dict[str, str]:
         models[provider] = os.getenv(env_var, default_model)
     
     return models
+
+
+def _determine_integration_enabled() -> bool:
+    """
+    Determine if integration tests should be enabled based on available credentials.
+    
+    Mirrors the logic from run_tests.py to provide consistent behavior.
+    
+    Returns:
+        True if integration tests should be enabled
+    """
+    # Check if explicitly enabled via environment variable
+    if _get_env_bool("AWS_INTEGRATION_TESTS_ENABLED", False):
+        return True
+    
+    # Check if AWS integration is available via credentials
+    if _is_aws_integration_available():
+        # Handle default profile setup
+        _handle_default_aws_profile_setup()
+        return True
+    
+    return False
+
+
+def _is_aws_integration_available() -> bool:
+    """
+    Check if AWS integration tests can be run (credentials available).
+    
+    Returns:
+        True if AWS credentials are available
+    """
+    return _has_aws_environment_credentials() or _has_aws_profile_credentials()
+
+
+def _has_aws_environment_credentials() -> bool:
+    """
+    Check if AWS credentials are available via environment variables.
+    
+    Returns:
+        True if AWS credentials are set via environment variables
+    """
+    return bool(
+        os.getenv("AWS_ACCESS_KEY_ID") and 
+        os.getenv("AWS_SECRET_ACCESS_KEY")
+    )
+
+
+def _has_aws_profile_credentials() -> bool:
+    """
+    Check if AWS credentials are available via AWS CLI configuration.
+    
+    Returns:
+        True if AWS CLI credentials are configured
+    """
+    try:
+        # Try to use AWS CLI to check if credentials are configured
+        result = subprocess.run(
+            ["aws", "sts", "get-caller-identity"],
+            capture_output=True,
+            text=True,
+            timeout=10
+        )
+        return result.returncode == 0
+    except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+        # AWS CLI not available or credentials not configured
+        return False
+
+
+def _handle_default_aws_profile_setup() -> None:
+    """
+    Handle setup for default AWS profile when no explicit profile is specified.
+    """
+    # Check if AWS credentials are already set via environment variables
+    if _has_aws_environment_credentials():
+        return
+    
+    # Check if a profile is already specified
+    if os.getenv("AWS_INTEGRATION_TEST_PROFILE"):
+        return
+    
+    # Use default profile and print warning
+    default_profile = "default"
+    print(f"⚠️  No AWS profile specified for integration tests, using default profile: '{default_profile}'")
+    print("   If this profile doesn't exist, tests may fail with authentication errors.")
+    print("   Set AWS_INTEGRATION_TEST_PROFILE environment variable to use a different profile.")
+    
+    # Set default profile
+    os.environ["AWS_INTEGRATION_TEST_PROFILE"] = default_profile
 
 
 def load_integration_config() -> IntegrationTestConfig:

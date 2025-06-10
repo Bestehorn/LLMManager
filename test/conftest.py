@@ -177,24 +177,24 @@ def integration_config():
 
 def _get_integration_skip_reason() -> str:
     """Get detailed reason why integration tests are skipped."""
-    reasons = []
+    from src.bedrock.testing.integration_config import (
+        _has_aws_environment_credentials, 
+        _has_aws_profile_credentials
+    )
     
-    # Check if integration tests are enabled
-    enabled = os.getenv("AWS_INTEGRATION_TESTS_ENABLED", "false").lower()
-    if enabled not in ("true", "1", "yes", "on"):
-        reasons.append("AWS_INTEGRATION_TESTS_ENABLED is not set to 'true'")
+    # Check if AWS credentials are available at all
+    has_env_creds = _has_aws_environment_credentials()
+    has_profile_creds = _has_aws_profile_credentials()
     
-    # Check AWS credentials
-    aws_profile = os.getenv("AWS_INTEGRATION_TEST_PROFILE")
-    if aws_profile:
-        reasons.append(f"Using AWS profile: {aws_profile}")
-    elif not (os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY")):
-        reasons.append("No AWS credentials found (set AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY or AWS_INTEGRATION_TEST_PROFILE)")
+    if not has_env_creds and not has_profile_creds:
+        return (
+            "Integration tests skipped: No AWS credentials found. "
+            "Either set AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY environment variables "
+            "or configure AWS CLI with 'aws configure' for default profile access."
+        )
     
-    if not reasons:
-        reasons.append("Integration tests disabled")
-    
-    return "Integration tests skipped: " + "; ".join(reasons)
+    # If we get here, credentials should be available but integration is still disabled
+    return "Integration tests disabled despite available AWS credentials"
 
 
 @pytest.fixture
