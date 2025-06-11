@@ -1,0 +1,11 @@
+# AWS Bedrock LLMManager - Runtime Dependencies
+# Core AWS SDK components
+boto3>=1.28.0
+botocore>=1.31.0
+
+# HTML parsing for model data extraction
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+
+# HTTP requests for downloading model data
+requests>=2.31.0

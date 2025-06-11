@@ -8,13 +8,13 @@ covering areas that have low coverage in unit tests due to mocking.
 import pytest
 from typing import List, Dict, Any, Tuple, Optional
 
-from src.LLMManager import LLMManager
-from src.bedrock.UnifiedModelManager import UnifiedModelManager, UnifiedModelManagerError
-from src.bedrock.models.llm_manager_structures import AuthConfig, RetryConfig, AuthenticationType, ResponseValidationConfig
-from bedrock.exceptions.llm_manager_exceptions import (
+from bestehorn_llmmanager.llm_manager import LLMManager
+from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager, UnifiedModelManagerError
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import AuthConfig, RetryConfig, AuthenticationType, ResponseValidationConfig
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
     ConfigurationError, RequestValidationError, RetryExhaustedError
 )
-from src.bedrock.testing.integration_markers import IntegrationTestMarkers
+from bestehorn_llmmanager.bedrock.testing.integration_markers import IntegrationTestMarkers
 
 
 # Constants for preferred test regions (in order of preference)

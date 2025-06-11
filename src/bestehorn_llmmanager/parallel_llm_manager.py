@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from .LLMManager import LLMManager
+from .llm_manager import LLMManager
 
 from .bedrock.models.parallel_structures import (
     BedrockConverseRequest, ParallelResponse, ParallelProcessingConfig,

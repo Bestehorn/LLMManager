@@ -10,11 +10,11 @@ import pytest
 from typing import List, Dict, Any, Optional
 from pathlib import Path
 
-from src.LLMManager import LLMManager
-from src.bedrock.UnifiedModelManager import UnifiedModelManager
-from src.bedrock.models.llm_manager_structures import AuthConfig, AuthenticationType
-from bedrock.exceptions.llm_manager_exceptions import LLMManagerError, ConfigurationError, RequestValidationError
-from src.bedrock.testing.integration_markers import IntegrationTestMarkers
+from bestehorn_llmmanager.llm_manager import LLMManager
+from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import AuthConfig, AuthenticationType
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import LLMManagerError, ConfigurationError, RequestValidationError
+from bestehorn_llmmanager.bedrock.testing.integration_markers import IntegrationTestMarkers
 
 
 @pytest.fixture

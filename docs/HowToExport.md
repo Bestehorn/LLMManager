@@ -1,255 +1,194 @@
-# How to Export LLMManager Package
+# How to Export LLMManager for Use in Other Projects
 
-This document describes how to extract and package the LLMManager components for use in other projects.
+This document explains how to extract the LLMManager source code for integration into other projects.
 
 ## Overview
 
-The LLMManager project includes an extraction mechanism that creates a distributable ZIP file containing all the essential components needed to use LLMManager in other projects. This allows you to integrate LLMManager functionality without needing to publish it as a formal Python package.
+The `extract_llm_manager.py` script packages the essential LLMManager source code into a ZIP file that can be easily integrated into other projects. This allows you to use the LLMManager library in other projects without publishing it as a formal Python package.
 
-## What Gets Extracted
+## Usage
 
-The extraction process includes:
-
-### Included Components
-- **Core Modules**: `LLMManager.py` and `ParallelLLMManager.py`
-- **Bedrock Package**: Complete `src/bedrock/` directory with all submodules
-- **Supporting Files**: LICENSE file (if present)
-- **Package Metadata**: Generated `__init__.py` and `README.md` files
-
-### Excluded Components
-- Test files (`test/` directory)
-- Development notebooks (`notebooks/` directory)
-- Documentation (`docs/` directory)
-- Workspace files (`workspace/` directory)
-- Examples and images
-- Configuration files like `pytest.ini`, `requirements-test.txt`
-
-## Package Structure
-
-The extracted package creates the following structure:
-
-```
-bestehorn/
-├── __init__.py              # Generated package initialization
-├── README.md                # Generated usage documentation
-├── LLMManager.py            # Main LLM manager class
-├── ParallelLLMManager.py    # Parallel processing manager
-└── bedrock/                 # Complete bedrock module
-    ├── __init__.py
-    ├── UnifiedModelManager.py
-    ├── auth/
-    ├── models/
-    ├── parsers/
-    ├── retry/
-    └── [all other bedrock submodules]
-```
-
-## Usage Instructions
-
-### 1. Basic Extraction
-
-Run the extraction script from the project root:
+### Basic Usage
 
 ```bash
 python extract_llm_manager.py
 ```
 
-This creates `dist/bestehorn-llmmanager-v1.0.0.zip` with default settings.
+This creates `bestehorn_llmmanager_v1.0.0.zip` with the packaged source code **including documentation**.
 
-### 2. Custom Package Name and Version
-
-```bash
-python extract_llm_manager.py --package-name mypackage --version 2.1.0
-```
-
-### 3. Custom Output Directory
+### Exclude Documentation
 
 ```bash
-python extract_llm_manager.py --output-dir /path/to/output
+python extract_llm_manager.py --exclude-docs
 ```
 
-### 4. Keep Temporary Files (for debugging)
+This creates the package **without** documentation files (smaller, source-only package).
+
+### Custom Output Filename
 
 ```bash
-python extract_llm_manager.py --no-cleanup
+python extract_llm_manager.py my_custom_package.zip            # With docs
+python extract_llm_manager.py --exclude-docs my_package.zip   # Without docs
 ```
 
-### 5. Validate Environment Only
+### Help
 
 ```bash
-python extract_llm_manager.py --validate-only
+python extract_llm_manager.py --help
 ```
 
-### 6. Enable Debug Logging
+## What Gets Packaged
+
+The extraction script includes:
+
+### Source Code
+- **All files from `src/bestehorn_llmmanager/`** - Complete source tree
+- **Renamed to `bestehorn/`** - As requested for proper import structure
+
+### Documentation (Optional)
+- **README_INTEGRATION.md** - Comprehensive integration guide
+- **SETUP.md** - Quick setup instructions
+- **docs/** - All Markdown documentation from the project (unless `--exclude-docs` is used)
+
+### Project Files
+- **requirements.txt** - Runtime dependencies
+- **pyproject.toml** - Python package configuration  
+- **LICENSE** - License information
+
+### Exclusions
+- Test files and test directories
+- Integration tests  
+- Prompts (unless in docs/)
+- Build artifacts and cache files
+- Git metadata
+- Documentation files (if `--exclude-docs` flag is used)
+
+## Package Structure
+
+After extraction, the ZIP contains:
+
+```
+bestehorn/                          # Main source directory
+├── __init__.py                     # Package initialization
+├── llm_manager.py                  # Core LLMManager class
+├── parallel_llm_manager.py         # Parallel processing manager
+└── bedrock/                        # AWS Bedrock integration
+    ├── auth/                       # Authentication handling
+    ├── models/                     # Data structures
+    ├── retry/                      # Retry logic
+    ├── exceptions/                 # Custom exceptions
+    └── ...                         # Additional modules
+
+README_INTEGRATION.md               # Integration documentation
+SETUP.md                           # Quick setup guide
+requirements.txt                   # Dependencies
+pyproject.toml                     # Package configuration
+LICENSE                            # License
+```
+
+## Integration in Other Projects
+
+### Step 1: Extract Package
+
+Extract the ZIP file to your target project directory:
 
 ```bash
-python extract_llm_manager.py --log-level DEBUG
+unzip bestehorn_llmmanager_final.zip
 ```
 
-## Using the Extracted Package
-
-### 1. Extract to Target Project
+### Step 2: Install Dependencies
 
 ```bash
-cd /path/to/your/project
-unzip bestehorn-llmmanager-v1.0.0.zip
+pip install -r requirements.txt
 ```
 
-### 2. Import and Use
+### Step 3: Import and Use
+
+Use the import structure as requested:
 
 ```python
-# Import the main classes
-from bestehorn import LLMManager, ParallelLLMManager
+import bestehorn.llm_manager as LLMManager
 
-# Basic usage
-manager = LLMManager(
+# Initialize LLM Manager
+manager = LLMManager.LLMManager(
     models=["Claude 3 Haiku", "Claude 3 Sonnet"],
     regions=["us-east-1", "us-west-2"]
 )
 
+# Send conversation request
 response = manager.converse(
     messages=[{"role": "user", "content": [{"text": "Hello!"}]}]
 )
 
 print(response.get_content())
-
-# Parallel processing
-parallel_manager = ParallelLLMManager(
-    models=["Claude 3 Haiku"],
-    regions=["us-east-1", "us-west-2"]
-)
-
-# Create multiple requests
-from bestehorn.bedrock.models.parallel_structures import BedrockConverseRequest
-
-requests = [
-    BedrockConverseRequest(messages=[{"role": "user", "content": [{"text": "Hello"}]}]),
-    BedrockConverseRequest(messages=[{"role": "user", "content": [{"text": "How are you?"}]}])
-]
-
-parallel_response = parallel_manager.converse_parallel(requests=requests)
 ```
 
-## Requirements
+Alternative import styles:
 
-The extracted package requires:
-- Python 3.8+
-- boto3 (AWS SDK)
-- Properly configured AWS credentials
-
-## Technical Details
-
-### Extraction Process
-
-The extraction system follows a modular architecture:
-
-1. **Source Validation** (`source_validator.py`):
-   - Validates project structure
-   - Identifies extractable files
-   - Ensures all required components are present
-
-2. **File Management** (`file_manager.py`):
-   - Handles file copying operations
-   - Creates directory structures
-   - Manages path transformations
-
-3. **Package Generation** (`package_generator.py`):
-   - Creates package metadata files
-   - Generates `__init__.py` with proper imports
-   - Creates usage documentation
-
-4. **ZIP Creation** (`zip_manager.py`):
-   - Creates compressed distribution archives
-   - Validates ZIP file integrity
-   - Provides compression statistics
-
-5. **Main Orchestrator** (`llm_manager_extractor.py`):
-   - Coordinates the entire extraction process
-   - Handles error management
-   - Provides progress reporting
-
-### Import Compatibility
-
-The source code uses relative imports throughout to ensure portability:
-- All imports within the `src/` directory use relative import syntax (e.g., `from .bedrock.auth.auth_manager import AuthManager`)
-- This ensures the extracted package works correctly in any target project structure
-- The package structure maintains the same relationships as the source
-- No additional code modifications are required during extraction
-
-### Version Management
-
-The extraction script supports semantic versioning:
-- Version string is embedded in the package metadata
-- ZIP file names include version information
-- Package `__init__.py` includes version information
-
-## Error Handling
-
-The extraction script provides comprehensive error handling:
-
-### Common Issues and Solutions
-
-1. **Source Validation Errors**:
-   - Ensure you're running from the LLMManager project root
-   - Verify all required files are present in `src/`
-
-2. **Permission Errors**:
-   - Check write permissions for the output directory
-   - Ensure sufficient disk space
-
-3. **Import Errors in Target Project**:
-   - Verify the package was extracted to the correct location
-   - Check Python path includes the extraction directory
-   - Ensure all required dependencies are installed
-
-### Debug Mode
-
-Use `--log-level DEBUG` for detailed extraction information:
-
-```bash
-python extract_llm_manager.py --log-level DEBUG --no-cleanup
+```python
+from bestehorn.llm_manager import LLMManager
+from bestehorn.parallel_llm_manager import ParallelLLMManager
 ```
 
-This provides:
-- Detailed file operation logs
-- Timing information for each step
-- Validation details
-- Temporary file locations (when using `--no-cleanup`)
+## Validation
 
-## Best Practices
+The extraction script includes validation to ensure:
 
-### For Distribution
-1. Always validate the extraction environment first
-2. Use semantic versioning for different releases
-3. Test the extracted package in a separate environment
-4. Include the generated README.md with distribution
+- All essential source files are present
+- Package structure is correct
+- Dependencies are included
+- Documentation is generated
 
-### For Integration
-1. Extract to a dedicated subdirectory in your project
-2. Add the package directory to your project's `.gitignore` if appropriate
-3. Document the LLMManager dependency in your project documentation
-4. Pin to specific versions for production use
+## Package Information
 
-## Automation
+- **Size**: ~140 KB compressed
+- **Files**: ~60 source files
+- **Version**: 1.0.0
+- **Python Requirements**: 3.8+
 
-The extraction script can be integrated into build processes:
+## Features Preserved
 
-```bash
-#!/bin/bash
-# Build script example
+The extracted package retains all LLMManager features:
 
-# Extract LLMManager package
-python extract_llm_manager.py --version $(git describe --tags) --output-dir build/
+- ✅ Multi-model support
+- ✅ Multi-region failover
+- ✅ Flexible authentication
+- ✅ Intelligent retry logic
+- ✅ Parallel processing capabilities
+- ✅ Full AWS Bedrock Converse API support
 
-# Continue with your build process...
-```
+## Notes
 
-## Support
+- **No Code Changes**: The original project code remains unchanged
+- **Standalone**: The extracted package is self-contained
+- **Production Ready**: All essential functionality is preserved
+- **Easy Integration**: Simple import structure for immediate use
 
-For issues with the extraction process:
-1. Run with `--validate-only` to check environment
-2. Use `--log-level DEBUG` for detailed diagnostics
-3. Check the generated logs in the console output
-4. Verify all requirements are met as documented above
+## Troubleshooting
 
-The extraction mechanism is designed to be robust and provide clear error messages for troubleshooting.
+### Import Errors
+- Ensure the `bestehorn/` directory is in your Python path
+- Check that all dependencies are installed
+- Verify AWS credentials are configured
+
+### Missing Dependencies
+- Run `pip install -r requirements.txt` in the extracted directory
+- Check Python version compatibility (3.8+)
+
+### AWS Authentication Issues
+- Configure AWS CLI: `aws configure`
+- Set environment variables: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- Use IAM roles for EC2/Lambda environments
+
+## Examples
+
+See the extracted `README_INTEGRATION.md` for comprehensive examples including:
+- Basic conversation requests
+- Authentication configuration
+- Parallel processing
+- Error handling
+- Advanced configurations
+
+---
+
+*Generated by extract_llm_manager.py - Version 1.0.0*
