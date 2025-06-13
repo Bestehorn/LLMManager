@@ -68,22 +68,27 @@ The extraction script includes:
 After extraction, the ZIP contains:
 
 ```
-bestehorn/                          # Main source directory
-├── __init__.py                     # Package initialization
-├── llm_manager.py                  # Core LLMManager class
-├── parallel_llm_manager.py         # Parallel processing manager
-└── bedrock/                        # AWS Bedrock integration
-    ├── auth/                       # Authentication handling
-    ├── models/                     # Data structures
-    ├── retry/                      # Retry logic
-    ├── exceptions/                 # Custom exceptions
-    └── ...                         # Additional modules
-
-README_INTEGRATION.md               # Integration documentation
-SETUP.md                           # Quick setup guide
-requirements.txt                   # Dependencies
-pyproject.toml                     # Package configuration
-LICENSE                            # License
+bestehorn/                          # Container directory (safe extraction)
+├── __init__.py                     # Top-level package init
+├── llm_manager/                    # Source code directory
+│   ├── __init__.py                 # Main package init with lazy imports
+│   ├── llm_manager.py              # Core LLMManager class
+│   ├── parallel_llm_manager.py     # Parallel processing manager
+│   └── bedrock/                    # AWS Bedrock integration
+│       ├── auth/                   # Authentication handling
+│       ├── models/                 # Data structures
+│       ├── retry/                  # Retry logic
+│       ├── exceptions/             # Custom exceptions
+│       └── ...                     # Additional modules
+├── requirements.txt                # Dependencies (safely contained)
+├── pyproject.toml                  # Package configuration
+├── LICENSE                         # License information
+├── README_INTEGRATION.md           # Integration documentation
+├── SETUP.md                        # Quick setup guide
+└── docs/                           # Documentation (optional)
+    ├── LLMManager_Documentation.md
+    ├── Authentication_Documentation.md
+    └── ...                         # Additional documentation
 ```
 
 ## Integration in Other Projects
@@ -98,19 +103,22 @@ unzip bestehorn_llmmanager_final.zip
 
 ### Step 2: Install Dependencies
 
+Navigate to the extracted `bestehorn/` directory and install dependencies:
+
 ```bash
+cd bestehorn
 pip install -r requirements.txt
 ```
 
 ### Step 3: Import and Use
 
-Use the import structure as requested:
+Use the new import structure (Option C - Clean imports):
 
 ```python
-import bestehorn.llm_manager as LLMManager
+from bestehorn.llm_manager import LLMManager, ParallelLLMManager
 
 # Initialize LLM Manager
-manager = LLMManager.LLMManager(
+manager = LLMManager(
     models=["Claude 3 Haiku", "Claude 3 Sonnet"],
     regions=["us-east-1", "us-west-2"]
 )
@@ -126,8 +134,13 @@ print(response.get_content())
 Alternative import styles:
 
 ```python
+# Module-style import
+import bestehorn.llm_manager as llm
+manager = llm.LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+
+# Individual class imports
 from bestehorn.llm_manager import LLMManager
-from bestehorn.parallel_llm_manager import ParallelLLMManager
+from bestehorn.llm_manager import ParallelLLMManager
 ```
 
 ## Validation

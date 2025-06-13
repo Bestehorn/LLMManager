@@ -134,3 +134,4 @@ src/docs/UnifiedModels.json
 src/docs/FoundationalModels.json
 notebooks/src/docs/UnifiedModels.json
 bestehorn_llmmanager_v1.0.0.zip
+*.zip

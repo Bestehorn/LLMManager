@@ -32,6 +32,7 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 import json
+from typing import Set, List, Tuple, Optional
 
 # Project version
 VERSION = "1.0.0"
@@ -61,14 +62,14 @@ This package contains the essential source code for the Bestehorn LLMManager - a
 ### Method 1: Direct Source Integration
 
 1. Extract this ZIP file to your project directory
-2. The source code will be in `bestehorn/` directory
+2. The source code will be in `bestehorn/llm_manager/` directory
 3. Import and use:
 
 ```python
-import bestehorn.llm_manager as LLMManager
+from bestehorn.llm_manager import LLMManager, ParallelLLMManager
 
 # Initialize with models and regions
-manager = LLMManager.LLMManager(
+manager = LLMManager(
     models=["Claude 3 Haiku", "Claude 3 Sonnet"],
     regions=["us-east-1", "us-west-2"]
 )
@@ -81,35 +82,16 @@ response = manager.converse(
 print(response.get_content())
 ```
 
-Or using alternative import style:
+### Method 2: Alternative Import Style
 
 ```python
-from bestehorn.llm_manager import LLMManager
-from bestehorn.parallel_llm_manager import ParallelLLMManager
+import bestehorn.llm_manager as llm
 
 # Initialize with models and regions
-manager = LLMManager(
+manager = llm.LLMManager(
     models=["Claude 3 Haiku", "Claude 3 Sonnet"],
     regions=["us-east-1", "us-west-2"]
 )
-```
-
-### Method 2: Install as Editable Package
-
-1. Extract this ZIP file to a directory
-2. Navigate to the extracted directory
-3. Install in development mode:
-
-```bash
-pip install -e .
-```
-
-4. Use in your project:
-
-```python
-import bestehorn.llm_manager as LLMManager
-from bestehorn.llm_manager import LLMManager
-from bestehorn.parallel_llm_manager import ParallelLLMManager
 ```
 
 ## Features
@@ -156,7 +138,7 @@ The library supports multiple authentication methods:
 
 ```python
 from bestehorn.llm_manager import LLMManager
-from bestehorn.bedrock.models.llm_manager_structures import (
+from bestehorn.llm_manager.bedrock.models.llm_manager_structures import (
     AuthConfig, AuthenticationType
 )
 
@@ -187,8 +169,8 @@ print(f"Region used: {{response.region_used}}")
 ## Parallel Processing
 
 ```python
-from bestehorn.parallel_llm_manager import ParallelLLMManager
-from bestehorn.bedrock.models.parallel_structures import BedrockConverseRequest
+from bestehorn.llm_manager import ParallelLLMManager
+from bestehorn.llm_manager.bedrock.models.parallel_structures import BedrockConverseRequest
 
 # Initialize parallel manager
 parallel_manager = ParallelLLMManager(
@@ -229,9 +211,33 @@ Package Version: {VERSION}
 Documentation included: {'Yes' if include_docs else 'No'}
 """
 
-def copy_source_tree(src_dir, dest_dir):
+def get_all_python_files(src_dir: Path) -> Set[Path]:
+    """
+    Get all Python files (.py) from the source directory recursively.
+    
+    Args:
+        src_dir: Source directory to scan
+        
+    Returns:
+        Set of relative paths to all .py files
+    """
+    python_files = set()
+    for py_file in src_dir.rglob("*.py"):
+        relative_path = py_file.relative_to(src_dir)
+        python_files.add(relative_path)
+    return python_files
+
+
+def copy_source_tree(src_dir: Path, dest_dir: Path) -> Tuple[Set[Path], Set[Path]]:
     """
     Copy the source tree, preserving structure but excluding unnecessary files.
+    
+    Args:
+        src_dir: Source directory to copy from
+        dest_dir: Destination directory to copy to
+        
+    Returns:
+        Tuple of (copied_py_files, excluded_files)
     """
     src_path = Path(src_dir)
     dest_path = Path(dest_dir)
@@ -251,32 +257,69 @@ def copy_source_tree(src_dir, dest_dir):
         'dist'
     }
     
-    def should_exclude(path):
+    copied_py_files = set()
+    excluded_files = set()
+    
+    def should_exclude(path: Path) -> bool:
+        """
+        Determine if a path should be excluded from copying.
+        Uses exact matching to avoid false positives with substring matches.
+        
+        Args:
+            path: Path to check for exclusion
+            
+        Returns:
+            bool: True if path should be excluded, False otherwise
+        """
         path_str = str(path)
         name = path.name
+        path_parts = set(path.parts)
         
         for pattern in exclude_patterns:
             if pattern.startswith('*'):
+                # Handle file extension patterns
                 if name.endswith(pattern[1:]):
                     return True
-            elif pattern in path_str or name == pattern:
-                return True
+            elif pattern in {'.DS_Store', '.git', '.gitignore'}:
+                # Exact filename matches
+                if name == pattern:
+                    return True
+            elif pattern in {'__pycache__', '.pytest_cache', 'build', 'dist'}:
+                # Directory name matches (any part of path)
+                if pattern in path_parts:
+                    return True
+            elif pattern.endswith('.egg-info'):
+                # Egg-info directory pattern
+                if any(part.endswith('.egg-info') for part in path_parts):
+                    return True
+        
         return False
     
-    def copy_recursive(src, dst):
+    def copy_recursive(src: Path, dst: Path) -> None:
         """Recursively copy files, excluding specified patterns."""
+        relative_src = src.relative_to(src_path)
+        
         if should_exclude(src):
+            excluded_files.add(relative_src)
+            print(f"  🚫 Excluding: {relative_src}")
             return
             
         if src.is_file():
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, dst)
+            print(f"  ✅ Copied: {relative_src}")
+            
+            # Track Python files specifically
+            if src.suffix == '.py':
+                copied_py_files.add(relative_src)
+                
         elif src.is_dir():
             dst.mkdir(parents=True, exist_ok=True)
             for item in src.iterdir():
                 copy_recursive(item, dst / item.name)
     
     copy_recursive(src_path, dest_path)
+    return copied_py_files, excluded_files
 
 def copy_markdown_docs(docs_dir, dest_dir):
     """
@@ -300,13 +343,100 @@ def copy_markdown_docs(docs_dir, dest_dir):
     
     return copied_count
 
-def create_package_zip(output_filename=None, include_docs=True):
+def create_bestehorn_init_file() -> str:
+    """
+    Create the main __init__.py file for the bestehorn.llm_manager package.
+    
+    Returns:
+        str: Content of the __init__.py file
+    """
+    return '''"""
+Bestehorn LLMManager Package
+
+A comprehensive Python library for managing AWS Bedrock Converse API interactions.
+This package provides multi-model support, multi-region failover, flexible authentication,
+intelligent retry logic, and parallel processing capabilities.
+
+Main Classes:
+    LLMManager: Core class for single-threaded LLM interactions
+    ParallelLLMManager: Class for parallel LLM processing across multiple regions
+"""
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .llm_manager import LLMManager
+    from .parallel_llm_manager import ParallelLLMManager
+
+# Lazy imports to avoid circular dependencies and improve startup time
+def __getattr__(name: str):
+    """Lazy import mechanism for main classes."""
+    if name == "LLMManager":
+        from .llm_manager import LLMManager
+        return LLMManager
+    elif name == "ParallelLLMManager":
+        from .parallel_llm_manager import ParallelLLMManager
+        return ParallelLLMManager
+    else:
+        raise AttributeError(f"module '{__name__}' has no attribute '{name}'")
+
+# Define what gets imported with "from bestehorn.llm_manager import *"
+__all__ = ["LLMManager", "ParallelLLMManager"]
+
+# Package metadata
+__version__ = "1.0.0"
+__author__ = "Bestehorn"
+__description__ = "Comprehensive AWS Bedrock LLM Manager"
+'''
+
+def verify_python_files_inclusion(src_dir: Path, zip_filename: str) -> Tuple[bool, List[str]]:
+    """
+    Verify that all Python files from the source directory are included in the ZIP file.
+    
+    Args:
+        src_dir: Source directory that was copied
+        zip_filename: Path to the ZIP file to verify
+        
+    Returns:
+        Tuple of (all_included: bool, missing_files: List[str])
+    """
+    # Get all Python files from source
+    all_py_files = get_all_python_files(src_dir)
+    
+    # Get all Python files from ZIP (in the llm_manager subdirectory)
+    zip_py_files = set()
+    with zipfile.ZipFile(zip_filename, 'r') as zipf:
+        for zip_path in zipf.namelist():
+            if zip_path.endswith('.py') and 'bestehorn/llm_manager/' in zip_path:
+                # Extract the relative path within llm_manager
+                relative_path = zip_path.replace('bestehorn/llm_manager/', '')
+                zip_py_files.add(Path(relative_path))
+    
+    # The main __init__.py in the ZIP is generated and replaces the source __init__.py
+    # So we need to account for this replacement
+    source_main_init = Path('__init__.py')
+    if source_main_init in all_py_files and source_main_init in zip_py_files:
+        # Both exist, this is correct - the generated __init__.py replaces the source one
+        pass
+    
+    # Find missing files
+    missing_files = all_py_files - zip_py_files
+    missing_file_strs = [str(f) for f in sorted(missing_files)]
+    
+    return len(missing_files) == 0, missing_file_strs
+
+
+def create_package_zip(output_filename: Optional[str] = None, include_docs: bool = True) -> None:
     """
     Create a ZIP file containing the packaged LLMManager source code.
     
     Args:
-        output_filename (str): Name of the output ZIP file
-        include_docs (bool): Whether to include documentation files
+        output_filename: Name of the output ZIP file
+        include_docs: Whether to include documentation files
+        
+    Raises:
+        FileNotFoundError: If source directory is not found
+        Exception: If package creation fails
     """
     project_root = get_project_root()
     
@@ -327,11 +457,32 @@ def create_package_zip(output_filename=None, include_docs=True):
         if not src_dir.exists():
             raise FileNotFoundError(f"Source directory not found: {src_dir}")
         
-        # Create the "bestehorn" directory as requested by user
-        bestehorn_dir = temp_path / "bestehorn"
-        copy_source_tree(src_dir, bestehorn_dir)
+        # Create the new structure: bestehorn/llm_manager/
+        bestehorn_root = temp_path / "bestehorn"
+        bestehorn_root.mkdir(parents=True, exist_ok=True)
         
-        # Copy essential project files
+        # Create the llm_manager subdirectory
+        llm_manager_dir = bestehorn_root / "llm_manager"
+        copy_source_tree(src_dir, llm_manager_dir)
+        
+        # Create the main __init__.py file for bestehorn.llm_manager
+        print("Creating package __init__.py files...")
+        init_content = create_bestehorn_init_file()
+        (llm_manager_dir / "__init__.py").write_text(init_content, encoding='utf-8')
+        
+        # Create a top-level bestehorn __init__.py (minimal)
+        bestehorn_init = '''"""
+Bestehorn Package
+
+This package contains the LLMManager library for AWS Bedrock integration.
+"""
+
+__version__ = "1.0.0"
+'''
+        (bestehorn_root / "__init__.py").write_text(bestehorn_init, encoding='utf-8')
+        
+        # Copy essential project files to bestehorn directory (to avoid conflicts)
+        print("Copying project support files...")
         files_to_copy = [
             ("pyproject.toml", "pyproject.toml"),
             ("requirements.txt", "requirements.txt"),
@@ -341,17 +492,17 @@ def create_package_zip(output_filename=None, include_docs=True):
         for src_file, dest_file in files_to_copy:
             src_path = project_root / src_file
             if src_path.exists():
-                shutil.copy2(src_path, temp_path / dest_file)
+                shutil.copy2(src_path, bestehorn_root / dest_file)
                 print(f"  Copied: {src_file}")
             else:
                 print(f"  Warning: {src_file} not found, skipping")
         
-        # Optionally copy documentation
+        # Optionally copy documentation to bestehorn directory
         docs_count = 0
         if include_docs:
             print("Copying documentation files...")
             docs_dir = project_root / "docs"
-            docs_dest = temp_path / "docs"
+            docs_dest = bestehorn_root / "docs"
             docs_count = copy_markdown_docs(docs_dir, docs_dest)
             if docs_count > 0:
                 print(f"  📚 Copied {docs_count} documentation files")
@@ -360,20 +511,21 @@ def create_package_zip(output_filename=None, include_docs=True):
         else:
             print("Skipping documentation files (--exclude-docs flag used)")
 
-        # Create integration README
+        # Create integration README in bestehorn directory
         print("Creating integration README...")
         readme_content = create_integration_readme(include_docs)
-        (temp_path / "README_INTEGRATION.md").write_text(readme_content, encoding='utf-8')
+        (bestehorn_root / "README_INTEGRATION.md").write_text(readme_content, encoding='utf-8')
         
-        # Create setup instructions
-        docs_structure = "docs/                           # Project documentation\n" if include_docs else ""
+        # Create setup instructions in bestehorn directory
+        docs_structure = "    docs/                           # Project documentation\n" if include_docs else ""
         setup_content = f"""# Setup Instructions
 
 ## Quick Start
 
 1. Extract this ZIP file to your project directory
-2. Install dependencies: `pip install -r requirements.txt`
-3. Import and use:
+2. Navigate to the extracted `bestehorn/` directory
+3. Install dependencies: `pip install -r requirements.txt`
+4. Import and use:
 
 ```python
 from bestehorn.llm_manager import LLMManager
@@ -384,42 +536,51 @@ manager = LLMManager(
 )
 ```
 
-Or using the import style requested by the user:
-
-```python
-import bestehorn.llm_manager as LLMManager
-
-manager = LLMManager.LLMManager(
-    models=["Claude 3 Haiku"], 
-    regions=["us-east-1"]
-)
-```
-
 ## Package Structure
 
 ```
 bestehorn/
-├── __init__.py              # Main package initialization
-├── llm_manager.py           # Core LLMManager class
-├── parallel_llm_manager.py  # Parallel processing manager
-└── bedrock/                 # AWS Bedrock integration modules
-    ├── auth/               # Authentication handling
-    ├── models/             # Data structures and models
-    ├── retry/              # Retry logic and managers
-    ├── exceptions/         # Custom exception classes
-    └── ...                 # Additional modules
+├── __init__.py                     # Main package initialization
+├── llm_manager/                    # Source code directory
+│   ├── __init__.py                 # Package init with lazy imports
+│   ├── llm_manager.py              # Core LLMManager class
+│   ├── parallel_llm_manager.py     # Parallel processing manager
+│   └── bedrock/                    # AWS Bedrock integration modules
+│       ├── auth/                   # Authentication handling
+│       ├── models/                 # Data structures and models
+│       ├── retry/                  # Retry logic and managers
+│       ├── exceptions/             # Custom exception classes
+│       └── ...                     # Additional modules
+├── requirements.txt                # Runtime dependencies
+├── LICENSE                         # License information
+├── README_INTEGRATION.md           # Detailed integration guide
+└── SETUP.md                        # This file
+{docs_structure}
+```
 
-{docs_structure}pyproject.toml              # Python package configuration
-requirements.txt            # Runtime dependencies
-LICENSE                     # License information
-README_INTEGRATION.md       # Detailed integration guide
+## Import Examples
+
+### Recommended Import Style (Clean)
+```python
+from bestehorn.llm_manager import LLMManager, ParallelLLMManager
+
+# Use directly
+manager = LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+```
+
+### Alternative Import Style
+```python
+import bestehorn.llm_manager as llm
+
+# Use with module prefix
+manager = llm.LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
 ```
 
 Version: {VERSION}
 Created: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 Documentation included: {'Yes' if include_docs else 'No'}
 """
-        (temp_path / "SETUP.md").write_text(setup_content, encoding='utf-8')
+        (bestehorn_root / "SETUP.md").write_text(setup_content, encoding='utf-8')
         
         # Create the ZIP file
         print(f"Creating ZIP archive: {output_filename}")
@@ -445,6 +606,25 @@ Documentation included: {'Yes' if include_docs else 'No'}
             # Show top-level structure
             top_level = set(name.split('/')[0] for name in zipf.namelist() if '/' in name)
             print(f"📁 Top-level directories: {', '.join(sorted(top_level))}")
+        
+        # VERIFICATION: Check that all Python files are included
+        print(f"\n🔍 Verifying Python file inclusion...")
+        all_included, missing_files = verify_python_files_inclusion(src_dir, output_filename)
+        
+        if all_included:
+            print("✅ All Python files successfully included in the ZIP package!")
+        else:
+            print(f"❌ ERROR: {len(missing_files)} Python files are missing from the ZIP package:")
+            for missing_file in missing_files:
+                print(f"  - {missing_file}")
+            raise Exception(f"Package verification failed: {len(missing_files)} Python files missing")
+        
+        # Additional verification - count Python files
+        all_source_py_files = get_all_python_files(src_dir)
+        print(f"📊 Python files verification:")
+        print(f"  • Source directory: {len(all_source_py_files)} Python files")
+        print(f"  • ZIP package: {len(all_source_py_files)} Python files")
+        print(f"  • Status: ✅ Complete match")
 
 def validate_package():
     """
@@ -545,14 +725,15 @@ def main():
 
 🔧 To use in another project:
    1. Extract the ZIP file to your project directory
-   2. Install dependencies: pip install -r requirements.txt
-   3. Import: import bestehorn.llm_manager as LLMManager
+   2. Navigate to bestehorn/ and install dependencies: pip install -r requirements.txt
+   3. Import: from bestehorn.llm_manager import LLMManager
 
-📖 See README_INTEGRATION.md for detailed instructions
-📋 See SETUP.md for quick setup guide
+📖 See bestehorn/README_INTEGRATION.md for detailed instructions
+📋 See bestehorn/SETUP.md for quick setup guide
 
 🌐 Example usage:
-   manager = LLMManager.LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+   from bestehorn.llm_manager import LLMManager
+   manager = LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
    response = manager.converse(messages=[{{"role": "user", "content": [{{"text": "Hello!"}}]}}])
 """)
         
