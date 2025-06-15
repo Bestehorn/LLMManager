@@ -2,13 +2,16 @@
 Bestehorn LLMManager - AWS Bedrock Converse API Management Library
 
 This package provides a comprehensive interface for managing AWS Bedrock LLM interactions
-with support for multiple models, regions, authentication methods, and parallel processing.
+with support for multiple models, regions, authentication methods, parallel processing,
+and fluent message building with automatic format detection.
 
 Main Components:
     LLMManager: Primary interface for single AWS Bedrock requests
     ParallelLLMManager: Interface for parallel processing of multiple requests
+    MessageBuilder: Fluent interface for building multi-modal messages
 
 Example Usage:
+    Basic LLM usage:
     >>> from bestehorn_llmmanager import LLMManager
     >>> 
     >>> manager = LLMManager(
@@ -20,20 +23,58 @@ Example Usage:
     ... )
     >>> print(response.get_content())
 
+    MessageBuilder usage:
+    >>> from bestehorn_llmmanager import MessageBuilder, create_user_message
+    >>> 
+    >>> message = create_user_message()
+    ...     .add_text("Analyze this image:")
+    ...     .add_local_image("photo.jpg")
+    ...     .build()
+    >>> response = manager.converse(messages=[message])
+
 For detailed documentation, see the documentation in the docs/ directory.
 """
 
 from .llm_manager import LLMManager
 from .parallel_llm_manager import ParallelLLMManager
 
+# MessageBuilder - Direct imports for easy access
+from .message_builder import (
+    ConverseMessageBuilder as MessageBuilder,
+    create_message,
+    create_user_message,
+    create_assistant_message
+)
+from .message_builder_enums import (
+    RolesEnum,
+    ImageFormatEnum,
+    DocumentFormatEnum,
+    VideoFormatEnum,
+    DetectionMethodEnum
+)
+
 # Package metadata
 __version__ = "1.0.0"
 __author__ = "LLMManager Development Team"
-__description__ = "AWS Bedrock Converse API Management Library"
+__description__ = "AWS Bedrock Converse API Management Library with MessageBuilder"
 __license__ = "MIT"
 
 # Public API
 __all__ = [
+    # Core classes
     "LLMManager",
     "ParallelLLMManager",
+    
+    # MessageBuilder components
+    "MessageBuilder",
+    "create_message",
+    "create_user_message",
+    "create_assistant_message",
+    
+    # Enums
+    "RolesEnum",
+    "ImageFormatEnum",
+    "DocumentFormatEnum",
+    "VideoFormatEnum",
+    "DetectionMethodEnum",
 ]

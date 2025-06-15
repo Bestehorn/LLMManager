@@ -6,8 +6,8 @@ Tests the abstract base class and DetectionResult data class.
 import pytest
 from unittest.mock import Mock
 
-from src.bedrock.models.file_type_detector.base_detector import BaseDetector, DetectionResult
-from src.bedrock.models.message_builder_enums import DetectionMethodEnum
+from src.bestehorn_llmmanager.util.file_type_detector.base_detector import BaseDetector, DetectionResult
+from src.bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum
 
 
 class TestDetectionResult:

@@ -12,8 +12,8 @@ from .detector_constants import (
     MagicBytesConstants, FileExtensionConstants, DetectionConstants,
     DetectorLogMessages, DetectorErrorMessages
 )
-from ..message_builder_enums import DetectionMethodEnum
-from ..message_builder_constants import SupportedFormats
+from ...message_builder_enums import DetectionMethodEnum
+from ...message_builder_constants import SupportedFormats
 
 
 class FileTypeDetector(BaseDetector):

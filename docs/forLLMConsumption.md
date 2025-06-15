@@ -2,14 +2,441 @@
 
 ## Overview
 
-The LLMManager package provides a comprehensive interface for managing AWS Bedrock LLM interactions with support for multiple models, regions, authentication methods, retry logic, and parallel processing.
+The LLMManager package provides a comprehensive interface for managing AWS Bedrock LLM interactions with support for multiple models, regions, authentication methods, retry logic, parallel processing, and fluent message building with automatic format detection.
 
 ### Core Components
 
 - **LLMManager**: Main class for single AWS Bedrock requests with retry logic
 - **ParallelLLMManager**: Extended class for parallel processing of multiple requests
+- **MessageBuilder**: Fluent interface for building multi-modal messages with automatic format detection
 - **BedrockResponse**: Comprehensive response object with metadata and utilities
 - **UnifiedModelManager**: Manages model availability and access information
+
+## MessageBuilder - Fluent Message Construction
+
+The MessageBuilder provides a fluent interface for constructing multi-modal messages with automatic format detection, validation, and AWS Bedrock Converse API compatibility.
+
+### Core MessageBuilder Classes
+
+#### ConverseMessageBuilder
+
+Main class for building individual messages with fluent method chaining.
+
+```python
+from bestehorn_llmmanager import MessageBuilder, RolesEnum
+
+# Create a message builder
+builder = MessageBuilder(role=RolesEnum.USER)
+
+# Or use the alias
+from bestehorn_llmmanager.message_builder import ConverseMessageBuilder
+builder = ConverseMessageBuilder(role=RolesEnum.USER)
+```
+
+#### Factory Functions
+
+Convenient factory functions for creating message builders:
+
+```python
+from bestehorn_llmmanager import create_message, create_user_message, create_assistant_message, RolesEnum
+
+# Main factory function
+builder = create_message(role=RolesEnum.USER)
+
+# Convenience factories
+user_builder = create_user_message()
+assistant_builder = create_assistant_message()
+```
+
+### MessageBuilder Methods
+
+#### Text Content
+
+```python
+def add_text(self, text: str) -> 'ConverseMessageBuilder'
+```
+
+Add text content to the message. Text is automatically stripped of surrounding whitespace.
+
+```python
+# Basic text message
+message = create_user_message()\
+    .add_text("Hello, how are you?")\
+    .build()
+
+# Multiple text blocks
+message = create_user_message()\
+    .add_text("First paragraph")\
+    .add_text("Second paragraph")\
+    .build()
+```
+
+#### Image Content
+
+**add_image_bytes() - Add image from raw bytes**
+```python
+def add_image_bytes(
+    self,
+    bytes: bytes,
+    format: Optional[ImageFormatEnum] = None,
+    filename: Optional[str] = None
+) -> 'ConverseMessageBuilder'
+```
+
+**add_local_image() - Add image from local file**
+```python
+def add_local_image(
+    self,
+    path_to_local_file: str,
+    format: Optional[ImageFormatEnum] = None,
+    max_size_mb: float = 3.75
+) -> 'ConverseMessageBuilder'
+```
+
+```python
+from bestehorn_llmmanager import ImageFormatEnum
+
+# Auto-detect format from bytes and filename
+with open("photo.jpg", "rb") as f:
+    image_data = f.read()
+
+message = create_user_message()\
+    .add_text("What's in this image?")\
+    .add_image_bytes(bytes=image_data, filename="photo.jpg")\
+    .build()
+
+# Explicit format specification
+message = create_user_message()\
+    .add_text("Analyze this image")\
+    .add_image_bytes(bytes=image_data, format=ImageFormatEnum.JPEG)\
+    .build()
+
+# Add from local file (automatic format detection)
+message = create_user_message()\
+    .add_text("What do you see here?")\
+    .add_local_image("path/to/image.png")\
+    .build()
+```
+
+#### Document Content
+
+**add_document_bytes() - Add document from raw bytes**
+```python
+def add_document_bytes(
+    self,
+    bytes: bytes,
+    format: Optional[DocumentFormatEnum] = None,
+    filename: Optional[str] = None,
+    name: Optional[str] = None
+) -> 'ConverseMessageBuilder'
+```
+
+**add_local_document() - Add document from local file**
+```python
+def add_local_document(
+    self,
+    path_to_local_file: str,
+    format: Optional[DocumentFormatEnum] = None,
+    name: Optional[str] = None,
+    max_size_mb: float = 4.5
+) -> 'ConverseMessageBuilder'
+```
+
+```python
+from bestehorn_llmmanager import DocumentFormatEnum
+
+# Auto-detect format from bytes and filename
+with open("report.pdf", "rb") as f:
+    pdf_data = f.read()
+
+message = create_user_message()\
+    .add_text("Please summarize this report")\
+    .add_document_bytes(bytes=pdf_data, filename="report.pdf", name="Monthly Report")\
+    .build()
+
+# Explicit format and custom name
+message = create_user_message()\
+    .add_text("Analyze this data")\
+    .add_document_bytes(bytes=csv_data, format=DocumentFormatEnum.CSV, name="Sales Data")\
+    .build()
+
+# Add from local file
+message = create_user_message()\
+    .add_text("Review this document")\
+    .add_local_document("path/to/document.docx", name="Project Proposal")\
+    .build()
+```
+
+#### Video Content
+
+**add_video_bytes() - Add video from raw bytes**
+```python
+def add_video_bytes(
+    self,
+    bytes: bytes,
+    format: Optional[VideoFormatEnum] = None,
+    filename: Optional[str] = None
+) -> 'ConverseMessageBuilder'
+```
+
+**add_local_video() - Add video from local file**
+```python
+def add_local_video(
+    self,
+    path_to_local_file: str,
+    format: Optional[VideoFormatEnum] = None,
+    max_size_mb: float = 100.0
+) -> 'ConverseMessageBuilder'
+```
+
+```python
+from bestehorn_llmmanager import VideoFormatEnum
+
+# Auto-detect format from bytes and filename
+with open("demo.mp4", "rb") as f:
+    video_data = f.read()
+
+message = create_user_message()\
+    .add_text("What happens in this video?")\
+    .add_video_bytes(bytes=video_data, filename="demo.mp4")\
+    .build()
+
+# Add from local file with explicit format
+message = create_user_message()\
+    .add_text("Analyze this video content")\
+    .add_local_video("path/to/video.mov", format=VideoFormatEnum.MOV)\
+    .build()
+```
+
+#### Building Messages
+
+```python
+def build(self) -> Dict[str, Any]
+```
+
+Build and return the complete message dictionary compatible with LLMManager.converse().
+
+```python
+# Build a complete multi-modal message
+message = create_user_message()\
+    .add_text("Please analyze these files:")\
+    .add_local_image("chart.png")\
+    .add_local_document("data.xlsx")\
+    .add_text("What insights can you provide?")\
+    .build()
+
+# Use with LLMManager
+response = manager.converse(messages=[message])
+```
+
+### MessageBuilder Enums
+
+#### RolesEnum
+
+```python
+from bestehorn_llmmanager import RolesEnum
+
+class RolesEnum(str, Enum):
+    USER = "user"
+    ASSISTANT = "assistant"
+```
+
+#### ImageFormatEnum
+
+```python
+from bestehorn_llmmanager import ImageFormatEnum
+
+class ImageFormatEnum(str, Enum):
+    JPEG = "jpeg"
+    PNG = "png"
+    GIF = "gif"
+    WEBP = "webp"
+```
+
+#### DocumentFormatEnum
+
+```python
+from bestehorn_llmmanager import DocumentFormatEnum
+
+class DocumentFormatEnum(str, Enum):
+    PDF = "pdf"
+    CSV = "csv"
+    DOC = "doc"
+    DOCX = "docx"
+    XLS = "xls"
+    XLSX = "xlsx"
+    HTML = "html"
+    TXT = "txt"
+    MD = "md"
+```
+
+#### VideoFormatEnum
+
+```python
+from bestehorn_llmmanager import VideoFormatEnum
+
+class VideoFormatEnum(str, Enum):
+    MP4 = "mp4"
+    MOV = "mov"
+    AVI = "avi"
+    WEBM = "webm"
+    MKV = "mkv"
+```
+
+### MessageBuilder Properties and Utilities
+
+#### Properties
+
+```python
+# Get the role of the message
+role = builder.role  # Returns RolesEnum
+
+# Get current content block count
+count = builder.content_block_count  # Returns int
+
+# String representations
+str_repr = str(builder)  # User-friendly string
+repr_str = repr(builder)  # Detailed representation
+```
+
+#### Validation and Limits
+
+The MessageBuilder automatically validates content and enforces limits:
+
+- **Content block limit**: Maximum number of content blocks per message
+- **Size limits**: 
+  - Images: 3.75 MB default (configurable)
+  - Documents: 4.5 MB default (configurable) 
+  - Videos: 100 MB default (configurable)
+- **Format validation**: Only supported formats accepted
+- **Content validation**: Empty content rejected
+
+### Automatic Format Detection
+
+The MessageBuilder includes sophisticated file type detection:
+
+```python
+# Detection from filename extension
+message = create_user_message()\
+    .add_local_image("photo.jpg")  # Detects JPEG from extension
+    
+# Detection from content (magic bytes)
+message = create_user_message()\
+    .add_image_bytes(bytes=image_data)  # Detects format from content
+    
+# Combined detection (most reliable)
+message = create_user_message()\
+    .add_image_bytes(bytes=image_data, filename="photo.jpg")  # Uses both methods
+```
+
+#### Detection Methods
+
+- **Extension-based**: Uses file extension for format detection
+- **Content-based**: Analyzes file headers/magic bytes
+- **Combined**: Uses both methods for highest confidence
+- **Manual**: Explicitly specify format to skip detection
+
+### MessageBuilder Usage Patterns
+
+#### Simple Text Message
+
+```python
+from bestehorn_llmmanager import create_user_message
+
+message = create_user_message()\
+    .add_text("What is artificial intelligence?")\
+    .build()
+
+response = manager.converse(messages=[message])
+```
+
+#### Multi-Modal Message
+
+```python
+# Complex multi-modal message with automatic format detection
+message = create_user_message()\
+    .add_text("Please analyze this data visualization and the underlying data:")\
+    .add_local_image("charts/sales_chart.png")\
+    .add_local_document("data/sales_data.xlsx")\
+    .add_text("What trends do you notice and what recommendations do you have?")\
+    .build()
+
+response = manager.converse(messages=[message])
+```
+
+#### Conversation with Assistant Response
+
+```python
+from bestehorn_llmmanager import create_assistant_message
+
+# User message
+user_message = create_user_message()\
+    .add_text("What's in this image?")\
+    .add_local_image("photo.jpg")\
+    .build()
+
+# Simulate assistant response (or get from actual response)
+assistant_message = create_assistant_message()\
+    .add_text("I can see a beautiful sunset over mountains with vibrant orange and pink colors in the sky.")\
+    .build()
+
+# Continue conversation
+follow_up = create_user_message()\
+    .add_text("What time of day do you think this was taken?")\
+    .build()
+
+messages = [user_message, assistant_message, follow_up]
+response = manager.converse(messages=messages)
+```
+
+#### Batch Message Creation
+
+```python
+# Create multiple messages efficiently
+image_files = ["image1.jpg", "image2.png", "image3.gif"]
+
+messages = []
+for i, image_file in enumerate(image_files):
+    message = create_user_message()\
+        .add_text(f"Analyze image {i+1}:")\
+        .add_local_image(image_file)\
+        .build()
+    messages.append(message)
+
+# Process with parallel manager
+from bestehorn_llmmanager import ParallelLLMManager
+from bestehorn_llmmanager.bedrock.models.parallel_structures import BedrockConverseRequest
+
+parallel_manager = ParallelLLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+
+requests = [
+    BedrockConverseRequest(request_id=f"img-{i}", messages=[msg])
+    for i, msg in enumerate(messages)
+]
+
+parallel_response = parallel_manager.converse_parallel(requests=requests)
+```
+
+#### Error Handling with MessageBuilder
+
+```python
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RequestValidationError
+
+try:
+    message = create_user_message()\
+        .add_text("Analyze this large image")\
+        .add_local_image("huge_image.jpg", max_size_mb=10.0)\
+        .build()
+        
+except FileNotFoundError as e:
+    print(f"Image file not found: {e}")
+    
+except RequestValidationError as e:
+    print(f"Validation error: {e}")
+    
+except Exception as e:
+    print(f"Unexpected error: {e}")
+```
 
 ## Main Classes
 
@@ -107,10 +534,10 @@ def get_underlying_llm_manager(self) -> LLMManager       # Get underlying LLMMan
 
 ### Message Structure
 
-Messages follow the AWS Bedrock Converse API format:
+Messages follow the AWS Bedrock Converse API format. The MessageBuilder automatically creates these structures:
 
 ```python
-# Basic text message
+# Basic text message (created by MessageBuilder)
 message = {
     "role": "user",  # or "assistant"
     "content": [
@@ -118,7 +545,7 @@ message = {
     ]
 }
 
-# Multimodal message with image
+# Multimodal message with image (created by MessageBuilder)
 message = {
     "role": "user",
     "content": [
@@ -134,7 +561,7 @@ message = {
     ]
 }
 
-# Message with document
+# Message with document (created by MessageBuilder)
 message = {
     "role": "user",
     "content": [
@@ -384,10 +811,10 @@ inference_config = {
 
 ## Common Usage Patterns
 
-### Basic Single Request
+### Basic Single Request with MessageBuilder
 
 ```python
-from bestehorn_llmmanager import LLMManager
+from bestehorn_llmmanager import LLMManager, create_user_message
 
 # Initialize manager
 manager = LLMManager(
@@ -395,12 +822,12 @@ manager = LLMManager(
     regions=["us-east-1", "us-west-2"]
 )
 
-# Send request
-messages = [
-    {"role": "user", "content": [{"text": "Hello, how are you?"}]}
-]
+# Create message using MessageBuilder
+message = create_user_message()\
+    .add_text("Hello, how are you?")\
+    .build()
 
-response = manager.converse(messages=messages)
+response = manager.converse(messages=[message])
 
 if response.success:
     print(f"Response: {response.get_content()}")
@@ -411,10 +838,26 @@ else:
     print(f"Request failed: {response.get_last_error()}")
 ```
 
-### Parallel Processing
+### Multi-Modal Request with MessageBuilder
 
 ```python
-from bestehorn_llmmanager import ParallelLLMManager
+from bestehorn_llmmanager import create_user_message
+
+# Create complex multi-modal message
+message = create_user_message()\
+    .add_text("Please analyze this image and document:")\
+    .add_local_image("chart.png")\
+    .add_local_document("data.pdf")\
+    .add_text("What insights can you provide?")\
+    .build()
+
+response = manager.converse(messages=[message])
+```
+
+### Parallel Processing with MessageBuilder
+
+```python
+from bestehorn_llmmanager import ParallelLLMManager, create_user_message
 from bestehorn_llmmanager.bedrock.models.parallel_structures import BedrockConverseRequest
 
 # Initialize parallel manager
@@ -423,16 +866,14 @@ parallel_manager = ParallelLLMManager(
     regions=["us-east-1", "us-west-2", "eu-west-1"]
 )
 
-# Create multiple requests
+# Create messages using MessageBuilder
+message1 = create_user_message().add_text("What is AI?").build()
+message2 = create_user_message().add_text("Explain machine learning").build()
+
+# Create requests
 requests = [
-    BedrockConverseRequest(
-        request_id="req-1",
-        messages=[{"role": "user", "content": [{"text": "What is AI?"}]}]
-    ),
-    BedrockConverseRequest(
-        request_id="req-2", 
-        messages=[{"role": "user", "content": [{"text": "Explain machine learning"}]}]
-    )
+    BedrockConverseRequest(request_id="req-1", messages=[message1]),
+    BedrockConverseRequest(request_id="req-2", messages=[message2])
 ]
 
 # Execute in parallel
@@ -450,34 +891,6 @@ for request_id, response in parallel_response.request_responses.items():
         print(f"Request {request_id}: {response.get_content()}")
     else:
         print(f"Request {request_id} failed: {response.get_last_error()}")
-```
-
-### Multimodal Request with Image
-
-```python
-import base64
-
-# Load image
-with open("image.jpg", "rb") as f:
-    image_bytes = f.read()
-
-# Create multimodal message
-messages = [
-    {
-        "role": "user",
-        "content": [
-            {"text": "What's in this image?"},
-            {
-                "image": {
-                    "format": "jpeg",
-                    "source": {"bytes": image_bytes}
-                }
-            }
-        ]
-    }
-]
-
-response = manager.converse(messages=messages)
 ```
 
 ### Tool Use Configuration
@@ -507,13 +920,13 @@ tool_config = {
     ]
 }
 
-# Send request with tool configuration
-messages = [
-    {"role": "user", "content": [{"text": "What's the weather in New York?"}]}
-]
+# Create message with MessageBuilder
+message = create_user_message()\
+    .add_text("What's the weather in New York?")\
+    .build()
 
 response = manager.converse(
-    messages=messages,
+    messages=[message],
     tool_config=tool_config
 )
 
@@ -593,8 +1006,9 @@ validation_config = ResponseValidationConfig(
     response_validation_retries=3
 )
 
+message = create_user_message().add_text("Tell me about safety").build()
 response = manager.converse(
-    messages=messages,
+    messages=[message],
     response_validation_config=validation_config
 )
 ```
@@ -623,7 +1037,8 @@ from bestehorn_llmmanager.bedrock.exceptions.parallel_exceptions import (
 
 ```python
 try:
-    response = manager.converse(messages=messages)
+    message = create_user_message().add_text("Hello").build()
+    response = manager.converse(messages=[message])
     if response.success:
         print(response.get_content())
     else:
@@ -691,47 +1106,58 @@ else:
 
 ## Best Practices
 
-### 1. Model Selection
+### 1. MessageBuilder Usage
+- Use the fluent interface for building complex messages
+- Leverage automatic format detection for convenience
+- Use explicit format specification when format is known
+- Handle file size limits appropriately
+- Chain multiple content types for rich interactions
+
+### 2. Model Selection
 - Use multiple models for redundancy
 - Order models by preference (first = preferred)
 - Consider cost vs. capability trade-offs
 
-### 2. Region Selection
+### 3. Region Selection
 - Use multiple regions for reliability
 - Consider latency and data locality
 - Include at least 2-3 regions for fault tolerance
 
-### 3. Error Handling
+### 4. Error Handling
 - Always check `response.success` before accessing content
 - Handle specific exception types appropriately
+- Use try-catch blocks around MessageBuilder operations
 - Log errors and warnings for debugging
 
-### 4. Performance Optimization
+### 5. Performance Optimization
 - Use parallel processing for multiple requests
 - Configure appropriate timeouts
 - Monitor retry statistics and adjust configuration
+- Use MessageBuilder for efficient message construction
 
-### 5. Security
+### 6. Security
 - Use IAM roles or profiles instead of hardcoded credentials
 - Implement response validation for sensitive applications
 - Consider guardrails for content filtering
+- Validate file uploads before processing
 
-### 6. Resource Management
+### 7. Resource Management
 - Refresh model data periodically
 - Monitor token usage and costs
 - Use appropriate inference configurations
+- Handle large files efficiently with size limits
 
 ## Constants and Enums
 
 ### Important Constants
 
 ```python
-# From llm_manager_constants.py
-from bestehorn_llmmanager.bedrock.models.llm_manager_constants import (
-    ConverseAPIFields,        # API field names
-    LLMManagerConfig,         # Configuration defaults
-    ContentLimits,            # Content size limits
-    RetryableErrorTypes       # Error type classifications
+# From message_builder_constants.py
+from bestehorn_llmmanager.message_builder_constants import (
+    MessageBuilderConfig,     # Configuration defaults
+    MessageBuilderLogMessages, # Log message templates
+    MessageBuilderErrorMessages, # Error message templates
+    SupportedFormats         # Supported file formats
 )
 
 # Content limits
@@ -740,11 +1166,13 @@ MAX_DOCUMENTS_PER_REQUEST = 5
 MAX_VIDEOS_PER_REQUEST = 1
 MAX_IMAGE_SIZE_BYTES = 3_750_000  # 3.75 MB
 MAX_DOCUMENT_SIZE_BYTES = 4_500_000  # 4.5 MB
+MAX_VIDEO_SIZE_BYTES = 100_000_000  # 100 MB
 
 # Default configuration values
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_RETRY_DELAY = 1.0
 DEFAULT_TIMEOUT = 300
+MAX_CONTENT_BLOCKS_PER_MESSAGE = 20
 ```
 
 ### Enums
@@ -762,6 +1190,45 @@ class RetryStrategy(Enum):
     REGION_FIRST = "region_first"
     MODEL_FIRST = "model_first"
 
+# MessageBuilder roles
+class RolesEnum(str, Enum):
+    USER = "user"
+    ASSISTANT = "assistant"
+
+# Supported image formats
+class ImageFormatEnum(str, Enum):
+    JPEG = "jpeg"
+    PNG = "png"
+    GIF = "gif"
+    WEBP = "webp"
+
+# Supported document formats
+class DocumentFormatEnum(str, Enum):
+    PDF = "pdf"
+    CSV = "csv"
+    DOC = "doc"
+    DOCX = "docx"
+    XLS = "xls"
+    XLSX = "xlsx"
+    HTML = "html"
+    TXT = "txt"
+    MD = "md"
+
+# Supported video formats
+class VideoFormatEnum(str, Enum):
+    MP4 = "mp4"
+    MOV = "mov"
+    AVI = "avi"
+    WEBM = "webm"
+    MKV = "mkv"
+
+# File type detection methods
+class DetectionMethodEnum(str, Enum):
+    EXTENSION = "extension"
+    CONTENT = "content"
+    COMBINED = "combined"
+    MANUAL = "manual"
+
 # Failure handling strategies
 class FailureHandlingStrategy(Enum):
     CONTINUE_ON_FAILURE = "continue_on_failure"
@@ -775,4 +1242,97 @@ class LoadBalancingStrategy(Enum):
     RANDOM = "random"
 ```
 
-This documentation provides comprehensive coverage of the LLMManager package for coding assistants. It includes all necessary classes, methods, data structures, configuration options, and usage patterns needed to effectively use the library.
+## Advanced MessageBuilder Features
+
+### File Type Detection
+
+The MessageBuilder includes sophisticated file type detection capabilities:
+
+```python
+from bestehorn_llmmanager.util.file_type_detector import FileTypeDetector, DetectionResult
+
+# Manual file type detection (advanced usage)
+detector = FileTypeDetector()
+
+# Detect image format from bytes
+with open("image.jpg", "rb") as f:
+    image_data = f.read()
+
+result = detector.detect_image_format(content=image_data, filename="image.jpg")
+if result.is_successful:
+    print(f"Detected format: {result.detected_format}")
+    print(f"Confidence: {result.confidence}")
+    print(f"Method: {result.detection_method.value}")
+else:
+    print(f"Detection failed: {result.error_message}")
+```
+
+### Custom Validation
+
+```python
+# Advanced MessageBuilder with custom validation
+def validate_message_content(builder):
+    """Custom validation for message content."""
+    if builder.content_block_count > 10:
+        raise ValueError("Too many content blocks")
+    return True
+
+try:
+    message = create_user_message()
+    message.add_text("Primary content")
+    
+    # Add multiple content blocks with validation
+    for i in range(5):
+        message.add_text(f"Additional content {i}")
+    
+    validate_message_content(message)
+    
+    built_message = message.build()
+    response = manager.converse(messages=[built_message])
+    
+except ValueError as e:
+    print(f"Validation error: {e}")
+```
+
+### Streaming with MessageBuilder
+
+```python
+# Use MessageBuilder with streaming responses
+message = create_user_message()\
+    .add_text("Write a long story about adventure")\
+    .build()
+
+stream_response = manager.converse_stream(messages=[message])
+
+# Handle streaming response
+for chunk in stream_response:
+    if chunk.get("contentBlockDelta"):
+        delta = chunk["contentBlockDelta"]
+        if "text" in delta:
+            print(delta["text"], end="", flush=True)
+```
+
+## Summary
+
+This comprehensive documentation covers all aspects of the LLMManager package, with special emphasis on the MessageBuilder functionality. The MessageBuilder provides:
+
+1. **Fluent Interface**: Method chaining for intuitive message construction
+2. **Automatic Format Detection**: Intelligent file type detection from content and filenames
+3. **Multi-Modal Support**: Support for text, images, documents, and videos
+4. **Validation**: Built-in content validation and size limit enforcement
+5. **AWS Bedrock Compatibility**: Direct compatibility with AWS Bedrock Converse API
+6. **Error Handling**: Comprehensive error handling and validation
+7. **Flexibility**: Support for both convenience methods and advanced configuration
+
+The MessageBuilder eliminates the need to manually construct complex message dictionaries and provides a type-safe, validated approach to building multi-modal messages for AWS Bedrock interactions.
+
+**Key MessageBuilder Features:**
+- Fluent method chaining: `.add_text().add_image().add_document().build()`
+- Automatic format detection from file content and extensions
+- Built-in size limits and validation
+- Support for local files and raw bytes
+- Compatible with all LLMManager methods
+- Comprehensive error handling
+- Full type safety with enums for formats and roles
+
+Use the MessageBuilder for all message construction needs to ensure proper formatting, validation, and compatibility with the AWS Bedrock Converse API.

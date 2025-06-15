@@ -6,7 +6,7 @@ Contains all enumerated values used in message construction.
 from enum import Enum
 from typing import Final
 
-from .llm_manager_constants import ConverseAPIFields
+from .bedrock.models.llm_manager_constants import ConverseAPIFields
 
 
 class RolesEnum(str, Enum):

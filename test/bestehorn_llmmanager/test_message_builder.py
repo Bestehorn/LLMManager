@@ -6,10 +6,10 @@ Tests the main message builder class and its functionality.
 import pytest
 from unittest.mock import Mock, patch
 
-from src.bedrock.models.converse_message_builder import ConverseMessageBuilder
-from src.bedrock.models.message_builder_enums import RolesEnum, ImageFormatEnum, DocumentFormatEnum, VideoFormatEnum
-from src.bedrock.models.llm_manager_constants import ConverseAPIFields
-from src.bedrock.exceptions.llm_manager_exceptions import RequestValidationError
+from src.bestehorn_llmmanager.message_builder import ConverseMessageBuilder
+from src.bestehorn_llmmanager.message_builder_enums import RolesEnum, ImageFormatEnum, DocumentFormatEnum, VideoFormatEnum
+from src.bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields
+from src.bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RequestValidationError
 
 
 class TestConverseMessageBuilderInitialization:
@@ -111,7 +111,7 @@ class TestAddImageBytesMethod:
         assert image_block[ConverseAPIFields.IMAGE][ConverseAPIFields.FORMAT] == "jpeg"
         assert image_block[ConverseAPIFields.IMAGE][ConverseAPIFields.SOURCE][ConverseAPIFields.BYTES] == image_data
     
-    @patch('src.bedrock.models.converse_message_builder.FileTypeDetector')
+    @patch('src.bestehorn_llmmanager.message_builder.FileTypeDetector')
     def test_add_image_with_auto_detection(self, mock_detector_class):
         """Test adding image with automatic format detection."""
         # Mock the detector
@@ -119,8 +119,8 @@ class TestAddImageBytesMethod:
         mock_detector_class.return_value = mock_detector
         
         # Mock successful detection result
-        from src.bedrock.models.file_type_detector.base_detector import DetectionResult
-        from src.bedrock.models.message_builder_enums import DetectionMethodEnum
+        from src.bestehorn_llmmanager.util.file_type_detector.base_detector import DetectionResult
+        from src.bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum
         
         mock_result = DetectionResult(
             detected_format="jpeg",
@@ -164,12 +164,12 @@ class TestAddImageBytesMethod:
             # We need to create a scenario where format validation fails
             # This is a bit contrived since our enum only has supported formats
             # Mock the detector to return an unsupported format
-            with patch('src.bedrock.models.converse_message_builder.FileTypeDetector') as mock_detector_class:
+            with patch('src.bestehorn_llmmanager.message_builder.FileTypeDetector') as mock_detector_class:
                 mock_detector = Mock()
                 mock_detector_class.return_value = mock_detector
                 
-                from src.bedrock.models.file_type_detector.base_detector import DetectionResult
-                from src.bedrock.models.message_builder_enums import DetectionMethodEnum
+                from src.bestehorn_llmmanager.util.file_type_detector.base_detector import DetectionResult
+                from src.bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum
                 
                 # Mock detection result with unsupported format
                 mock_result = DetectionResult(
