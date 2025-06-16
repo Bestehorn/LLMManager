@@ -12,16 +12,16 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
 from typing import Dict, Any, List
 
-from src.bedrock.retry.retry_manager import RetryManager
-from src.bedrock.models.llm_manager_structures import (
+from bestehorn_llmmanager.bedrock.retry.retry_manager import RetryManager
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     RetryConfig, RetryStrategy, RequestAttempt, ResponseValidationConfig,
     ValidationResult, ValidationAttempt, BedrockResponse
 )
-from src.bedrock.models.llm_manager_constants import (
+from bestehorn_llmmanager.bedrock.models.llm_manager_constants import (
     ConverseAPIFields, ResponseValidationLogMessages
 )
-from src.bedrock.models.access_method import ModelAccessMethod, ModelAccessInfo
-from src.bedrock.exceptions.llm_manager_exceptions import RetryExhaustedError
+from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessMethod, ModelAccessInfo
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RetryExhaustedError
 
 
 class TestResponseValidation:

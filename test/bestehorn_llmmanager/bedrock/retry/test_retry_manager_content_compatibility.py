@@ -6,10 +6,10 @@ import pytest
 from unittest.mock import Mock, patch
 from datetime import datetime
 
-from src.bedrock.retry.retry_manager import RetryManager
-from src.bedrock.models.llm_manager_structures import RetryConfig, RetryStrategy, RequestAttempt
-from src.bedrock.models.access_method import ModelAccessMethod, ModelAccessInfo
-from src.bedrock.exceptions.llm_manager_exceptions import RetryExhaustedError
+from bestehorn_llmmanager.bedrock.retry.retry_manager import RetryManager
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConfig, RetryStrategy, RequestAttempt
+from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessMethod, ModelAccessInfo
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RetryExhaustedError
 
 from botocore.exceptions import ClientError
 
@@ -150,7 +150,7 @@ class TestContentCompatibilityErrorHandling:
         assert should_disable is True
         assert feature == 'guardrails'
     
-    @patch('src.bedrock.retry.retry_manager.time.sleep')
+    @patch('bestehorn_llmmanager.bedrock.retry.retry_manager.time.sleep')
     def test_execute_with_retry_content_compatibility_skips_feature_fallback(
         self, mock_sleep, retry_manager, mock_access_info
     ):
@@ -210,7 +210,7 @@ class TestContentCompatibilityErrorHandling:
         # Verify that no feature fallback was attempted (would have been a third call)
         assert mock_operation.call_count == 2  # Original + fallback
     
-    @patch('src.bedrock.retry.retry_manager.time.sleep')
+    @patch('bestehorn_llmmanager.bedrock.retry.retry_manager.time.sleep')
     def test_execute_with_retry_api_error_uses_feature_fallback(
         self, mock_sleep, retry_manager, mock_access_info
     ):

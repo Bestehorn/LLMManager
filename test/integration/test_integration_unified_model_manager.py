@@ -9,9 +9,9 @@ import pytest
 from pathlib import Path
 from typing import List, Dict, Any
 
-from src.bedrock.UnifiedModelManager import UnifiedModelManager, UnifiedModelManagerError
-from src.bedrock.models.access_method import ModelAccessMethod
-from src.bedrock.testing.integration_markers import IntegrationTestMarkers
+from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager, UnifiedModelManagerError
+from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessMethod
+from bestehorn_llmmanager.bedrock.testing.integration_markers import IntegrationTestMarkers
 
 
 @pytest.mark.integration

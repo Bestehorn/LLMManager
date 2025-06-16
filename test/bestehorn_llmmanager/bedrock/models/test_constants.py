@@ -8,7 +8,7 @@ and maintain expected types and values.
 import pytest
 from typing import Final
 
-from src.bedrock.models.constants import (
+from bestehorn_llmmanager.bedrock.models.constants import (
     JSONFields,
     HTMLTableColumns,
     BooleanValues,
@@ -367,7 +367,7 @@ class TestConstantsIntegration:
     def test_constants_module_structure(self):
         """Test that the constants module has the expected structure."""
         # Test that all expected classes exist
-        from src.bedrock.models import constants
+        from bestehorn_llmmanager.bedrock.models import constants
         
         expected_classes = [
             'JSONFields', 'HTMLTableColumns', 'BooleanValues', 

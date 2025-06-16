@@ -10,15 +10,15 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from src.bedrock.correlators.model_cris_correlator import (
+from bestehorn_llmmanager.bedrock.correlators.model_cris_correlator import (
     ModelCRISCorrelator,
     ModelCRISCorrelationError
 )
-from src.bedrock.models.data_structures import BedrockModelInfo, ModelCatalog
-from src.bedrock.models.cris_structures import CRISModelInfo, CRISCatalog, CRISInferenceProfile
-from src.bedrock.models.unified_structures import UnifiedModelInfo, UnifiedModelCatalog
-from src.bedrock.models.access_method import ModelAccessMethod, ModelAccessInfo
-from src.bedrock.models.unified_constants import (
+from bestehorn_llmmanager.bedrock.models.data_structures import BedrockModelInfo, ModelCatalog
+from bestehorn_llmmanager.bedrock.models.cris_structures import CRISModelInfo, CRISCatalog, CRISInferenceProfile
+from bestehorn_llmmanager.bedrock.models.unified_structures import UnifiedModelInfo, UnifiedModelCatalog
+from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessMethod, ModelAccessInfo
+from bestehorn_llmmanager.bedrock.models.unified_constants import (
     ModelCorrelationConstants,
     ModelCorrelationConfig,
     UnifiedLogMessages,

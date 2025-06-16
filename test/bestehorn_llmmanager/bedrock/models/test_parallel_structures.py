@@ -7,12 +7,12 @@ import json
 import time
 from unittest.mock import patch
 
-from bedrock.models.parallel_structures import (
+from bestehorn_llmmanager.bedrock.models.parallel_structures import (
     BedrockConverseRequest, ParallelResponse, ParallelProcessingConfig,
     ParallelExecutionStats, FailureHandlingStrategy, LoadBalancingStrategy,
     RegionAssignment, ParallelExecutionContext
 )
-from bedrock.models.bedrock_response import BedrockResponse
+from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse
 
 
 class TestBedrockConverseRequest:
@@ -573,7 +573,7 @@ class TestParallelExecutionContext:
         from datetime import datetime, timedelta
         start_time = datetime.now()
         
-        with patch('bedrock.models.parallel_structures.datetime') as mock_datetime:
+        with patch('bestehorn_llmmanager.bedrock.models.parallel_structures.datetime') as mock_datetime:
             # Mock current time to be 1 second after start time
             mock_datetime.now.return_value = start_time + timedelta(seconds=1)
             

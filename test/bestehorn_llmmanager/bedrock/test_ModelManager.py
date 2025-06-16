@@ -8,11 +8,11 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from bedrock.ModelManager import ModelManager, ModelManagerError
-from bedrock.models.data_structures import ModelCatalog, BedrockModelInfo
-from bedrock.models.constants import URLs, FilePaths
-from bedrock.downloaders.base_downloader import NetworkError, FileSystemError
-from bedrock.parsers.base_parser import ParsingError
+from bestehorn_llmmanager.bedrock.ModelManager import ModelManager, ModelManagerError
+from bestehorn_llmmanager.bedrock.models.data_structures import ModelCatalog, BedrockModelInfo
+from bestehorn_llmmanager.bedrock.models.constants import URLs, FilePaths
+from bestehorn_llmmanager.bedrock.downloaders.base_downloader import NetworkError, FileSystemError
+from bestehorn_llmmanager.bedrock.parsers.base_parser import ParsingError
 
 
 class TestModelManager:
@@ -41,9 +41,9 @@ class TestModelManager:
     @pytest.fixture
     def model_manager(self, mock_downloader, mock_parser, mock_serializer):
         """Create a ModelManager instance with mocked components."""
-        with patch('bedrock.ModelManager.HTMLDocumentationDownloader', return_value=mock_downloader), \
-             patch('bedrock.ModelManager.EnhancedBedrockHTMLParser', return_value=mock_parser), \
-             patch('bedrock.ModelManager.JSONModelSerializer', return_value=mock_serializer):
+        with patch('bestehorn_llmmanager.bedrock.ModelManager.HTMLDocumentationDownloader', return_value=mock_downloader), \
+             patch('bestehorn_llmmanager.bedrock.ModelManager.EnhancedBedrockHTMLParser', return_value=mock_parser), \
+             patch('bestehorn_llmmanager.bedrock.ModelManager.JSONModelSerializer', return_value=mock_serializer):
             return ModelManager()
     
     def test_init_default_configuration(self):
@@ -251,7 +251,7 @@ class TestModelManager:
         
         model_manager.html_output_path = html_file
         
-        with patch('bedrock.ModelManager.datetime') as mock_datetime:
+        with patch('bestehorn_llmmanager.bedrock.ModelManager.datetime') as mock_datetime:
             mock_datetime.now.return_value = datetime.now()
             mock_datetime.fromtimestamp.return_value = old_time
             
@@ -279,7 +279,7 @@ class TestModelManager:
         model_manager.html_output_path = html_file
         
         # Mock datetime.fromtimestamp to raise OSError
-        with patch('bedrock.ModelManager.datetime') as mock_datetime:
+        with patch('bestehorn_llmmanager.bedrock.ModelManager.datetime') as mock_datetime:
             mock_datetime.fromtimestamp.side_effect = OSError("Permission denied")
             result = model_manager._is_html_file_recent()
         
@@ -347,9 +347,9 @@ class TestModelManagerIntegration:
         mock_parser.parse.return_value = test_models
         
         # Create manager with mocked components
-        with patch('bedrock.ModelManager.HTMLDocumentationDownloader', return_value=mock_downloader), \
-             patch('bedrock.ModelManager.EnhancedBedrockHTMLParser', return_value=mock_parser), \
-             patch('bedrock.ModelManager.JSONModelSerializer', return_value=mock_serializer):
+        with patch('bestehorn_llmmanager.bedrock.ModelManager.HTMLDocumentationDownloader', return_value=mock_downloader), \
+             patch('bestehorn_llmmanager.bedrock.ModelManager.EnhancedBedrockHTMLParser', return_value=mock_parser), \
+             patch('bestehorn_llmmanager.bedrock.ModelManager.JSONModelSerializer', return_value=mock_serializer):
             
             manager = ModelManager(
                 html_output_path=html_path,

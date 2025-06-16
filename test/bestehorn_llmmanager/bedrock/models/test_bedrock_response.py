@@ -9,9 +9,9 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from unittest.mock import Mock
 
-from src.bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
-from src.bedrock.models.llm_manager_constants import ConverseAPIFields
-from src.bedrock.models.llm_manager_structures import (
+from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
+from bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     RequestAttempt, 
     ValidationAttempt, 
     ValidationResult

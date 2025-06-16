@@ -9,9 +9,9 @@ import pytest
 from unittest.mock import Mock, patch
 from typing import Dict, Any, List, Set
 
-from src.bedrock.filters.content_filter import ContentFilter
-from src.bedrock.models.llm_manager_structures import ContentFilterState, FilteredContent
-from src.bedrock.models.llm_manager_constants import ConverseAPIFields
+from bestehorn_llmmanager.bedrock.filters.content_filter import ContentFilter
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import ContentFilterState, FilteredContent
+from bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields
 
 
 class TestContentFilter:

@@ -6,7 +6,7 @@ Tests all exception classes and their functionality.
 import pytest
 from typing import Dict, Any, List, Optional
 
-from src.bedrock.exceptions.llm_manager_exceptions import (
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
     LLMManagerError,
     ConfigurationError,
     AuthenticationError,

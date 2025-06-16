@@ -6,14 +6,14 @@ import pytest
 from unittest.mock import Mock, patch
 from typing import List
 
-from src.ParallelLLMManager import ParallelLLMManager
-from src.bedrock.models.parallel_structures import (
+from bestehorn_llmmanager.parallel_llm_manager import ParallelLLMManager
+from bestehorn_llmmanager.bedrock.models.parallel_structures import (
     BedrockConverseRequest, ParallelResponse, ParallelProcessingConfig,
     FailureHandlingStrategy, LoadBalancingStrategy
 )
-from src.bedrock.models.llm_manager_structures import AuthConfig, RetryConfig
-from src.bedrock.models.bedrock_response import BedrockResponse
-from src.bedrock.exceptions.parallel_exceptions import (
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import AuthConfig, RetryConfig
+from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse
+from bestehorn_llmmanager.bedrock.exceptions.parallel_exceptions import (
     ParallelConfigurationError, ParallelProcessingError
 )
 
@@ -26,7 +26,7 @@ class TestParallelLLMManager:
         models = ["Claude 3 Haiku", "Claude 3 Sonnet"]
         regions = ["us-east-1", "us-west-2"]
         
-        with patch('src.ParallelLLMManager.LLMManager') as mock_llm_manager:
+        with patch('bestehorn_llmmanager.parallel_llm_manager.LLMManager') as mock_llm_manager:
             parallel_manager = ParallelLLMManager(
                 models=models,
                 regions=regions
@@ -51,7 +51,7 @@ class TestParallelLLMManager:
             load_balancing_strategy=LoadBalancingStrategy.RANDOM
         )
         
-        with patch('src.ParallelLLMManager.LLMManager'):
+        with patch('bestehorn_llmmanager.parallel_llm_manager.LLMManager'):
             parallel_manager = ParallelLLMManager(
                 models=models,
                 regions=regions,
@@ -88,7 +88,7 @@ class TestParallelLLMManager:
         # Create mock response
         mock_response = BedrockResponse(success=True)
         
-        with patch('src.ParallelLLMManager.LLMManager') as mock_llm_manager_class:
+        with patch('bestehorn_llmmanager.parallel_llm_manager.LLMManager') as mock_llm_manager_class:
             mock_llm_manager = Mock()
             mock_llm_manager.converse.return_value = mock_response
             mock_llm_manager_class.return_value = mock_llm_manager
@@ -116,7 +116,7 @@ class TestParallelLLMManager:
             "req_test2_123457": BedrockResponse(success=True)
         }
         
-        with patch('src.ParallelLLMManager.LLMManager'):
+        with patch('bestehorn_llmmanager.parallel_llm_manager.LLMManager'):
             parallel_manager = ParallelLLMManager(models=models, regions=regions)
             
             # Create test requests
@@ -150,7 +150,7 @@ class TestParallelLLMManager:
     
     def test_get_underlying_llm_manager(self):
         """Test getting the underlying LLMManager instance."""
-        with patch('src.ParallelLLMManager.LLMManager') as mock_llm_manager_class:
+        with patch('bestehorn_llmmanager.parallel_llm_manager.LLMManager') as mock_llm_manager_class:
             mock_llm_manager = Mock()
             mock_llm_manager_class.return_value = mock_llm_manager
             
@@ -163,7 +163,7 @@ class TestParallelLLMManager:
     
     def test_validate_configuration(self):
         """Test configuration validation."""
-        with patch('src.ParallelLLMManager.LLMManager') as mock_llm_manager_class:
+        with patch('bestehorn_llmmanager.parallel_llm_manager.LLMManager') as mock_llm_manager_class:
             mock_llm_manager = Mock()
             mock_llm_manager.validate_configuration.return_value = {
                 "valid": True,
@@ -188,7 +188,7 @@ class TestParallelLLMManager:
     
     def test_refresh_model_data_success(self):
         """Test successful model data refresh."""
-        with patch('src.ParallelLLMManager.LLMManager') as mock_llm_manager_class:
+        with patch('bestehorn_llmmanager.parallel_llm_manager.LLMManager') as mock_llm_manager_class:
             mock_llm_manager = Mock()
             mock_llm_manager_class.return_value = mock_llm_manager
             
@@ -203,7 +203,7 @@ class TestParallelLLMManager:
     
     def test_refresh_model_data_failure(self):
         """Test model data refresh failure."""
-        with patch('src.ParallelLLMManager.LLMManager') as mock_llm_manager_class:
+        with patch('bestehorn_llmmanager.parallel_llm_manager.LLMManager') as mock_llm_manager_class:
             mock_llm_manager = Mock()
             mock_llm_manager.refresh_model_data.side_effect = Exception("Refresh failed")
             mock_llm_manager_class.return_value = mock_llm_manager
@@ -221,7 +221,7 @@ class TestParallelLLMManager:
         models = ["claude-3-haiku", "claude-3-sonnet"]
         regions = ["us-east-1", "us-west-2", "eu-west-1"]
         
-        with patch('src.ParallelLLMManager.LLMManager'):
+        with patch('bestehorn_llmmanager.parallel_llm_manager.LLMManager'):
             parallel_manager = ParallelLLMManager(models=models, regions=regions)
             
             repr_str = repr(parallel_manager)

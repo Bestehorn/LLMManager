@@ -9,18 +9,18 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
 
-from bedrock.UnifiedModelManager import UnifiedModelManager, UnifiedModelManagerError
-from bedrock.models.unified_structures import UnifiedModelInfo, UnifiedModelCatalog
-from bedrock.models.access_method import ModelAccessMethod, ModelAccessInfo, AccessRecommendation
-from bedrock.models.unified_constants import (
+from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager, UnifiedModelManagerError
+from bestehorn_llmmanager.bedrock.models.unified_structures import UnifiedModelInfo, UnifiedModelCatalog
+from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessMethod, ModelAccessInfo, AccessRecommendation
+from bestehorn_llmmanager.bedrock.models.unified_constants import (
     UnifiedFilePaths, UnifiedErrorMessages, AccessMethodPriority,
     CacheManagementConstants
 )
-from bedrock.models.data_structures import ModelCatalog, BedrockModelInfo
-from bedrock.models.cris_structures import CRISCatalog
-from bedrock.correlators.model_cris_correlator import ModelCRISCorrelationError
-from bedrock.downloaders.base_downloader import NetworkError, FileSystemError
-from bedrock.parsers.base_parser import ParsingError
+from bestehorn_llmmanager.bedrock.models.data_structures import ModelCatalog, BedrockModelInfo
+from bestehorn_llmmanager.bedrock.models.cris_structures import CRISCatalog
+from bestehorn_llmmanager.bedrock.correlators.model_cris_correlator import ModelCRISCorrelationError
+from bestehorn_llmmanager.bedrock.downloaders.base_downloader import NetworkError, FileSystemError
+from bestehorn_llmmanager.bedrock.parsers.base_parser import ParsingError
 
 
 class TestUnifiedModelManager:
@@ -79,10 +79,10 @@ class TestUnifiedModelManager:
     def unified_manager(self, mock_model_manager, mock_cris_manager, mock_correlator, 
                        mock_serializer, mock_unified_catalog):
         """Create a UnifiedModelManager instance with mocked components."""
-        with patch('bedrock.UnifiedModelManager.ModelManager', return_value=mock_model_manager), \
-             patch('bedrock.UnifiedModelManager.CRISManager', return_value=mock_cris_manager), \
-             patch('bedrock.UnifiedModelManager.ModelCRISCorrelator', return_value=mock_correlator), \
-             patch('bedrock.UnifiedModelManager.JSONModelSerializer', return_value=mock_serializer):
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager', return_value=mock_model_manager), \
+             patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager', return_value=mock_cris_manager), \
+             patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator', return_value=mock_correlator), \
+             patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer', return_value=mock_serializer):
             manager = UnifiedModelManager()
             # Pre-populate the cached catalog for tests that expect it
             manager._cached_catalog = mock_unified_catalog
@@ -113,10 +113,10 @@ class TestUnifiedModelManager:
                                         mock_correlator, mock_serializer):
         """Test successful unified data refresh."""
         # Create a fresh manager without pre-populated cache
-        with patch('bedrock.UnifiedModelManager.ModelManager', return_value=mock_model_manager), \
-             patch('bedrock.UnifiedModelManager.CRISManager', return_value=mock_cris_manager), \
-             patch('bedrock.UnifiedModelManager.ModelCRISCorrelator', return_value=mock_correlator), \
-             patch('bedrock.UnifiedModelManager.JSONModelSerializer', return_value=mock_serializer):
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager', return_value=mock_model_manager), \
+             patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager', return_value=mock_cris_manager), \
+             patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator', return_value=mock_correlator), \
+             patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer', return_value=mock_serializer):
             
             manager = UnifiedModelManager()
             
@@ -135,8 +135,8 @@ class TestUnifiedModelManager:
     def test_refresh_unified_data_force_download_override(self, mock_model_manager, mock_cris_manager):
         """Test unified data refresh with force_download override."""
         # Create a fresh manager
-        with patch('bedrock.UnifiedModelManager.ModelManager', return_value=mock_model_manager), \
-             patch('bedrock.UnifiedModelManager.CRISManager', return_value=mock_cris_manager):
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager', return_value=mock_model_manager), \
+             patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager', return_value=mock_cris_manager):
             
             manager = UnifiedModelManager()
             
@@ -149,7 +149,7 @@ class TestUnifiedModelManager:
     
     def test_refresh_unified_data_network_error(self, mock_model_manager):
         """Test unified data refresh with network error."""
-        with patch('bedrock.UnifiedModelManager.ModelManager', return_value=mock_model_manager):
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager', return_value=mock_model_manager):
             manager = UnifiedModelManager()
             
             mock_model_manager.refresh_model_data.side_effect = NetworkError("Connection failed")
@@ -159,8 +159,8 @@ class TestUnifiedModelManager:
     
     def test_refresh_unified_data_parsing_error(self, mock_cris_manager, mock_model_manager):
         """Test unified data refresh with parsing error."""
-        with patch('bedrock.UnifiedModelManager.ModelManager', return_value=mock_model_manager), \
-             patch('bedrock.UnifiedModelManager.CRISManager', return_value=mock_cris_manager):
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager', return_value=mock_model_manager), \
+             patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager', return_value=mock_cris_manager):
             
             manager = UnifiedModelManager()
             
@@ -172,7 +172,7 @@ class TestUnifiedModelManager:
     
     def test_refresh_unified_data_correlation_error(self, mock_correlator):
         """Test unified data refresh with correlation error."""
-        with patch('bedrock.UnifiedModelManager.ModelCRISCorrelator', return_value=mock_correlator):
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator', return_value=mock_correlator):
             manager = UnifiedModelManager()
             
             mock_correlator.correlate_catalogs.side_effect = ModelCRISCorrelationError("Correlation failed")
@@ -182,7 +182,7 @@ class TestUnifiedModelManager:
     
     def test_refresh_unified_data_file_system_error(self, mock_serializer):
         """Test unified data refresh with file system error."""
-        with patch('bedrock.UnifiedModelManager.JSONModelSerializer', return_value=mock_serializer):
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer', return_value=mock_serializer):
             manager = UnifiedModelManager()
             
             mock_serializer.serialize_dict_to_file.side_effect = FileSystemError("Permission denied")
@@ -675,7 +675,7 @@ class TestUnifiedModelManagerCacheManagement:
         with pytest.raises(UnifiedModelManagerError, match="max_cache_age_hours must be between"):
             UnifiedModelManager(max_cache_age_hours=200.0)  # Above maximum
     
-    @patch('bedrock.UnifiedModelManager.datetime')
+    @patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime')
     def test_get_cache_age_hours_valid_timestamp(self, mock_datetime, cache_manager):
         """Test cache age calculation with valid timestamp."""
         # Mock current time with timezone awareness
@@ -690,7 +690,7 @@ class TestUnifiedModelManagerCacheManagement:
         
         assert age_hours == 2.0
     
-    @patch('bedrock.UnifiedModelManager.datetime')
+    @patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime')
     def test_get_cache_age_hours_fallback_format(self, mock_datetime, cache_manager):
         """Test cache age calculation with fallback timestamp format."""
         # Mock current time with timezone awareness
@@ -727,7 +727,7 @@ class TestUnifiedModelManagerCacheManagement:
         cache_manager.json_output_path = json_file
         
         # Mock serializer to raise exception
-        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class:
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class:
             mock_serializer = Mock()
             mock_serializer.load_from_file.side_effect = Exception("JSON decode error")
             mock_serializer_class.return_value = mock_serializer
@@ -745,7 +745,7 @@ class TestUnifiedModelManagerCacheManagement:
         cache_manager.json_output_path = json_file
         
         # Mock serializer to return data without timestamp
-        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class:
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class:
             mock_serializer = Mock()
             mock_serializer.load_from_file.return_value = {"unified_models": {}}
             mock_serializer_class.return_value = mock_serializer
@@ -756,7 +756,7 @@ class TestUnifiedModelManagerCacheManagement:
         assert status == CacheManagementConstants.CACHE_CORRUPTED
         assert "missing required timestamp field" in reason
     
-    @patch('bedrock.UnifiedModelManager.datetime')
+    @patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime')
     def test_validate_cache_expired(self, mock_datetime, cache_manager, tmp_path):
         """Test cache validation with expired data."""
         # Mock current time with timezone awareness (25 hours later than cache)
@@ -785,7 +785,7 @@ class TestUnifiedModelManagerCacheManagement:
         assert "expired" in reason
         assert "25.0 hours" in reason
     
-    @patch('bedrock.UnifiedModelManager.datetime')
+    @patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime')
     def test_validate_cache_valid(self, mock_datetime, cache_manager, tmp_path):
         """Test cache validation with valid, current data."""
         # Mock current time with timezone awareness (1 hour later than cache)
@@ -802,7 +802,7 @@ class TestUnifiedModelManagerCacheManagement:
         mock_catalog = Mock()
         mock_catalog.model_count = 5
         
-        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class, \
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class, \
              patch.object(UnifiedModelCatalog, 'from_dict', return_value=mock_catalog):
             
             mock_serializer = Mock()
@@ -820,7 +820,7 @@ class TestUnifiedModelManagerCacheManagement:
         assert "1.0 hours" in reason
         assert cache_manager._cached_catalog == mock_catalog
     
-    @patch('bedrock.UnifiedModelManager.datetime')
+    @patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime')
     def test_validate_cache_empty_catalog(self, mock_datetime, cache_manager, tmp_path):
         """Test cache validation with empty catalog."""
         # Mock current time to make cache appear fresh (1 hour later)
@@ -837,7 +837,7 @@ class TestUnifiedModelManagerCacheManagement:
         mock_catalog = Mock()
         mock_catalog.model_count = 0  # Empty catalog
         
-        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class, \
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class, \
              patch.object(UnifiedModelCatalog, 'from_dict', return_value=mock_catalog):
             
             mock_serializer = Mock()
@@ -865,7 +865,7 @@ class TestUnifiedModelManagerCacheManagement:
         assert str(tmp_path / "missing.json") in status_info["path"]
         assert "age_hours" not in status_info  # Age not available for missing files
     
-    @patch('bedrock.UnifiedModelManager.datetime')
+    @patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime')
     def test_get_cache_status_valid_with_age(self, mock_datetime, cache_manager, tmp_path):
         """Test getting cache status with valid cache including age information."""
         # Mock current time with timezone awareness

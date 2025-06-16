@@ -8,7 +8,7 @@ from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
 from abc import ABC
 
-from src.bedrock.downloaders.base_downloader import (
+from bestehorn_llmmanager.bedrock.downloaders.base_downloader import (
     BaseDocumentationDownloader,
     DocumentationDownloader,
     NetworkError,

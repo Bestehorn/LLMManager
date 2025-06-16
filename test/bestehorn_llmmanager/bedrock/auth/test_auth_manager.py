@@ -8,10 +8,10 @@ from unittest.mock import Mock, patch, MagicMock, call
 import boto3
 from botocore.exceptions import NoCredentialsError, ProfileNotFound, ClientError
 
-from src.bedrock.auth.auth_manager import AuthManager
-from src.bedrock.exceptions.llm_manager_exceptions import AuthenticationError
-from src.bedrock.models.llm_manager_structures import AuthConfig, AuthenticationType
-from src.bedrock.models.llm_manager_constants import LLMManagerLogMessages, LLMManagerErrorMessages
+from bestehorn_llmmanager.bedrock.auth.auth_manager import AuthManager
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import AuthenticationError
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import AuthConfig, AuthenticationType
+from bestehorn_llmmanager.bedrock.models.llm_manager_constants import LLMManagerLogMessages, LLMManagerErrorMessages
 
 
 class TestAuthManagerInitialization:
@@ -125,7 +125,7 @@ class TestAuthManagerProfileSession:
         )
         self.auth_manager = AuthManager(auth_config=self.auth_config)
     
-    @patch('src.bedrock.auth.auth_manager.boto3.Session')
+    @patch('bestehorn_llmmanager.bedrock.auth.auth_manager.boto3.Session')
     @patch.object(AuthManager, '_test_credentials')
     def test_create_profile_session_success(self, mock_test_credentials, mock_boto_session):
         """Test successful profile session creation."""
@@ -141,7 +141,7 @@ class TestAuthManagerProfileSession:
         )
         mock_test_credentials.assert_called_once_with(session=mock_session, region="us-east-1")
     
-    @patch('src.bedrock.auth.auth_manager.boto3.Session')
+    @patch('bestehorn_llmmanager.bedrock.auth.auth_manager.boto3.Session')
     def test_create_profile_session_profile_not_found(self, mock_boto_session):
         """Test profile session creation with profile not found error."""
         mock_boto_session.side_effect = ProfileNotFound(profile="test-profile")
@@ -152,7 +152,7 @@ class TestAuthManagerProfileSession:
         assert "AWS profile 'test-profile' not found" in str(exc_info.value)
         assert exc_info.value.auth_type == AuthenticationType.PROFILE.value
     
-    @patch('src.bedrock.auth.auth_manager.boto3.Session')
+    @patch('bestehorn_llmmanager.bedrock.auth.auth_manager.boto3.Session')
     def test_create_profile_session_no_credentials(self, mock_boto_session):
         """Test profile session creation with no credentials error."""
         mock_boto_session.side_effect = NoCredentialsError()
@@ -177,7 +177,7 @@ class TestAuthManagerCredentialsSession:
         )
         self.auth_manager = AuthManager(auth_config=self.auth_config)
     
-    @patch('src.bedrock.auth.auth_manager.boto3.Session')
+    @patch('bestehorn_llmmanager.bedrock.auth.auth_manager.boto3.Session')
     @patch.object(AuthManager, '_test_credentials')
     def test_create_credentials_session_success(self, mock_test_credentials, mock_boto_session):
         """Test successful credentials session creation."""
@@ -195,7 +195,7 @@ class TestAuthManagerCredentialsSession:
         )
         mock_test_credentials.assert_called_once_with(session=mock_session, region="us-east-1")
     
-    @patch('src.bedrock.auth.auth_manager.boto3.Session')
+    @patch('bestehorn_llmmanager.bedrock.auth.auth_manager.boto3.Session')
     def test_create_credentials_session_no_credentials(self, mock_boto_session):
         """Test credentials session creation with no credentials error."""
         mock_boto_session.side_effect = NoCredentialsError()
@@ -215,7 +215,7 @@ class TestAuthManagerIAMRoleSession:
         self.auth_config = AuthConfig(auth_type=AuthenticationType.IAM_ROLE)
         self.auth_manager = AuthManager(auth_config=self.auth_config)
     
-    @patch('src.bedrock.auth.auth_manager.boto3.Session')
+    @patch('bestehorn_llmmanager.bedrock.auth.auth_manager.boto3.Session')
     @patch.object(AuthManager, '_test_credentials')
     def test_create_iam_role_session_success(self, mock_test_credentials, mock_boto_session):
         """Test successful IAM role session creation."""
@@ -228,7 +228,7 @@ class TestAuthManagerIAMRoleSession:
         mock_boto_session.assert_called_once_with(region_name="us-east-1")
         mock_test_credentials.assert_called_once_with(session=mock_session, region="us-east-1")
     
-    @patch('src.bedrock.auth.auth_manager.boto3.Session')
+    @patch('bestehorn_llmmanager.bedrock.auth.auth_manager.boto3.Session')
     def test_create_iam_role_session_no_credentials(self, mock_boto_session):
         """Test IAM role session creation with no credentials error."""
         mock_boto_session.side_effect = NoCredentialsError()
@@ -248,7 +248,7 @@ class TestAuthManagerAutoSession:
         self.auth_config = AuthConfig(auth_type=AuthenticationType.AUTO)
         self.auth_manager = AuthManager(auth_config=self.auth_config)
     
-    @patch('src.bedrock.auth.auth_manager.boto3.Session')
+    @patch('bestehorn_llmmanager.bedrock.auth.auth_manager.boto3.Session')
     @patch.object(AuthManager, '_test_credentials')
     def test_create_auto_session_iam_role_success(self, mock_test_credentials, mock_boto_session):
         """Test successful auto session creation with IAM role."""
@@ -262,7 +262,7 @@ class TestAuthManagerAutoSession:
         mock_boto_session.assert_called_with(region_name="us-east-1")
         mock_test_credentials.assert_called_once_with(session=mock_session, region="us-east-1")
     
-    @patch('src.bedrock.auth.auth_manager.boto3.Session')
+    @patch('bestehorn_llmmanager.bedrock.auth.auth_manager.boto3.Session')
     @patch.object(AuthManager, '_test_credentials')
     def test_create_auto_session_fallback_to_profile(self, mock_test_credentials, mock_boto_session):
         """Test auto session creation falls back to default profile."""
@@ -278,7 +278,7 @@ class TestAuthManagerAutoSession:
         assert mock_boto_session.call_count == 2
         assert mock_test_credentials.call_count == 2
     
-    @patch('src.bedrock.auth.auth_manager.boto3.Session')
+    @patch('bestehorn_llmmanager.bedrock.auth.auth_manager.boto3.Session')
     @patch.object(AuthManager, '_test_credentials')
     def test_create_auto_session_all_methods_fail(self, mock_test_credentials, mock_boto_session):
         """Test auto session creation when all methods fail."""
@@ -623,7 +623,7 @@ class TestAuthManagerAdditionalCoverage:
     def test_validate_config_with_invalid_auth_config(self):
         """Test _validate_config method with invalid auth configuration (line 47-48)."""
         # Create a mock AuthConfig that will raise ValueError in __post_init__
-        with patch('src.bedrock.auth.auth_manager.AuthConfig') as mock_auth_config:
+        with patch('bestehorn_llmmanager.bedrock.auth.auth_manager.AuthConfig') as mock_auth_config:
             # Create an invalid auth configuration by patching the validation
             mock_validate = Mock(side_effect=ValueError("Invalid configuration"))
             

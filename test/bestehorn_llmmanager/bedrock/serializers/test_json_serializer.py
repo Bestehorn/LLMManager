@@ -10,9 +10,9 @@ from pathlib import Path
 from unittest.mock import Mock, patch, mock_open
 from typing import Dict, Any
 
-from src.bedrock.serializers.json_serializer import JSONModelSerializer
-from src.bedrock.models.data_structures import ModelCatalog
-from src.bedrock.models.constants import LogMessages
+from bestehorn_llmmanager.bedrock.serializers.json_serializer import JSONModelSerializer
+from bestehorn_llmmanager.bedrock.models.data_structures import ModelCatalog
+from bestehorn_llmmanager.bedrock.models.constants import LogMessages
 
 
 class TestJSONModelSerializer:
@@ -56,7 +56,7 @@ class TestJSONModelSerializer:
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "test_output.json"
             
-            with patch('src.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
+            with patch('bestehorn_llmmanager.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
                 mock_log_instance = Mock()
                 mock_logger.return_value = mock_log_instance
                 
@@ -114,7 +114,7 @@ class TestJSONModelSerializer:
             
             # Mock open to raise OSError
             with patch('builtins.open', side_effect=OSError("Permission denied")):
-                with patch('src.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
+                with patch('bestehorn_llmmanager.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
                     mock_log_instance = Mock()
                     mock_logger.return_value = mock_log_instance
                     
@@ -136,7 +136,7 @@ class TestJSONModelSerializer:
             error_catalog = Mock(spec=ModelCatalog)
             error_catalog.to_dict.side_effect = TypeError("Serialization error")
             
-            with patch('src.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
+            with patch('bestehorn_llmmanager.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
                 mock_log_instance = Mock()
                 mock_logger.return_value = mock_log_instance
                 
@@ -177,7 +177,7 @@ class TestJSONModelSerializer:
         error_catalog = Mock(spec=ModelCatalog)
         error_catalog.to_dict.side_effect = TypeError("Serialization error")
         
-        with patch('src.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
+        with patch('bestehorn_llmmanager.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
             mock_log_instance = Mock()
             mock_logger.return_value = mock_log_instance
             
@@ -232,7 +232,7 @@ class TestJSONModelSerializer:
             
             # Mock open to raise OSError
             with patch('builtins.open', side_effect=OSError("Permission denied")):
-                with patch('src.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
+                with patch('bestehorn_llmmanager.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
                     mock_log_instance = Mock()
                     mock_logger.return_value = mock_log_instance
                     
@@ -433,13 +433,13 @@ class TestJSONModelSerializer:
 
     def test_logger_initialization(self):
         """Test that logger is properly initialized."""
-        with patch('src.bedrock.serializers.json_serializer.logging.getLogger') as mock_get_logger:
+        with patch('bestehorn_llmmanager.bedrock.serializers.json_serializer.logging.getLogger') as mock_get_logger:
             mock_logger = Mock()
             mock_get_logger.return_value = mock_logger
             
             serializer = JSONModelSerializer()
             
-            mock_get_logger.assert_called_once_with('src.bedrock.serializers.json_serializer')
+            mock_get_logger.assert_called_once_with('bestehorn_llmmanager.bedrock.serializers.json_serializer')
             assert serializer._logger == mock_logger
 
     def test_comprehensive_workflow(self):

@@ -7,7 +7,7 @@ import pytest
 from typing import Dict, List
 from unittest.mock import patch
 
-from src.bedrock.models.cris_regional_structures import (
+from bestehorn_llmmanager.bedrock.models.cris_regional_structures import (
     CRISRegionalVariant,
     CRISMultiRegionalModel,
     CRISRegionPrefix,
@@ -15,7 +15,7 @@ from src.bedrock.models.cris_regional_structures import (
     CRISMultiRegionalModelDict,
     RegionalVariantsMap
 )
-from src.bedrock.models.cris_constants import (
+from bestehorn_llmmanager.bedrock.models.cris_constants import (
     CRISJSONFields,
     CRISValidationPatterns,
     CRISErrorMessages,

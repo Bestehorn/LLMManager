@@ -7,12 +7,12 @@ import time
 from unittest.mock import Mock, patch
 from concurrent.futures import TimeoutError as FutureTimeoutError
 
-from bedrock.executors.thread_parallel_executor import ThreadParallelExecutor, ThreadExecutionContext
-from bedrock.models.parallel_structures import (
+from bestehorn_llmmanager.bedrock.executors.thread_parallel_executor import ThreadParallelExecutor, ThreadExecutionContext
+from bestehorn_llmmanager.bedrock.models.parallel_structures import (
     BedrockConverseRequest, RegionAssignment, ParallelProcessingConfig
 )
-from bedrock.models.bedrock_response import BedrockResponse
-from bedrock.exceptions.parallel_exceptions import RequestTimeoutError, ParallelExecutionError
+from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse
+from bestehorn_llmmanager.bedrock.exceptions.parallel_exceptions import RequestTimeoutError, ParallelExecutionError
 
 
 class TestThreadExecutionContext:

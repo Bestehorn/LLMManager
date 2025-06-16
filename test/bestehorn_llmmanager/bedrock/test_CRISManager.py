@@ -12,11 +12,11 @@ from pathlib import Path
 from unittest.mock import Mock, MagicMock, patch, call
 from typing import Dict, Optional
 
-from src.bedrock.CRISManager import CRISManager, CRISManagerError
-from src.bedrock.models.cris_structures import CRISCatalog, CRISModelInfo
-from src.bedrock.models.cris_constants import CRISURLs, CRISFilePaths, CRISLogMessages, CRISErrorMessages
-from src.bedrock.downloaders.base_downloader import NetworkError, FileSystemError
-from src.bedrock.parsers.base_parser import ParsingError
+from bestehorn_llmmanager.bedrock.CRISManager import CRISManager, CRISManagerError
+from bestehorn_llmmanager.bedrock.models.cris_structures import CRISCatalog, CRISModelInfo
+from bestehorn_llmmanager.bedrock.models.cris_constants import CRISURLs, CRISFilePaths, CRISLogMessages, CRISErrorMessages
+from bestehorn_llmmanager.bedrock.downloaders.base_downloader import NetworkError, FileSystemError
+from bestehorn_llmmanager.bedrock.parsers.base_parser import ParsingError
 
 
 class TestCRISManagerInitialization:
@@ -74,7 +74,7 @@ class TestCRISManagerInitialization:
 class TestCRISManagerRefreshData:
     """Test CRISManager refresh_cris_data method."""
     
-    @patch('src.bedrock.CRISManager.datetime')
+    @patch('bestehorn_llmmanager.bedrock.CRISManager.datetime')
     def test_refresh_cris_data_success(self, mock_datetime, temp_dir):
         """Test successful refresh of CRIS data."""
         # Setup
@@ -223,7 +223,7 @@ class TestCRISManagerLoadCachedData:
         
         # Mock CRISCatalog.from_dict
         mock_catalog = Mock(spec=CRISCatalog)
-        with patch('src.bedrock.CRISManager.CRISCatalog') as mock_catalog_class:
+        with patch('bestehorn_llmmanager.bedrock.CRISManager.CRISCatalog') as mock_catalog_class:
             mock_catalog_class.from_dict.return_value = mock_catalog
             
             # Execute
@@ -573,7 +573,7 @@ class TestCRISManagerIntegration:
         manager._parser.parse.return_value = mock_models_dict
         
         # Mock catalog methods
-        with patch('src.bedrock.CRISManager.CRISCatalog') as mock_catalog_class:
+        with patch('bestehorn_llmmanager.bedrock.CRISManager.CRISCatalog') as mock_catalog_class:
             mock_catalog = Mock(spec=CRISCatalog)
             mock_catalog.cris_models = mock_models_dict
             mock_catalog.get_model_names.return_value = ["Claude 3.5 Sonnet"]

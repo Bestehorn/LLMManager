@@ -22,6 +22,10 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Add the src directory to the Python path
+src_path = Path(__file__).parent / "src"
+sys.path.insert(0, str(src_path))
+
 
 def run_command(cmd, description):
     """Run a command and handle errors."""
@@ -31,7 +35,12 @@ def run_command(cmd, description):
     print('='*50)
     
     try:
-        result = subprocess.run(cmd, check=True, capture_output=False)
+        # Set PYTHONPATH environment variable to include src directory
+        env = os.environ.copy()
+        # Use relative path "src" for PYTHONPATH
+        env['PYTHONPATH'] = 'src' + os.pathsep + env.get('PYTHONPATH', '')
+        
+        result = subprocess.run(cmd, check=True, capture_output=False, env=env)
         print(f"\n✅ {description} - SUCCESS")
         return True
     except subprocess.CalledProcessError as e:

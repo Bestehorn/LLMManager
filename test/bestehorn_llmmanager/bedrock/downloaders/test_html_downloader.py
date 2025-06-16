@@ -9,8 +9,8 @@ from pathlib import Path
 from requests.exceptions import RequestException, Timeout, ConnectionError
 import requests
 
-from src.bedrock.downloaders.html_downloader import HTMLDocumentationDownloader
-from src.bedrock.downloaders.base_downloader import NetworkError, FileSystemError
+from bestehorn_llmmanager.bedrock.downloaders.html_downloader import HTMLDocumentationDownloader
+from bestehorn_llmmanager.bedrock.downloaders.base_downloader import NetworkError, FileSystemError
 
 
 class TestHTMLDocumentationDownloader:
@@ -348,7 +348,7 @@ class TestHTMLDocumentationDownloader:
     
     def test_inheritance(self, downloader):
         """Test that HTMLDocumentationDownloader inherits from BaseDocumentationDownloader."""
-        from src.bedrock.downloaders.base_downloader import BaseDocumentationDownloader
+        from bestehorn_llmmanager.bedrock.downloaders.base_downloader import BaseDocumentationDownloader
         
         assert isinstance(downloader, BaseDocumentationDownloader)
     
