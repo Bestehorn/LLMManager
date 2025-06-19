@@ -156,7 +156,7 @@ class TestModelCRISCorrelator:
         sample_model_catalog: ModelCatalog,
         sample_cris_catalog: CRISCatalog
     ):
-        """Test correlation with model processing error."""
+        """Test correlation with model processing error - should skip problematic models."""
         # Create a mock model that will cause an error
         bad_model = Mock(spec=BedrockModelInfo)
         bad_model.model_id = "bad-model"
@@ -166,14 +166,45 @@ class TestModelCRISCorrelator:
         # Add the bad model to the catalog
         sample_model_catalog.models["bad-model"] = bad_model
         
-        with patch.object(correlator, '_create_unified_model', side_effect=Exception("Test error")):
-            with pytest.raises(ModelCRISCorrelationError) as exc_info:
-                correlator.correlate_catalogs(
-                    model_catalog=sample_model_catalog,
-                    cris_catalog=sample_cris_catalog
+        with patch.object(correlator, '_create_unified_model') as mock_create_unified:
+            # Make _create_unified_model fail only for the bad model
+            def side_effect(model_info, cris_model_info, canonical_name):
+                if canonical_name == "bad-model":
+                    raise Exception("Test error for bad model")
+                # For claude-3-sonnet, return a valid unified model
+                return UnifiedModelInfo(
+                    model_name=canonical_name,
+                    provider=model_info.provider,
+                    model_id=model_info.model_id,
+                    input_modalities=model_info.input_modalities,
+                    output_modalities=model_info.output_modalities,
+                    streaming_supported=model_info.streaming_supported,
+                    inference_parameters_link=model_info.inference_parameters_link,
+                    hyperparameters_link=model_info.hyperparameters_link,
+                    region_access={
+                        "us-east-1": ModelAccessInfo(
+                            access_method=ModelAccessMethod.DIRECT,
+                            region="us-east-1",
+                            model_id=model_info.model_id,
+                            inference_profile_id=None
+                        )
+                    }
                 )
             
-            assert "Model correlation failed for 'claude-3-sonnet'" in str(exc_info.value)
+            mock_create_unified.side_effect = side_effect
+            
+            # Should not raise an exception - only the bad model is skipped
+            result = correlator.correlate_catalogs(
+                model_catalog=sample_model_catalog,
+                cris_catalog=sample_cris_catalog
+            )
+            
+            # Result should be a valid catalog with only the good model
+            assert isinstance(result, UnifiedModelCatalog)
+            # Only the bad model should be skipped
+            assert result.model_count == 1
+            assert "claude-3-sonnet" in result.unified_models
+            assert "bad-model" not in result.unified_models
     
     def test_correlate_catalogs_cris_processing_error(
         self,

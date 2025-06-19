@@ -252,7 +252,7 @@ class TestJSONModelSerializer:
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "test_error.json"
             
-            with patch('src.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
+            with patch('bestehorn_llmmanager.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
                 mock_log_instance = Mock()
                 mock_logger.return_value = mock_log_instance
                 
@@ -301,7 +301,7 @@ class TestJSONModelSerializer:
             
             # Mock open to raise OSError
             with patch('builtins.open', side_effect=OSError("Permission denied")):
-                with patch('src.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
+                with patch('bestehorn_llmmanager.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
                     mock_log_instance = Mock()
                     mock_logger.return_value = mock_log_instance
                     
@@ -322,7 +322,7 @@ class TestJSONModelSerializer:
             with open(input_path, "w", encoding="utf-8") as f:
                 f.write("{ invalid json content }")
             
-            with patch('src.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
+            with patch('bestehorn_llmmanager.bedrock.serializers.json_serializer.logging.getLogger') as mock_logger:
                 mock_log_instance = Mock()
                 mock_logger.return_value = mock_log_instance
                 

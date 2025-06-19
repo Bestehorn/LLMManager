@@ -347,6 +347,14 @@ class TestLLMManagerBasicFunctionality:
             
         except ConfigurationError as e:
             pytest.skip(f"Could not initialize LLMManager (Model: \"{model_name}\"; Regions: {test_regions}) due to model data issues: {str(e)}")
+        except RetryExhaustedError as e:
+            # Check if it's an access issue - this is expected if the AWS account doesn't have access in all regions
+            error_str = str(e)
+            if "AccessDeniedException" in error_str or "You don't have access to the model" in error_str:
+                pytest.skip(f"AWS account doesn't have access to {model_name} in selected regions {test_regions}. This is expected for some accounts.")
+            else:
+                # Re-raise if it's a different kind of retry exhaustion
+                raise
     
     def test_llm_manager_with_retry_config(self, sample_test_messages):
         """

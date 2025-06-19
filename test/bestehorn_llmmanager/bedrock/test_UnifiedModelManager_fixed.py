@@ -90,7 +90,7 @@ class TestUnifiedModelManager:
         manager = UnifiedModelManager()
         
         assert manager.json_output_path == Path(UnifiedFilePaths.DEFAULT_UNIFIED_JSON_OUTPUT)
-        assert manager.force_download is True
+        assert manager.force_download is False
     
     def test_init_custom_configuration(self):
         """Test initialization with custom configuration."""
@@ -120,9 +120,9 @@ class TestUnifiedModelManager:
             # Execute
             catalog = manager.refresh_unified_data()
             
-            # Verify workflow
-            mock_model_manager.refresh_model_data.assert_called_once_with(force_download=True)
-            mock_cris_manager.refresh_cris_data.assert_called_once_with(force_download=True)
+            # Verify workflow (uses default force_download=False)
+            mock_model_manager.refresh_model_data.assert_called_once_with(force_download=False)
+            mock_cris_manager.refresh_cris_data.assert_called_once_with(force_download=False)
             mock_correlator.correlate_catalogs.assert_called_once()
             mock_serializer.serialize_dict_to_file.assert_called_once()
             

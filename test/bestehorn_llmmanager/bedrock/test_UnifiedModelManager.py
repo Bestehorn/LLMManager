@@ -14,7 +14,7 @@ from bestehorn_llmmanager.bedrock.models.unified_structures import UnifiedModelI
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessMethod, ModelAccessInfo, AccessRecommendation
 from bestehorn_llmmanager.bedrock.models.unified_constants import (
     UnifiedFilePaths, UnifiedErrorMessages, AccessMethodPriority,
-    CacheManagementConstants
+    CacheManagementConstants, UnifiedJSONFields
 )
 from bestehorn_llmmanager.bedrock.models.data_structures import ModelCatalog, BedrockModelInfo
 from bestehorn_llmmanager.bedrock.models.cris_structures import CRISCatalog
@@ -770,7 +770,7 @@ class TestUnifiedModelManagerCacheManagement:
         cache_manager.json_output_path = json_file
         
         # Mock serializer to return expired data
-        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class:
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class:
             mock_serializer = Mock()
             mock_serializer.load_from_file.return_value = {
                 "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 25 hours ago
@@ -882,7 +882,7 @@ class TestUnifiedModelManagerCacheManagement:
         mock_catalog = Mock()
         mock_catalog.model_count = 3
         
-        with patch('bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class, \
+        with patch('bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer') as mock_serializer_class, \
              patch.object(UnifiedModelCatalog, 'from_dict', return_value=mock_catalog):
             
             mock_serializer = Mock()
