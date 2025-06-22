@@ -3,6 +3,7 @@ Constants for LLM Manager system.
 Contains string constants for JSON field access and configuration values.
 """
 
+import logging
 from typing import Final
 
 
@@ -104,6 +105,7 @@ class LLMManagerConfig:
     DEFAULT_MAX_RETRY_DELAY: Final[float] = 60.0
     DEFAULT_TIMEOUT: Final[int] = 300
     DEFAULT_MAX_TOKENS: Final[int] = 4096
+    DEFAULT_LOG_LEVEL: Final[int] = logging.WARNING
     
     # Retry strategy
     RETRY_STRATEGY_REGION_FIRST: Final[str] = "region_first"

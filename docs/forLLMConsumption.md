@@ -453,7 +453,8 @@ LLMManager(
     retry_config: Optional[RetryConfig] = None,           # Optional: Retry behavior configuration
     unified_model_manager: Optional[UnifiedModelManager] = None,  # Optional: Pre-configured model manager
     default_inference_config: Optional[Dict[str, Any]] = None,    # Optional: Default inference parameters
-    timeout: int = 300                                    # Optional: Request timeout in seconds
+    timeout: int = 300,                                   # Optional: Request timeout in seconds
+    log_level: Union[int, str] = logging.WARNING         # Optional: Logging level (default: WARNING)
 )
 ```
 
@@ -508,7 +509,8 @@ ParallelLLMManager(
     retry_config: Optional[RetryConfig] = None,           # Optional: Retry behavior configuration
     parallel_config: Optional[ParallelProcessingConfig] = None,  # Optional: Parallel processing config
     default_inference_config: Optional[Dict] = None,     # Optional: Default inference parameters
-    timeout: int = 300                                    # Optional: Request timeout in seconds
+    timeout: int = 300,                                   # Optional: Request timeout in seconds
+    log_level: Union[int, str] = logging.WARNING         # Optional: Logging level (default: WARNING)
 )
 ```
 
@@ -815,12 +817,25 @@ inference_config = {
 
 ```python
 from bestehorn_llmmanager import LLMManager, create_user_message
+import logging
 
-# Initialize manager
+# Initialize manager with default WARNING log level (minimal output)
 manager = LLMManager(
     models=["Claude 3 Haiku", "Claude 3 Sonnet"],
     regions=["us-east-1", "us-west-2"]
 )
+
+# Or initialize with custom log level
+manager = LLMManager(
+    models=["Claude 3 Haiku", "Claude 3 Sonnet"],
+    regions=["us-east-1", "us-west-2"],
+    log_level=logging.INFO  # More detailed logging
+)
+
+# Log levels can be set using:
+# - logging constants: logging.DEBUG, logging.INFO, logging.WARNING, logging.ERROR, logging.CRITICAL
+# - strings: "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL" 
+# - integers: 10 (DEBUG), 20 (INFO), 30 (WARNING), 40 (ERROR), 50 (CRITICAL)
 
 # Create message using MessageBuilder
 message = create_user_message()\

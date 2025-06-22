@@ -7,7 +7,7 @@ load balancing, error handling, and comprehensive response aggregation.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from .llm_manager import LLMManager
 
@@ -18,6 +18,7 @@ from .bedrock.models.parallel_structures import (
 from .bedrock.models.llm_manager_structures import (
     AuthConfig, RetryConfig, ResponseValidationConfig
 )
+from .bedrock.models.llm_manager_constants import LLMManagerConfig
 from .bedrock.models.bedrock_response import BedrockResponse
 from .bedrock.validators.request_validator import RequestValidator
 from .bedrock.distributors.region_distribution_manager import RegionDistributionManager
@@ -75,7 +76,8 @@ class ParallelLLMManager:
         retry_config: Optional[RetryConfig] = None,
         parallel_config: Optional[ParallelProcessingConfig] = None,
         default_inference_config: Optional[Dict] = None,
-        timeout: int = ParallelConfig.DEFAULT_REQUEST_TIMEOUT_SECONDS
+        timeout: int = ParallelConfig.DEFAULT_REQUEST_TIMEOUT_SECONDS,
+        log_level: Union[int, str] = LLMManagerConfig.DEFAULT_LOG_LEVEL
     ) -> None:
         """
         Initialize the Parallel LLM Manager.
@@ -88,6 +90,7 @@ class ParallelLLMManager:
             parallel_config: Parallel processing configuration. If None, uses defaults
             default_inference_config: Default inference parameters to apply
             timeout: Request timeout in seconds (applies to individual requests)
+            log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
             
         Raises:
             ParallelConfigurationError: If configuration is invalid
@@ -109,7 +112,8 @@ class ParallelLLMManager:
             auth_config=auth_config,
             retry_config=retry_config,
             default_inference_config=default_inference_config,
-            timeout=timeout
+            timeout=timeout,
+            log_level=log_level
         )
         
         # Initialize parallel processing components

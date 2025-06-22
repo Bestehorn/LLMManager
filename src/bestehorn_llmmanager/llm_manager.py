@@ -69,7 +69,8 @@ class LLMManager:
         retry_config: Optional[RetryConfig] = None,
         unified_model_manager: Optional[UnifiedModelManager] = None,
         default_inference_config: Optional[Dict[str, Any]] = None,
-        timeout: int = LLMManagerConfig.DEFAULT_TIMEOUT
+        timeout: int = LLMManagerConfig.DEFAULT_TIMEOUT,
+        log_level: Union[int, str] = LLMManagerConfig.DEFAULT_LOG_LEVEL
     ) -> None:
         """
         Initialize the LLM Manager.
@@ -82,10 +83,14 @@ class LLMManager:
             unified_model_manager: Pre-configured UnifiedModelManager. If None, creates new one
             default_inference_config: Default inference parameters to apply
             timeout: Request timeout in seconds
+            log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
             
         Raises:
             ConfigurationError: If configuration is invalid
         """
+        # Configure logging for the entire bestehorn_llmmanager package
+        self._configure_logging(log_level=log_level)
+        
         self._logger = logging.getLogger(__name__)
         
         # Validate inputs
@@ -119,6 +124,27 @@ class LLMManager:
                 region_count=len(self._regions)
             )
         )
+    
+    def _configure_logging(self, log_level: Union[int, str]) -> None:
+        """
+        Configure logging level for the bestehorn_llmmanager package.
+        
+        Args:
+            log_level: Logging level (int, string, or logging constant)
+        """
+        # Get the root logger for the bestehorn_llmmanager package
+        package_logger = logging.getLogger("bestehorn_llmmanager")
+        
+        # Set the logging level using the built-in setLevel method
+        # This method accepts int, str, or logging constants
+        package_logger.setLevel(log_level)
+        
+        # Also configure the root logger of the current module's package
+        # This ensures all sub-modules inherit the logging level
+        root_parts = __name__.split('.')
+        if len(root_parts) > 1:
+            root_logger = logging.getLogger(root_parts[0])
+            root_logger.setLevel(log_level)
     
     def _validate_initialization_params(self, models: List[str], regions: List[str]) -> None:
         """Validate initialization parameters."""
