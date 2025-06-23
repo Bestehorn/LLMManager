@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bestehorn-llmmanager"
 version = "1.0.0"
-description = "AWS Bedrock Converse API Management Library"
+description = "LLM Manager and other component to simplify the use of AWS Bedrock with the converse() API"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
@@ -40,10 +40,10 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/example/bestehorn-llmmanager"
-Documentation = "https://github.com/example/bestehorn-llmmanager#readme"
-Repository = "https://github.com/example/bestehorn-llmmanager.git"
-"Bug Tracker" = "https://github.com/example/bestehorn-llmmanager/issues"
+Homepage = "https://github.com/Bestehorn/LLMManager"
+Documentation = "https://github.com/Bestehorn/LLMManager/blob/main/README.md"
+Repository = "https://github.com/Bestehorn/LLMManager.git"
+"Bug Tracker" = "https://github.com/Bestehorn/LLMManager/issues"
 
 [project.optional-dependencies]
 dev = [
