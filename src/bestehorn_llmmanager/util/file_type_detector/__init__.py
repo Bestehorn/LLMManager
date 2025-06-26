@@ -5,13 +5,8 @@ This package provides comprehensive file type detection using multiple strategie
 including magic bytes analysis and file extension mapping.
 """
 
+from ...message_builder_enums import DetectionMethodEnum
 from .base_detector import BaseDetector, DetectionResult
 from .file_type_detector import FileTypeDetector
-from ...message_builder_enums import DetectionMethodEnum
 
-__all__ = [
-    "BaseDetector",
-    "DetectionResult", 
-    "DetectionMethodEnum",
-    "FileTypeDetector"
-]
+__all__ = ["BaseDetector", "DetectionResult", "DetectionMethodEnum", "FileTypeDetector"]

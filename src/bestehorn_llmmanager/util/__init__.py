@@ -5,9 +5,6 @@ This package contains general-purpose utilities that can be used across
 different components of the LLMManager system.
 """
 
-from .file_type_detector import FileTypeDetector, DetectionResult
+from .file_type_detector import DetectionResult, FileTypeDetector
 
-__all__ = [
-    "FileTypeDetector",
-    "DetectionResult"
-]
+__all__ = ["FileTypeDetector", "DetectionResult"]

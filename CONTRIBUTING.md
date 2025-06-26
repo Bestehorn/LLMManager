@@ -51,12 +51,18 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. **Install in development mode**:
+3. **Install in development mode with all dependencies**:
    ```bash
    pip install -e .[dev]
    ```
+   
+   This installs the package in editable mode along with all development dependencies including:
+   - Testing tools (pytest, pytest-cov, etc.)
+   - Code quality tools (black, isort, flake8, mypy)
+   - Documentation tools (sphinx)
+   - Build tools (build, twine)
 
-4. **Install pre-commit hooks**:
+4. **Install pre-commit hooks** (optional):
    ```bash
    pre-commit install
    ```

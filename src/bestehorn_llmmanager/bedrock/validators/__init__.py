@@ -5,6 +5,4 @@ Contains validation functionality for parallel processing and request validation
 
 from .request_validator import RequestValidator
 
-__all__ = [
-    "RequestValidator"
-]
+__all__ = ["RequestValidator"]

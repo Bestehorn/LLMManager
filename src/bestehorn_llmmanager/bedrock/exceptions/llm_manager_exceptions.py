@@ -3,12 +3,12 @@ Custom exceptions for LLM Manager system.
 Provides a hierarchy of exceptions for different error conditions.
 """
 
-from typing import Any, Dict, List, Optional, Final
+from typing import Any, Dict, Final, List, Optional
 
 
 class ExceptionDetailFields:
     """Constants for exception detail field names following coding standards."""
-    
+
     INVALID_CONFIG: Final[str] = "invalid_config"
     AUTH_TYPE: Final[str] = "auth_type"
     REGION: Final[str] = "region"
@@ -29,11 +29,11 @@ class ExceptionDetailFields:
 
 class LLMManagerError(Exception):
     """Base exception for all LLM Manager operations."""
-    
+
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None) -> None:
         """
         Initialize LLM Manager error.
-        
+
         Args:
             message: Error message
             details: Optional additional error details (None when no details available)
@@ -41,20 +41,20 @@ class LLMManagerError(Exception):
         super().__init__(message)
         self.message = message
         self.details = details
-    
+
     def _has_details(self) -> bool:
         """
         Helper method to check if details are present.
-        
+
         Returns:
             True if details are available, False otherwise
         """
         return self.details is not None
-    
+
     def __repr__(self) -> str:
         """Return repr string for the error."""
         return f"{self.__class__.__name__}(message='{self.message}', details={self.details})"
-    
+
     def __str__(self) -> str:
         """Return string representation of the error."""
         if self._has_details():
@@ -64,11 +64,11 @@ class LLMManagerError(Exception):
 
 class ConfigurationError(LLMManagerError):
     """Raised when LLM Manager configuration is invalid."""
-    
+
     def __init__(self, message: str, invalid_config: Optional[Dict[str, Any]] = None) -> None:
         """
         Initialize configuration error.
-        
+
         Args:
             message: Error message
             invalid_config: The invalid configuration that caused the error
@@ -76,14 +76,16 @@ class ConfigurationError(LLMManagerError):
         details = self._build_configuration_details(invalid_config=invalid_config)
         super().__init__(message=message, details=details)
         self.invalid_config = invalid_config
-    
-    def _build_configuration_details(self, invalid_config: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+
+    def _build_configuration_details(
+        self, invalid_config: Optional[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
         """
         Build details dictionary for configuration errors.
-        
+
         Args:
             invalid_config: The invalid configuration data
-            
+
         Returns:
             Details dictionary if meaningful data available, None otherwise
         """
@@ -94,11 +96,13 @@ class ConfigurationError(LLMManagerError):
 
 class AuthenticationError(LLMManagerError):
     """Raised when authentication fails."""
-    
-    def __init__(self, message: str, auth_type: Optional[str] = None, region: Optional[str] = None) -> None:
+
+    def __init__(
+        self, message: str, auth_type: Optional[str] = None, region: Optional[str] = None
+    ) -> None:
         """
         Initialize authentication error.
-        
+
         Args:
             message: Error message
             auth_type: Type of authentication that failed
@@ -108,15 +112,17 @@ class AuthenticationError(LLMManagerError):
         super().__init__(message=message, details=details)
         self.auth_type = auth_type
         self.region = region
-    
-    def _build_authentication_details(self, auth_type: Optional[str], region: Optional[str]) -> Optional[Dict[str, Any]]:
+
+    def _build_authentication_details(
+        self, auth_type: Optional[str], region: Optional[str]
+    ) -> Optional[Dict[str, Any]]:
         """
         Build details dictionary for authentication errors.
-        
+
         Args:
             auth_type: Type of authentication that failed
             region: AWS region where authentication failed
-            
+
         Returns:
             Details dictionary if meaningful data available, None otherwise
         """
@@ -132,17 +138,17 @@ class AuthenticationError(LLMManagerError):
 
 class ModelAccessError(LLMManagerError):
     """Raised when model access fails."""
-    
+
     def __init__(
-        self, 
-        message: str, 
-        model_id: Optional[str] = None, 
+        self,
+        message: str,
+        model_id: Optional[str] = None,
         region: Optional[str] = None,
-        access_method: Optional[str] = None
+        access_method: Optional[str] = None,
     ) -> None:
         """
         Initialize model access error.
-        
+
         Args:
             message: Error message
             model_id: Model ID that failed to access
@@ -150,29 +156,24 @@ class ModelAccessError(LLMManagerError):
             access_method: Access method that was attempted (direct/cris)
         """
         details = self._build_model_access_details(
-            model_id=model_id, 
-            region=region, 
-            access_method=access_method
+            model_id=model_id, region=region, access_method=access_method
         )
         super().__init__(message=message, details=details)
         self.model_id = model_id
         self.region = region
         self.access_method = access_method
-    
+
     def _build_model_access_details(
-        self, 
-        model_id: Optional[str], 
-        region: Optional[str], 
-        access_method: Optional[str]
+        self, model_id: Optional[str], region: Optional[str], access_method: Optional[str]
     ) -> Optional[Dict[str, Any]]:
         """
         Build details dictionary for model access errors.
-        
+
         Args:
             model_id: Model ID that failed to access
             region: AWS region where access failed
             access_method: Access method that was attempted
-            
+
         Returns:
             Details dictionary if meaningful data available, None otherwise
         """
@@ -190,18 +191,18 @@ class ModelAccessError(LLMManagerError):
 
 class RetryExhaustedError(LLMManagerError):
     """Raised when all retry attempts have been exhausted."""
-    
+
     def __init__(
-        self, 
-        message: str, 
+        self,
+        message: str,
         attempts_made: Optional[int] = None,
         last_errors: Optional[List[Exception]] = None,
         models_tried: Optional[List[str]] = None,
-        regions_tried: Optional[List[str]] = None
+        regions_tried: Optional[List[str]] = None,
     ) -> None:
         """
         Initialize retry exhausted error.
-        
+
         Args:
             message: Error message
             attempts_made: Number of attempts made
@@ -213,30 +214,30 @@ class RetryExhaustedError(LLMManagerError):
             attempts_made=attempts_made,
             last_errors=last_errors,
             models_tried=models_tried,
-            regions_tried=regions_tried
+            regions_tried=regions_tried,
         )
         super().__init__(message=message, details=details)
         self.attempts_made = attempts_made
         self.last_errors = last_errors or []
         self.models_tried = models_tried or []
         self.regions_tried = regions_tried or []
-    
+
     def _build_retry_details(
         self,
         attempts_made: Optional[int],
         last_errors: Optional[List[Exception]],
         models_tried: Optional[List[str]],
-        regions_tried: Optional[List[str]]
+        regions_tried: Optional[List[str]],
     ) -> Optional[Dict[str, Any]]:
         """
         Build details dictionary for retry exhausted errors.
-        
+
         Args:
             attempts_made: Number of attempts made
             last_errors: List of the last errors encountered
             models_tried: List of models that were tried
             regions_tried: List of regions that were tried
-            
+
         Returns:
             Details dictionary if meaningful data available, None otherwise
         """
@@ -256,41 +257,38 @@ class RetryExhaustedError(LLMManagerError):
 
 class RequestValidationError(LLMManagerError):
     """Raised when request validation fails."""
-    
+
     def __init__(
-        self, 
-        message: str, 
+        self,
+        message: str,
         validation_errors: Optional[List[str]] = None,
-        invalid_fields: Optional[List[str]] = None
+        invalid_fields: Optional[List[str]] = None,
     ) -> None:
         """
         Initialize request validation error.
-        
+
         Args:
             message: Error message
             validation_errors: List of validation error messages
             invalid_fields: List of field names that failed validation
         """
         details = self._build_validation_details(
-            validation_errors=validation_errors,
-            invalid_fields=invalid_fields
+            validation_errors=validation_errors, invalid_fields=invalid_fields
         )
         super().__init__(message=message, details=details)
         self.validation_errors = validation_errors or []
         self.invalid_fields = invalid_fields or []
-    
+
     def _build_validation_details(
-        self,
-        validation_errors: Optional[List[str]],
-        invalid_fields: Optional[List[str]]
+        self, validation_errors: Optional[List[str]], invalid_fields: Optional[List[str]]
     ) -> Optional[Dict[str, Any]]:
         """
         Build details dictionary for request validation errors.
-        
+
         Args:
             validation_errors: List of validation error messages
             invalid_fields: List of field names that failed validation
-            
+
         Returns:
             Details dictionary if meaningful data available, None otherwise
         """
@@ -306,41 +304,38 @@ class RequestValidationError(LLMManagerError):
 
 class StreamingError(LLMManagerError):
     """Raised when streaming operations fail."""
-    
+
     def __init__(
-        self, 
-        message: str, 
+        self,
+        message: str,
         stream_position: Optional[int] = None,
-        partial_content: Optional[str] = None
+        partial_content: Optional[str] = None,
     ) -> None:
         """
         Initialize streaming error.
-        
+
         Args:
             message: Error message
             stream_position: Position in stream where error occurred
             partial_content: Partial content received before error
         """
         details = self._build_streaming_details(
-            stream_position=stream_position,
-            partial_content=partial_content
+            stream_position=stream_position, partial_content=partial_content
         )
         super().__init__(message=message, details=details)
         self.stream_position = stream_position
         self.partial_content = partial_content
-    
+
     def _build_streaming_details(
-        self,
-        stream_position: Optional[int],
-        partial_content: Optional[str]
+        self, stream_position: Optional[int], partial_content: Optional[str]
     ) -> Optional[Dict[str, Any]]:
         """
         Build details dictionary for streaming errors.
-        
+
         Args:
             stream_position: Position in stream where error occurred
             partial_content: Partial content received before error
-            
+
         Returns:
             Details dictionary if meaningful data available, None otherwise
         """
@@ -356,17 +351,17 @@ class StreamingError(LLMManagerError):
 
 class ContentError(LLMManagerError):
     """Raised when content validation or processing fails."""
-    
+
     def __init__(
-        self, 
-        message: str, 
+        self,
+        message: str,
         content_type: Optional[str] = None,
         content_size: Optional[int] = None,
-        max_allowed_size: Optional[int] = None
+        max_allowed_size: Optional[int] = None,
     ) -> None:
         """
         Initialize content error.
-        
+
         Args:
             message: Error message
             content_type: Type of content that caused the error
@@ -374,29 +369,27 @@ class ContentError(LLMManagerError):
             max_allowed_size: Maximum allowed size for the content type
         """
         details = self._build_content_details(
-            content_type=content_type,
-            content_size=content_size,
-            max_allowed_size=max_allowed_size
+            content_type=content_type, content_size=content_size, max_allowed_size=max_allowed_size
         )
         super().__init__(message=message, details=details)
         self.content_type = content_type
         self.content_size = content_size
         self.max_allowed_size = max_allowed_size
-    
+
     def _build_content_details(
         self,
         content_type: Optional[str],
         content_size: Optional[int],
-        max_allowed_size: Optional[int]
+        max_allowed_size: Optional[int],
     ) -> Optional[Dict[str, Any]]:
         """
         Build details dictionary for content errors.
-        
+
         Args:
             content_type: Type of content that caused the error
             content_size: Size of the problematic content
             max_allowed_size: Maximum allowed size for the content type
-            
+
         Returns:
             Details dictionary if meaningful data available, None otherwise
         """

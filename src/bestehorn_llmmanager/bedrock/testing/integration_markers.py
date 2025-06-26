@@ -11,44 +11,44 @@ from typing import Final
 class IntegrationTestMarkers:
     """
     Pytest markers for integration test categorization.
-    
+
     These markers allow selective execution of integration tests based on
     cost, execution time, and AWS service requirements.
     """
-    
+
     # Basic integration test marker
     AWS_INTEGRATION: Final[str] = "aws_integration"
-    
+
     # Cost-based markers
     AWS_LOW_COST: Final[str] = "aws_low_cost"
     AWS_MEDIUM_COST: Final[str] = "aws_medium_cost"
     AWS_HIGH_COST: Final[str] = "aws_high_cost"
-    
-    # Speed-based markers  
+
+    # Speed-based markers
     AWS_FAST: Final[str] = "aws_fast"
     AWS_SLOW: Final[str] = "aws_slow"
-    
+
     # Service-specific markers
     AWS_BEDROCK_RUNTIME: Final[str] = "aws_bedrock_runtime"
     AWS_BEDROCK_AGENT: Final[str] = "aws_bedrock_agent"
     AWS_BEDROCK_KNOWLEDGE_BASE: Final[str] = "aws_bedrock_knowledge_base"
-    
+
     # Authentication markers
     AWS_PROFILE_AUTH: Final[str] = "aws_profile_auth"
     AWS_ROLE_AUTH: Final[str] = "aws_role_auth"
     AWS_CREDENTIALS_AUTH: Final[str] = "aws_credentials_auth"
-    
+
     # Region-specific markers
     AWS_SINGLE_REGION: Final[str] = "aws_single_region"
     AWS_MULTI_REGION: Final[str] = "aws_multi_region"
     AWS_CROSS_REGION: Final[str] = "aws_cross_region"
-    
+
     # Model-specific markers
     AWS_ANTHROPIC_MODELS: Final[str] = "aws_anthropic_models"
     AWS_AMAZON_MODELS: Final[str] = "aws_amazon_models"
     AWS_META_MODELS: Final[str] = "aws_meta_models"
     AWS_COHERE_MODELS: Final[str] = "aws_cohere_models"
-    
+
     # Feature-specific markers
     AWS_STREAMING: Final[str] = "aws_streaming"
     AWS_RETRY_LOGIC: Final[str] = "aws_retry_logic"
@@ -59,11 +59,11 @@ class IntegrationTestMarkers:
 class MarkerDescriptions:
     """
     Human-readable descriptions for integration test markers.
-    
+
     These descriptions are used in pytest configuration and documentation
     to explain the purpose and usage of each marker.
     """
-    
+
     DESCRIPTIONS = {
         IntegrationTestMarkers.AWS_INTEGRATION: "Tests requiring real AWS Bedrock API access",
         IntegrationTestMarkers.AWS_LOW_COST: "Low-cost tests (< $0.01 estimated)",
@@ -94,10 +94,10 @@ class MarkerDescriptions:
 def get_marker_description(marker_name: str) -> str:
     """
     Get human-readable description for a marker.
-    
+
     Args:
         marker_name: Name of the pytest marker
-        
+
     Returns:
         Description string for the marker
     """
@@ -107,7 +107,7 @@ def get_marker_description(marker_name: str) -> str:
 def get_all_integration_markers() -> list[str]:
     """
     Get all integration test marker names.
-    
+
     Returns:
         List of all available integration test markers
     """
@@ -141,7 +141,7 @@ def get_all_integration_markers() -> list[str]:
 def get_cost_markers() -> list[str]:
     """
     Get cost-related markers.
-    
+
     Returns:
         List of cost-related marker names
     """
@@ -155,7 +155,7 @@ def get_cost_markers() -> list[str]:
 def get_speed_markers() -> list[str]:
     """
     Get speed-related markers.
-    
+
     Returns:
         List of speed-related marker names
     """
@@ -168,7 +168,7 @@ def get_speed_markers() -> list[str]:
 def get_service_markers() -> list[str]:
     """
     Get AWS service-related markers.
-    
+
     Returns:
         List of AWS service-related marker names
     """
@@ -182,7 +182,7 @@ def get_service_markers() -> list[str]:
 def get_auth_markers() -> list[str]:
     """
     Get authentication-related markers.
-    
+
     Returns:
         List of authentication-related marker names
     """
@@ -196,7 +196,7 @@ def get_auth_markers() -> list[str]:
 def get_model_markers() -> list[str]:
     """
     Get model provider-related markers.
-    
+
     Returns:
         List of model provider-related marker names
     """

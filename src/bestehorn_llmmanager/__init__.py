@@ -13,7 +13,7 @@ Main Components:
 Example Usage:
     Basic LLM usage:
     >>> from bestehorn_llmmanager import LLMManager
-    >>> 
+    >>>
     >>> manager = LLMManager(
     ...     models=["Claude 3 Haiku", "Claude 3 Sonnet"],
     ...     regions=["us-east-1", "us-west-2"]
@@ -25,7 +25,7 @@ Example Usage:
 
     MessageBuilder usage:
     >>> from bestehorn_llmmanager import MessageBuilder, create_user_message
-    >>> 
+    >>>
     >>> message = create_user_message()
     ...     .add_text("Analyze this image:")
     ...     .add_local_image("photo.jpg")
@@ -36,22 +36,22 @@ For detailed documentation, see the documentation in the docs/ directory.
 """
 
 from .llm_manager import LLMManager
-from .parallel_llm_manager import ParallelLLMManager
 
 # MessageBuilder - Direct imports for easy access
+from .message_builder import ConverseMessageBuilder as MessageBuilder
 from .message_builder import (
-    ConverseMessageBuilder as MessageBuilder,
+    create_assistant_message,
     create_message,
     create_user_message,
-    create_assistant_message
 )
 from .message_builder_enums import (
-    RolesEnum,
-    ImageFormatEnum,
+    DetectionMethodEnum,
     DocumentFormatEnum,
+    ImageFormatEnum,
+    RolesEnum,
     VideoFormatEnum,
-    DetectionMethodEnum
 )
+from .parallel_llm_manager import ParallelLLMManager
 
 # Package metadata
 __version__ = "1.0.0"
@@ -64,13 +64,11 @@ __all__ = [
     # Core classes
     "LLMManager",
     "ParallelLLMManager",
-    
     # MessageBuilder components
     "MessageBuilder",
     "create_message",
     "create_user_message",
     "create_assistant_message",
-    
     # Enums
     "RolesEnum",
     "ImageFormatEnum",

@@ -3,8 +3,8 @@ Root conftest.py file for test configuration.
 This file is automatically loaded by pytest and configures the test environment.
 """
 
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add the src directory to Python path so tests can import the package
@@ -23,7 +23,7 @@ if str(src_path) in sys.path:
 sys.path.insert(0, str(src_path))
 
 # Also set PYTHONPATH environment variable
-os.environ['PYTHONPATH'] = str(src_path) + os.pathsep + os.environ.get('PYTHONPATH', '')
+os.environ["PYTHONPATH"] = str(src_path) + os.pathsep + os.environ.get("PYTHONPATH", "")
 
 # Print debug info to help diagnose import issues
 print(f"Python path setup in conftest.py:")
@@ -35,6 +35,7 @@ print(f"  PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
 # Check if bestehorn_llmmanager can be imported
 try:
     import bestehorn_llmmanager
+
     print(f"  bestehorn_llmmanager location: {bestehorn_llmmanager.__file__}")
 except ImportError as e:
     print(f"  Failed to import bestehorn_llmmanager: {e}")
@@ -43,7 +44,7 @@ except ImportError as e:
 import json
 import tempfile
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
 from unittest.mock import Mock
 
 import pytest
@@ -67,7 +68,7 @@ def sample_test_messages():
                 {
                     "text": "Hello! This is a test message for integration testing. Please respond with a simple greeting."
                 }
-            ]
+            ],
         }
     ]
 
@@ -75,11 +76,7 @@ def sample_test_messages():
 @pytest.fixture
 def simple_inference_config():
     """Simple inference configuration for testing."""
-    return {
-        "maxTokens": 100,
-        "temperature": 0.1,
-        "topP": 0.9
-    }
+    return {"maxTokens": 100, "temperature": 0.1, "topP": 0.9}
 
 
 # Pytest configuration hooks
@@ -91,11 +88,15 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "slow: Slow running tests")
     config.addinivalue_line("markers", "network: Tests requiring network access")
     config.addinivalue_line("markers", "aws: Tests requiring AWS access")
-    config.addinivalue_line("markers", "aws_integration: Tests requiring real AWS Bedrock API access")
+    config.addinivalue_line(
+        "markers", "aws_integration: Tests requiring real AWS Bedrock API access"
+    )
     config.addinivalue_line("markers", "aws_fast: Fast integration tests (< 30 seconds)")
     config.addinivalue_line("markers", "aws_slow: Slow integration tests (> 30 seconds)")
     config.addinivalue_line("markers", "aws_low_cost: Low-cost tests (< $0.01 estimated)")
-    config.addinivalue_line("markers", "aws_medium_cost: Medium-cost tests ($0.01 - $0.10 estimated)")
+    config.addinivalue_line(
+        "markers", "aws_medium_cost: Medium-cost tests ($0.01 - $0.10 estimated)"
+    )
     config.addinivalue_line("markers", "aws_high_cost: High-cost tests (> $0.10 estimated)")
     config.addinivalue_line("markers", "aws_bedrock_runtime: Tests using Bedrock Runtime API")
     config.addinivalue_line("markers", "aws_streaming: Tests using streaming responses")

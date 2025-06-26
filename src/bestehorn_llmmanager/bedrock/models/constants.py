@@ -8,7 +8,7 @@ from typing import Final
 
 class JSONFields:
     """JSON field name constants for the output structure."""
-    
+
     RETRIEVAL_TIMESTAMP: Final[str] = "retrieval_timestamp"
     MODELS: Final[str] = "models"
     PROVIDER: Final[str] = "provider"
@@ -23,7 +23,7 @@ class JSONFields:
 
 class HTMLTableColumns:
     """HTML table column name constants for parsing."""
-    
+
     PROVIDER: Final[str] = "Provider"
     MODEL_NAME: Final[str] = "Model name"
     MODEL_ID: Final[str] = "Model ID"
@@ -37,7 +37,7 @@ class HTMLTableColumns:
 
 class BooleanValues:
     """Constants for boolean value conversion."""
-    
+
     YES: Final[str] = "Yes"
     NO: Final[str] = "No"
     NOT_AVAILABLE: Final[str] = "N/A"
@@ -45,20 +45,22 @@ class BooleanValues:
 
 class URLs:
     """URL constants for documentation and API endpoints."""
-    
-    BEDROCK_MODELS_DOCUMENTATION: Final[str] = "https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html"
+
+    BEDROCK_MODELS_DOCUMENTATION: Final[str] = (
+        "https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html"
+    )
 
 
 class FilePaths:
     """Default file path constants."""
-    
+
     DEFAULT_HTML_OUTPUT: Final[str] = "docs/FoundationalModels.htm"
     DEFAULT_JSON_OUTPUT: Final[str] = "docs/FoundationalModels.json"
 
 
 class LogMessages:
     """Logging message constants."""
-    
+
     DOWNLOAD_STARTED: Final[str] = "Starting download of Bedrock documentation"
     DOWNLOAD_COMPLETED: Final[str] = "Successfully downloaded documentation to {file_path}"
     PARSING_STARTED: Final[str] = "Starting HTML parsing"

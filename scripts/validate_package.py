@@ -178,7 +178,7 @@ def run_tests() -> bool:
         True if all tests pass, False otherwise
     """
     success, stdout, stderr = run_command(
-        f"pytest {TEST_DIR}/bestehorn_llmmanager/ -v -m 'not integration'",
+        f'pytest {TEST_DIR}/bestehorn_llmmanager/ -v -m "not integration"',
         "Running unit tests"
     )
     if not success:

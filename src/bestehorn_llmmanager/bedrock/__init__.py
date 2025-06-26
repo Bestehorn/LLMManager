@@ -12,7 +12,7 @@ Main Components:
 
 Example Usage:
     >>> from src.bedrock import ModelManager
-    >>> 
+    >>>
     >>> # Basic usage with defaults
     >>> manager = ModelManager()
     >>> catalog = manager.refresh_model_data()
@@ -33,12 +33,12 @@ Package Structure:
     serializers/: JSON serialization utilities
 """
 
-from .ModelManager import ModelManager, ModelManagerError
-from .models.data_structures import ModelCatalog, BedrockModelInfo
-from .models.constants import JSONFields, HTMLTableColumns, URLs, FilePaths
-from .models.aws_regions import AWSRegions
-from .parsers.bedrock_parser import BedrockHTMLParser
 from .downloaders.html_downloader import HTMLDocumentationDownloader
+from .ModelManager import ModelManager, ModelManagerError
+from .models.aws_regions import AWSRegions
+from .models.constants import FilePaths, HTMLTableColumns, JSONFields, URLs
+from .models.data_structures import BedrockModelInfo, ModelCatalog
+from .parsers.bedrock_parser import BedrockHTMLParser
 from .serializers.json_serializer import JSONModelSerializer
 
 # Package metadata
@@ -51,18 +51,15 @@ __all__ = [
     # Main classes
     "ModelManager",
     "ModelManagerError",
-    
     # Data structures
     "ModelCatalog",
     "BedrockModelInfo",
-    
     # Constants
     "JSONFields",
-    "HTMLTableColumns", 
+    "HTMLTableColumns",
     "URLs",
     "FilePaths",
     "AWSRegions",
-    
     # Component classes for advanced usage
     "BedrockHTMLParser",
     "HTMLDocumentationDownloader",
