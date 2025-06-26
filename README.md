@@ -1,5 +1,12 @@
 # Bestehorn LLMManager
 
+[![PyPI version](https://badge.fury.io/py/bestehorn-llmmanager.svg)](https://badge.fury.io/py/bestehorn-llmmanager)
+[![Python Versions](https://img.shields.io/pypi/pyversions/bestehorn-llmmanager.svg)](https://pypi.org/project/bestehorn-llmmanager/)
+[![Build Status](https://github.com/Bestehorn/LLMManager/workflows/CI/badge.svg)](https://github.com/Bestehorn/LLMManager/actions)
+[![Coverage Status](https://codecov.io/gh/Bestehorn/LLMManager/branch/main/graph/badge.svg)](https://codecov.io/gh/Bestehorn/LLMManager)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 A comprehensive Python library for managing AWS Bedrock Converse API interactions with support for multiple models, regions, authentication methods, and parallel processing.
 
 ## Features
@@ -14,13 +21,19 @@ A comprehensive Python library for managing AWS Bedrock Converse API interaction
 
 ## Installation
 
-### From Source (Editable Install)
+### From PyPI (Recommended)
+
+```bash
+pip install bestehorn-llmmanager
+```
+
+### From Source (Development)
 
 For development or integration into other projects:
 
 ```bash
-git clone <repository-url>
-cd bestehorn-llmmanager
+git clone https://github.com/Bestehorn/LLMManager.git
+cd LLMManager
 pip install -e .
 ```
 

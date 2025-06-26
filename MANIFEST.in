@@ -1,0 +1,45 @@
+# Include essential files
+include LICENSE
+include README.md
+include pyproject.toml
+include requirements.txt
+
+# Include package data
+recursive-include src/bestehorn_llmmanager *.py
+recursive-include src/bestehorn_llmmanager py.typed
+
+# EXCLUDE everything else by default
+# These stay in repo but not in package:
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * .DS_Store
+recursive-exclude test *
+recursive-exclude tests *
+recursive-exclude notebooks *
+recursive-exclude examples *
+recursive-exclude images *
+recursive-exclude videos *
+recursive-exclude docs *
+recursive-exclude prompts *
+recursive-exclude api *
+recursive-exclude workspace *
+recursive-exclude subdir *
+
+# Exclude development files
+exclude .gitignore
+exclude .gitallowed
+exclude *.bat
+exclude run_tests.py
+exclude extract_llm_manager.py
+exclude pytest.ini
+exclude requirements-test.txt
+exclude .coverage
+exclude .pytest_cache
+exclude htmlcov
+exclude *.html
+exclude *.htm
+
+# Exclude any build artifacts
+recursive-exclude build *
+recursive-exclude dist *
+recursive-exclude *.egg-info *
