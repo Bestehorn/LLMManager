@@ -3,12 +3,12 @@ Unified data structures for integrated Bedrock model and CRIS management.
 Contains typed data classes that merge regular model information with CRIS data.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 
 from .access_method import ModelAccessInfo, ModelAccessMethod
-from .unified_constants import ModelCorrelationConstants, UnifiedJSONFields
+from .unified_constants import UnifiedJSONFields
 
 
 @dataclass(frozen=True)

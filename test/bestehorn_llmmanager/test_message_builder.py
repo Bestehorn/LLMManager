@@ -7,12 +7,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
     RequestValidationError,
 )
-from src.bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields
-from src.bestehorn_llmmanager.message_builder import ConverseMessageBuilder
-from src.bestehorn_llmmanager.message_builder_enums import (
+from bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields
+from bestehorn_llmmanager.message_builder import ConverseMessageBuilder
+from bestehorn_llmmanager.message_builder_enums import (
     DocumentFormatEnum,
     ImageFormatEnum,
     RolesEnum,
@@ -119,7 +119,7 @@ class TestAddImageBytesMethod:
             == image_data
         )
 
-    @patch("src.bestehorn_llmmanager.message_builder.FileTypeDetector")
+    @patch("bestehorn_llmmanager.message_builder.FileTypeDetector")
     def test_add_image_with_auto_detection(self, mock_detector_class):
         """Test adding image with automatic format detection."""
         # Mock the detector
@@ -127,8 +127,8 @@ class TestAddImageBytesMethod:
         mock_detector_class.return_value = mock_detector
 
         # Mock successful detection result
-        from src.bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum
-        from src.bestehorn_llmmanager.util.file_type_detector.base_detector import DetectionResult
+        from bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum
+        from bestehorn_llmmanager.util.file_type_detector.base_detector import DetectionResult
 
         mock_result = DetectionResult(
             detected_format="jpeg",
@@ -169,13 +169,13 @@ class TestAddImageBytesMethod:
             # This is a bit contrived since our enum only has supported formats
             # Mock the detector to return an unsupported format
             with patch(
-                "src.bestehorn_llmmanager.message_builder.FileTypeDetector"
+                "bestehorn_llmmanager.message_builder.FileTypeDetector"
             ) as mock_detector_class:
                 mock_detector = Mock()
                 mock_detector_class.return_value = mock_detector
 
-                from src.bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum
-                from src.bestehorn_llmmanager.util.file_type_detector.base_detector import (
+                from bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum
+                from bestehorn_llmmanager.util.file_type_detector.base_detector import (
                     DetectionResult,
                 )
 
@@ -201,7 +201,7 @@ class TestAddDocumentBytesMethod:
         pdf_data = b"%PDF-1.4"  # PDF header
 
         result = builder.add_document_bytes(
-            bytes=pdf_data, format=DocumentFormatEnum.PDF, name="test_document.pdf"
+            bytes=pdf_data, format=DocumentFormatEnum.PDF, name="test_document.pd"
         )
 
         assert result is builder
@@ -211,12 +211,12 @@ class TestAddDocumentBytesMethod:
         doc_block = message[ConverseAPIFields.CONTENT][0]
 
         assert ConverseAPIFields.DOCUMENT in doc_block
-        assert doc_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.FORMAT] == "pdf"
+        assert doc_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.FORMAT] == "pd"
         assert (
             doc_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.SOURCE][ConverseAPIFields.BYTES]
             == pdf_data
         )
-        assert doc_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.NAME] == "test_document.pdf"
+        assert doc_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.NAME] == "test_document.pd"
 
     def test_add_document_with_filename_as_name(self):
         """Test adding document uses filename as name when no explicit name."""
@@ -224,13 +224,13 @@ class TestAddDocumentBytesMethod:
         pdf_data = b"%PDF-1.4"
 
         builder.add_document_bytes(
-            bytes=pdf_data, format=DocumentFormatEnum.PDF, filename="report.pdf"
+            bytes=pdf_data, format=DocumentFormatEnum.PDF, filename="report.pd"
         )
 
         message = builder.build()
         doc_block = message[ConverseAPIFields.CONTENT][0]
 
-        assert doc_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.NAME] == "report.pdf"
+        assert doc_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.NAME] == "report.pd"
 
 
 class TestBuildMethod:

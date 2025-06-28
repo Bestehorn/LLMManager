@@ -26,7 +26,7 @@ sys.path.insert(0, str(src_path))
 os.environ["PYTHONPATH"] = str(src_path) + os.pathsep + os.environ.get("PYTHONPATH", "")
 
 # Print debug info to help diagnose import issues
-print(f"Python path setup in conftest.py:")
+print("Python path setup in conftest.py:")
 print(f"  Project root: {project_root}")
 print(f"  Src path: {src_path}")
 print(f"  sys.path[0]: {sys.path[0]}")
@@ -41,10 +41,8 @@ except ImportError as e:
     print(f"  Failed to import bestehorn_llmmanager: {e}")
 
 # Additional imports for test fixtures
-import json
 import tempfile
 from datetime import datetime
-from typing import Any, Dict
 from unittest.mock import Mock
 
 import pytest

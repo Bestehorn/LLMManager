@@ -5,7 +5,7 @@ This module defines custom pytest markers used to categorize and control
 execution of integration tests that require real AWS Bedrock API access.
 """
 
-from typing import Final
+from typing import Final, List
 
 
 class IntegrationTestMarkers:
@@ -104,7 +104,7 @@ def get_marker_description(marker_name: str) -> str:
     return MarkerDescriptions.DESCRIPTIONS.get(marker_name, f"Custom marker: {marker_name}")
 
 
-def get_all_integration_markers() -> list[str]:
+def get_all_integration_markers() -> List[str]:
     """
     Get all integration test marker names.
 
@@ -138,7 +138,7 @@ def get_all_integration_markers() -> list[str]:
     ]
 
 
-def get_cost_markers() -> list[str]:
+def get_cost_markers() -> List[str]:
     """
     Get cost-related markers.
 
@@ -152,7 +152,7 @@ def get_cost_markers() -> list[str]:
     ]
 
 
-def get_speed_markers() -> list[str]:
+def get_speed_markers() -> List[str]:
     """
     Get speed-related markers.
 
@@ -165,7 +165,7 @@ def get_speed_markers() -> list[str]:
     ]
 
 
-def get_service_markers() -> list[str]:
+def get_service_markers() -> List[str]:
     """
     Get AWS service-related markers.
 
@@ -179,7 +179,7 @@ def get_service_markers() -> list[str]:
     ]
 
 
-def get_auth_markers() -> list[str]:
+def get_auth_markers() -> List[str]:
     """
     Get authentication-related markers.
 
@@ -193,7 +193,7 @@ def get_auth_markers() -> list[str]:
     ]
 
 
-def get_model_markers() -> list[str]:
+def get_model_markers() -> List[str]:
     """
     Get model provider-related markers.
 

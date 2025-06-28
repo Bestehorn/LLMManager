@@ -5,7 +5,6 @@ Tests the content filtering and restoration functionality that fixes
 the image analysis issue in the LLMManager.
 """
 
-from typing import Any, Dict, List, Set
 from unittest.mock import Mock, patch
 
 import pytest
@@ -61,7 +60,7 @@ class TestContentFilter:
                         },
                         {
                             ConverseAPIFields.DOCUMENT: {
-                                ConverseAPIFields.NAME: "document.pdf",
+                                ConverseAPIFields.NAME: "document.pd",
                                 ConverseAPIFields.FORMAT: "pdf",
                                 ConverseAPIFields.SOURCE: {
                                     ConverseAPIFields.BYTES: "document_data"
@@ -441,8 +440,8 @@ class TestContentFilterIntegration:
                         {ConverseAPIFields.IMAGE: {"format": "png", "source": {"bytes": "img"}}},
                         {
                             ConverseAPIFields.DOCUMENT: {
-                                "name": "doc.pdf",
-                                "format": "pdf",
+                                "name": "doc.pd",
+                                "format": "pd",
                                 "source": {"bytes": "doc"},
                             }
                         },

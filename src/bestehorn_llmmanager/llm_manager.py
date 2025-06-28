@@ -27,10 +27,8 @@ from .bedrock.models.llm_manager_constants import (
 )
 from .bedrock.models.llm_manager_structures import (
     AuthConfig,
-    AuthenticationType,
     ResponseValidationConfig,
     RetryConfig,
-    RetryStrategy,
 )
 from .bedrock.retry.retry_manager import RetryManager
 from .bedrock.UnifiedModelManager import UnifiedModelManager
@@ -488,7 +486,8 @@ class LLMManager:
             RetryExhaustedError: If all retry attempts fail
             AuthenticationError: If authentication fails
         """
-        request_start = datetime.now()
+        # Comment this back in when Streaming Response format is implemented. Avoid flake8 errors
+        # request_start = datetime.now()
 
         # Validate request
         self._validate_converse_request(messages=messages)
@@ -896,9 +895,6 @@ class LLMManager:
             RetryExhaustedError: If all retry attempts fail
             AuthenticationError: If authentication fails
         """
-        # Import here to avoid circular imports
-        from .bedrock.models.parallel_structures import BedrockConverseRequest
-
         # Convert BedrockConverseRequest to existing converse() parameters
         converse_args = request.to_converse_args()
 

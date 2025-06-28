@@ -6,7 +6,6 @@ managing content filtering and restoration across retry attempts.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -113,8 +112,8 @@ class TestRetryManagerContentFiltering:
         # Should succeed after 2 attempts
         assert result is not None
         assert len(attempts) == 2
-        assert attempts[0].success == False  # First attempt failed
-        assert attempts[1].success == True  # Second attempt succeeded
+        assert attempts[0].success is False  # First attempt failed
+        assert attempts[1].success is True  # Second attempt succeeded
 
         # Should have warnings about feature restoration
         assert any("Restored image_processing" in warning for warning in warnings)
@@ -149,7 +148,7 @@ class TestRetryManagerContentFiltering:
         # Should succeed after feature fallback
         assert result is not None
         assert len(attempts) == 1
-        assert attempts[0].success == True
+        assert attempts[0].success is True
 
         # Should have warning about disabled feature
         assert any("image_processing" in warning for warning in warnings)
@@ -210,8 +209,8 @@ class TestRetryManagerContentFiltering:
                         {ConverseAPIFields.IMAGE: {"format": "png", "source": {"bytes": "img"}}},
                         {
                             ConverseAPIFields.DOCUMENT: {
-                                "name": "doc.pdf",
-                                "format": "pdf",
+                                "name": "doc.pd",
+                                "format": "pd",
                                 "source": {"bytes": "doc"},
                             }
                         },
@@ -290,7 +289,7 @@ class TestRetryManagerContentFiltering:
 
         assert result is not None
         assert len(attempts) == 3
-        assert attempts[2].success == True
+        assert attempts[2].success is True
 
         # Should have called sleep for delays (not for the final successful attempt)
         assert mock_sleep.call_count >= 1
@@ -395,7 +394,7 @@ class TestRetryManagerBackwardCompatibility:
 
         assert result is not None
         assert len(attempts) == 1
-        assert attempts[0].success == True
+        assert attempts[0].success is True
         assert len(warnings) == 0  # No filtering warnings for text-only
 
     def test_existing_retry_logic_preserved(self):
@@ -442,8 +441,8 @@ class TestRetryManagerBackwardCompatibility:
 
         assert result is not None
         assert len(attempts) == 2
-        assert attempts[0].success == False  # First failed due to throttling
-        assert attempts[1].success == True  # Second succeeded
+        assert attempts[0].success is False  # First failed due to throttling
+        assert attempts[1].success is True  # Second succeeded
 
 
 if __name__ == "__main__":

@@ -298,7 +298,7 @@ class FileTypeDetector(BaseDetector):
             if header.startswith(gif_sig):
                 self._logger.debug(
                     DetectorLogMessages.CONTENT_DETECTION.format(
-                        filename=safe_filename, format="gif"
+                        filename=safe_filename, format="gi"
                     )
                 )
                 return self._create_success_result(
@@ -350,7 +350,7 @@ class FileTypeDetector(BaseDetector):
         # Check PDF signature
         if header.startswith(MagicBytesConstants.PDF_SIGNATURE):
             self._logger.debug(
-                DetectorLogMessages.CONTENT_DETECTION.format(filename=safe_filename, format="pdf")
+                DetectorLogMessages.CONTENT_DETECTION.format(filename=safe_filename, format="pd")
             )
             return self._create_success_result(
                 detected_format="pdf",

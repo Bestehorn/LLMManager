@@ -10,11 +10,9 @@ import logging
 import os
 import subprocess
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from ..models.aws_regions import AWSRegions, get_all_regions, normalize_region_name
-from ..models.llm_manager_constants import LLMManagerLogMessages
+from ..models.aws_regions import get_all_regions
 
 
 class IntegrationTestError(Exception):

@@ -4,7 +4,6 @@ Tests the main functionality of the LLM Manager system.
 """
 
 from datetime import datetime
-from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -183,7 +182,7 @@ class TestLLMManager:
         """Test validation of content blocks exceeding document limits."""
         errors = []
         content_blocks = [
-            {"document": {"name": "test.pdf"}}
+            {"document": {"name": "test.pd"}}
             for _ in range(ContentLimits.MAX_DOCUMENTS_PER_REQUEST + 1)
         ]
 

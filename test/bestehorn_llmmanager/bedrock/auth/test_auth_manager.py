@@ -5,7 +5,6 @@ Tests authentication, session management, and error handling.
 
 from unittest.mock import MagicMock, Mock, call, patch
 
-import boto3
 import pytest
 from botocore.exceptions import ClientError, NoCredentialsError, ProfileNotFound
 

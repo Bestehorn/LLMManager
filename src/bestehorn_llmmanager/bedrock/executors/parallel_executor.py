@@ -8,7 +8,7 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 
-from ..exceptions.parallel_exceptions import ParallelExecutionError, RequestTimeoutError
+from ..exceptions.parallel_exceptions import ParallelExecutionError
 from ..models.bedrock_response import BedrockResponse
 from ..models.parallel_constants import ParallelErrorMessages, ParallelLogMessages
 from ..models.parallel_structures import (
@@ -226,23 +226,11 @@ class ParallelExecutor:
                     self._execution_context.active_requests.discard(request_id)
                     self._execution_context.failed_requests.add(request_id)
 
-                elapsed_time = (
-                    self._execution_context.get_elapsed_time_ms() / 1000.0
-                    if self._execution_context
-                    else None
-                )
-
-                timeout_error = RequestTimeoutError(
-                    message=ParallelErrorMessages.REQUEST_TIMEOUT_EXCEEDED.format(
-                        request_id=request_id, timeout_seconds=self._config.request_timeout_seconds
-                    ),
-                    request_id=request_id,
-                    timeout_seconds=self._config.request_timeout_seconds,
-                    elapsed_seconds=elapsed_time,
-                )
-
+                # Log timeout error with details
                 self._logger.warning(
-                    f"Request {request_id} timed out after {self._config.request_timeout_seconds}s"
+                    ParallelErrorMessages.REQUEST_TIMEOUT_EXCEEDED.format(
+                        request_id=request_id, timeout_seconds=self._config.request_timeout_seconds
+                    )
                 )
 
                 # Create failed response

@@ -373,7 +373,6 @@ class TestProtocolCompliance:
         """Test that protocol defines proper type hints."""
         # This is more of a static analysis test
         # We verify that the protocol method has annotations
-        import inspect
 
         # Get the download method from the protocol
         if hasattr(DocumentationDownloader, "download"):

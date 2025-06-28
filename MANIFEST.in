@@ -2,11 +2,21 @@
 include LICENSE
 include README.md
 include pyproject.toml
-include requirements.txt
+include CHANGELOG.md
+include CONTRIBUTING.md
+include CODE_OF_CONDUCT.md
+include SECURITY.md
 
 # Include package data
 recursive-include src/bestehorn_llmmanager *.py
 recursive-include src/bestehorn_llmmanager py.typed
+
+# Include build and test configuration
+include tox.ini
+include .bumpversion.cfg
+
+# Include scripts
+recursive-include scripts *.py
 
 # EXCLUDE everything else by default
 # These stay in repo but not in package:
@@ -32,7 +42,6 @@ exclude *.bat
 exclude run_tests.py
 exclude extract_llm_manager.py
 exclude pytest.ini
-exclude requirements-test.txt
 exclude .coverage
 exclude .pytest_cache
 exclude htmlcov

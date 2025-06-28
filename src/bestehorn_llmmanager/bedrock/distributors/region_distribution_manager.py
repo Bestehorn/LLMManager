@@ -5,7 +5,7 @@ Handles intelligent assignment of requests to regions for optimal parallel execu
 
 import logging
 import random
-from typing import Dict, List, Set
+from typing import Dict, List
 
 from ..exceptions.parallel_exceptions import ParallelConfigurationError, RegionDistributionError
 from ..models.parallel_constants import ParallelErrorMessages, ParallelLogMessages

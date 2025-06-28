@@ -111,7 +111,7 @@ class RequestValidator:
             # Log details about each colliding request
             for i, request in enumerate(duplicate_requests):
                 self._logger.error(
-                    f"  Collision {i+1}: {len(request.messages)} messages, "
+                    f"  Collision {i + 1}: {len(request.messages)} messages, "
                     f"system={request.system is not None}, "
                     f"inference_config={request.inference_config is not None}"
                 )

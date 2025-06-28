@@ -206,8 +206,6 @@ class CRISModelInfo:
         Returns:
             Primary inference profile ID
         """
-        from .cris_constants import CRISRegionPrefixes
-
         # Try to find a US profile first (preferred)
         for profile_id, profile_info in self.inference_profiles.items():
             if profile_id.startswith("us."):

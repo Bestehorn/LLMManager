@@ -5,10 +5,8 @@ Tests the CRISManager class and its methods for downloading, parsing, and managi
 Amazon Bedrock Cross-Region Inference model information.
 """
 
-import json
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Optional
 from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest

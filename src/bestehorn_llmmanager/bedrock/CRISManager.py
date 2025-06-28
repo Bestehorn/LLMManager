@@ -397,9 +397,9 @@ class CRISManager:
     def __repr__(self) -> str:
         """Return string representation of the CRISManager."""
         return (
-            f"CRISManager("
+            "CRISManager("
             f"html_path='{self.html_output_path}', "
             f"json_path='{self.json_output_path}', "
             f"url='{self.documentation_url}'"
-            f")"
+            ")"
         )

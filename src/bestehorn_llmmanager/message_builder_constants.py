@@ -105,9 +105,9 @@ class MessageBuilderErrorMessages:
 class SupportedFormats:
     """Lists of supported formats for validation purposes."""
 
-    IMAGE_FORMATS: Final[List[str]] = ["jpeg", "png", "gif", "webp"]
+    IMAGE_FORMATS: Final[List[str]] = ["jpeg", "png", "gi", "webp"]
     DOCUMENT_FORMATS: Final[List[str]] = [
-        "pdf",
+        "pd",
         "csv",
         "doc",
         "docx",

@@ -3,7 +3,7 @@ CRIS-specific constants for Amazon Bedrock Cross-Region Inference management.
 Contains all string literals and configuration values used throughout the CRIS implementation.
 """
 
-from typing import Final
+from typing import Final, List
 
 
 class CRISJSONFields:
@@ -66,7 +66,7 @@ class CRISRegionPrefixes:
     APAC_IDENTIFIER: Final[str] = "APAC"
 
     # Default primary region preference order
-    PRIMARY_PREFERENCE_ORDER: Final[list[str]] = [US_IDENTIFIER, EU_IDENTIFIER, APAC_IDENTIFIER]
+    PRIMARY_PREFERENCE_ORDER: Final[List[str]] = [US_IDENTIFIER, EU_IDENTIFIER, APAC_IDENTIFIER]
 
 
 class CRISInferenceProfileStructure:

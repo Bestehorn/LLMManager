@@ -33,11 +33,11 @@ License: MIT
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
+from typing import Dict, Optional
 
 from .downloaders.base_downloader import FileSystemError, NetworkError
 from .downloaders.html_downloader import HTMLDocumentationDownloader
-from .models.constants import FilePaths, LogMessages, URLs
+from .models.constants import FilePaths, URLs
 from .models.data_structures import BedrockModelInfo, ModelCatalog
 from .parsers.base_parser import ParsingError
 from .parsers.enhanced_bedrock_parser import EnhancedBedrockHTMLParser
@@ -155,7 +155,8 @@ class ModelManager:
             return None
 
         try:
-            data = self._serializer.load_from_file(input_path=self.json_output_path)
+            # Load data from file - in production, this would reconstruct the ModelCatalog
+            self._serializer.load_from_file(input_path=self.json_output_path)
             # Here you would reconstruct the ModelCatalog from the JSON data
             # This is a simplified version - in production you'd want proper deserialization
             self._logger.info(f"Loaded cached data from {self.json_output_path}")
@@ -164,7 +165,7 @@ class ModelManager:
             self._logger.warning(f"Failed to load cached data: {str(e)}")
             return None
 
-    def get_models_by_provider(self, provider: str) -> dict[str, BedrockModelInfo]:
+    def get_models_by_provider(self, provider: str) -> Dict[str, BedrockModelInfo]:
         """
         Get all models from a specific provider.
 
@@ -182,7 +183,7 @@ class ModelManager:
 
         return self._cached_catalog.get_models_by_provider(provider=provider)
 
-    def get_models_by_region(self, region: str) -> dict[str, BedrockModelInfo]:
+    def get_models_by_region(self, region: str) -> Dict[str, BedrockModelInfo]:
         """
         Get all models available in a specific AWS region.
 
@@ -200,7 +201,7 @@ class ModelManager:
 
         return self._cached_catalog.get_models_by_region(region=region)
 
-    def get_streaming_models(self) -> dict[str, BedrockModelInfo]:
+    def get_streaming_models(self) -> Dict[str, BedrockModelInfo]:
         """
         Get all models that support streaming responses.
 
@@ -240,7 +241,7 @@ class ModelManager:
         """
         self._downloader.download(url=self.documentation_url, output_path=self.html_output_path)
 
-    def _parse_documentation(self) -> dict[str, BedrockModelInfo]:
+    def _parse_documentation(self) -> Dict[str, BedrockModelInfo]:
         """
         Parse the downloaded HTML documentation.
 
@@ -288,9 +289,9 @@ class ModelManager:
     def __repr__(self) -> str:
         """Return string representation of the ModelManager."""
         return (
-            f"ModelManager("
+            "ModelManager("
             f"html_path='{self.html_output_path}', "
             f"json_path='{self.json_output_path}', "
             f"url='{self.documentation_url}'"
-            f")"
+            ")"
         )

@@ -7,7 +7,6 @@ problematic AWSTestClient wrapper.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 import pytest
 

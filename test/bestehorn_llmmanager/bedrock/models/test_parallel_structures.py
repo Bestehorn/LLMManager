@@ -254,7 +254,7 @@ class TestParallelProcessingConfig:
 
         assert config.max_concurrent_requests == 5
         assert config.request_timeout_seconds == 300
-        assert config.enable_request_prioritization == True
+        assert config.enable_request_prioritization is True
         assert config.failure_handling_strategy == FailureHandlingStrategy.CONTINUE_ON_FAILURE
         assert config.load_balancing_strategy == LoadBalancingStrategy.ROUND_ROBIN
         assert config.failure_threshold == 0.5
@@ -272,7 +272,7 @@ class TestParallelProcessingConfig:
 
         assert config.max_concurrent_requests == 10
         assert config.request_timeout_seconds == 120
-        assert config.enable_request_prioritization == False
+        assert config.enable_request_prioritization is False
         assert config.failure_handling_strategy == FailureHandlingStrategy.STOP_ON_THRESHOLD
         assert config.load_balancing_strategy == LoadBalancingStrategy.RANDOM
         assert config.failure_threshold == 0.3
@@ -385,7 +385,7 @@ class TestParallelResponse:
             success=True, request_responses=responses, total_duration_ms=1500.0
         )
 
-        assert parallel_response.success == True
+        assert parallel_response.success is True
         assert len(parallel_response.request_responses) == 2
         assert parallel_response.total_duration_ms == 1500.0
 

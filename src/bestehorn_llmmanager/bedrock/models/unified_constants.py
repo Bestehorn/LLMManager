@@ -3,7 +3,7 @@ Constants for unified model management system.
 Contains string constants for the integrated model and CRIS data.
 """
 
-from typing import Final
+from typing import Dict, Final
 
 
 class UnifiedJSONFields:
@@ -45,7 +45,7 @@ class ModelCorrelationConstants:
     MISTRAL_PREFIX: Final[str] = "mistral."
 
     # Model name mappings (CRIS name -> Standard name)
-    MODEL_NAME_MAPPINGS: Final[dict[str, str]] = {
+    MODEL_NAME_MAPPINGS: Final[Dict[str, str]] = {
         "Anthropic Claude 3 Haiku": "Claude 3 Haiku",
         "Anthropic Claude 3 Sonnet": "Claude 3 Sonnet",
         "Anthropic Claude 3 Opus": "Claude 3 Opus",
@@ -159,7 +159,7 @@ class AccessMethodPriority:
     DIRECT_PRIORITY: Final[int] = 1
     CRIS_PRIORITY: Final[int] = 2
 
-    PRIORITY_RATIONALES: Final[dict[str, str]] = {
+    PRIORITY_RATIONALES: Final[Dict[str, str]] = {
         "direct_preferred": "Direct access provides lower latency and simpler configuration",
         "cris_only": "Only available through Cross-Region Inference Service",
         "cris_preferred": "CRIS provides better quota management and routing optimization",

@@ -5,7 +5,6 @@ Tests the functionality of the Unified Amazon Bedrock Model Manager.
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest

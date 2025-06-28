@@ -6,7 +6,6 @@ covering areas that have low coverage in unit tests due to mocking.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List
 
 import pytest
 
@@ -42,7 +41,7 @@ class TestUnifiedModelManagerBasicFunctionality:
 
         # Verify manager is properly initialized
         assert manager.json_output_path == json_output_path
-        assert manager.force_download == False
+        assert manager.force_download is False
         assert (
             not manager.is_fuzzy_matching_enabled() or manager.is_fuzzy_matching_enabled()
         )  # Should have a boolean value

@@ -3,8 +3,6 @@ Comprehensive unit tests for LLM Manager exceptions.
 Tests all exception classes and their functionality.
 """
 
-from typing import Any, Dict, List, Optional
-
 import pytest
 
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
@@ -420,7 +418,7 @@ class TestContentError:
         """Test initialization with all parameters."""
         error = ContentError(
             "Content error",
-            content_type="application/pdf",
+            content_type="application/pd",
             content_size=2097152,
             max_allowed_size=1048576,
         )
@@ -429,7 +427,7 @@ class TestContentError:
         assert error.content_size == 2097152
         assert error.max_allowed_size == 1048576
         assert error.details == {
-            "content_type": "application/pdf",
+            "content_type": "application/pd",
             "content_size": 2097152,
             "max_allowed_size": 1048576,
         }

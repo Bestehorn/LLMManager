@@ -6,9 +6,8 @@ Handles synchronous execution of requests using ThreadPoolExecutor for concurren
 import concurrent.futures
 import logging
 import threading
-import time
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional
 
 from ..exceptions.parallel_exceptions import ParallelExecutionError, RequestTimeoutError
 from ..models.bedrock_response import BedrockResponse

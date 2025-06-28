@@ -3,16 +3,14 @@ Enhanced BeautifulSoup-based parser for Amazon Bedrock model documentation.
 Extends the base parser to detect CRIS-only region markers (*).
 """
 
-import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Tuple
 
-from bs4 import BeautifulSoup, Tag
+from bs4 import Tag
 
 from ..models.aws_regions import normalize_region_name
-from ..models.constants import BooleanValues, HTMLTableColumns, LogMessages
 from ..models.data_structures import BedrockModelInfo
-from ..models.unified_constants import RegionMarkers, UnifiedLogMessages
+from ..models.unified_constants import RegionMarkers
 from .bedrock_parser import BedrockHTMLParser
 
 
@@ -105,7 +103,7 @@ class EnhancedBedrockHTMLParser(BedrockHTMLParser):
 
         return None
 
-    def _extract_model_from_row(self, row: Tag) -> tuple[Optional[str], Optional[BedrockModelInfo]]:
+    def _extract_model_from_row(self, row: Tag) -> Tuple[Optional[str], Optional[BedrockModelInfo]]:
         """
         Extract model information from a single table row with CRIS detection.
 

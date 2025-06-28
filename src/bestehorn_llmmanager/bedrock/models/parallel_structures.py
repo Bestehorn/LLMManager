@@ -6,7 +6,6 @@ Contains typed data classes for parallel execution configuration, requests, and 
 import asyncio
 import hashlib
 import json
-import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -14,7 +13,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
 from .bedrock_response import BedrockResponse
-from .llm_manager_constants import ConverseAPIFields
 from .parallel_constants import ParallelConfig, ParallelProcessingFields
 
 

@@ -6,13 +6,13 @@ Handles retry logic, strategies, and error classification.
 import logging
 import time
 from datetime import datetime
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from botocore.exceptions import ClientError
 
-from ..exceptions.llm_manager_exceptions import ModelAccessError, RetryExhaustedError
+from ..exceptions.llm_manager_exceptions import RetryExhaustedError
 from ..filters.content_filter import ContentFilter
-from ..models.access_method import ModelAccessInfo, ModelAccessMethod
+from ..models.access_method import ModelAccessInfo
 from ..models.llm_manager_constants import (
     LLMManagerErrorMessages,
     LLMManagerLogMessages,
@@ -539,7 +539,7 @@ class RetryManager:
                 if is_content_error:
                     self._logger.info(
                         f"Content compatibility error for {content_type} with model {model}. "
-                        f"Trying next model instead of disabling feature."
+                        "Trying next model instead of disabling feature."
                     )
                     # Continue to next target without feature fallback
                     if attempt_num < len(retry_targets):

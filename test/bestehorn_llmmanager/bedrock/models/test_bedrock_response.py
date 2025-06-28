@@ -5,10 +5,7 @@ Tests for BedrockResponse and StreamingResponse classes.
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
 from unittest.mock import Mock
-
-import pytest
 
 from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
 from bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields

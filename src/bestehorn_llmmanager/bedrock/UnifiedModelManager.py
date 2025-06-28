@@ -47,7 +47,6 @@ from .models.unified_constants import (
     UnifiedErrorMessages,
     UnifiedFilePaths,
     UnifiedJSONFields,
-    UnifiedLogMessages,
 )
 from .models.unified_structures import UnifiedModelCatalog, UnifiedModelInfo
 from .parsers.base_parser import ParsingError
@@ -238,10 +237,10 @@ class UnifiedModelManager:
         except UnifiedModelManagerError:
             # Re-raise UnifiedModelManagerError as-is
             raise
-        except Exception as e:
-            error_msg = f"Critical error in data availability check: {str(e)}"
+        except Exception as exc:
+            error_msg = f"Critical error in data availability check: {str(exc)}"
             self._logger.error(error_msg)
-            raise UnifiedModelManagerError(error_msg) from e
+            raise UnifiedModelManagerError(error_msg) from exc
 
     def load_cached_data(self) -> Optional[UnifiedModelCatalog]:
         """
@@ -328,7 +327,7 @@ class UnifiedModelManager:
                 f"Cache is valid (age: {cache_age_hours:.1f} hours)",
             )
 
-        except Exception as e:
+        except Exception:
             return (
                 CacheManagementConstants.CACHE_CORRUPTED,
                 UnifiedErrorMessages.CACHE_CORRUPTED.format(path=self.json_output_path),
@@ -354,7 +353,7 @@ class UnifiedModelManager:
             timestamp_formats = [
                 CacheManagementConstants.TIMESTAMP_FORMAT,  # With Z suffix and microseconds
                 CacheManagementConstants.TIMESTAMP_FORMAT_FALLBACK,  # With Z suffix, no microseconds
-                "%Y-%m-%dT%H:%M:%S.%f",  # ISO format with microseconds, no Z
+                "%Y-%m-%dT%H:%M:%S.%",  # ISO format with microseconds, no Z
                 "%Y-%m-%dT%H:%M:%S",  # ISO format without microseconds, no Z
             ]
 
@@ -774,9 +773,9 @@ class UnifiedModelManager:
     def __repr__(self) -> str:
         """Return string representation of the UnifiedModelManager."""
         return (
-            f"UnifiedModelManager("
+            "UnifiedModelManager("
             f"json_path='{self.json_output_path}', "
             f"force_download={self.force_download}, "
             f"fuzzy_matching={self.is_fuzzy_matching_enabled()}"
-            f")"
+            ")"
         )

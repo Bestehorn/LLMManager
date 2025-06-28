@@ -10,10 +10,9 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from ..auth.auth_manager import AuthManager
-from ..exceptions.llm_manager_exceptions import LLMManagerError
 from ..models.bedrock_response import BedrockResponse
 from ..models.llm_manager_structures import AuthConfig, AuthenticationType
 from ..UnifiedModelManager import UnifiedModelManager
@@ -245,7 +244,7 @@ class AWSTestClient:
                 last_exception = e
                 self._logger.warning(f"Model data refresh attempt {attempt + 1} failed: {str(e)}")
                 if attempt < max_retries - 1:
-                    self._logger.info(f"Retrying in 2 seconds...")
+                    self._logger.info("Retrying in 2 seconds...")
                     time.sleep(2)
 
         # All attempts failed
@@ -440,7 +439,6 @@ class AWSTestClient:
         self._logger.info(f"Test session completed: {self._current_session.session_id}")
         self._logger.info(f"Session summary: {summary}")
 
-        session = self._current_session
         self._current_session = None
         return summary
 

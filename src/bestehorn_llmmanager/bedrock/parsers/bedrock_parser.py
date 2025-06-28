@@ -5,7 +5,7 @@ Parses HTML tables containing model information.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional, Set, Tuple
 
 from bs4 import BeautifulSoup, Tag
 
@@ -227,7 +227,7 @@ class BedrockHTMLParser(BaseDocumentationParser):
 
         return False
 
-    def _extract_model_from_row(self, row: Tag) -> tuple[Optional[str], Optional[BedrockModelInfo]]:
+    def _extract_model_from_row(self, row: Tag) -> Tuple[Optional[str], Optional[BedrockModelInfo]]:
         """
         Extract model information from a single table row.
 
@@ -414,7 +414,7 @@ class BedrockHTMLParser(BaseDocumentationParser):
         link = cell.find("a")
 
         if isinstance(link, Tag):
-            href_attr = link.get("href")
+            href_attr = link.get("hre")
             if href_attr and isinstance(href_attr, str):
                 # Handle relative URLs by checking if they need base URL
                 if href_attr.startswith("./"):

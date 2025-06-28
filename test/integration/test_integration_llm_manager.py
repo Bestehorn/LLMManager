@@ -5,8 +5,6 @@ These tests validate the main LLMManager class functionality with real AWS calls
 covering areas that have low coverage in unit tests due to mocking.
 """
 
-from typing import Any, Dict, List, Optional, Tuple
-
 import pytest
 
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (

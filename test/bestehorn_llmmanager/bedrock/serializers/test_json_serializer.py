@@ -6,7 +6,6 @@ Tests for JSONModelSerializer class.
 import json
 import tempfile
 from pathlib import Path
-from typing import Any, Dict
 from unittest.mock import Mock, mock_open, patch
 
 import pytest

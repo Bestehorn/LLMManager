@@ -3,10 +3,8 @@ Comprehensive unit tests for ModelCRISCorrelator.
 Tests correlation logic, fuzzy matching, error handling, and edge cases.
 """
 
-import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest

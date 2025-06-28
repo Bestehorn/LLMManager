@@ -7,8 +7,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum
-from src.bestehorn_llmmanager.util.file_type_detector.base_detector import (
+from bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum
+from bestehorn_llmmanager.util.file_type_detector.base_detector import (
     BaseDetector,
     DetectionResult,
 )
@@ -154,7 +154,7 @@ class ConcreteDetector(BaseDetector):
 
     def detect_document_format(self, content: bytes, filename=None):
         return self._create_success_result(
-            detected_format="pdf",
+            detected_format="pd",
             confidence=0.8,
             detection_method=DetectionMethodEnum.CONTENT,
             filename=filename,
@@ -269,8 +269,8 @@ class TestBaseDetector:
         assert image_result.is_successful
 
         # Test document detection
-        doc_result = detector.detect_document_format(content=test_content, filename="test.pdf")
-        assert doc_result.detected_format == "pdf"
+        doc_result = detector.detect_document_format(content=test_content, filename="test.pd")
+        assert doc_result.detected_format == "pd"
         assert doc_result.is_successful
 
         # Test video detection

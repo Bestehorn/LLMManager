@@ -5,7 +5,7 @@ Defines how models can be accessed in different regions.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 
 class ModelAccessMethod(Enum):
@@ -67,4 +67,4 @@ class AccessRecommendation:
 
     recommended_access: ModelAccessInfo
     rationale: str
-    alternatives: list[ModelAccessInfo]
+    alternatives: List[ModelAccessInfo]

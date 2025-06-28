@@ -10,11 +10,9 @@ from ..models.access_method import ModelAccessInfo, ModelAccessMethod
 from ..models.cris_structures import CRISCatalog, CRISModelInfo
 from ..models.data_structures import BedrockModelInfo, ModelCatalog
 from ..models.unified_constants import (
-    AccessMethodPriority,
     ModelCorrelationConfig,
     ModelCorrelationConstants,
     RegionMarkers,
-    UnifiedErrorMessages,
     UnifiedLogMessages,
 )
 from ..models.unified_structures import UnifiedModelCatalog, UnifiedModelInfo
@@ -145,6 +143,10 @@ class ModelCRISCorrelator:
             # Process CRIS-only models (models that don't have regular counterparts)
             for cris_model_name, cris_model_info in cris_catalog.cris_models.items():
                 standard_name = cris_to_standard_mapping.get(cris_model_name, cris_model_name)
+                # Ensure standard_name is never None (it shouldn't be based on logic, but for type safety)
+                if not standard_name:
+                    standard_name = cris_model_name
+
                 try:
                     # Check if this CRIS model was already processed
                     if standard_name in processed_models:
@@ -473,7 +475,7 @@ class ModelCRISCorrelator:
                         # Log warning and skip this region instead of failing
                         warning_msg = (
                             f"Model '{model_info.model_id}' has CRIS-only region '{clean_region}' "
-                            f"but no CRIS inference profile found. Skipping region. "
+                            "but no CRIS inference profile found. Skipping region. "
                             f"Has CRIS data: {cris_model_info is not None}"
                         )
                         if cris_model_info:
@@ -546,7 +548,7 @@ class ModelCRISCorrelator:
                         else:
                             self._logger.warning(
                                 f"CRIS model '{cris_model_info.model_name}' has source region '{region}' "
-                                f"but no inference profile found for region. Skipping region."
+                                "but no inference profile found for region. Skipping region."
                             )
                             skipped_regions.append(f"{region} (CRIS additional, no profile)")
                     except Exception as e:

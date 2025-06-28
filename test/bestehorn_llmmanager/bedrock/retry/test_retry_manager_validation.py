@@ -6,9 +6,7 @@ objects and automatic retry when validation fails.
 """
 
 import json
-import time
 from datetime import datetime
-from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -166,12 +164,12 @@ class TestResponseValidation:
         # Should succeed on first try
         assert result is not None
         assert len(attempts) == 1
-        assert attempts[0].success == True
+        assert attempts[0].success is True
 
         # Check that validation was performed
         if isinstance(result, BedrockResponse):
             assert len(result.validation_attempts) >= 1
-            assert result.validation_attempts[0].validation_result.success == True
+            assert result.validation_attempts[0].validation_result.success is True
 
     def test_validation_retries_then_success(self):
         """Test validation that fails a few times then succeeds."""
@@ -215,14 +213,14 @@ class TestResponseValidation:
         # Should succeed after validation retries
         assert result is not None
         assert len(attempts) == 1
-        assert attempts[0].success == True
+        assert attempts[0].success is True
 
         # Should have made 3 validation attempts
         if isinstance(result, BedrockResponse):
             assert len(result.validation_attempts) == 3
-            assert result.validation_attempts[0].validation_result.success == False
-            assert result.validation_attempts[1].validation_result.success == False
-            assert result.validation_attempts[2].validation_result.success == True
+            assert result.validation_attempts[0].validation_result.success is False
+            assert result.validation_attempts[1].validation_result.success is False
+            assert result.validation_attempts[2].validation_result.success is True
 
     def test_validation_exhausted_switches_model(self):
         """Test that exhausted validation retries switch to next model."""
@@ -264,8 +262,8 @@ class TestResponseValidation:
         # Should succeed with second model
         assert result is not None
         assert len(attempts) == 2
-        assert attempts[0].success == False  # First model failed validation
-        assert attempts[1].success == True  # Second model succeeded
+        assert attempts[0].success is False  # First model failed validation
+        assert attempts[1].success is True  # Second model succeeded
 
         # Check validation attempts in response
         if isinstance(result, BedrockResponse):
@@ -369,7 +367,7 @@ class TestResponseValidation:
         # Should succeed normally
         assert result is not None
         assert len(attempts) == 1
-        assert attempts[0].success == True
+        assert attempts[0].success is True
 
         # Should not have validation attempts
         if isinstance(result, BedrockResponse):
@@ -486,11 +484,11 @@ class TestResponseValidation:
         # Test successful result
         success_result = ValidationResult(success=True)
         success_dict = success_result.to_dict()
-        assert success_dict["success"] == True
+        assert success_dict["success"] is True
         assert "error_message" not in success_dict or success_dict["error_message"] is None
 
         reconstructed = ValidationResult.from_dict(success_dict)
-        assert reconstructed.success == True
+        assert reconstructed.success is True
         assert reconstructed.error_message is None
 
         # Test failed result with details
@@ -500,12 +498,12 @@ class TestResponseValidation:
             error_details={"line": 1, "column": 5},
         )
         failed_dict = failed_result.to_dict()
-        assert failed_dict["success"] == False
+        assert failed_dict["success"] is False
         assert failed_dict["error_message"] == "Invalid JSON format"
         assert failed_dict["error_details"] == {"line": 1, "column": 5}
 
         reconstructed = ValidationResult.from_dict(failed_dict)
-        assert reconstructed.success == False
+        assert reconstructed.success is False
         assert reconstructed.error_message == "Invalid JSON format"
         assert reconstructed.error_details == {"line": 1, "column": 5}
 
@@ -515,7 +513,7 @@ class TestResponseValidation:
         response = BedrockResponse(True)
 
         # Test with no validation attempts
-        assert response.had_validation_failures() == False
+        assert response.had_validation_failures() is False
         assert response.get_validation_attempt_count() == 0
         assert response.get_validation_errors() == []
         assert response.get_last_validation_error() is None
@@ -538,7 +536,7 @@ class TestResponseValidation:
         response.validation_errors = [failed_result.to_dict()]
 
         # Test methods
-        assert response.had_validation_failures() == True
+        assert response.had_validation_failures() is True
         assert response.get_validation_attempt_count() == 2
         assert len(response.get_validation_errors()) == 1
         last_error = response.get_last_validation_error()
@@ -549,7 +547,7 @@ class TestResponseValidation:
         metrics = response.get_validation_metrics()
         assert metrics["validation_attempts"] == 2
         assert metrics["validation_errors"] == 1
-        assert metrics["had_validation_failures"] == True
+        assert metrics["had_validation_failures"] is True
         assert metrics["successful_validation_attempt"] == 2
 
     def test_validation_logging(self):
@@ -630,7 +628,7 @@ class TestValidationIntegration:
         )
 
         result = validate_json_response(valid_response)
-        assert result.success == True
+        assert result.success is True
         assert result.error_message is None
 
         # Test with invalid JSON response
@@ -648,7 +646,7 @@ class TestValidationIntegration:
         )
 
         result = validate_json_response(invalid_response)
-        assert result.success == False
+        assert result.success is False
         assert result.error_message is not None
         assert "Invalid JSON" in result.error_message
         assert result.error_details is not None

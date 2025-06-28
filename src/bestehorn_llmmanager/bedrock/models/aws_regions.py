@@ -3,7 +3,7 @@ AWS Regions constants for Amazon Bedrock.
 Contains all AWS region string literals used in Bedrock model availability.
 """
 
-from typing import Final
+from typing import Final, List
 
 
 class AWSRegions:
@@ -75,7 +75,7 @@ def is_cross_region_inference(region_text: str) -> bool:
     return region_text.strip().endswith(RegionSuffixes.CROSS_REGION_INDICATOR)
 
 
-def get_all_regions() -> list[str]:
+def get_all_regions() -> List[str]:
     """
     Get all AWS region identifiers.
 

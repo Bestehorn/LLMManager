@@ -8,7 +8,7 @@ when retrying with different models.
 
 import logging
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Set, Tuple
 
 from ..models.llm_manager_constants import ConverseAPIFields, FeatureAvailability
 from ..models.llm_manager_structures import ContentFilterState, FilteredContent

@@ -19,11 +19,7 @@ from .bedrock.executors.thread_parallel_executor import ThreadParallelExecutor
 from .bedrock.models.bedrock_response import BedrockResponse
 from .bedrock.models.llm_manager_constants import LLMManagerConfig
 from .bedrock.models.llm_manager_structures import AuthConfig, ResponseValidationConfig, RetryConfig
-from .bedrock.models.parallel_constants import (
-    ParallelConfig,
-    ParallelErrorMessages,
-    ParallelLogMessages,
-)
+from .bedrock.models.parallel_constants import ParallelConfig, ParallelLogMessages
 from .bedrock.models.parallel_structures import (
     BedrockConverseRequest,
     FailureHandlingStrategy,

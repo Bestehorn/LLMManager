@@ -5,8 +5,6 @@ Tests all constants classes and their values to ensure they remain unchanged
 and maintain expected types and values.
 """
 
-from typing import Final
-
 import pytest
 
 from bestehorn_llmmanager.bedrock.models.constants import (

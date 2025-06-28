@@ -2,7 +2,6 @@
 Tests for ParallelLLMManager class.
 """
 
-from typing import List
 from unittest.mock import Mock, patch
 
 import pytest

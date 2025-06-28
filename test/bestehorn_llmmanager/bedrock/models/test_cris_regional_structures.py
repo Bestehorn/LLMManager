@@ -3,7 +3,6 @@ Unit tests for bedrock.models.cris_regional_structures module.
 Tests for CRISRegionalVariant and CRISMultiRegionalModel classes.
 """
 
-from typing import Dict, List
 from unittest.mock import patch
 
 import pytest

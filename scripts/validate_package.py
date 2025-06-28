@@ -46,7 +46,7 @@ def run_command(cmd: str, description: str) -> Tuple[bool, str, str]:
             cmd,
             shell=True,
             capture_output=True,
-            text=True,
+            encoding='utf-8',  # Explicitly use UTF-8 encoding
             timeout=300  # 5-minute timeout
         )
         success = result.returncode == 0

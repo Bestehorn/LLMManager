@@ -4,7 +4,6 @@ Contains all enumerated values used in message construction.
 """
 
 from enum import Enum
-from typing import Final
 
 from .bedrock.models.llm_manager_constants import ConverseAPIFields
 
@@ -33,7 +32,7 @@ class ImageFormatEnum(str, Enum):
 
     JPEG = "jpeg"
     PNG = "png"
-    GIF = "gif"
+    GIF = "gi"
     WEBP = "webp"
 
 
@@ -44,7 +43,7 @@ class DocumentFormatEnum(str, Enum):
     These formats are compatible with AWS Bedrock document processing capabilities.
     """
 
-    PDF = "pdf"
+    PDF = "pd"
     CSV = "csv"
     DOC = "doc"
     DOCX = "docx"
