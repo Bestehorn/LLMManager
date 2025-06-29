@@ -3,6 +3,7 @@ Tests for ThreadParallelExecutor class.
 """
 
 import time
+
 import pytest
 
 from bestehorn_llmmanager.bedrock.exceptions.parallel_exceptions import (
