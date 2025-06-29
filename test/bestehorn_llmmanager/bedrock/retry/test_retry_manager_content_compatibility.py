@@ -2,16 +2,13 @@
 Tests for content compatibility error handling in retry manager.
 """
 
-from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pytest
 from botocore.exceptions import ClientError
 
-from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RetryExhaustedError
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo, ModelAccessMethod
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
-    RequestAttempt,
     RetryConfig,
     RetryStrategy,
 )

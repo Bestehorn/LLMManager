@@ -5,7 +5,10 @@ This file is automatically loaded by pytest and configures the test environment.
 
 import os
 import sys
+import tempfile
 from pathlib import Path
+
+import pytest
 
 # Add the src directory to Python path so tests can import the package
 project_root = Path(__file__).parent.parent
@@ -39,13 +42,6 @@ try:
     print(f"  bestehorn_llmmanager location: {bestehorn_llmmanager.__file__}")
 except ImportError as e:
     print(f"  Failed to import bestehorn_llmmanager: {e}")
-
-# Additional imports for test fixtures
-import tempfile
-from datetime import datetime
-from unittest.mock import Mock
-
-import pytest
 
 
 # Test fixtures

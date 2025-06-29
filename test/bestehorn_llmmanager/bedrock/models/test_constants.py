@@ -388,7 +388,6 @@ class TestConstantsIntegration:
         """Test that constants use Final type annotations correctly."""
         # This test verifies that the constants are properly typed
         # The actual Final enforcement is tested in individual class tests
-        from typing import get_type_hints
 
         # We can't directly test Final annotations at runtime, but we can verify
         # that the constants behave as expected (immutable)

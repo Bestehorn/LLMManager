@@ -5,7 +5,7 @@ Tests abstract base class functionality, URL validation, and directory creation.
 
 from abc import ABC
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -376,7 +376,8 @@ class TestProtocolCompliance:
 
         # Get the download method from the protocol
         if hasattr(DocumentationDownloader, "download"):
-            download_method = getattr(DocumentationDownloader, "download")
+            # Simply verify the method exists on the protocol
+            assert hasattr(DocumentationDownloader, "download")
 
             # Should have annotations (even if they're in __annotations__)
             # This test verifies the protocol is properly typed

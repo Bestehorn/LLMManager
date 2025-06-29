@@ -16,7 +16,6 @@ from bestehorn_llmmanager.message_builder_enums import (
     DocumentFormatEnum,
     ImageFormatEnum,
     RolesEnum,
-    VideoFormatEnum,
 )
 
 

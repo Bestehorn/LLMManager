@@ -8,7 +8,6 @@ AWS credentials and can establish connections to Bedrock services.
 import pytest
 
 from bestehorn_llmmanager.bedrock.testing.integration_config import IntegrationTestError
-from bestehorn_llmmanager.bedrock.testing.integration_markers import IntegrationTestMarkers
 
 
 @pytest.mark.integration

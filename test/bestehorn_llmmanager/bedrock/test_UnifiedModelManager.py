@@ -5,7 +5,7 @@ Tests the functionality of the Unified Amazon Bedrock Model Manager.
 
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -17,13 +17,11 @@ from bestehorn_llmmanager.bedrock.models.access_method import (
     ModelAccessMethod,
 )
 from bestehorn_llmmanager.bedrock.models.cris_structures import CRISCatalog
-from bestehorn_llmmanager.bedrock.models.data_structures import BedrockModelInfo, ModelCatalog
+from bestehorn_llmmanager.bedrock.models.data_structures import ModelCatalog
 from bestehorn_llmmanager.bedrock.models.unified_constants import (
     AccessMethodPriority,
     CacheManagementConstants,
-    UnifiedErrorMessages,
     UnifiedFilePaths,
-    UnifiedJSONFields,
 )
 from bestehorn_llmmanager.bedrock.models.unified_structures import (
     UnifiedModelCatalog,

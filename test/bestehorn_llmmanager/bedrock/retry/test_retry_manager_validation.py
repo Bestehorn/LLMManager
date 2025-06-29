@@ -6,8 +6,7 @@ objects and automatic retry when validation fails.
 """
 
 import json
-from datetime import datetime
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -15,14 +14,11 @@ from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import Retry
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo, ModelAccessMethod
 from bestehorn_llmmanager.bedrock.models.llm_manager_constants import (
     ConverseAPIFields,
-    ResponseValidationLogMessages,
 )
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     BedrockResponse,
-    RequestAttempt,
     ResponseValidationConfig,
     RetryConfig,
-    RetryStrategy,
     ValidationAttempt,
     ValidationResult,
 )

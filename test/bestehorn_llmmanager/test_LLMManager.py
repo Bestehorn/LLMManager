@@ -4,7 +4,7 @@ Tests the main functionality of the LLM Manager system.
 """
 
 from datetime import datetime
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -14,7 +14,7 @@ from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
     RequestValidationError,
     RetryExhaustedError,
 )
-from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
+from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse
 from bestehorn_llmmanager.bedrock.models.llm_manager_constants import (
     ContentLimits,
     ConverseAPIFields,
@@ -540,6 +540,7 @@ class TestLLMManagerUncoveredCases:
             return_value=mock_unified_manager,
         ):
             manager = LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+            manager.get_available_models()
 
             # Verify refresh was called when load_cached_data returned None
             mock_unified_manager.refresh_unified_data.assert_called_once()

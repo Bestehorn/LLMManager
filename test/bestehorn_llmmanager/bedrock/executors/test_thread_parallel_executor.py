@@ -3,13 +3,9 @@ Tests for ThreadParallelExecutor class.
 """
 
 import time
-from concurrent.futures import TimeoutError as FutureTimeoutError
-from unittest.mock import Mock, patch
-
 import pytest
 
 from bestehorn_llmmanager.bedrock.exceptions.parallel_exceptions import (
-    ParallelExecutionError,
     RequestTimeoutError,
 )
 from bestehorn_llmmanager.bedrock.executors.thread_parallel_executor import (

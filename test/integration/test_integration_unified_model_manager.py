@@ -5,12 +5,9 @@ These tests validate the UnifiedModelManager functionality with real AWS calls,
 covering areas that have low coverage in unit tests due to mocking.
 """
 
-from pathlib import Path
-
 import pytest
 
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessMethod
-from bestehorn_llmmanager.bedrock.testing.integration_markers import IntegrationTestMarkers
 from bestehorn_llmmanager.bedrock.UnifiedModelManager import (
     UnifiedModelManager,
     UnifiedModelManagerError,
@@ -171,7 +168,6 @@ class TestUnifiedModelManagerModelAccess:
 
             if catalog.model_count > 0:
                 # Test with known model names from integration config
-                anthropic_model = integration_config.get_test_model_for_provider("anthropic")
                 test_region = integration_config.get_primary_test_region()
 
                 # Try to get access info for Claude models

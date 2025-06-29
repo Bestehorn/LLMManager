@@ -6,20 +6,14 @@ by testing LLMManager and other production classes directly, eliminating the
 problematic AWSTestClient wrapper.
 """
 
-from pathlib import Path
+from typing import Any, Dict, List
 
 import pytest
 
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
     ConfigurationError,
-    LLMManagerError,
     RequestValidationError,
 )
-from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
-    AuthConfig,
-    AuthenticationType,
-)
-from bestehorn_llmmanager.bedrock.testing.integration_markers import IntegrationTestMarkers
 from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager
 from bestehorn_llmmanager.llm_manager import LLMManager
 

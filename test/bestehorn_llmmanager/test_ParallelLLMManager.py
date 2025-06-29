@@ -11,13 +11,11 @@ from bestehorn_llmmanager.bedrock.exceptions.parallel_exceptions import (
     ParallelProcessingError,
 )
 from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse
-from bestehorn_llmmanager.bedrock.models.llm_manager_structures import AuthConfig, RetryConfig
 from bestehorn_llmmanager.bedrock.models.parallel_structures import (
     BedrockConverseRequest,
     FailureHandlingStrategy,
     LoadBalancingStrategy,
     ParallelProcessingConfig,
-    ParallelResponse,
 )
 from bestehorn_llmmanager.parallel_llm_manager import ParallelLLMManager
 

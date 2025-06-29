@@ -3,7 +3,7 @@ Comprehensive tests for AuthManager class.
 Tests authentication, session management, and error handling.
 """
 
-from unittest.mock import MagicMock, Mock, call, patch
+from unittest.mock import Mock, patch
 
 import pytest
 from botocore.exceptions import ClientError, NoCredentialsError, ProfileNotFound
@@ -12,7 +12,6 @@ from bestehorn_llmmanager.bedrock.auth.auth_manager import AuthManager
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import AuthenticationError
 from bestehorn_llmmanager.bedrock.models.llm_manager_constants import (
     LLMManagerErrorMessages,
-    LLMManagerLogMessages,
 )
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     AuthConfig,

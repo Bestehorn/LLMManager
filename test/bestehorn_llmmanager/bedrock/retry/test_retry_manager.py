@@ -5,8 +5,7 @@ Tests the enhanced retry manager that fixes the image analysis issue by properly
 managing content filtering and restoration across retry attempts.
 """
 
-from datetime import datetime
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -14,10 +13,7 @@ from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import Retry
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo, ModelAccessMethod
 from bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
-    ContentFilterState,
-    RequestAttempt,
     RetryConfig,
-    RetryStrategy,
 )
 from bestehorn_llmmanager.bedrock.retry.retry_manager import RetryManager
 

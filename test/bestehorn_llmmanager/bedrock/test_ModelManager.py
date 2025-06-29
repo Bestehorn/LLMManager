@@ -5,7 +5,7 @@ Tests the functionality of the Amazon Bedrock Model Manager.
 
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -141,10 +141,13 @@ class TestModelManager:
 
         # Execute with force_download=False
         with patch.object(model_manager, "_parse_documentation", return_value={}):
-            catalog = model_manager.refresh_model_data(force_download=False)
+            result = model_manager.refresh_model_data(force_download=False)
 
         # Verify download was not called
         mock_downloader.download.assert_not_called()
+
+        # Verify result is valid
+        assert isinstance(result, ModelCatalog)
 
     def test_load_cached_data_file_not_exists(self, model_manager):
         """Test loading cached data when file doesn't exist."""
@@ -163,7 +166,7 @@ class TestModelManager:
 
         mock_serializer.load_from_file.return_value = {"models": {}}
 
-        result = model_manager.load_cached_data()
+        model_manager.load_cached_data()
 
         mock_serializer.load_from_file.assert_called_once_with(input_path=json_file)
 

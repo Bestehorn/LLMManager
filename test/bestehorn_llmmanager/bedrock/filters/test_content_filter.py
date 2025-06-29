@@ -5,7 +5,7 @@ Tests the content filtering and restoration functionality that fixes
 the image analysis issue in the LLMManager.
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 

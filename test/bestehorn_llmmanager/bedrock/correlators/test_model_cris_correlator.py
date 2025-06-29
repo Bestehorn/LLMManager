@@ -4,8 +4,7 @@ Tests correlation logic, fuzzy matching, error handling, and edge cases.
 """
 
 from datetime import datetime
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -21,12 +20,7 @@ from bestehorn_llmmanager.bedrock.models.cris_structures import (
 )
 from bestehorn_llmmanager.bedrock.models.data_structures import BedrockModelInfo, ModelCatalog
 from bestehorn_llmmanager.bedrock.models.unified_constants import (
-    AccessMethodPriority,
     ModelCorrelationConfig,
-    ModelCorrelationConstants,
-    RegionMarkers,
-    UnifiedErrorMessages,
-    UnifiedLogMessages,
 )
 from bestehorn_llmmanager.bedrock.models.unified_structures import (
     UnifiedModelCatalog,
@@ -231,6 +225,8 @@ class TestModelCRISCorrelator:
 
         assert isinstance(mapping, dict)
         assert "anthropic.claude-3-sonnet" in mapping
+        # Verify the mapping contains normalized names
+        assert mapping["anthropic.claude-3-sonnet"] == "claude-3-sonnet"
 
     def test_normalize_model_name(self, correlator: ModelCRISCorrelator):
         """Test model name normalization."""
@@ -287,7 +283,6 @@ class TestModelCRISCorrelator:
     ):
         """Test fuzzy matching when enabled."""
         cris_models = {"anthropic.claude-3-sonnet": sample_cris_model}
-        name_mapping = {"anthropic.claude-3-sonnet": "claude-3-sonnet"}
 
         # Test fuzzy match
         result, match_type = correlator_fuzzy_enabled._find_matching_cris_model(

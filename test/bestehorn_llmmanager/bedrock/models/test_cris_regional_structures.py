@@ -3,15 +3,10 @@ Unit tests for bedrock.models.cris_regional_structures module.
 Tests for CRISRegionalVariant and CRISMultiRegionalModel classes.
 """
 
-from unittest.mock import patch
-
 import pytest
 
 from bestehorn_llmmanager.bedrock.models.cris_constants import (
-    CRISErrorMessages,
     CRISJSONFields,
-    CRISRegionPrefixes,
-    CRISValidationPatterns,
 )
 from bestehorn_llmmanager.bedrock.models.cris_regional_structures import (
     CRISMultiRegionalModel,

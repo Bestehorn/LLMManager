@@ -3,8 +3,6 @@ Unit tests for base detector interface and data structures.
 Tests the abstract base class and DetectionResult data class.
 """
 
-from unittest.mock import Mock
-
 import pytest
 
 from bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum

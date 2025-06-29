@@ -5,6 +5,8 @@ These tests validate the main LLMManager class functionality with real AWS calls
 covering areas that have low coverage in unit tests due to mocking.
 """
 
+from typing import Any, Dict, List, Optional, Tuple
+
 import pytest
 
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
@@ -12,13 +14,7 @@ from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
     RequestValidationError,
     RetryExhaustedError,
 )
-from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
-    AuthConfig,
-    AuthenticationType,
-    ResponseValidationConfig,
-    RetryConfig,
-)
-from bestehorn_llmmanager.bedrock.testing.integration_markers import IntegrationTestMarkers
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConfig
 from bestehorn_llmmanager.bedrock.UnifiedModelManager import (
     UnifiedModelManager,
     UnifiedModelManagerError,
@@ -424,7 +420,7 @@ class TestLLMManagerErrorHandling:
         # With fail-fast initialization, LLMManager should raise ConfigurationError
         # during initialization when no valid model/region combinations are available
         with pytest.raises(ConfigurationError) as exc_info:
-            manager = LLMManager(
+            LLMManager(
                 models=["NonExistentModel"], regions=[integration_config.get_primary_test_region()]
             )
 
@@ -482,7 +478,7 @@ class TestLLMManagerErrorHandling:
 
         # With fail-fast initialization, this should raise ConfigurationError during initialization
         with pytest.raises(ConfigurationError) as exc_info:
-            manager = LLMManager(
+            LLMManager(
                 models=[anthropic_model], regions=["invalid-region-name"]  # Use actual model ID
             )
 

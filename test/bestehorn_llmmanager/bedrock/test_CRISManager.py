@@ -7,7 +7,7 @@ Amazon Bedrock Cross-Region Inference model information.
 
 from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, call, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -16,7 +16,6 @@ from bestehorn_llmmanager.bedrock.downloaders.base_downloader import FileSystemE
 from bestehorn_llmmanager.bedrock.models.cris_constants import (
     CRISErrorMessages,
     CRISFilePaths,
-    CRISLogMessages,
     CRISURLs,
 )
 from bestehorn_llmmanager.bedrock.models.cris_structures import CRISCatalog, CRISModelInfo
@@ -138,6 +137,9 @@ class TestCRISManagerRefreshData:
 
         # Verify download was not called
         manager._downloader.download.assert_not_called()
+
+        # Verify result is a valid catalog
+        assert isinstance(result, CRISCatalog)
 
         # But parsing and serialization still occurred
         manager._parser.parse.assert_called_once()
