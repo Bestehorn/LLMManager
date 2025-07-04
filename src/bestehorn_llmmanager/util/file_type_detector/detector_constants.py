@@ -88,7 +88,7 @@ class FileExtensionConstants:
     @classmethod
     def get_all_extensions(cls) -> Set[str]:
         """Get all supported file extensions."""
-        all_extensions = set()
+        all_extensions: Set[str] = set()
         all_extensions.update(cls.IMAGE_EXTENSIONS.keys())
         all_extensions.update(cls.DOCUMENT_EXTENSIONS.keys())
         all_extensions.update(cls.VIDEO_EXTENSIONS.keys())

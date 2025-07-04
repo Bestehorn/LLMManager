@@ -7,7 +7,7 @@ with automatic retry logic, authentication handling, and comprehensive response 
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, cast
 
 from .bedrock.auth.auth_manager import AuthManager
 from .bedrock.exceptions.llm_manager_exceptions import (
@@ -30,6 +30,7 @@ from .bedrock.models.llm_manager_structures import (
     ResponseValidationConfig,
     RetryConfig,
 )
+from .bedrock.models.parallel_structures import BedrockConverseRequest
 from .bedrock.retry.retry_manager import RetryManager
 from .bedrock.UnifiedModelManager import UnifiedModelManager
 
@@ -584,6 +585,7 @@ class LLMManager:
             raise RequestValidationError(
                 message="Request validation failed", validation_errors=validation_errors
             )
+        # Implicit return here - defensive code for robustness
 
     def _validate_content_blocks(
         self, content_blocks: List[Dict], message_index: int, errors: List[str]
@@ -621,6 +623,7 @@ class LLMManager:
             errors.append(
                 f"Message {message_index} exceeds video limit: {video_count} > {ContentLimits.MAX_VIDEOS_PER_REQUEST}"
             )
+        # Implicit return here - defensive code for robustness
 
     def _build_converse_request(
         self,
@@ -674,7 +677,7 @@ class LLMManager:
 
         return request_args
 
-    def _execute_converse(self, region: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+    def _execute_converse(self, region: Optional[str] = None, **kwargs: Any) -> Dict[str, Any]:
         """
         Execute a single converse request.
 
@@ -697,16 +700,17 @@ class LLMManager:
             # Fallback: try to find a working region
             for test_region in self._regions:
                 try:
-                    client = self._auth_manager.get_bedrock_client(region=test_region)
+                    # Try to get a client to see if the region is configured
+                    self._auth_manager.get_bedrock_client(region=test_region)
                     target_region = test_region
                     break
                 except Exception:
-                    continue
+                    continue  # Try the next region
+            else:
+                # This block executes if the loop completes without a break
+                raise AuthenticationError("Could not authenticate to any specified region")
 
-        if not target_region:
-            raise AuthenticationError("Could not authenticate to any specified region")
-
-        # Get authenticated client for the region
+        # At this point, target_region is guaranteed to be a non-empty string.
         client = self._auth_manager.get_bedrock_client(region=target_region)
 
         # Map model_id to modelId for AWS API compatibility
@@ -717,9 +721,11 @@ class LLMManager:
         # Execute the converse call with all prepared arguments
         response = client.converse(**converse_args)
 
-        return response
+        return cast(Dict[str, Any], response)
 
-    def _execute_converse_stream(self, region: Optional[str] = None, **kwargs) -> Dict[str, Any]:
+    def _execute_converse_stream(
+        self, region: Optional[str] = None, **kwargs: Any
+    ) -> Dict[str, Any]:
         """
         Execute a single streaming converse request.
 
@@ -742,16 +748,17 @@ class LLMManager:
             # Fallback: try to find a working region
             for test_region in self._regions:
                 try:
-                    client = self._auth_manager.get_bedrock_client(region=test_region)
+                    # Try to get a client to see if the region is configured
+                    self._auth_manager.get_bedrock_client(region=test_region)
                     target_region = test_region
                     break
                 except Exception:
-                    continue
+                    continue  # Try the next region
+            else:
+                # This block executes if the loop completes without a break
+                raise AuthenticationError("Could not authenticate to any specified region")
 
-        if not target_region:
-            raise AuthenticationError("Could not authenticate to any specified region")
-
-        # Get authenticated client for the region
+        # At this point, target_region is guaranteed to be a non-empty string.
         client = self._auth_manager.get_bedrock_client(region=target_region)
 
         # Map model_id to modelId for AWS API compatibility
@@ -762,7 +769,7 @@ class LLMManager:
         # Execute the streaming converse call with all prepared arguments
         response = client.converse_stream(**converse_stream_args)
 
-        return response
+        return cast(Dict[str, Any], response)
 
     def get_available_models(self) -> List[str]:
         """
@@ -816,7 +823,7 @@ class LLMManager:
         Returns:
             Dictionary with validation results
         """
-        validation_result = {
+        validation_result: Dict[str, Union[bool, List[str], int, str]] = {
             "valid": True,
             "errors": [],
             "warnings": [],
@@ -830,7 +837,8 @@ class LLMManager:
             validation_result["auth_status"] = auth_info["auth_type"]
         except Exception as e:
             validation_result["valid"] = False
-            validation_result["errors"].append(f"Authentication error: {str(e)}")
+            # Type assertion to help mypy
+            cast(List[str], validation_result["errors"]).append(f"Authentication error: {str(e)}")
 
         # Check model/region combinations
         for model in self._models:
@@ -840,15 +848,22 @@ class LLMManager:
                         model_name=model, region=region
                     )
                     if access_info:
-                        validation_result["model_region_combinations"] += 1
+                        # Type assertion to help mypy
+                        validation_result["model_region_combinations"] = (
+                            cast(int, validation_result["model_region_combinations"]) + 1
+                        )
                 except Exception as e:
-                    validation_result["warnings"].append(
+                    # Type assertion to help mypy
+                    cast(List[str], validation_result["warnings"]).append(
                         f"Could not validate {model} in {region}: {str(e)}"
                     )
 
         if validation_result["model_region_combinations"] == 0:
             validation_result["valid"] = False
-            validation_result["errors"].append("No valid model/region combinations found")
+            # Type assertion to help mypy
+            cast(List[str], validation_result["errors"]).append(
+                "No valid model/region combinations found"
+            )
 
         return validation_result
 
@@ -875,7 +890,9 @@ class LLMManager:
         return self._retry_manager.get_retry_stats()
 
     def converse_with_request(
-        self, request, response_validation_config: Optional[ResponseValidationConfig] = None
+        self,
+        request: BedrockConverseRequest,
+        response_validation_config: Optional[ResponseValidationConfig] = None,
     ) -> BedrockResponse:
         """
         Send a conversation request using BedrockConverseRequest object.

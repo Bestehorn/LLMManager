@@ -155,7 +155,9 @@ class ContentFilter:
             Tuple of (filtered_messages, removed_content_by_feature)
         """
         filtered_messages = []
-        removed_content = {feature: [] for feature in disabled_features}
+        removed_content: Dict[str, List[FilteredContent]] = {
+            feature: [] for feature in disabled_features
+        }
 
         for message_idx, message in enumerate(messages):
             if ConverseAPIFields.CONTENT not in message:

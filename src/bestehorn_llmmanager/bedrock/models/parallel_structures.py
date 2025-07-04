@@ -54,7 +54,7 @@ class BedrockConverseRequest:
     """
 
     messages: List[Dict[str, Any]]
-    system: Optional[List[Dict[str, str]]] = None
+    system: Optional[List[Any]] = None
     inference_config: Optional[Dict[str, Any]] = None
     additional_model_request_fields: Optional[Dict[str, Any]] = None
     additional_model_response_field_paths: Optional[List[str]] = None

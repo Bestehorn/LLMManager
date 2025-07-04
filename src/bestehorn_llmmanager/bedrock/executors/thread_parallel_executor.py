@@ -7,7 +7,7 @@ import concurrent.futures
 import logging
 import threading
 from datetime import datetime
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, cast
 
 from ..exceptions.parallel_exceptions import ParallelExecutionError, RequestTimeoutError
 from ..models.bedrock_response import BedrockResponse
@@ -379,7 +379,7 @@ class ThreadParallelExecutor:
 
             try:
                 response = future.result(timeout=self._config.request_timeout_seconds)
-                return response
+                return cast(BedrockResponse, response)
 
             except concurrent.futures.TimeoutError:
                 # Request timed out

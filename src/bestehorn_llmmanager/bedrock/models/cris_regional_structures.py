@@ -277,7 +277,7 @@ class CRISMultiRegionalModel:
         Returns:
             Dictionary mapping source regions to lists of destination regions
         """
-        merged_mappings = {}
+        merged_mappings: Dict[str, List[str]] = {}
 
         for variant in self.regional_variants.values():
             for source_region, destination_regions in variant.region_mappings.items():

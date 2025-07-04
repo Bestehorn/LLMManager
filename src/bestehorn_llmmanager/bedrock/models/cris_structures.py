@@ -235,7 +235,7 @@ class CRISModelInfo:
         Returns:
             Dictionary mapping source regions to lists of destination regions
         """
-        merged_mappings = {}
+        merged_mappings: Dict[str, List[str]] = {}
 
         for profile_info in self.inference_profiles.values():
             for source_region, destination_regions in profile_info.region_mappings.items():

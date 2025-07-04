@@ -4,7 +4,7 @@ Handles different authentication methods including profiles, credentials, and IA
 """
 
 import logging
-from typing import Optional
+from typing import Any, Optional
 
 import boto3
 from botocore.exceptions import ClientError, NoCredentialsError, ProfileNotFound
@@ -255,7 +255,7 @@ class AuthManager:
                 ) from e
             raise
 
-    def get_bedrock_client(self, region: str):
+    def get_bedrock_client(self, region: str) -> Any:
         """
         Get a Bedrock runtime client for the specified region.
 
@@ -286,7 +286,7 @@ class AuthManager:
                 region=region,
             ) from e
 
-    def _test_bedrock_access(self, client, region: str) -> None:
+    def _test_bedrock_access(self, client: Any, region: str) -> None:
         """
         Test Bedrock access by attempting a lightweight operation.
 

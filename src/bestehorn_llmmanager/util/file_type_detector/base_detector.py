@@ -77,7 +77,7 @@ class BaseDetector(ABC):
         Returns:
             DetectionResult with format and confidence information
         """
-        pass
+        ...
 
     @abstractmethod
     def detect_document_format(
@@ -93,7 +93,7 @@ class BaseDetector(ABC):
         Returns:
             DetectionResult with format and confidence information
         """
-        pass
+        ...
 
     @abstractmethod
     def detect_video_format(
@@ -109,9 +109,9 @@ class BaseDetector(ABC):
         Returns:
             DetectionResult with format and confidence information
         """
-        pass
+        ...
 
-    def _validate_content(self, content: bytes) -> bool:
+    def _validate_content(self, content: object) -> bool:
         """
         Validate that content is suitable for detection.
 

@@ -30,6 +30,9 @@ class ExceptionDetailFields:
 class LLMManagerError(Exception):
     """Base exception for all LLM Manager operations."""
 
+    message: str
+    details: Optional[Dict[str, Any]]
+
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None) -> None:
         """
         Initialize LLM Manager error.
@@ -65,6 +68,8 @@ class LLMManagerError(Exception):
 class ConfigurationError(LLMManagerError):
     """Raised when LLM Manager configuration is invalid."""
 
+    invalid_config: Optional[Dict[str, Any]]
+
     def __init__(self, message: str, invalid_config: Optional[Dict[str, Any]] = None) -> None:
         """
         Initialize configuration error.
@@ -97,6 +102,9 @@ class ConfigurationError(LLMManagerError):
 class AuthenticationError(LLMManagerError):
     """Raised when authentication fails."""
 
+    auth_type: Optional[str]
+    region: Optional[str]
+
     def __init__(
         self, message: str, auth_type: Optional[str] = None, region: Optional[str] = None
     ) -> None:
@@ -127,7 +135,7 @@ class AuthenticationError(LLMManagerError):
             Details dictionary if meaningful data available, None otherwise
         """
         if auth_type or region:
-            details = {}
+            details: Dict[str, Any] = {}
             if auth_type:
                 details[ExceptionDetailFields.AUTH_TYPE] = auth_type
             if region:
@@ -138,6 +146,10 @@ class AuthenticationError(LLMManagerError):
 
 class ModelAccessError(LLMManagerError):
     """Raised when model access fails."""
+
+    model_id: Optional[str]
+    region: Optional[str]
+    access_method: Optional[str]
 
     def __init__(
         self,
@@ -178,7 +190,7 @@ class ModelAccessError(LLMManagerError):
             Details dictionary if meaningful data available, None otherwise
         """
         if model_id or region or access_method:
-            details = {}
+            details: Dict[str, Any] = {}
             if model_id:
                 details[ExceptionDetailFields.MODEL_ID] = model_id
             if region:
@@ -191,6 +203,11 @@ class ModelAccessError(LLMManagerError):
 
 class RetryExhaustedError(LLMManagerError):
     """Raised when all retry attempts have been exhausted."""
+
+    attempts_made: Optional[int]
+    last_errors: List[Exception]
+    models_tried: List[str]
+    regions_tried: List[str]
 
     def __init__(
         self,
@@ -242,7 +259,7 @@ class RetryExhaustedError(LLMManagerError):
             Details dictionary if meaningful data available, None otherwise
         """
         if attempts_made is not None or last_errors or models_tried or regions_tried:
-            details = {}
+            details: Dict[str, Any] = {}
             if attempts_made is not None:
                 details[ExceptionDetailFields.ATTEMPTS_MADE] = attempts_made
             if last_errors:
@@ -257,6 +274,9 @@ class RetryExhaustedError(LLMManagerError):
 
 class RequestValidationError(LLMManagerError):
     """Raised when request validation fails."""
+
+    validation_errors: List[str]
+    invalid_fields: List[str]
 
     def __init__(
         self,
@@ -293,7 +313,7 @@ class RequestValidationError(LLMManagerError):
             Details dictionary if meaningful data available, None otherwise
         """
         if validation_errors or invalid_fields:
-            details = {}
+            details: Dict[str, Any] = {}
             if validation_errors:
                 details[ExceptionDetailFields.VALIDATION_ERRORS] = validation_errors
             if invalid_fields:
@@ -304,6 +324,9 @@ class RequestValidationError(LLMManagerError):
 
 class StreamingError(LLMManagerError):
     """Raised when streaming operations fail."""
+
+    stream_position: Optional[int]
+    partial_content: Optional[str]
 
     def __init__(
         self,
@@ -340,7 +363,7 @@ class StreamingError(LLMManagerError):
             Details dictionary if meaningful data available, None otherwise
         """
         if stream_position is not None or partial_content:
-            details = {}
+            details: Dict[str, Any] = {}
             if stream_position is not None:
                 details[ExceptionDetailFields.STREAM_POSITION] = stream_position
             if partial_content:
@@ -351,6 +374,10 @@ class StreamingError(LLMManagerError):
 
 class ContentError(LLMManagerError):
     """Raised when content validation or processing fails."""
+
+    content_type: Optional[str]
+    content_size: Optional[int]
+    max_allowed_size: Optional[int]
 
     def __init__(
         self,
@@ -394,7 +421,7 @@ class ContentError(LLMManagerError):
             Details dictionary if meaningful data available, None otherwise
         """
         if content_type or content_size is not None or max_allowed_size is not None:
-            details = {}
+            details: Dict[str, Any] = {}
             if content_type:
                 details[ExceptionDetailFields.CONTENT_TYPE] = content_type
             if content_size is not None:

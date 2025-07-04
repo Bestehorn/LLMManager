@@ -7,6 +7,8 @@ import logging
 import random
 from typing import Dict, List
 
+from typing_extensions import assert_never
+
 from ..exceptions.parallel_exceptions import ParallelConfigurationError, RegionDistributionError
 from ..models.parallel_constants import ParallelErrorMessages, ParallelLogMessages
 from ..models.parallel_structures import (
@@ -210,11 +212,7 @@ class RegionDistributionManager:
             return self._assign_regions_least_loaded(
                 available_regions=available_regions, target_count=target_regions_per_request
             )
-        else:
-            # Default to round robin
-            return self._assign_regions_round_robin(
-                available_regions=available_regions, target_count=target_regions_per_request
-            )
+        assert_never(self._load_balancing_strategy)
 
     def _assign_regions_round_robin(
         self, available_regions: List[str], target_count: int

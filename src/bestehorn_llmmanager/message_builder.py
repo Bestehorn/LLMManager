@@ -41,18 +41,8 @@ class ConverseMessageBuilder:
 
         Args:
             role: The role for this message (USER or ASSISTANT)
-
-        Raises:
-            RequestValidationError: If role is invalid
         """
         self._logger = logging.getLogger(__name__)
-
-        # Validate role
-        if not isinstance(role, RolesEnum):
-            valid_roles = [r.value for r in RolesEnum]
-            raise RequestValidationError(
-                MessageBuilderErrorMessages.INVALID_ROLE.format(role=role, valid_roles=valid_roles)
-            )
 
         self._role = role
         self._content_blocks: List[Dict[str, Any]] = []

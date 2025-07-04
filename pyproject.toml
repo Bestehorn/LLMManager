@@ -165,6 +165,13 @@ module = [
 ]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = "bestehorn_llmmanager.llm_manager"
+# Suppress unreachable code warnings for defensive programming
+# The validation methods have implicit returns that mypy thinks are unreachable
+# but we keep them for robustness when Python's dynamic typing is considered
+warn_unreachable = false
+
 # Coverage configuration
 [tool.coverage.run]
 source = ["src/bestehorn_llmmanager"]

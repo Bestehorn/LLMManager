@@ -485,7 +485,11 @@ class AWSTestClient:
             ) from e
 
     def test_bedrock_converse(
-        self, model_id: str, messages: List[Dict[str, Any]], region: Optional[str] = None, **kwargs
+        self,
+        model_id: str,
+        messages: List[Dict[str, Any]],
+        region: Optional[str] = None,
+        **kwargs: Any,
     ) -> BedrockResponse:
         """
         Test Bedrock converse API with request tracking.
@@ -587,7 +591,11 @@ class AWSTestClient:
             ) from e
 
     def test_bedrock_converse_stream(
-        self, model_id: str, messages: List[Dict[str, Any]], region: Optional[str] = None, **kwargs
+        self,
+        model_id: str,
+        messages: List[Dict[str, Any]],
+        region: Optional[str] = None,
+        **kwargs: Any,
     ) -> BedrockResponse:
         """
         Test Bedrock streaming converse API with request tracking.
@@ -710,7 +718,7 @@ class AWSTestClient:
         Raises:
             IntegrationTestError: If validation fails
         """
-        validation_results = {
+        validation_results: Dict[str, Any] = {
             "overall_success": True,
             "config_valid": True,
             "auth_results": {},

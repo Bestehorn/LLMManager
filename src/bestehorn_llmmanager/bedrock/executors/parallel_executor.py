@@ -6,7 +6,7 @@ Handles asynchronous execution of requests across multiple regions with concurre
 import asyncio
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 from ..exceptions.parallel_exceptions import ParallelExecutionError
 from ..models.bedrock_response import BedrockResponse
@@ -47,7 +47,7 @@ class ParallelExecutor:
         self,
         assignments: List[RegionAssignment],
         request_map: Dict[str, BedrockConverseRequest],
-        execute_single_request_func,
+        execute_single_request_func: Callable[..., Any],
     ) -> Dict[str, BedrockResponse]:
         """
         Execute multiple requests in parallel according to their region assignments.
@@ -133,7 +133,7 @@ class ParallelExecutor:
         self,
         assignments: List[RegionAssignment],
         request_map: Dict[str, BedrockConverseRequest],
-        execute_single_request_func,
+        execute_single_request_func: Callable[..., Any],
         semaphore: asyncio.Semaphore,
     ) -> List[asyncio.Task]:
         """
@@ -174,7 +174,7 @@ class ParallelExecutor:
         self,
         request: BedrockConverseRequest,
         assignment: RegionAssignment,
-        execute_single_request_func,
+        execute_single_request_func: Callable[..., Any],
         semaphore: asyncio.Semaphore,
     ) -> Tuple[str, BedrockResponse]:
         """
@@ -262,7 +262,7 @@ class ParallelExecutor:
         self,
         request: BedrockConverseRequest,
         assignment: RegionAssignment,
-        execute_single_request_func,
+        execute_single_request_func: Callable[..., Any],
     ) -> BedrockResponse:
         """
         Execute a single request asynchronously.
@@ -287,7 +287,7 @@ class ParallelExecutor:
             None, execute_single_request_func, converse_args  # Use default thread pool executor
         )
 
-        return response
+        return cast(BedrockResponse, response)
 
     async def _execute_tasks_with_monitoring(
         self, tasks: List[asyncio.Task]
@@ -324,7 +324,7 @@ class ParallelExecutor:
                 results.append((request_id, failed_response))
             else:
                 # Normal result
-                results.append(result)
+                results.append(cast(Tuple[str, BedrockResponse], result))
 
         return results
 

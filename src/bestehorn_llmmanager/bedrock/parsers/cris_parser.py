@@ -439,7 +439,7 @@ class CRISHTMLParser(BaseCRISParser):
         Returns:
             Dictionary with merged region mappings from all variants
         """
-        merged_mappings = {}
+        merged_mappings: Dict[str, List[str]] = {}
 
         for variant in variants:
             for source_region, destination_regions in variant.region_mappings.items():
@@ -474,7 +474,7 @@ class CRISHTMLParser(BaseCRISParser):
 
         return clean_name if clean_name else None
 
-    def _normalize_header_attribute(self, header_attr) -> str:
+    def _normalize_header_attribute(self, header_attr: Any) -> str:
         """
         Normalize header attribute to string format.
 
@@ -513,7 +513,7 @@ class CRISHTMLParser(BaseCRISParser):
 
         return ""
 
-    def _extract_profile_from_section_id(self, section_id) -> str:
+    def _extract_profile_from_section_id(self, section_id: Any) -> str:
         """
         Fallback method to extract inference profile from section ID.
 
@@ -538,7 +538,7 @@ class CRISHTMLParser(BaseCRISParser):
         Returns:
             Dictionary mapping source regions to lists of destination regions
         """
-        region_mappings = {}
+        region_mappings: Dict[str, List[str]] = {}
 
         # Find table container within this section - try multiple selectors
         table_container = section.find(class_="table-container")

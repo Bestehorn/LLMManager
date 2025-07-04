@@ -36,6 +36,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from typing_extensions import assert_never
+
 from .correlators.model_cris_correlator import ModelCRISCorrelationError, ModelCRISCorrelator
 from .CRISManager import CRISManager
 from .downloaders.base_downloader import FileSystemError, NetworkError
@@ -513,7 +515,7 @@ class UnifiedModelManager:
                 alternatives=[cris_access],
             )
 
-        return None
+        assert_never(access_info.access_method)
 
     def is_model_available_in_region(self, model_name: str, region: str) -> bool:
         """

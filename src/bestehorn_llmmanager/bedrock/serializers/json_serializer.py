@@ -6,7 +6,7 @@ Handles serialization of model catalog data to JSON format.
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 from ..models.constants import LogMessages
 from ..models.data_structures import ModelCatalog
@@ -153,7 +153,7 @@ class JSONModelSerializer:
 
         try:
             with open(input_path, "r", encoding="utf-8") as f:
-                return json.load(fp=f)
+                return cast(Dict[str, Any], json.load(fp=f))
         except OSError as e:
             error_msg = LogMessages.FILE_ERROR.format(error=str(e))
             self._logger.error(error_msg)

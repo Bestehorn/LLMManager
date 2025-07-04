@@ -7,7 +7,7 @@ load balancing, error handling, and comprehensive response aggregation.
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional, Union, cast
 
 from .bedrock.distributors.region_distribution_manager import RegionDistributionManager
 from .bedrock.exceptions.parallel_exceptions import (
@@ -242,7 +242,7 @@ class ParallelLLMManager:
 
     def _create_single_request_executor(
         self, response_validation_config: Optional[ResponseValidationConfig] = None
-    ):
+    ) -> Callable[[Dict[str, Any]], BedrockResponse]:
         """
         Create a function to execute a single request through LLMManager.
 
@@ -295,7 +295,7 @@ class ParallelLLMManager:
             avg_duration = max_duration = min_duration = 0.0
 
         # Calculate region distribution
-        region_distribution = {}
+        region_distribution: Dict[str, int] = {}
         for assignment in assignments:
             for region in assignment.assigned_regions:
                 region_distribution[region] = region_distribution.get(region, 0) + 1
@@ -465,7 +465,7 @@ class ParallelLLMManager:
         base_validation = self._llm_manager.validate_configuration()
 
         # Add parallel-specific validation
-        parallel_validation = {
+        parallel_validation: Dict[str, Union[bool, List[str], int, str]] = {
             "parallel_config_valid": True,
             "parallel_errors": [],
             "parallel_warnings": [],
@@ -477,13 +477,13 @@ class ParallelLLMManager:
         # Validate parallel configuration
         try:
             if self._parallel_config.max_concurrent_requests > len(self._regions) * 2:
-                parallel_validation["parallel_warnings"].append(
+                cast(List[str], parallel_validation["parallel_warnings"]).append(
                     f"High concurrency ({self._parallel_config.max_concurrent_requests}) "
                     f"compared to available regions ({len(self._regions)})"
                 )
         except Exception as e:
             parallel_validation["parallel_config_valid"] = False
-            parallel_validation["parallel_errors"].append(str(e))
+            cast(List[str], parallel_validation["parallel_errors"]).append(str(e))
 
         # Combine validations
         combined_validation = base_validation.copy()

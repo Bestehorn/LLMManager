@@ -265,7 +265,7 @@ class RetryManager:
         self,
         models: List[str],
         regions: List[str],
-        unified_model_manager,
+        unified_model_manager: Any,
         failed_combinations: Optional[List[Tuple[str, str]]] = None,
     ) -> List[Tuple[str, str, ModelAccessInfo]]:
         """
@@ -382,7 +382,7 @@ class RetryManager:
             RetryExhaustedError: If all retry attempts fail
         """
         attempts = []
-        warnings = []
+        warnings: List[str] = []
         disabled_features = disabled_features or []
 
         # Create filter state to track content filtering
@@ -645,7 +645,7 @@ class RetryManager:
         return filtered_messages
 
     def _execute_response_validation(
-        self, response, validation_config: ResponseValidationConfig, model: str, region: str
+        self, response: Any, validation_config: ResponseValidationConfig, model: str, region: str
     ) -> Tuple[bool, List[ValidationAttempt]]:
         """
         Execute response validation with retry logic.
@@ -724,7 +724,7 @@ class RetryManager:
         return False, validation_attempts
 
     def _safe_validate_response(
-        self, response, validation_function: Callable
+        self, response: Any, validation_function: Callable
     ) -> Tuple[ValidationResult, Optional[str]]:
         """
         Safely execute validation function and return result with error info.
@@ -788,7 +788,7 @@ class RetryManager:
             )
 
         attempts = []
-        warnings = []
+        warnings: List[str] = []
         disabled_features = disabled_features or []
 
         # Create filter state to track content filtering
