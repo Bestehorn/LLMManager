@@ -418,7 +418,7 @@ class TestContentError:
         """Test initialization with all parameters."""
         error = ContentError(
             "Content error",
-            content_type="application/pd",
+            content_type="application/pdf",
             content_size=2097152,
             max_allowed_size=1048576,
         )
@@ -427,7 +427,7 @@ class TestContentError:
         assert error.content_size == 2097152
         assert error.max_allowed_size == 1048576
         assert error.details == {
-            "content_type": "application/pd",
+            "content_type": "application/pdf",
             "content_size": 2097152,
             "max_allowed_size": 1048576,
         }

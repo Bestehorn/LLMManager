@@ -44,6 +44,9 @@ class ConverseMessageBuilder:
         """
         self._logger = logging.getLogger(__name__)
 
+        # Validate role parameter before using it
+        self._validate_role(role=role)
+
         self._role = role
         self._content_blocks: List[Dict[str, Any]] = []
         self._file_detector = FileTypeDetector()
@@ -621,6 +624,22 @@ class ConverseMessageBuilder:
                 MessageBuilderLogMessages.CONTENT_SIZE_WARNING.format(
                     size=content_size, limit=max_size, content_type=content_type
                 )
+            )
+
+    def _validate_role(self, role: RolesEnum) -> None:
+        """
+        Validate role parameter is a valid RolesEnum instance.
+
+        Args:
+            role: The role to validate
+
+        Raises:
+            RequestValidationError: If role is invalid
+        """
+        if not isinstance(role, RolesEnum):
+            raise RequestValidationError(
+                f"Invalid role type. Expected RolesEnum, got {type(role).__name__}. "
+                f"Valid roles are: {', '.join([r.value for r in RolesEnum])}"
             )
 
     @property

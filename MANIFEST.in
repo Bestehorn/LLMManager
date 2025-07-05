@@ -9,7 +9,7 @@ include SECURITY.md
 
 # Include package data
 recursive-include src/bestehorn_llmmanager *.py
-recursive-include src/bestehorn_llmmanager py.typed
+include src/bestehorn_llmmanager/py.typed
 
 # Include build and test configuration
 include tox.ini
