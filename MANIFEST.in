@@ -14,6 +14,7 @@ include src/bestehorn_llmmanager/py.typed
 # Include build and test configuration
 include tox.ini
 include .bumpversion.cfg
+include .coveragerc
 
 # Include scripts
 recursive-include scripts *.py
