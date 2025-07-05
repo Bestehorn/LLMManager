@@ -96,8 +96,14 @@ addopts = [
     "--strict-config",
     "--cov=bestehorn_llmmanager",
     "--cov-report=term-missing",
-    "--cov-report=html",
+    "--cov-report=html:htmlcov",
     "--cov-report=xml",
+    "--cov-report=json:coverage.json",
+    "--cov-fail-under=80",
+    "--html=test_results.html",
+    "--self-contained-html",
+    "-v",
+    "--tb=short"
 ]
 testpaths = ["test"]
 python_files = ["test_*.py"]
@@ -105,8 +111,27 @@ python_classes = ["Test*"]
 python_functions = ["test_*"]
 markers = [
     "unit: Unit tests",
-    "integration: Integration tests that require AWS credentials",
-    "slow: Slow tests that may timeout",
+    "integration: Integration tests",
+    "slow: Slow running tests",
+    "network: Tests requiring network access",
+    "aws: Tests requiring AWS access",
+    "aws_integration: Tests requiring real AWS Bedrock API access",
+    "aws_low_cost: Low-cost tests (< $0.01 estimated)",
+    "aws_medium_cost: Medium-cost tests ($0.01 - $0.10 estimated)",
+    "aws_high_cost: High-cost tests (> $0.10 estimated)",
+    "aws_fast: Fast integration tests (< 30 seconds)",
+    "aws_slow: Slow integration tests (> 30 seconds)",
+    "aws_bedrock_runtime: Tests using Bedrock Runtime API",
+    "aws_profile_auth: Tests requiring AWS CLI profile authentication",
+    "aws_single_region: Tests operating in a single AWS region",
+    "aws_multi_region: Tests operating across multiple AWS regions",
+    "aws_anthropic_models: Tests using Anthropic models",
+    "aws_amazon_models: Tests using Amazon models",
+    "aws_streaming: Tests using streaming responses",
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
 ]
 
 # Code formatting with Black
@@ -171,26 +196,3 @@ module = "bestehorn_llmmanager.llm_manager"
 # The validation methods have implicit returns that mypy thinks are unreachable
 # but we keep them for robustness when Python's dynamic typing is considered
 warn_unreachable = false
-
-# Coverage configuration
-[tool.coverage.run]
-source = ["src/bestehorn_llmmanager"]
-omit = [
-    "*/tests/*",
-    "*/test_*",
-    "*/__pycache__/*",
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
-]
