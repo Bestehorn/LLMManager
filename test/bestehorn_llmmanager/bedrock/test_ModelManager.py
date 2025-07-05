@@ -43,16 +43,21 @@ class TestModelManager:
     def model_manager(self, mock_downloader, mock_parser, mock_serializer):
         """Create a ModelManager instance with mocked components."""
         with patch(
-            "bestehorn_llmmanager.bedrock.ModelManager.HTMLDocumentationDownloader",
+            "bestehorn_llmmanager.bedrock.downloaders.html_downloader.HTMLDocumentationDownloader",
             return_value=mock_downloader,
         ), patch(
-            "bestehorn_llmmanager.bedrock.ModelManager.EnhancedBedrockHTMLParser",
+            "bestehorn_llmmanager.bedrock.parsers.enhanced_bedrock_parser.EnhancedBedrockHTMLParser",
             return_value=mock_parser,
         ), patch(
-            "bestehorn_llmmanager.bedrock.ModelManager.JSONModelSerializer",
+            "bestehorn_llmmanager.bedrock.serializers.json_serializer.JSONModelSerializer",
             return_value=mock_serializer,
         ):
-            return ModelManager()
+            manager = ModelManager()
+            # Manually assign the mocks to ensure they're used
+            manager._downloader = mock_downloader
+            manager._parser = mock_parser
+            manager._serializer = mock_serializer
+            return manager
 
     def test_init_default_configuration(self):
         """Test default initialization of ModelManager."""
@@ -366,24 +371,27 @@ class TestModelManagerIntegration:
         mock_parser.parse.return_value = test_models
 
         # Create manager with mocked components
-        with patch(
-            "bestehorn_llmmanager.bedrock.ModelManager.HTMLDocumentationDownloader",
-            return_value=mock_downloader,
-        ), patch(
-            "bestehorn_llmmanager.bedrock.ModelManager.EnhancedBedrockHTMLParser",
-            return_value=mock_parser,
-        ), patch(
-            "bestehorn_llmmanager.bedrock.ModelManager.JSONModelSerializer",
-            return_value=mock_serializer,
+        # Patch the imported classes in the ModelManager module
+        with patch.object(
+            ModelManager, "_downloader", mock_downloader, create=True
+        ), patch.object(
+            ModelManager, "_parser", mock_parser, create=True
+        ), patch.object(
+            ModelManager, "_serializer", mock_serializer, create=True
         ):
 
             manager = ModelManager(html_output_path=html_path, json_output_path=json_path)
 
-            # Execute refresh
-            catalog = manager.refresh_model_data()
+            # Manually assign the mocks to ensure they're used
+            manager._downloader = mock_downloader
+            manager._parser = mock_parser
+            manager._serializer = mock_serializer
 
-            # Verify workflow
-            assert catalog.models == test_models
+            # Execute refresh with force_download=True to ensure download is called
+            catalog = manager.refresh_model_data(force_download=True)
+
+            # Verify workflow completed successfully
+            assert isinstance(catalog, ModelCatalog)
             assert isinstance(catalog.retrieval_timestamp, datetime)
 
             # Verify all components were called in order
@@ -393,3 +401,16 @@ class TestModelManagerIntegration:
 
             # Verify catalog was cached
             assert manager._cached_catalog == catalog
+
+            # Verify model names are correct (the parser mock returns our test_models)
+            assert "Claude 3 Haiku" in catalog.models
+            assert "Claude 3 Sonnet" in catalog.models
+            assert len(catalog.models) == 2
+
+            # Verify the parser was called with the correct path
+            mock_parser.parse.assert_called_with(file_path=html_path)
+
+            # Verify the serializer was called with the catalog
+            mock_serializer.serialize_to_file.assert_called_with(
+                catalog=catalog, output_path=json_path
+            )
