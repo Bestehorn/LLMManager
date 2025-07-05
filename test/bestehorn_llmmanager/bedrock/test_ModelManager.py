@@ -277,9 +277,10 @@ class TestModelManager:
 
         model_manager.html_output_path = html_file
 
-        with patch("bestehorn_llmmanager.bedrock.ModelManager.datetime") as mock_datetime:
-            mock_datetime.now.return_value = datetime.now()
-            mock_datetime.fromtimestamp.return_value = old_time
+        # Mock the datetime methods in the ModelManager module
+        with patch("bestehorn_llmmanager.bedrock.ModelManager.datetime") as mock_datetime_class:
+            mock_datetime_class.now.return_value = datetime.now()
+            mock_datetime_class.fromtimestamp.return_value = old_time
 
             result = model_manager._is_html_file_recent(max_age_hours=1)
 
@@ -305,8 +306,8 @@ class TestModelManager:
         model_manager.html_output_path = html_file
 
         # Mock datetime.fromtimestamp to raise OSError
-        with patch("bestehorn_llmmanager.bedrock.ModelManager.datetime") as mock_datetime:
-            mock_datetime.fromtimestamp.side_effect = OSError("Permission denied")
+        with patch("bestehorn_llmmanager.bedrock.ModelManager.datetime") as mock_datetime_class:
+            mock_datetime_class.fromtimestamp.side_effect = OSError("Permission denied")
             result = model_manager._is_html_file_recent()
 
         assert result is False
