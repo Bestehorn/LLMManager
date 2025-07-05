@@ -373,13 +373,9 @@ class TestModelManagerIntegration:
 
         # Create manager with mocked components
         # Patch the imported classes in the ModelManager module
-        with patch.object(
-            ModelManager, "_downloader", mock_downloader, create=True
-        ), patch.object(
+        with patch.object(ModelManager, "_downloader", mock_downloader, create=True), patch.object(
             ModelManager, "_parser", mock_parser, create=True
-        ), patch.object(
-            ModelManager, "_serializer", mock_serializer, create=True
-        ):
+        ), patch.object(ModelManager, "_serializer", mock_serializer, create=True):
 
             manager = ModelManager(html_output_path=html_path, json_output_path=json_path)
 
