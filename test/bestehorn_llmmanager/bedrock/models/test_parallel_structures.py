@@ -558,8 +558,9 @@ class TestParallelExecutionContext:
 
         # Use a real time difference by sleeping briefly
         import time
+
         time.sleep(0.01)  # Sleep for 10ms to ensure elapsed time
-        
+
         # No need to mock datetime - use real elapsed time
         context = ParallelExecutionContext(start_time=start_time)
         elapsed = context.get_elapsed_time_ms()

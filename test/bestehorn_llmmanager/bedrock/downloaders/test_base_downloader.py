@@ -44,8 +44,10 @@ class TestDocumentationDownloader:
 
         # Check that it's a protocol (verify it's from typing module)
         # In Python 3.9+, protocols may not have __annotations__ at class level
-        assert hasattr(DocumentationDownloader, "__protocol__") or \
-               str(type(DocumentationDownloader)).find('typing') != -1
+        assert (
+            hasattr(DocumentationDownloader, "__protocol__")
+            or str(type(DocumentationDownloader)).find("typing") != -1
+        )
 
 
 class TestBaseDocumentationDownloader:

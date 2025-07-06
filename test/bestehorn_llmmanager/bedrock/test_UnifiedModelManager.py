@@ -806,15 +806,16 @@ class TestUnifiedModelManagerCacheManagement:
         # Use a timestamp that's 2 hours in the past from "now"
         from datetime import timezone
         import time
-        
+
         # Calculate a timestamp that's 2 hours ago
         two_hours_ago = time.time() - (2 * 3600)  # 2 hours in seconds
-        
+
         # Convert to ISO format string (the format the method expects)
         from datetime import datetime
+
         dt = datetime.fromtimestamp(two_hours_ago, tz=timezone.utc)
         timestamp_str = dt.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        
+
         age_hours = cache_manager._get_cache_age_hours(timestamp_str)
 
         # Should be approximately 2 hours (allow some tolerance for execution time)
@@ -825,15 +826,16 @@ class TestUnifiedModelManagerCacheManagement:
         # Use a timestamp that's 3 hours in the past from "now"
         from datetime import timezone
         import time
-        
+
         # Calculate a timestamp that's 3 hours ago
         three_hours_ago = time.time() - (3 * 3600)  # 3 hours in seconds
-        
+
         # Convert to ISO format string without microseconds (the fallback format)
         from datetime import datetime
+
         dt = datetime.fromtimestamp(three_hours_ago, tz=timezone.utc)
         timestamp_str = dt.strftime("%Y-%m-%dT%H:%M:%SZ")  # No microseconds
-        
+
         age_hours = cache_manager._get_cache_age_hours(timestamp_str)
 
         # Should be approximately 3 hours (allow some tolerance for execution time)

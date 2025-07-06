@@ -269,7 +269,7 @@ class TestModelManager:
         """Test checking if HTML file is recent when file is old."""
         import os
         import time
-        
+
         # Create a file
         html_file = tmp_path / "old.html"
         html_file.write_text("content")
@@ -304,10 +304,10 @@ class TestModelManager:
         # Use a non-existent file in a non-existent directory to trigger OSError
         non_existent_dir = tmp_path / "non_existent_directory" / "deeply" / "nested" / "path"
         html_file = non_existent_dir / "test.html"
-        
+
         # Set the path to the non-existent file
         model_manager.html_output_path = html_file
-        
+
         # This should return False because the file doesn't exist (OSError path)
         result = model_manager._is_html_file_recent()
 
