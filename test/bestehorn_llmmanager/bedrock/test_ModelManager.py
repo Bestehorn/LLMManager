@@ -267,22 +267,21 @@ class TestModelManager:
 
     def test_is_html_file_recent_file_is_old(self, model_manager, tmp_path):
         """Test checking if HTML file is recent when file is old."""
-        # Create an old file
+        import os
+        import time
+        
+        # Create a file
         html_file = tmp_path / "old.html"
         html_file.write_text("content")
 
-        # Set modification time to 2 hours ago
-        old_time = datetime.now() - timedelta(hours=2)
-        html_file.touch()
+        # Set modification time to 2 hours ago (2 * 3600 seconds)
+        old_timestamp = time.time() - (2 * 3600)
+        os.utime(html_file, (old_timestamp, old_timestamp))
 
         model_manager.html_output_path = html_file
 
-        # Patch datetime at the module level using string path
-        with patch('bestehorn_llmmanager.bedrock.ModelManager.datetime') as mock_datetime_class:
-            mock_datetime_class.now.return_value = datetime.now()
-            mock_datetime_class.fromtimestamp.return_value = old_time
-
-            result = model_manager._is_html_file_recent(max_age_hours=1)
+        # Test that file is considered old (not recent)
+        result = model_manager._is_html_file_recent(max_age_hours=1)
 
         assert result is False
 
@@ -305,9 +304,11 @@ class TestModelManager:
         html_file.write_text("test content")  # Create the file
         model_manager.html_output_path = html_file
 
-        # Patch datetime at the module level using string path
-        with patch('bestehorn_llmmanager.bedrock.ModelManager.datetime') as mock_datetime_class:
-            mock_datetime_class.fromtimestamp.side_effect = OSError("Permission denied")
+        # Mock datetime.fromtimestamp to raise OSError to simulate file access errors
+        with patch('bestehorn_llmmanager.bedrock.ModelManager.datetime') as mock_datetime_module:
+            mock_datetime_module.now.return_value = datetime.now()
+            mock_datetime_module.fromtimestamp.side_effect = OSError("Permission denied")
+            
             result = model_manager._is_html_file_recent()
 
         assert result is False
