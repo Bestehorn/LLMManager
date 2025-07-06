@@ -18,7 +18,7 @@ from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
 class TestBedrockResponse:
     """Test cases for BedrockResponse class."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.sample_response_data = {
             ConverseAPIFields.OUTPUT: {
@@ -51,7 +51,7 @@ class TestBedrockResponse:
             error=None,
         )
 
-    def test_successful_response_creation(self):
+    def test_successful_response_creation(self) -> None:
         """Test creation of successful BedrockResponse."""
         response = BedrockResponse(
             success=True,
@@ -78,7 +78,7 @@ class TestBedrockResponse:
         assert response.warnings == ["Test warning"]
         assert response.features_disabled == ["streaming"]
 
-    def test_failed_response_creation(self):
+    def test_failed_response_creation(self) -> None:
         """Test creation of failed BedrockResponse."""
         failed_attempt = RequestAttempt(
             model_id="anthropic.claude-3-5-sonnet-20241022-v2:0",
@@ -97,7 +97,7 @@ class TestBedrockResponse:
         assert response.model_used is None
         assert len(response.attempts) == 1
 
-    def test_get_content_success(self):
+    def test_get_content_success(self) -> None:
         """Test extracting content from successful response."""
         response = BedrockResponse(success=True, response_data=self.sample_response_data)
 
@@ -105,7 +105,7 @@ class TestBedrockResponse:
 
         assert content == "Hello, how can I help you?\nI'm here to assist."
 
-    def test_get_content_no_response_data(self):
+    def test_get_content_no_response_data(self) -> None:
         """Test get_content when no response data available."""
         response = BedrockResponse(success=True, response_data=None)
 
@@ -113,7 +113,7 @@ class TestBedrockResponse:
 
         assert content is None
 
-    def test_get_content_failed_response(self):
+    def test_get_content_failed_response(self) -> None:
         """Test get_content on failed response."""
         response = BedrockResponse(success=False, response_data=self.sample_response_data)
 
@@ -121,7 +121,7 @@ class TestBedrockResponse:
 
         assert content is None
 
-    def test_get_content_malformed_data(self):
+    def test_get_content_malformed_data(self) -> None:
         """Test get_content with malformed response data."""
         malformed_data = {ConverseAPIFields.OUTPUT: "invalid_structure"}
 
@@ -131,9 +131,9 @@ class TestBedrockResponse:
 
         assert content is None
 
-    def test_get_content_empty_content_blocks(self):
+    def test_get_content_empty_content_blocks(self) -> None:
         """Test get_content with empty content blocks."""
-        empty_content_data = {
+        empty_content_data: dict = {
             ConverseAPIFields.OUTPUT: {ConverseAPIFields.MESSAGE: {ConverseAPIFields.CONTENT: []}}
         }
 
@@ -143,7 +143,7 @@ class TestBedrockResponse:
 
         assert content is None
 
-    def test_get_usage_success(self):
+    def test_get_usage_success(self) -> None:
         """Test getting usage information from response."""
         response = BedrockResponse(success=True, response_data=self.sample_response_data)
 
@@ -159,7 +159,7 @@ class TestBedrockResponse:
 
         assert usage == expected
 
-    def test_get_usage_no_response_data(self):
+    def test_get_usage_no_response_data(self) -> None:
         """Test get_usage when no response data available."""
         response = BedrockResponse(success=True, response_data=None)
 
@@ -167,7 +167,7 @@ class TestBedrockResponse:
 
         assert usage is None
 
-    def test_get_usage_failed_response(self):
+    def test_get_usage_failed_response(self) -> None:
         """Test get_usage on failed response."""
         response = BedrockResponse(success=False, response_data=self.sample_response_data)
 
@@ -175,7 +175,7 @@ class TestBedrockResponse:
 
         assert usage is None
 
-    def test_get_usage_malformed_data(self):
+    def test_get_usage_malformed_data(self) -> None:
         """Test get_usage with malformed response data."""
         malformed_data = {ConverseAPIFields.USAGE: "invalid_structure"}
 
@@ -185,7 +185,7 @@ class TestBedrockResponse:
 
         assert usage is None
 
-    def test_get_metrics_success(self):
+    def test_get_metrics_success(self) -> None:
         """Test getting metrics from response."""
         response = BedrockResponse(
             success=True,
@@ -202,7 +202,7 @@ class TestBedrockResponse:
         assert metrics["attempts_made"] == 1
         assert metrics["successful_attempt_number"] == 1
 
-    def test_get_metrics_no_response_data(self):
+    def test_get_metrics_no_response_data(self) -> None:
         """Test get_metrics when no response data available."""
         response = BedrockResponse(success=True, response_data=None)
 
@@ -210,7 +210,7 @@ class TestBedrockResponse:
 
         assert metrics is None
 
-    def test_get_metrics_failed_response(self):
+    def test_get_metrics_failed_response(self) -> None:
         """Test get_metrics on failed response."""
         response = BedrockResponse(success=False, response_data=self.sample_response_data)
 
@@ -218,7 +218,7 @@ class TestBedrockResponse:
 
         assert metrics is None
 
-    def test_get_metrics_partial_data(self):
+    def test_get_metrics_partial_data(self) -> None:
         """Test get_metrics with partial data available."""
         failed_attempt = RequestAttempt(
             model_id="test",
@@ -245,7 +245,7 @@ class TestBedrockResponse:
         assert metrics["attempts_made"] == 1
         assert "successful_attempt_number" not in metrics
 
-    def test_get_stop_reason_success(self):
+    def test_get_stop_reason_success(self) -> None:
         """Test getting stop reason from response."""
         response = BedrockResponse(success=True, response_data=self.sample_response_data)
 
@@ -253,7 +253,7 @@ class TestBedrockResponse:
 
         assert stop_reason == "end_turn"
 
-    def test_get_stop_reason_no_response_data(self):
+    def test_get_stop_reason_no_response_data(self) -> None:
         """Test get_stop_reason when no response data available."""
         response = BedrockResponse(success=True, response_data=None)
 
@@ -261,7 +261,7 @@ class TestBedrockResponse:
 
         assert stop_reason is None
 
-    def test_get_additional_model_response_fields_success(self):
+    def test_get_additional_model_response_fields_success(self) -> None:
         """Test getting additional model response fields."""
         response = BedrockResponse(success=True, response_data=self.sample_response_data)
 
@@ -269,7 +269,7 @@ class TestBedrockResponse:
 
         assert additional_fields == {"custom_field": "custom_value"}
 
-    def test_get_additional_model_response_fields_no_response_data(self):
+    def test_get_additional_model_response_fields_no_response_data(self) -> None:
         """Test get_additional_model_response_fields when no response data available."""
         response = BedrockResponse(success=True, response_data=None)
 
@@ -277,7 +277,7 @@ class TestBedrockResponse:
 
         assert additional_fields is None
 
-    def test_was_successful(self):
+    def test_was_successful(self) -> None:
         """Test was_successful method."""
         successful_response = BedrockResponse(success=True)
         failed_response = BedrockResponse(success=False)
@@ -285,7 +285,7 @@ class TestBedrockResponse:
         assert successful_response.was_successful() is True
         assert failed_response.was_successful() is False
 
-    def test_get_warnings(self):
+    def test_get_warnings(self) -> None:
         """Test getting warnings."""
         warnings = ["Warning 1", "Warning 2"]
         response = BedrockResponse(success=True, warnings=warnings)
@@ -295,7 +295,7 @@ class TestBedrockResponse:
         assert result_warnings == warnings
         assert result_warnings is not response.warnings  # Should be a copy
 
-    def test_get_disabled_features(self):
+    def test_get_disabled_features(self) -> None:
         """Test getting disabled features."""
         disabled_features = ["feature1", "feature2"]
         response = BedrockResponse(success=True, features_disabled=disabled_features)
@@ -305,7 +305,7 @@ class TestBedrockResponse:
         assert result_features == disabled_features
         assert result_features is not response.features_disabled  # Should be a copy
 
-    def test_get_last_error_success(self):
+    def test_get_last_error_success(self) -> None:
         """Test getting last error from failed attempts."""
         error1 = Exception("First error")
         error2 = Exception("Second error")
@@ -336,7 +336,7 @@ class TestBedrockResponse:
 
         assert last_error == error2
 
-    def test_get_last_error_no_errors(self):
+    def test_get_last_error_no_errors(self) -> None:
         """Test getting last error when no errors exist."""
         successful_attempt = RequestAttempt(
             model_id="test",
@@ -354,7 +354,7 @@ class TestBedrockResponse:
 
         assert last_error is None
 
-    def test_get_all_errors(self):
+    def test_get_all_errors(self) -> None:
         """Test getting all errors from failed attempts."""
         error1 = Exception("First error")
         error2 = Exception("Second error")
@@ -399,7 +399,7 @@ class TestBedrockResponse:
         assert error1 in all_errors
         assert error2 in all_errors
 
-    def test_get_attempt_count(self):
+    def test_get_attempt_count(self) -> None:
         """Test getting attempt count."""
         attempts = [self.sample_attempt, self.sample_attempt]
         response = BedrockResponse(success=True, attempts=attempts)
@@ -408,7 +408,7 @@ class TestBedrockResponse:
 
         assert count == 2
 
-    def test_get_successful_attempt(self):
+    def test_get_successful_attempt(self) -> None:
         """Test getting successful attempt."""
         failed_attempt = RequestAttempt(
             model_id="test1",
@@ -426,7 +426,7 @@ class TestBedrockResponse:
 
         assert successful_attempt == self.sample_attempt
 
-    def test_get_successful_attempt_no_success(self):
+    def test_get_successful_attempt_no_success(self) -> None:
         """Test getting successful attempt when no success exists."""
         failed_attempt = RequestAttempt(
             model_id="test1",
@@ -444,7 +444,7 @@ class TestBedrockResponse:
 
         assert successful_attempt is None
 
-    def test_get_cached_tokens_info_with_cache(self):
+    def test_get_cached_tokens_info_with_cache(self) -> None:
         """Test getting cached tokens info when cache data is available."""
         response = BedrockResponse(success=True, response_data=self.sample_response_data)
 
@@ -459,7 +459,7 @@ class TestBedrockResponse:
 
         assert cache_info == expected
 
-    def test_get_cached_tokens_info_no_cache(self):
+    def test_get_cached_tokens_info_no_cache(self) -> None:
         """Test getting cached tokens info when no cache data is available."""
         no_cache_data = {
             ConverseAPIFields.USAGE: {
@@ -475,7 +475,7 @@ class TestBedrockResponse:
 
         assert cache_info is None
 
-    def test_get_cached_tokens_info_no_usage(self):
+    def test_get_cached_tokens_info_no_usage(self) -> None:
         """Test getting cached tokens info when no usage data is available."""
         response = BedrockResponse(success=True, response_data={})
 
@@ -483,7 +483,7 @@ class TestBedrockResponse:
 
         assert cache_info is None
 
-    def test_had_validation_failures_true(self):
+    def test_had_validation_failures_true(self) -> None:
         """Test had_validation_failures when validation attempts exist."""
         validation_result = ValidationResult(
             success=False, error_message="Validation error", error_details={"detail": "error"}
@@ -497,13 +497,13 @@ class TestBedrockResponse:
 
         assert response.had_validation_failures() is True
 
-    def test_had_validation_failures_false(self):
+    def test_had_validation_failures_false(self) -> None:
         """Test had_validation_failures when no validation attempts exist."""
         response = BedrockResponse(success=True)
 
         assert response.had_validation_failures() is False
 
-    def test_get_validation_attempt_count(self):
+    def test_get_validation_attempt_count(self) -> None:
         """Test getting validation attempt count."""
         validation_result1 = ValidationResult(success=True)
         validation_result2 = ValidationResult(success=False, error_message="Error")
@@ -523,7 +523,7 @@ class TestBedrockResponse:
 
         assert count == 2
 
-    def test_get_validation_errors(self):
+    def test_get_validation_errors(self) -> None:
         """Test getting validation errors."""
         validation_errors = [{"error": "test_error_1"}, {"error": "test_error_2"}]
         response = BedrockResponse(success=True, validation_errors=validation_errors)
@@ -533,7 +533,7 @@ class TestBedrockResponse:
         assert result_errors == validation_errors
         assert result_errors is not response.validation_errors  # Should be a copy
 
-    def test_get_last_validation_error(self):
+    def test_get_last_validation_error(self) -> None:
         """Test getting last validation error."""
         error1 = {"error": "first_error"}
         error2 = {"error": "second_error"}
@@ -545,7 +545,7 @@ class TestBedrockResponse:
 
         assert last_error == error2
 
-    def test_get_last_validation_error_no_errors(self):
+    def test_get_last_validation_error_no_errors(self) -> None:
         """Test getting last validation error when no errors exist."""
         response = BedrockResponse(success=True)
 
@@ -553,7 +553,7 @@ class TestBedrockResponse:
 
         assert last_error is None
 
-    def test_get_validation_metrics_with_success(self):
+    def test_get_validation_metrics_with_success(self) -> None:
         """Test getting validation metrics with successful validation."""
         successful_validation_result = ValidationResult(
             success=True, error_message=None, error_details=None
@@ -580,7 +580,7 @@ class TestBedrockResponse:
 
         assert metrics == expected
 
-    def test_get_validation_metrics_no_success(self):
+    def test_get_validation_metrics_no_success(self) -> None:
         """Test getting validation metrics with no successful validation."""
         failed_validation_result = ValidationResult(
             success=False, error_message="Validation failed", error_details={"error": "details"}
@@ -602,7 +602,7 @@ class TestBedrockResponse:
 
         assert metrics == expected
 
-    def test_to_dict(self):
+    def test_to_dict(self) -> None:
         """Test converting response to dictionary."""
         start_time = datetime.now()
         end_time = datetime.now()
@@ -654,7 +654,7 @@ class TestBedrockResponse:
         assert len(result_dict["validation_attempts"]) == 1
         assert result_dict["validation_errors"] == [{"error": "test"}]
 
-    def test_to_json(self):
+    def test_to_json(self) -> None:
         """Test converting response to JSON string."""
         response = BedrockResponse(success=True, model_used="test_model")
 
@@ -665,7 +665,7 @@ class TestBedrockResponse:
         assert parsed["success"] is True
         assert parsed["model_used"] == "test_model"
 
-    def test_to_json_with_indent(self):
+    def test_to_json_with_indent(self) -> None:
         """Test converting response to formatted JSON string."""
         response = BedrockResponse(success=True, model_used="test_model")
 
@@ -676,7 +676,7 @@ class TestBedrockResponse:
         parsed = json.loads(json_str)
         assert parsed["success"] is True
 
-    def test_from_dict(self):
+    def test_from_dict(self) -> None:
         """Test creating response from dictionary."""
         start_time = datetime.now()
         end_time = datetime.now()
@@ -733,7 +733,7 @@ class TestBedrockResponse:
         assert len(response.validation_attempts) == 1
         assert response.validation_errors == [{"error": "test"}]
 
-    def test_from_dict_with_error_attempt(self):
+    def test_from_dict_with_error_attempt(self) -> None:
         """Test creating response from dictionary with error attempt."""
         start_time = datetime.now()
 
@@ -761,7 +761,7 @@ class TestBedrockResponse:
         assert response.attempts[0].success is False
         assert str(response.attempts[0].error) == "Test error message"
 
-    def test_repr(self):
+    def test_repr(self) -> None:
         """Test string representation of BedrockResponse."""
         response = BedrockResponse(
             success=True,
@@ -777,7 +777,7 @@ class TestBedrockResponse:
         assert "us-east-1" in repr_str
         assert "attempts=1" in repr_str
 
-    def test_repr_failed(self):
+    def test_repr_failed(self) -> None:
         """Test string representation of failed BedrockResponse."""
         response = BedrockResponse(success=False, attempts=[])
 
@@ -790,7 +790,7 @@ class TestBedrockResponse:
 class TestStreamingResponse:
     """Test cases for StreamingResponse class."""
 
-    def test_successful_streaming_response_creation(self):
+    def test_successful_streaming_response_creation(self) -> None:
         """Test creation of successful StreamingResponse."""
         final_response = BedrockResponse(success=True)
 
@@ -808,7 +808,7 @@ class TestStreamingResponse:
         assert len(response.stream_errors) == 0
         assert response.stream_position == 11
 
-    def test_failed_streaming_response_creation(self):
+    def test_failed_streaming_response_creation(self) -> None:
         """Test creation of failed StreamingResponse."""
         stream_error = Exception("Streaming error")
 
@@ -820,7 +820,7 @@ class TestStreamingResponse:
         assert len(response.stream_errors) == 1
         assert response.stream_position == 0
 
-    def test_get_full_content(self):
+    def test_get_full_content(self) -> None:
         """Test getting full content from streaming parts."""
         response = StreamingResponse(success=True, content_parts=["Hello", " ", "world", "!"])
 
@@ -828,7 +828,7 @@ class TestStreamingResponse:
 
         assert full_content == "Hello world!"
 
-    def test_get_full_content_empty(self):
+    def test_get_full_content_empty(self) -> None:
         """Test getting full content when no parts exist."""
         response = StreamingResponse(success=True, content_parts=[])
 
@@ -836,7 +836,7 @@ class TestStreamingResponse:
 
         assert full_content == ""
 
-    def test_get_content_parts(self):
+    def test_get_content_parts(self) -> None:
         """Test getting content parts."""
         parts = ["Hello", " world"]
         response = StreamingResponse(success=True, content_parts=parts)
@@ -846,7 +846,7 @@ class TestStreamingResponse:
         assert result_parts == parts
         assert result_parts is not response.content_parts  # Should be a copy
 
-    def test_add_content_part(self):
+    def test_add_content_part(self) -> None:
         """Test adding content part to streaming response."""
         response = StreamingResponse(success=True)
 
@@ -856,7 +856,7 @@ class TestStreamingResponse:
         assert response.content_parts == ["Hello", " world"]
         assert response.stream_position == 11
 
-    def test_add_stream_error(self):
+    def test_add_stream_error(self) -> None:
         """Test adding stream error."""
         response = StreamingResponse(success=True)
         error = Exception("Stream error")
@@ -866,7 +866,7 @@ class TestStreamingResponse:
         assert len(response.stream_errors) == 1
         assert response.stream_errors[0] == error
 
-    def test_get_stream_errors(self):
+    def test_get_stream_errors(self) -> None:
         """Test getting stream errors."""
         error1 = Exception("Error 1")
         error2 = Exception("Error 2")
@@ -879,7 +879,7 @@ class TestStreamingResponse:
         assert result_errors == errors
         assert result_errors is not response.stream_errors  # Should be a copy
 
-    def test_streaming_response_repr_success(self):
+    def test_streaming_response_repr_success(self) -> None:
         """Test string representation of successful StreamingResponse."""
         response = StreamingResponse(
             success=True, content_parts=["Hello", " world"], stream_position=11
@@ -892,7 +892,7 @@ class TestStreamingResponse:
         assert "position=11" in repr_str
         assert "errors=0" in repr_str
 
-    def test_streaming_response_repr_failed(self):
+    def test_streaming_response_repr_failed(self) -> None:
         """Test string representation of failed StreamingResponse."""
         response = StreamingResponse(success=False, stream_errors=[Exception("Error")])
 

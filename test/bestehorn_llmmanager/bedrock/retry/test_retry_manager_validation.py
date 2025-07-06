@@ -28,7 +28,7 @@ from bestehorn_llmmanager.bedrock.retry.retry_manager import RetryManager
 class TestResponseValidation:
     """Test cases for response validation functionality."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.retry_config = RetryConfig(
             max_retries=3, retry_delay=0.1, enable_feature_fallback=True  # Short delay for tests
@@ -69,7 +69,7 @@ class TestResponseValidation:
             access_method=ModelAccessMethod.DIRECT,
         )
 
-    def create_json_validation_function(self):
+    def create_json_validation_function(self):  # type: ignore[no-untyped-def]
         """Create a validation function that checks for valid JSON."""
 
         def validate_json_response(response: BedrockResponse) -> ValidationResult:
@@ -101,7 +101,7 @@ class TestResponseValidation:
 
         return validate_json_response
 
-    def test_validation_config_creation(self):
+    def test_validation_config_creation(self) -> None:
         """Test creation of ResponseValidationConfig."""
         validation_function = self.create_json_validation_function()
 
@@ -120,7 +120,7 @@ class TestResponseValidation:
         assert config.response_validation_retries == 5
         assert config.response_validation_delay == 1.0
 
-    def test_validation_config_validation(self):
+    def test_validation_config_validation(self) -> None:
         """Test validation of ResponseValidationConfig parameters."""
         validation_function = self.create_json_validation_function()
 

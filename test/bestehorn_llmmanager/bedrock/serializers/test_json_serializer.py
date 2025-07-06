@@ -18,7 +18,7 @@ from bestehorn_llmmanager.bedrock.serializers.json_serializer import JSONModelSe
 class TestJSONModelSerializer:
     """Test cases for JSONModelSerializer class."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.serializer = JSONModelSerializer()
         self.custom_serializer = JSONModelSerializer(indent=4, ensure_ascii=True)
@@ -37,21 +37,21 @@ class TestJSONModelSerializer:
         }
         self.mock_catalog.to_dict.return_value = self.mock_catalog_dict
 
-    def test_init_default_parameters(self):
+    def test_init_default_parameters(self) -> None:
         """Test initialization with default parameters."""
         serializer = JSONModelSerializer()
 
         assert serializer._indent == 2
         assert serializer._ensure_ascii is False
 
-    def test_init_custom_parameters(self):
+    def test_init_custom_parameters(self) -> None:
         """Test initialization with custom parameters."""
         serializer = JSONModelSerializer(indent=4, ensure_ascii=True)
 
         assert serializer._indent == 4
         assert serializer._ensure_ascii is True
 
-    def test_serialize_to_file_success(self):
+    def test_serialize_to_file_success(self) -> None:
         """Test successful serialization to file."""
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "test_output.json"
@@ -81,7 +81,7 @@ class TestJSONModelSerializer:
                     LogMessages.JSON_EXPORT_COMPLETED.format(file_path=output_path)
                 )
 
-    def test_serialize_to_file_creates_parent_directory(self):
+    def test_serialize_to_file_creates_parent_directory(self) -> None:
         """Test that serialization creates parent directories if they don't exist."""
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "subdir" / "nested" / "test_output.json"
@@ -92,7 +92,7 @@ class TestJSONModelSerializer:
             assert output_path.exists()
             assert output_path.parent.exists()
 
-    def test_serialize_to_file_custom_formatting(self):
+    def test_serialize_to_file_custom_formatting(self) -> None:
         """Test serialization with custom formatting options."""
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "test_formatted.json"
@@ -111,7 +111,7 @@ class TestJSONModelSerializer:
             # Should be pretty-printed (multiple lines)
             assert len(lines) > 1
 
-    def test_serialize_to_file_os_error(self):
+    def test_serialize_to_file_os_error(self) -> None:
         """Test handling of OS errors during file serialization."""
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "test.json"
@@ -135,7 +135,7 @@ class TestJSONModelSerializer:
                     # Verify error was logged
                     mock_log_instance.error.assert_called()
 
-    def test_serialize_to_file_serialization_error(self):
+    def test_serialize_to_file_serialization_error(self) -> None:
         """Test handling of serialization errors during file operations."""
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "test_error.json"
@@ -159,7 +159,7 @@ class TestJSONModelSerializer:
                 # Verify error was logged
                 mock_log_instance.error.assert_called()
 
-    def test_serialize_to_string_success(self):
+    def test_serialize_to_string_success(self) -> None:
         """Test successful serialization to string."""
         result = self.serializer.serialize_to_string(catalog=self.mock_catalog)
 
@@ -170,7 +170,7 @@ class TestJSONModelSerializer:
         # Should be formatted (contains newlines for indentation)
         assert "\n" in result
 
-    def test_serialize_to_string_custom_formatting(self):
+    def test_serialize_to_string_custom_formatting(self) -> None:
         """Test string serialization with custom formatting."""
         result = self.custom_serializer.serialize_to_string(catalog=self.mock_catalog)
 
@@ -182,7 +182,7 @@ class TestJSONModelSerializer:
         # Should contain 4 spaces for first level indentation
         assert any(line.startswith("    ") and not line.startswith("        ") for line in lines)
 
-    def test_serialize_to_string_serialization_error(self):
+    def test_serialize_to_string_serialization_error(self) -> None:
         """Test handling of serialization errors in string serialization."""
         error_catalog = Mock(spec=ModelCatalog)
         error_catalog.to_dict.side_effect = TypeError("Serialization error")
@@ -202,7 +202,7 @@ class TestJSONModelSerializer:
             # Verify error was logged
             mock_log_instance.error.assert_called()
 
-    def test_serialize_dict_to_file_success(self):
+    def test_serialize_dict_to_file_success(self) -> None:
         """Test successful dictionary serialization to file."""
         test_data = {"key1": "value1", "key2": {"nested": "value2"}, "key3": [1, 2, 3]}
 
@@ -219,7 +219,7 @@ class TestJSONModelSerializer:
 
             assert loaded_data == test_data
 
-    def test_serialize_dict_to_file_creates_parent_directory(self):
+    def test_serialize_dict_to_file_creates_parent_directory(self) -> None:
         """Test that dict serialization creates parent directories."""
         test_data = {"test": "data"}
 
@@ -231,7 +231,7 @@ class TestJSONModelSerializer:
             assert output_path.exists()
             assert output_path.parent.exists()
 
-    def test_serialize_dict_to_file_os_error(self):
+    def test_serialize_dict_to_file_os_error(self) -> None:
         """Test handling of OS errors in dictionary serialization."""
         test_data = {"test": "data"}
 
@@ -254,7 +254,7 @@ class TestJSONModelSerializer:
 
                     mock_log_instance.error.assert_called()
 
-    def test_serialize_dict_to_file_serialization_error(self):
+    def test_serialize_dict_to_file_serialization_error(self) -> None:
         """Test handling of serialization errors in dictionary serialization."""
         # Create unserializable data (e.g., containing a function)
         unserializable_data = {"func": lambda x: x}
@@ -278,7 +278,7 @@ class TestJSONModelSerializer:
 
                 mock_log_instance.error.assert_called()
 
-    def test_load_from_file_success(self):
+    def test_load_from_file_success(self) -> None:
         """Test successful loading from JSON file."""
         test_data = {"key1": "value1", "key2": {"nested": "value2"}, "key3": [1, 2, 3]}
 
@@ -293,14 +293,14 @@ class TestJSONModelSerializer:
 
             assert result == test_data
 
-    def test_load_from_file_not_found(self):
+    def test_load_from_file_not_found(self) -> None:
         """Test loading from non-existent file."""
         nonexistent_path = Path("/nonexistent/file.json")
 
         with pytest.raises(FileNotFoundError, match="JSON file not found"):
             self.serializer.load_from_file(input_path=nonexistent_path)
 
-    def test_load_from_file_os_error(self):
+    def test_load_from_file_os_error(self) -> None:
         """Test handling of OS errors during file loading."""
         with tempfile.TemporaryDirectory() as temp_dir:
             input_path = Path(temp_dir) / "test_input.json"
@@ -325,7 +325,7 @@ class TestJSONModelSerializer:
 
                     mock_log_instance.error.assert_called()
 
-    def test_load_from_file_json_decode_error(self):
+    def test_load_from_file_json_decode_error(self) -> None:
         """Test handling of JSON decode errors."""
         with tempfile.TemporaryDirectory() as temp_dir:
             input_path = Path(temp_dir) / "invalid.json"
@@ -348,7 +348,7 @@ class TestJSONModelSerializer:
 
                 mock_log_instance.error.assert_called()
 
-    def test_serialize_to_file_sorted_keys(self):
+    def test_serialize_to_file_sorted_keys(self) -> None:
         """Test that serialization produces sorted keys."""
         # Create data with unsorted keys
         unsorted_catalog_dict = {"z_last": "value_z", "a_first": "value_a", "m_middle": "value_m"}
@@ -372,7 +372,7 @@ class TestJSONModelSerializer:
 
             assert a_pos < m_pos < z_pos
 
-    def test_serialize_to_string_sorted_keys(self):
+    def test_serialize_to_string_sorted_keys(self) -> None:
         """Test that string serialization produces sorted keys."""
         unsorted_catalog_dict = {"z_last": "value_z", "a_first": "value_a", "m_middle": "value_m"}
 
@@ -388,7 +388,7 @@ class TestJSONModelSerializer:
 
         assert a_pos < m_pos < z_pos
 
-    def test_serialize_dict_to_file_sorted_keys(self):
+    def test_serialize_dict_to_file_sorted_keys(self) -> None:
         """Test that dictionary serialization produces sorted keys."""
         unsorted_dict = {"z_last": "value_z", "a_first": "value_a", "m_middle": "value_m"}
 
@@ -408,7 +408,7 @@ class TestJSONModelSerializer:
 
             assert a_pos < m_pos < z_pos
 
-    def test_ensure_ascii_false(self):
+    def test_ensure_ascii_false(self) -> None:
         """Test that non-ASCII characters are preserved when ensure_ascii=False."""
         unicode_data = {"message": "Hello 世界"}
         mock_catalog = Mock(spec=ModelCatalog)
@@ -420,7 +420,7 @@ class TestJSONModelSerializer:
         # Should contain actual Unicode characters
         assert "世界" in result
 
-    def test_ensure_ascii_true(self):
+    def test_ensure_ascii_true(self) -> None:
         """Test that non-ASCII characters are escaped when ensure_ascii=True."""
         unicode_data = {"message": "Hello 世界"}
         mock_catalog = Mock(spec=ModelCatalog)
@@ -433,7 +433,7 @@ class TestJSONModelSerializer:
         assert "\\u" in result
         assert "世界" not in result
 
-    def test_logger_initialization(self):
+    def test_logger_initialization(self) -> None:
         """Test that logger is properly initialized."""
         with patch(
             "bestehorn_llmmanager.bedrock.serializers.json_serializer.logging.getLogger"
@@ -448,7 +448,7 @@ class TestJSONModelSerializer:
             )
             assert serializer._logger == mock_logger
 
-    def test_comprehensive_workflow(self):
+    def test_comprehensive_workflow(self) -> None:
         """Test a complete serialize-then-load workflow."""
         with tempfile.TemporaryDirectory() as temp_dir:
             file_path = Path(temp_dir) / "workflow_test.json"

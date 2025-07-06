@@ -7,6 +7,7 @@ Amazon Bedrock Cross-Region Inference model information.
 
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -25,7 +26,7 @@ from bestehorn_llmmanager.bedrock.parsers.base_parser import ParsingError
 class TestCRISManagerInitialization:
     """Test CRISManager initialization and configuration."""
 
-    def test_default_initialization(self):
+    def test_default_initialization(self) -> None:
         """Test CRISManager initialization with default parameters."""
         manager = CRISManager()
 
@@ -34,7 +35,7 @@ class TestCRISManagerInitialization:
         assert manager.documentation_url == CRISURLs.DOCUMENTATION
         assert manager._cached_catalog is None
 
-    def test_custom_initialization(self):
+    def test_custom_initialization(self) -> None:
         """Test CRISManager initialization with custom parameters."""
         custom_html = Path("custom/cris.html")
         custom_json = Path("custom/cris.json")
@@ -53,7 +54,7 @@ class TestCRISManagerInitialization:
         assert manager.documentation_url == custom_url
         assert manager._cached_catalog is None
 
-    def test_components_initialization(self):
+    def test_components_initialization(self) -> None:
         """Test that internal components are properly initialized."""
         manager = CRISManager()
 
@@ -63,7 +64,7 @@ class TestCRISManagerInitialization:
         assert hasattr(manager, "_serializer")
         assert hasattr(manager, "_logger")
 
-    def test_repr_method(self):
+    def test_repr_method(self) -> None:
         """Test string representation of CRISManager."""
         manager = CRISManager()
         repr_str = repr(manager)
@@ -77,7 +78,7 @@ class TestCRISManagerInitialization:
 class TestCRISManagerRefreshData:
     """Test CRISManager refresh_cris_data method."""
 
-    def test_refresh_cris_data_success(self, temp_dir):
+    def test_refresh_cris_data_success(self, temp_dir: Any) -> None:
         """Test successful refresh of CRIS data."""
         # No need to mock datetime - use real time
 
@@ -111,7 +112,7 @@ class TestCRISManagerRefreshData:
         # Verify caching
         assert manager._cached_catalog == result
 
-    def test_refresh_cris_data_no_force_download_recent_file(self, temp_dir):
+    def test_refresh_cris_data_no_force_download_recent_file(self, temp_dir: Any) -> None:
         """Test refresh without force download when HTML file is recent."""
         manager = CRISManager(
             html_output_path=temp_dir / "cris.html", json_output_path=temp_dir / "cris.json"
@@ -142,7 +143,7 @@ class TestCRISManagerRefreshData:
         manager._parser.parse.assert_called_once()
         manager._serializer.serialize_dict_to_file.assert_called_once()
 
-    def test_refresh_cris_data_network_error(self):
+    def test_refresh_cris_data_network_error(self) -> None:
         """Test refresh handling of network errors."""
         manager = CRISManager()
         manager._downloader = Mock()
@@ -158,7 +159,7 @@ class TestCRISManagerRefreshData:
         assert "Failed to refresh CRIS data" in str(exc_info.value)
         assert "Connection failed" in str(exc_info.value)
 
-    def test_refresh_cris_data_parsing_error(self, temp_dir):
+    def test_refresh_cris_data_parsing_error(self, temp_dir: Any) -> None:
         """Test refresh handling of parsing errors."""
         manager = CRISManager(html_output_path=temp_dir / "cris.html")
 
@@ -180,7 +181,7 @@ class TestCRISManagerRefreshData:
         assert "Failed to refresh CRIS data" in str(exc_info.value)
         assert "Invalid HTML structure" in str(exc_info.value)
 
-    def test_refresh_cris_data_file_system_error(self):
+    def test_refresh_cris_data_file_system_error(self) -> None:
         """Test refresh handling of file system errors."""
         manager = CRISManager()
         manager._downloader = Mock()
@@ -200,7 +201,7 @@ class TestCRISManagerRefreshData:
 class TestCRISManagerLoadCachedData:
     """Test CRISManager load_cached_data method."""
 
-    def test_load_cached_data_success(self, temp_dir):
+    def test_load_cached_data_success(self, temp_dir: Any) -> None:
         """Test successful loading of cached data."""
         json_file = temp_dir / "cris.json"
         json_file.write_text('{"test": "data"}')  # Create the file so exists() returns True
@@ -233,7 +234,7 @@ class TestCRISManagerLoadCachedData:
             input_path=manager.json_output_path
         )
 
-    def test_load_cached_data_file_not_exists(self, temp_dir):
+    def test_load_cached_data_file_not_exists(self, temp_dir: Any) -> None:
         """Test loading cached data when file doesn't exist."""
         manager = CRISManager(json_output_path=temp_dir / "nonexistent.json")
         manager._logger = Mock()
@@ -245,7 +246,7 @@ class TestCRISManagerLoadCachedData:
         assert result is None
         assert manager._cached_catalog is None
 
-    def test_load_cached_data_invalid_file(self, temp_dir):
+    def test_load_cached_data_invalid_file(self, temp_dir: Any) -> None:
         """Test loading cached data with invalid JSON file."""
         json_file = temp_dir / "invalid.json"
         json_file.write_text("invalid json content")
@@ -266,7 +267,7 @@ class TestCRISManagerLoadCachedData:
 class TestCRISManagerQueryMethods:
     """Test CRISManager query and filtering methods."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Setup for query method tests."""
         self.manager = CRISManager()
 
@@ -293,7 +294,7 @@ class TestCRISManagerQueryMethods:
         # Set cached catalog
         self.manager._cached_catalog = self.mock_catalog
 
-    def test_get_models_by_source_region_success(self):
+    def test_get_models_by_source_region_success(self) -> None:
         """Test getting models by source region."""
         result = self.manager.get_models_by_source_region("us-east-1")
 
@@ -302,7 +303,7 @@ class TestCRISManagerQueryMethods:
             source_region="us-east-1"
         )
 
-    def test_get_models_by_source_region_no_data(self):
+    def test_get_models_by_source_region_no_data(self) -> None:
         """Test getting models by source region without cached data."""
         self.manager._cached_catalog = None
 
@@ -311,7 +312,7 @@ class TestCRISManagerQueryMethods:
 
         assert CRISErrorMessages.NO_DATA_AVAILABLE in str(exc_info.value)
 
-    def test_get_models_by_destination_region_success(self):
+    def test_get_models_by_destination_region_success(self) -> None:
         """Test getting models by destination region."""
         result = self.manager.get_models_by_destination_region("us-west-2")
 
@@ -320,7 +321,7 @@ class TestCRISManagerQueryMethods:
             destination_region="us-west-2"
         )
 
-    def test_get_models_by_destination_region_no_data(self):
+    def test_get_models_by_destination_region_no_data(self) -> None:
         """Test getting models by destination region without cached data."""
         self.manager._cached_catalog = None
 
@@ -329,7 +330,7 @@ class TestCRISManagerQueryMethods:
 
         assert CRISErrorMessages.NO_DATA_AVAILABLE in str(exc_info.value)
 
-    def test_get_inference_profile_for_model_success(self):
+    def test_get_inference_profile_for_model_success(self) -> None:
         """Test getting inference profile for model."""
         result = self.manager.get_inference_profile_for_model("test_model")
 
@@ -338,7 +339,7 @@ class TestCRISManagerQueryMethods:
             model_name="test_model"
         )
 
-    def test_get_inference_profile_for_model_no_data(self):
+    def test_get_inference_profile_for_model_no_data(self) -> None:
         """Test getting inference profile without cached data."""
         self.manager._cached_catalog = None
 
@@ -347,14 +348,14 @@ class TestCRISManagerQueryMethods:
 
         assert CRISErrorMessages.NO_DATA_AVAILABLE in str(exc_info.value)
 
-    def test_get_all_source_regions_success(self):
+    def test_get_all_source_regions_success(self) -> None:
         """Test getting all source regions."""
         result = self.manager.get_all_source_regions()
 
         assert result == ["us-east-1", "us-west-2"]
         self.mock_catalog.get_all_source_regions.assert_called_once()
 
-    def test_get_all_source_regions_no_data(self):
+    def test_get_all_source_regions_no_data(self) -> None:
         """Test getting all source regions without cached data."""
         self.manager._cached_catalog = None
 
@@ -363,14 +364,14 @@ class TestCRISManagerQueryMethods:
 
         assert CRISErrorMessages.NO_DATA_AVAILABLE in str(exc_info.value)
 
-    def test_get_all_destination_regions_success(self):
+    def test_get_all_destination_regions_success(self) -> None:
         """Test getting all destination regions."""
         result = self.manager.get_all_destination_regions()
 
         assert result == ["us-west-2"]
         self.mock_catalog.get_all_destination_regions.assert_called_once()
 
-    def test_get_all_destination_regions_no_data(self):
+    def test_get_all_destination_regions_no_data(self) -> None:
         """Test getting all destination regions without cached data."""
         self.manager._cached_catalog = None
 
@@ -379,14 +380,14 @@ class TestCRISManagerQueryMethods:
 
         assert CRISErrorMessages.NO_DATA_AVAILABLE in str(exc_info.value)
 
-    def test_get_model_names_success(self):
+    def test_get_model_names_success(self) -> None:
         """Test getting model names."""
         result = self.manager.get_model_names()
 
         assert result == ["test_model"]
         self.mock_catalog.get_model_names.assert_called_once()
 
-    def test_get_model_names_no_data(self):
+    def test_get_model_names_no_data(self) -> None:
         """Test getting model names without cached data."""
         self.manager._cached_catalog = None
 
@@ -395,13 +396,13 @@ class TestCRISManagerQueryMethods:
 
         assert CRISErrorMessages.NO_DATA_AVAILABLE in str(exc_info.value)
 
-    def test_get_model_count_success(self):
+    def test_get_model_count_success(self) -> None:
         """Test getting model count."""
         result = self.manager.get_model_count()
 
         assert result == 1
 
-    def test_get_model_count_no_data(self):
+    def test_get_model_count_no_data(self) -> None:
         """Test getting model count without cached data."""
         self.manager._cached_catalog = None
 
@@ -410,14 +411,14 @@ class TestCRISManagerQueryMethods:
 
         assert CRISErrorMessages.NO_DATA_AVAILABLE in str(exc_info.value)
 
-    def test_has_model_success(self):
+    def test_has_model_success(self) -> None:
         """Test checking if model exists."""
         result = self.manager.has_model("test_model")
 
         assert result is True
         self.mock_catalog.has_model.assert_called_once_with(model_name="test_model")
 
-    def test_has_model_no_data(self):
+    def test_has_model_no_data(self) -> None:
         """Test checking if model exists without cached data."""
         self.manager._cached_catalog = None
 
@@ -426,7 +427,7 @@ class TestCRISManagerQueryMethods:
 
         assert CRISErrorMessages.NO_DATA_AVAILABLE in str(exc_info.value)
 
-    def test_get_destinations_for_source_and_model_success(self):
+    def test_get_destinations_for_source_and_model_success(self) -> None:
         """Test getting destinations for source and model."""
         result = self.manager.get_destinations_for_source_and_model("test_model", "us-east-1")
 
@@ -435,7 +436,7 @@ class TestCRISManagerQueryMethods:
             source_region="us-east-1"
         )
 
-    def test_get_destinations_for_source_and_model_nonexistent_model(self):
+    def test_get_destinations_for_source_and_model_nonexistent_model(self) -> None:
         """Test getting destinations for nonexistent model."""
         self.mock_catalog.cris_models = {}
 
@@ -443,7 +444,7 @@ class TestCRISManagerQueryMethods:
 
         assert result == []
 
-    def test_get_destinations_for_source_and_model_no_data(self):
+    def test_get_destinations_for_source_and_model_no_data(self) -> None:
         """Test getting destinations without cached data."""
         self.manager._cached_catalog = None
 
@@ -456,7 +457,7 @@ class TestCRISManagerQueryMethods:
 class TestCRISManagerPrivateMethods:
     """Test CRISManager private helper methods."""
 
-    def test_download_documentation(self):
+    def test_download_documentation(self) -> None:
         """Test downloading documentation."""
         manager = CRISManager()
         manager._downloader = Mock()
@@ -470,7 +471,7 @@ class TestCRISManagerPrivateMethods:
             url=manager.documentation_url, output_path=manager.html_output_path
         )
 
-    def test_parse_documentation(self):
+    def test_parse_documentation(self) -> None:
         """Test parsing documentation."""
         manager = CRISManager()
         manager._parser = Mock()
@@ -485,7 +486,7 @@ class TestCRISManagerPrivateMethods:
         assert result == expected_result
         manager._parser.parse.assert_called_once_with(file_path=manager.html_output_path)
 
-    def test_save_catalog_to_json(self):
+    def test_save_catalog_to_json(self) -> None:
         """Test saving catalog to JSON."""
         manager = CRISManager()
         manager._serializer = Mock()
@@ -504,7 +505,7 @@ class TestCRISManagerPrivateMethods:
             data={"test": "data"}, output_path=manager.json_output_path
         )
 
-    def test_is_html_file_recent_file_not_exists(self, temp_dir):
+    def test_is_html_file_recent_file_not_exists(self, temp_dir: Any) -> None:
         """Test checking if HTML file is recent when file doesn't exist."""
         manager = CRISManager(html_output_path=temp_dir / "nonexistent.html")
 
@@ -512,7 +513,7 @@ class TestCRISManagerPrivateMethods:
 
         assert result is False
 
-    def test_is_html_file_recent_file_is_recent(self, temp_dir):
+    def test_is_html_file_recent_file_is_recent(self, temp_dir: Any) -> None:
         """Test checking if HTML file is recent when file is recent."""
         html_file = temp_dir / "recent.html"
         html_file.write_text("content")
@@ -523,7 +524,7 @@ class TestCRISManagerPrivateMethods:
 
         assert result is True
 
-    def test_is_html_file_recent_file_is_old(self, temp_dir):
+    def test_is_html_file_recent_file_is_old(self, temp_dir: Any) -> None:
         """Test checking if HTML file is recent when file is old."""
         html_file = temp_dir / "old.html"
         html_file.write_text("content")
@@ -541,7 +542,7 @@ class TestCRISManagerPrivateMethods:
 
         assert result is False
 
-    def test_is_html_file_recent_os_error(self, temp_dir):
+    def test_is_html_file_recent_os_error(self, temp_dir: Any) -> None:
         """Test checking if HTML file is recent with OS error."""
         html_file = temp_dir / "test.html"
         html_file.write_text("content")  # Create the file first so exists() passes
@@ -564,7 +565,7 @@ class TestCRISManagerPrivateMethods:
 class TestCRISManagerIntegration:
     """Integration tests for CRISManager."""
 
-    def test_full_workflow_integration(self, temp_dir):
+    def test_full_workflow_integration(self, temp_dir: Any) -> None:
         """Test the complete workflow from refresh to queries."""
         manager = CRISManager(
             html_output_path=temp_dir / "cris.html", json_output_path=temp_dir / "cris.json"

@@ -23,7 +23,7 @@ from bestehorn_llmmanager.parallel_llm_manager import ParallelLLMManager
 class TestParallelLLMManager:
     """Test cases for ParallelLLMManager."""
 
-    def test_initialization_success(self):
+    def test_initialization_success(self) -> None:
         """Test successful initialization of ParallelLLMManager."""
         models = ["Claude 3 Haiku", "Claude 3 Sonnet"]
         regions = ["us-east-1", "us-west-2"]
@@ -38,7 +38,7 @@ class TestParallelLLMManager:
             assert hasattr(config, "max_concurrent_requests")
             mock_llm_manager.assert_called_once()
 
-    def test_initialization_with_custom_config(self):
+    def test_initialization_with_custom_config(self) -> None:
         """Test initialization with custom parallel configuration."""
         models = ["Claude 3 Haiku"]
         regions = ["us-east-1", "us-west-2"]
@@ -61,7 +61,7 @@ class TestParallelLLMManager:
             assert config.failure_handling_strategy == FailureHandlingStrategy.STOP_ON_THRESHOLD
             assert config.load_balancing_strategy == LoadBalancingStrategy.RANDOM
 
-    def test_initialization_no_models_raises_error(self):
+    def test_initialization_no_models_raises_error(self) -> None:
         """Test that initialization without models raises ParallelConfigurationError."""
         try:
             ParallelLLMManager(models=[], regions=["us-east-1"])
@@ -69,7 +69,7 @@ class TestParallelLLMManager:
         except ParallelConfigurationError as e:
             assert "No models specified" in str(e)
 
-    def test_initialization_no_regions_raises_error(self):
+    def test_initialization_no_regions_raises_error(self) -> None:
         """Test that initialization without regions raises ParallelConfigurationError."""
         try:
             ParallelLLMManager(models=["claude-3-haiku"], regions=[])
@@ -77,7 +77,7 @@ class TestParallelLLMManager:
         except ParallelConfigurationError as e:
             assert "No regions specified" in str(e)
 
-    def test_converse_with_request_success(self):
+    def test_converse_with_request_success(self) -> None:
         """Test successful single request execution."""
         models = ["claude-3-haiku"]
         regions = ["us-east-1"]
@@ -104,7 +104,7 @@ class TestParallelLLMManager:
             assert result == mock_response
             mock_llm_manager.converse.assert_called_once()
 
-    def test_converse_parallel_basic_success(self):
+    def test_converse_parallel_basic_success(self) -> None:
         """Test basic parallel processing success."""
         models = ["claude-3-haiku"]
         regions = ["us-east-1", "us-west-2"]
@@ -151,7 +151,7 @@ class TestParallelLLMManager:
                         assert hasattr(result, "request_responses")
                         assert len(result.request_responses) == 2
 
-    def test_get_underlying_llm_manager(self):
+    def test_get_underlying_llm_manager(self) -> None:
         """Test getting the underlying LLMManager instance."""
         with patch(
             "bestehorn_llmmanager.parallel_llm_manager.LLMManager"
@@ -163,7 +163,7 @@ class TestParallelLLMManager:
 
             assert parallel_manager.get_underlying_llm_manager() == mock_llm_manager
 
-    def test_validate_configuration(self):
+    def test_validate_configuration(self) -> None:
         """Test configuration validation."""
         with patch(
             "bestehorn_llmmanager.parallel_llm_manager.LLMManager"
@@ -189,7 +189,7 @@ class TestParallelLLMManager:
             assert "max_concurrent_requests" in validation_result
             assert "load_balancing_strategy" in validation_result
 
-    def test_refresh_model_data_success(self):
+    def test_refresh_model_data_success(self) -> None:
         """Test successful model data refresh."""
         with patch(
             "bestehorn_llmmanager.parallel_llm_manager.LLMManager"
@@ -203,7 +203,7 @@ class TestParallelLLMManager:
 
             mock_llm_manager.refresh_model_data.assert_called_once()
 
-    def test_refresh_model_data_failure(self):
+    def test_refresh_model_data_failure(self) -> None:
         """Test model data refresh failure."""
         with patch(
             "bestehorn_llmmanager.parallel_llm_manager.LLMManager"
@@ -217,7 +217,7 @@ class TestParallelLLMManager:
             with pytest.raises(ParallelProcessingError, match="Failed to refresh model data"):
                 parallel_manager.refresh_model_data()
 
-    def test_repr(self):
+    def test_repr(self) -> None:
         """Test string representation of ParallelLLMManager."""
         models = ["claude-3-haiku", "claude-3-sonnet"]
         regions = ["us-east-1", "us-west-2", "eu-west-1"]

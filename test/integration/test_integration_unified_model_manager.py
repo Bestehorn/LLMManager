@@ -21,7 +21,7 @@ from bestehorn_llmmanager.bedrock.UnifiedModelManager import (
 class TestUnifiedModelManagerBasicFunctionality:
     """Integration tests for basic UnifiedModelManager functionality."""
 
-    def test_unified_model_manager_initialization(self, tmp_path):
+    def test_unified_model_manager_initialization(self, tmp_path) -> None:
         """
         Test UnifiedModelManager initialization.
 
@@ -43,7 +43,7 @@ class TestUnifiedModelManagerBasicFunctionality:
             not manager.is_fuzzy_matching_enabled() or manager.is_fuzzy_matching_enabled()
         )  # Should have a boolean value
 
-    def test_unified_model_manager_load_cached_data(self, tmp_path):
+    def test_unified_model_manager_load_cached_data(self, tmp_path) -> None:
         """
         Test UnifiedModelManager loading cached data.
 
@@ -60,7 +60,7 @@ class TestUnifiedModelManagerBasicFunctionality:
         # Should be None since no cached data exists
         assert cached_data is None
 
-    def test_unified_model_manager_refresh_data(self, tmp_path):
+    def test_unified_model_manager_refresh_data(self, tmp_path) -> None:
         """
         Test UnifiedModelManager data refresh functionality.
 
@@ -93,7 +93,7 @@ class TestUnifiedModelManagerBasicFunctionality:
             # If network or AWS connectivity issues, skip but don't fail
             pytest.skip(f"Could not refresh model data: {str(e)}")
 
-    def test_unified_model_manager_model_queries(self, tmp_path):
+    def test_unified_model_manager_model_queries(self, tmp_path) -> None:
         """
         Test UnifiedModelManager model query functionality.
 
@@ -148,7 +148,7 @@ class TestUnifiedModelManagerBasicFunctionality:
 class TestUnifiedModelManagerModelAccess:
     """Integration tests for UnifiedModelManager model access functionality."""
 
-    def test_unified_model_manager_model_access_info(self, tmp_path, integration_config):
+    def test_unified_model_manager_model_access_info(self, tmp_path, integration_config) -> None:
         """
         Test UnifiedModelManager model access information retrieval.
 
@@ -207,7 +207,7 @@ class TestUnifiedModelManagerModelAccess:
         except Exception as e:
             pytest.skip(f"Could not test model access info: {str(e)}")
 
-    def test_unified_model_manager_regional_queries(self, tmp_path, integration_config):
+    def test_unified_model_manager_regional_queries(self, tmp_path, integration_config) -> None:
         """
         Test UnifiedModelManager regional query functionality.
 
@@ -258,7 +258,7 @@ class TestUnifiedModelManagerModelAccess:
 class TestUnifiedModelManagerConfiguration:
     """Integration tests for UnifiedModelManager configuration functionality."""
 
-    def test_unified_model_manager_fuzzy_matching(self, tmp_path):
+    def test_unified_model_manager_fuzzy_matching(self, tmp_path) -> None:
         """
         Test UnifiedModelManager fuzzy matching configuration.
 
@@ -285,7 +285,7 @@ class TestUnifiedModelManagerConfiguration:
 
         assert manager_without_fuzzy.is_fuzzy_matching_enabled() is False
 
-    def test_unified_model_manager_error_handling(self, tmp_path):
+    def test_unified_model_manager_error_handling(self, tmp_path) -> None:
         """
         Test UnifiedModelManager error handling.
 
@@ -309,7 +309,7 @@ class TestUnifiedModelManagerConfiguration:
         with pytest.raises(UnifiedModelManagerError):
             manager.is_model_available_in_region("Claude 3 Haiku", "us-east-1")
 
-    def test_unified_model_manager_repr(self, tmp_path):
+    def test_unified_model_manager_repr(self, tmp_path) -> None:
         """
         Test UnifiedModelManager string representation.
 

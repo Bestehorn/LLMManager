@@ -804,8 +804,8 @@ class TestUnifiedModelManagerCacheManagement:
     def test_get_cache_age_hours_valid_timestamp(self, cache_manager):
         """Test cache age calculation with valid timestamp."""
         # Use a timestamp that's 2 hours in the past from "now"
-        from datetime import timezone
         import time
+        from datetime import timezone
 
         # Calculate a timestamp that's 2 hours ago
         two_hours_ago = time.time() - (2 * 3600)  # 2 hours in seconds
@@ -824,8 +824,8 @@ class TestUnifiedModelManagerCacheManagement:
     def test_get_cache_age_hours_fallback_format(self, cache_manager):
         """Test cache age calculation with fallback timestamp format."""
         # Use a timestamp that's 3 hours in the past from "now"
-        from datetime import timezone
         import time
+        from datetime import timezone
 
         # Calculate a timestamp that's 3 hours ago
         three_hours_ago = time.time() - (3 * 3600)  # 3 hours in seconds

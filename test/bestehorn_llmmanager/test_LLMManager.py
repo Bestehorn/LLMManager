@@ -3,7 +3,6 @@ Unit tests for LLMManager class.
 Tests the main functionality of the LLM Manager system.
 """
 
-from datetime import datetime
 from unittest.mock import Mock, patch
 
 import pytest
@@ -53,7 +52,7 @@ class TestLLMManager:
         ):
             return LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
 
-    def test_init_basic_configuration(self, mock_unified_model_manager):
+    def test_init_basic_configuration(self, mock_unified_model_manager) -> None:
         """Test basic initialization of LLMManager."""
         with patch(
             "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
@@ -66,7 +65,7 @@ class TestLLMManager:
             assert manager.get_available_models() == ["Claude 3 Haiku", "Claude 3 Sonnet"]
             assert manager.get_available_regions() == ["us-east-1", "us-west-2"]
 
-    def test_init_with_auth_config(self, mock_unified_model_manager):
+    def test_init_with_auth_config(self, mock_unified_model_manager) -> None:
         """Test initialization with authentication configuration."""
         auth_config = AuthConfig(auth_type=AuthenticationType.PROFILE, profile_name="test-profile")
 
@@ -80,7 +79,7 @@ class TestLLMManager:
 
             assert manager is not None
 
-    def test_init_with_retry_config(self, mock_unified_model_manager):
+    def test_init_with_retry_config(self, mock_unified_model_manager) -> None:
         """Test initialization with retry configuration."""
         retry_config = RetryConfig(max_retries=5, retry_strategy=RetryStrategy.MODEL_FIRST)
 
@@ -96,51 +95,51 @@ class TestLLMManager:
             assert stats["max_retries"] == 5
             assert stats["retry_strategy"] == "model_first"
 
-    def test_init_empty_models_raises_error(self):
+    def test_init_empty_models_raises_error(self) -> None:
         """Test that empty models list raises ConfigurationError."""
         with pytest.raises(ConfigurationError, match="No models specified for LLM Manager"):
             LLMManager(models=[], regions=["us-east-1"])
 
-    def test_init_empty_regions_raises_error(self):
+    def test_init_empty_regions_raises_error(self) -> None:
         """Test that empty regions list raises ConfigurationError."""
         with pytest.raises(ConfigurationError, match="No regions specified for LLM Manager"):
             LLMManager(models=["Claude 3 Haiku"], regions=[])
 
-    def test_init_invalid_model_name_raises_error(self):
+    def test_init_invalid_model_name_raises_error(self) -> None:
         """Test that invalid model names raise ConfigurationError."""
         with pytest.raises(ConfigurationError, match="Invalid model name:"):
             LLMManager(models=["Claude 3 Haiku", ""], regions=["us-east-1"])
 
-    def test_init_invalid_region_name_raises_error(self):
+    def test_init_invalid_region_name_raises_error(self) -> None:
         """Test that invalid region names raise ConfigurationError."""
         with pytest.raises(ConfigurationError, match="Invalid region name:"):
             LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1", ""])
 
-    def test_validate_converse_request_empty_messages(self, basic_llm_manager):
+    def test_validate_converse_request_empty_messages(self, basic_llm_manager) -> None:
         """Test validation of empty messages."""
         with pytest.raises(RequestValidationError, match="Messages cannot be empty"):
             basic_llm_manager._validate_converse_request([])
 
-    def test_validate_converse_request_invalid_message_type(self, basic_llm_manager):
+    def test_validate_converse_request_invalid_message_type(self, basic_llm_manager) -> None:
         """Test validation of invalid message types."""
         with pytest.raises(RequestValidationError, match="Message 0 must be a dictionary"):
             basic_llm_manager._validate_converse_request(["invalid"])
 
-    def test_validate_converse_request_missing_role(self, basic_llm_manager):
+    def test_validate_converse_request_missing_role(self, basic_llm_manager) -> None:
         """Test validation of messages missing role field."""
         message = {"content": [{"text": "Hello"}]}
 
         with pytest.raises(RequestValidationError, match="Message 0 missing required 'role' field"):
             basic_llm_manager._validate_converse_request([message])
 
-    def test_validate_converse_request_invalid_role(self, basic_llm_manager):
+    def test_validate_converse_request_invalid_role(self, basic_llm_manager) -> None:
         """Test validation of messages with invalid role."""
         message = {"role": "invalid_role", "content": [{"text": "Hello"}]}
 
         with pytest.raises(RequestValidationError, match="Message 0 has invalid role"):
             basic_llm_manager._validate_converse_request([message])
 
-    def test_validate_converse_request_missing_content(self, basic_llm_manager):
+    def test_validate_converse_request_missing_content(self, basic_llm_manager) -> None:
         """Test validation of messages missing content field."""
         message = {"role": "user"}
 
@@ -149,14 +148,14 @@ class TestLLMManager:
         ):
             basic_llm_manager._validate_converse_request([message])
 
-    def test_validate_converse_request_invalid_content_type(self, basic_llm_manager):
+    def test_validate_converse_request_invalid_content_type(self, basic_llm_manager) -> None:
         """Test validation of messages with invalid content type."""
         message = {"role": "user", "content": "invalid_content"}
 
         with pytest.raises(RequestValidationError, match="Message 0 content must be a list"):
             basic_llm_manager._validate_converse_request([message])
 
-    def test_validate_converse_request_valid_message(self, basic_llm_manager):
+    def test_validate_converse_request_valid_message(self, basic_llm_manager) -> None:
         """Test validation of valid messages."""
         messages = [
             {"role": "user", "content": [{"text": "Hello"}]},
@@ -166,9 +165,9 @@ class TestLLMManager:
         # Should not raise any exception
         basic_llm_manager._validate_converse_request(messages)
 
-    def test_validate_content_blocks_image_limit_exceeded(self, basic_llm_manager):
+    def test_validate_content_blocks_image_limit_exceeded(self, basic_llm_manager) -> None:
         """Test validation of content blocks exceeding image limits."""
-        errors = []
+        errors: list[str] = []
         content_blocks = [
             {"image": {"format": "png"}} for _ in range(ContentLimits.MAX_IMAGES_PER_REQUEST + 1)
         ]
@@ -178,9 +177,9 @@ class TestLLMManager:
         assert len(errors) == 1
         assert "exceeds image limit" in errors[0]
 
-    def test_validate_content_blocks_document_limit_exceeded(self, basic_llm_manager):
+    def test_validate_content_blocks_document_limit_exceeded(self, basic_llm_manager) -> None:
         """Test validation of content blocks exceeding document limits."""
-        errors = []
+        errors: list[str] = []
         content_blocks = [
             {"document": {"name": "test.pd"}}
             for _ in range(ContentLimits.MAX_DOCUMENTS_PER_REQUEST + 1)
@@ -191,9 +190,9 @@ class TestLLMManager:
         assert len(errors) == 1
         assert "exceeds document limit" in errors[0]
 
-    def test_validate_content_blocks_video_limit_exceeded(self, basic_llm_manager):
+    def test_validate_content_blocks_video_limit_exceeded(self, basic_llm_manager) -> None:
         """Test validation of content blocks exceeding video limits."""
-        errors = []
+        errors: list[str] = []
         content_blocks = [
             {"video": {"format": "mp4"}} for _ in range(ContentLimits.MAX_VIDEOS_PER_REQUEST + 1)
         ]
@@ -203,7 +202,7 @@ class TestLLMManager:
         assert len(errors) == 1
         assert "exceeds video limit" in errors[0]
 
-    def test_build_converse_request_basic(self, basic_llm_manager):
+    def test_build_converse_request_basic(self, basic_llm_manager) -> None:
         """Test building basic converse request."""
         messages = [{"role": "user", "content": [{"text": "Hello"}]}]
 
@@ -212,7 +211,7 @@ class TestLLMManager:
         assert ConverseAPIFields.MESSAGES in request_args
         assert request_args[ConverseAPIFields.MESSAGES] == messages
 
-    def test_build_converse_request_with_system(self, basic_llm_manager):
+    def test_build_converse_request_with_system(self, basic_llm_manager) -> None:
         """Test building converse request with system messages."""
         messages = [{"role": "user", "content": [{"text": "Hello"}]}]
         system = [{"text": "You are a helpful assistant"}]
@@ -222,7 +221,7 @@ class TestLLMManager:
         assert ConverseAPIFields.SYSTEM in request_args
         assert request_args[ConverseAPIFields.SYSTEM] == system
 
-    def test_build_converse_request_with_inference_config(self, basic_llm_manager):
+    def test_build_converse_request_with_inference_config(self, basic_llm_manager) -> None:
         """Test building converse request with inference configuration."""
         messages = [{"role": "user", "content": [{"text": "Hello"}]}]
         inference_config = {"temperature": 0.7, "maxTokens": 1000}
@@ -573,9 +572,9 @@ class TestLLMManagerUncoveredCases:
             ):
                 LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
 
-    def test_validate_content_blocks_invalid_block_type(self, basic_llm_manager):
+    def test_validate_content_blocks_invalid_block_type(self, basic_llm_manager) -> None:
         """Test validation of content blocks with invalid block type."""
-        errors = []
+        errors: list[str] = []
         content_blocks = ["invalid_block", {"text": "valid"}]
 
         basic_llm_manager._validate_content_blocks(content_blocks, 0, errors)

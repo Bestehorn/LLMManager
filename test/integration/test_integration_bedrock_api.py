@@ -131,7 +131,7 @@ class TestLLMManagerBedrockIntegration:
         test_regions,
         sample_messages,
         simple_inference_config,
-    ):
+    ) -> None:
         """
         Test basic LLMManager converse functionality.
 
@@ -173,7 +173,7 @@ class TestLLMManagerBedrockIntegration:
 
     def test_llm_manager_multiple_models_failover(
         self, unified_model_manager, test_models, test_regions, sample_messages
-    ):
+    ) -> None:
         """
         Test LLMManager failover between multiple models.
 
@@ -201,7 +201,7 @@ class TestLLMManagerBedrockIntegration:
 
     def test_llm_manager_with_system_message(
         self, unified_model_manager, test_models, test_regions
-    ):
+    ) -> None:
         """
         Test LLMManager with system messages.
 
@@ -231,7 +231,7 @@ class TestLLMManagerBedrockIntegration:
 
     def test_llm_manager_performance_metrics(
         self, unified_model_manager, test_models, test_regions, sample_messages
-    ):
+    ) -> None:
         """
         Test LLMManager performance metrics collection.
 
@@ -264,7 +264,7 @@ class TestLLMManagerBedrockIntegration:
 
     def test_llm_manager_configuration_validation(
         self, unified_model_manager, test_models, test_regions
-    ):
+    ) -> None:
         """
         Test LLMManager configuration validation.
 
@@ -292,7 +292,7 @@ class TestLLMManagerStreamingIntegration:
 
     def test_llm_manager_streaming_converse(
         self, unified_model_manager, test_models, test_regions, sample_messages
-    ):
+    ) -> None:
         """
         Test LLMManager streaming converse functionality.
 
@@ -329,7 +329,7 @@ class TestLLMManagerStreamingIntegration:
 class TestLLMManagerErrorHandling:
     """Integration tests for LLMManager error handling."""
 
-    def test_llm_manager_invalid_model_handling(self, unified_model_manager, test_regions):
+    def test_llm_manager_invalid_model_handling(self, unified_model_manager, test_regions) -> None:
         """
         Test LLMManager handling of invalid models.
 
@@ -346,7 +346,7 @@ class TestLLMManagerErrorHandling:
 
         assert "No valid model/region combinations" in str(exc_info.value)
 
-    def test_llm_manager_invalid_region_handling(self, unified_model_manager, test_models):
+    def test_llm_manager_invalid_region_handling(self, unified_model_manager, test_models) -> None:
         """
         Test LLMManager handling of invalid regions.
 
@@ -365,7 +365,7 @@ class TestLLMManagerErrorHandling:
 
     def test_llm_manager_empty_messages_handling(
         self, unified_model_manager, test_models, test_regions
-    ):
+    ) -> None:
         """
         Test LLMManager handling of empty messages.
 
@@ -389,7 +389,7 @@ class TestLLMManagerErrorHandling:
 class TestLLMManagerUtilityFunctions:
     """Integration tests for LLMManager utility functions."""
 
-    def test_llm_manager_model_access_info(self, unified_model_manager, test_models, test_regions):
+    def test_llm_manager_model_access_info(self, unified_model_manager, test_models, test_regions) -> None:
         """
         Test LLMManager model access information retrieval.
 
@@ -416,7 +416,7 @@ class TestLLMManagerUtilityFunctions:
 
     def test_llm_manager_available_models_and_regions(
         self, unified_model_manager, test_models, test_regions
-    ):
+    ) -> None:
         """
         Test LLMManager available models and regions retrieval.
 
@@ -437,7 +437,7 @@ class TestLLMManagerUtilityFunctions:
         assert all(model in available_models for model in test_models)
         assert all(region in available_regions for region in test_regions)
 
-    def test_llm_manager_refresh_model_data(self, unified_model_manager, test_models, test_regions):
+    def test_llm_manager_refresh_model_data(self, unified_model_manager, test_models, test_regions) -> None:
         """
         Test LLMManager model data refresh functionality.
 
@@ -459,7 +459,7 @@ class TestLLMManagerUtilityFunctions:
 
     def test_llm_manager_string_representation(
         self, unified_model_manager, test_models, test_regions
-    ):
+    ) -> None:
         """
         Test LLMManager string representation.
 

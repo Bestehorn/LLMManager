@@ -5,6 +5,8 @@ These tests validate that the authentication system works correctly with real
 AWS credentials and can establish connections to Bedrock services.
 """
 
+from typing import Any
+
 import pytest
 
 from bestehorn_llmmanager.bedrock.testing.integration_config import IntegrationTestError
@@ -15,7 +17,7 @@ from bestehorn_llmmanager.bedrock.testing.integration_config import IntegrationT
 class TestAuthenticationIntegration:
     """Integration tests for AWS authentication functionality."""
 
-    def test_authentication_with_primary_region(self, aws_test_client, integration_config):
+    def test_authentication_with_primary_region(self, aws_test_client: Any, integration_config: Any) -> None:
         """
         Test authentication with the primary configured region.
 
@@ -35,7 +37,7 @@ class TestAuthenticationIntegration:
         assert "auth_method" in result
 
     @pytest.mark.parametrize("region", ["us-east-1", "us-west-2"])
-    def test_authentication_multiple_regions(self, aws_test_client, integration_config, region):
+    def test_authentication_multiple_regions(self, aws_test_client: Any, integration_config: Any, region: str) -> None:
         """
         Test authentication across multiple regions.
 
@@ -54,7 +56,7 @@ class TestAuthenticationIntegration:
         assert result["duration_seconds"] > 0
         assert result["duration_seconds"] < integration_config.timeout_seconds
 
-    def test_authentication_all_configured_regions(self, aws_test_client, integration_config):
+    def test_authentication_all_configured_regions(self, aws_test_client: Any, integration_config: Any) -> None:
         """
         Test authentication for all configured regions.
 
@@ -78,7 +80,7 @@ class TestAuthenticationIntegration:
         for region, result in results.items():
             assert result["duration_seconds"] < integration_config.timeout_seconds
 
-    def test_authentication_with_invalid_region(self, aws_test_client):
+    def test_authentication_with_invalid_region(self, aws_test_client: Any) -> None:
         """
         Test authentication with an invalid/disabled region.
 
@@ -92,7 +94,7 @@ class TestAuthenticationIntegration:
 
         assert "not enabled for testing" in str(exc_info.value)
 
-    def test_authentication_performance_benchmarks(self, aws_test_client, integration_config):
+    def test_authentication_performance_benchmarks(self, aws_test_client: Any, integration_config: Any) -> None:
         """
         Test authentication performance benchmarks.
 
@@ -125,7 +127,7 @@ class TestAuthenticationIntegration:
 class TestEnvironmentValidation:
     """Integration tests for test environment validation."""
 
-    def test_validate_complete_test_environment(self, aws_test_client):
+    def test_validate_complete_test_environment(self, aws_test_client: Any) -> None:
         """
         Test complete test environment validation.
 
@@ -161,7 +163,7 @@ class TestEnvironmentValidation:
                 assert "error" in auth_result
                 assert isinstance(auth_result["error"], str)
 
-    def test_test_client_configuration(self, aws_test_client, integration_config):
+    def test_test_client_configuration(self, aws_test_client: Any, integration_config: Any) -> None:
         """
         Test AWS test client configuration.
 
@@ -187,7 +189,7 @@ class TestEnvironmentValidation:
         for region in available_regions:
             assert integration_config.is_region_enabled(region)
 
-    def test_cost_limit_enforcement(self, aws_test_client, integration_config):
+    def test_cost_limit_enforcement(self, aws_test_client: Any, integration_config: Any) -> None:
         """
         Test that cost limits are properly enforced.
 

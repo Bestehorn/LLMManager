@@ -167,7 +167,7 @@ def get_multiple_test_regions(model_name: str, max_regions: int = 3) -> List[str
 class TestLLMManagerBasicFunctionality:
     """Integration tests for basic LLMManager functionality."""
 
-    def test_llm_manager_initialization_with_real_models(self):
+    def test_llm_manager_initialization_with_real_models(self) -> None:
         """
         Test LLMManager initialization with real model data using dynamic discovery.
         """
@@ -212,7 +212,7 @@ class TestLLMManagerBasicFunctionality:
 
     def test_llm_manager_converse_with_real_model(
         self, sample_test_messages, simple_inference_config
-    ):
+    ) -> None:
         """
         Test LLMManager converse method with real AWS model using dynamic discovery.
 
@@ -265,7 +265,7 @@ class TestLLMManagerBasicFunctionality:
                 f'Could not initialize LLMManager (Model: "{model_name}"; Region: "{region}") due to model data issues: {str(e)}'
             )
 
-    def test_llm_manager_converse_with_system_message(self, sample_test_messages):
+    def test_llm_manager_converse_with_system_message(self, sample_test_messages) -> None:
         """
         Test LLMManager converse with system message.
 
@@ -298,7 +298,7 @@ class TestLLMManagerBasicFunctionality:
                 f'Could not initialize LLMManager (Model: "{model_name}"; Region: "{region}") due to model data issues: {str(e)}'
             )
 
-    def test_llm_manager_converse_with_multiple_regions(self, sample_test_messages):
+    def test_llm_manager_converse_with_multiple_regions(self, sample_test_messages) -> None:
         """
         Test LLMManager with multiple regions for failover using dynamic discovery.
 
@@ -361,7 +361,7 @@ class TestLLMManagerBasicFunctionality:
                 # Re-raise if it's a different kind of retry exhaustion
                 raise
 
-    def test_llm_manager_with_retry_config(self, sample_test_messages):
+    def test_llm_manager_with_retry_config(self, sample_test_messages) -> None:
         """
         Test LLMManager with custom retry configuration.
 
@@ -409,7 +409,7 @@ class TestLLMManagerBasicFunctionality:
 class TestLLMManagerErrorHandling:
     """Integration tests for LLMManager error handling with real AWS."""
 
-    def test_llm_manager_with_invalid_model_name(self, integration_config, sample_test_messages):
+    def test_llm_manager_with_invalid_model_name(self, integration_config, sample_test_messages) -> None:
         """
         Test LLMManager behavior with invalid model name.
 
@@ -430,7 +430,7 @@ class TestLLMManagerErrorHandling:
         assert "not found" in error_message
         assert "Models specified: ['NonExistentModel']" in error_message
 
-    def test_llm_manager_request_validation(self, integration_config):
+    def test_llm_manager_request_validation(self, integration_config) -> None:
         """
         Test LLMManager request validation.
 
@@ -464,7 +464,7 @@ class TestLLMManagerErrorHandling:
         with pytest.raises(RequestValidationError):
             manager.converse(messages=[{"role": "user"}])  # Missing content
 
-    def test_llm_manager_with_invalid_region(self, integration_config, sample_test_messages):
+    def test_llm_manager_with_invalid_region(self, integration_config, sample_test_messages) -> None:
         """
         Test LLMManager with invalid AWS region.
 
@@ -496,7 +496,7 @@ class TestLLMManagerErrorHandling:
 class TestLLMManagerAdvancedFeatures:
     """Integration tests for advanced LLMManager features."""
 
-    def test_llm_manager_converse_stream(self, integration_config, sample_test_messages):
+    def test_llm_manager_converse_stream(self, integration_config, sample_test_messages) -> None:
         """
         Test LLMManager streaming converse functionality.
 
@@ -526,7 +526,7 @@ class TestLLMManagerAdvancedFeatures:
         except ConfigurationError as e:
             pytest.skip(f"Could not initialize LLMManager due to model data issues: {str(e)}")
 
-    def test_llm_manager_model_access_info(self, integration_config):
+    def test_llm_manager_model_access_info(self, integration_config) -> None:
         """
         Test LLMManager model access information retrieval.
 
@@ -557,7 +557,7 @@ class TestLLMManagerAdvancedFeatures:
         except ConfigurationError as e:
             pytest.skip(f"Could not initialize LLMManager due to model data issues: {str(e)}")
 
-    def test_llm_manager_refresh_model_data(self, integration_config):
+    def test_llm_manager_refresh_model_data(self, integration_config) -> None:
         """
         Test LLMManager model data refresh functionality.
 
@@ -593,7 +593,7 @@ class TestLLMManagerAdvancedFeatures:
 class TestLLMManagerResponseValidation:
     """Integration tests for LLMManager response validation features."""
 
-    def test_llm_manager_basic_response_handling(self, integration_config, sample_test_messages):
+    def test_llm_manager_basic_response_handling(self, integration_config, sample_test_messages) -> None:
         """
         Test basic LLMManager response handling and content extraction.
 

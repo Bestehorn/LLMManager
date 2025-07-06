@@ -7,6 +7,7 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any, Generator
 
 import pytest
 
@@ -46,14 +47,14 @@ except ImportError as e:
 
 # Test fixtures
 @pytest.fixture
-def temp_dir():
+def temp_dir() -> Generator[Path, None, None]:
     """Create a temporary directory for test files."""
     with tempfile.TemporaryDirectory() as temp_dir:
         yield Path(temp_dir)
 
 
 @pytest.fixture
-def sample_test_messages():
+def sample_test_messages() -> list[dict[str, object]]:
     """Sample messages for testing Bedrock converse API."""
     return [
         {
@@ -68,13 +69,13 @@ def sample_test_messages():
 
 
 @pytest.fixture
-def simple_inference_config():
+def simple_inference_config() -> dict[str, object]:
     """Simple inference configuration for testing."""
     return {"maxTokens": 100, "temperature": 0.1, "topP": 0.9}
 
 
 # Pytest configuration hooks
-def pytest_configure(config):
+def pytest_configure(config: Any) -> None:
     """Configure pytest with custom markers and settings."""
     # These markers are already defined in pytest.ini, but we'll add them here too for completeness
     config.addinivalue_line("markers", "unit: Unit tests")

@@ -3,7 +3,7 @@ Fixed unit tests for ModelManager class.
 Tests the functionality of the Amazon Bedrock Model Manager.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -20,12 +20,12 @@ class TestModelManager:
     """Test cases for ModelManager class."""
 
     @pytest.fixture
-    def mock_downloader(self):
+    def mock_downloader(self) -> Mock:
         """Create a mock HTMLDocumentationDownloader."""
         return Mock()
 
     @pytest.fixture
-    def mock_parser(self):
+    def mock_parser(self) -> Mock:
         """Create a mock EnhancedBedrockHTMLParser."""
         mock = Mock()
         mock.parse.return_value = {
@@ -35,12 +35,12 @@ class TestModelManager:
         return mock
 
     @pytest.fixture
-    def mock_serializer(self):
+    def mock_serializer(self) -> Mock:
         """Create a mock JSONModelSerializer."""
         return Mock()
 
     @pytest.fixture
-    def model_manager(self, mock_downloader, mock_parser, mock_serializer):
+    def model_manager(self, mock_downloader: Mock, mock_parser: Mock, mock_serializer: Mock) -> ModelManager:
         """Create a ModelManager instance with mocked components."""
         with patch(
             "bestehorn_llmmanager.bedrock.downloaders.html_downloader.HTMLDocumentationDownloader",
@@ -59,7 +59,7 @@ class TestModelManager:
             manager._serializer = mock_serializer
             return manager
 
-    def test_init_default_configuration(self):
+    def test_init_default_configuration(self) -> None:
         """Test default initialization of ModelManager."""
         manager = ModelManager()
 
@@ -67,7 +67,7 @@ class TestModelManager:
         assert manager.json_output_path == Path(FilePaths.DEFAULT_JSON_OUTPUT)
         assert manager.documentation_url == URLs.BEDROCK_MODELS_DOCUMENTATION
 
-    def test_init_custom_configuration(self):
+    def test_init_custom_configuration(self) -> None:
         """Test initialization with custom configuration."""
         html_path = Path("custom/path.html")
         json_path = Path("custom/models.json")
@@ -85,8 +85,8 @@ class TestModelManager:
         assert manager.documentation_url == custom_url
 
     def test_refresh_model_data_success(
-        self, model_manager, mock_downloader, mock_parser, mock_serializer
-    ):
+        self, model_manager: ModelManager, mock_downloader: Mock, mock_parser: Mock, mock_serializer: Mock
+    ) -> None:
         """Test successful model data refresh."""
         # Setup mocks
         models_dict = {
@@ -106,7 +106,7 @@ class TestModelManager:
         mock_parser.parse.assert_called_once()
         mock_serializer.serialize_to_file.assert_called_once()
 
-    def test_refresh_model_data_network_error(self, model_manager, mock_downloader):
+    def test_refresh_model_data_network_error(self, model_manager: ModelManager, mock_downloader: Mock) -> None:
         """Test model data refresh with network error."""
         mock_downloader.download.side_effect = NetworkError("Connection failed")
 
@@ -115,7 +115,7 @@ class TestModelManager:
         ):
             model_manager.refresh_model_data()
 
-    def test_refresh_model_data_parsing_error(self, model_manager, mock_parser):
+    def test_refresh_model_data_parsing_error(self, model_manager: ModelManager, mock_parser: Mock) -> None:
         """Test model data refresh with parsing error."""
         mock_parser.parse.side_effect = ParsingError("Invalid HTML structure")
 
@@ -124,7 +124,7 @@ class TestModelManager:
         ):
             model_manager.refresh_model_data()
 
-    def test_refresh_model_data_file_system_error(self, model_manager, mock_serializer):
+    def test_refresh_model_data_file_system_error(self, model_manager: ModelManager, mock_serializer: Mock) -> None:
         """Test model data refresh with file system error."""
         mock_serializer.serialize_to_file.side_effect = FileSystemError("Permission denied")
 
@@ -134,8 +134,8 @@ class TestModelManager:
             model_manager.refresh_model_data()
 
     def test_refresh_model_data_skip_download_if_recent(
-        self, model_manager, mock_downloader, tmp_path
-    ):
+        self, model_manager: ModelManager, mock_downloader: Mock, tmp_path: Path
+    ) -> None:
         """Test that download is skipped if HTML file is recent."""
         # Create a recent HTML file
         html_file = tmp_path / "test.html"
@@ -154,7 +154,7 @@ class TestModelManager:
         # Verify result is valid
         assert isinstance(result, ModelCatalog)
 
-    def test_load_cached_data_file_not_exists(self, model_manager):
+    def test_load_cached_data_file_not_exists(self, model_manager: ModelManager) -> None:
         """Test loading cached data when file doesn't exist."""
         model_manager.json_output_path = Path("nonexistent.json")
 
@@ -162,7 +162,7 @@ class TestModelManager:
 
         assert result is None
 
-    def test_load_cached_data_success(self, model_manager, mock_serializer, tmp_path):
+    def test_load_cached_data_success(self, model_manager: ModelManager, mock_serializer: Mock, tmp_path: Path) -> None:
         """Test successful loading of cached data."""
         # Create a JSON file
         json_file = tmp_path / "models.json"
@@ -175,7 +175,7 @@ class TestModelManager:
 
         mock_serializer.load_from_file.assert_called_once_with(input_path=json_file)
 
-    def test_load_cached_data_error(self, model_manager, mock_serializer, tmp_path):
+    def test_load_cached_data_error(self, model_manager: ModelManager, mock_serializer: Mock, tmp_path: Path) -> None:
         """Test loading cached data with error."""
         json_file = tmp_path / "models.json"
         json_file.write_text("invalid json")
@@ -187,12 +187,12 @@ class TestModelManager:
 
         assert result is None
 
-    def test_get_models_by_provider_no_data(self, model_manager):
+    def test_get_models_by_provider_no_data(self, model_manager: ModelManager) -> None:
         """Test getting models by provider when no data is available."""
         with pytest.raises(ModelManagerError, match="No model data available"):
             model_manager.get_models_by_provider("Amazon")
 
-    def test_get_models_by_provider_success(self, model_manager):
+    def test_get_models_by_provider_success(self, model_manager: ModelManager) -> None:
         """Test successful retrieval of models by provider."""
         # Setup cached catalog
         mock_catalog = Mock(spec=ModelCatalog)
@@ -205,12 +205,12 @@ class TestModelManager:
         assert result == {"Model1": mock_model}
         mock_catalog.get_models_by_provider.assert_called_once_with(provider="Amazon")
 
-    def test_get_models_by_region_no_data(self, model_manager):
+    def test_get_models_by_region_no_data(self, model_manager: ModelManager) -> None:
         """Test getting models by region when no data is available."""
         with pytest.raises(ModelManagerError, match="No model data available"):
             model_manager.get_models_by_region("us-east-1")
 
-    def test_get_models_by_region_success(self, model_manager):
+    def test_get_models_by_region_success(self, model_manager: ModelManager) -> None:
         """Test successful retrieval of models by region."""
         # Setup cached catalog
         mock_catalog = Mock(spec=ModelCatalog)
@@ -223,12 +223,12 @@ class TestModelManager:
         assert result == {"Model1": mock_model}
         mock_catalog.get_models_by_region.assert_called_once_with(region="us-east-1")
 
-    def test_get_streaming_models_no_data(self, model_manager):
+    def test_get_streaming_models_no_data(self, model_manager: ModelManager) -> None:
         """Test getting streaming models when no data is available."""
         with pytest.raises(ModelManagerError, match="No model data available"):
             model_manager.get_streaming_models()
 
-    def test_get_streaming_models_success(self, model_manager):
+    def test_get_streaming_models_success(self, model_manager: ModelManager) -> None:
         """Test successful retrieval of streaming models."""
         # Setup cached catalog
         mock_catalog = Mock(spec=ModelCatalog)
@@ -241,12 +241,12 @@ class TestModelManager:
         assert result == {"Model1": mock_model}
         mock_catalog.get_streaming_models.assert_called_once()
 
-    def test_get_model_count_no_data(self, model_manager):
+    def test_get_model_count_no_data(self, model_manager: ModelManager) -> None:
         """Test getting model count when no data is available."""
         with pytest.raises(ModelManagerError, match="No model data available"):
             model_manager.get_model_count()
 
-    def test_get_model_count_success(self, model_manager):
+    def test_get_model_count_success(self, model_manager: ModelManager) -> None:
         """Test successful retrieval of model count."""
         # Setup cached catalog
         mock_catalog = Mock(spec=ModelCatalog)
@@ -257,7 +257,7 @@ class TestModelManager:
 
         assert result == 5
 
-    def test_is_html_file_recent_file_not_exists(self, model_manager):
+    def test_is_html_file_recent_file_not_exists(self, model_manager: ModelManager) -> None:
         """Test checking if HTML file is recent when file doesn't exist."""
         model_manager.html_output_path = Path("nonexistent.html")
 
@@ -265,7 +265,7 @@ class TestModelManager:
 
         assert result is False
 
-    def test_is_html_file_recent_file_is_old(self, model_manager, tmp_path):
+    def test_is_html_file_recent_file_is_old(self, model_manager: ModelManager, tmp_path: Path) -> None:
         """Test checking if HTML file is recent when file is old."""
         import os
         import time
@@ -285,7 +285,7 @@ class TestModelManager:
 
         assert result is False
 
-    def test_is_html_file_recent_file_is_recent(self, model_manager, tmp_path):
+    def test_is_html_file_recent_file_is_recent(self, model_manager: ModelManager, tmp_path: Path) -> None:
         """Test checking if HTML file is recent when file is recent."""
         # Create a recent file
         html_file = tmp_path / "recent.html"
@@ -298,7 +298,7 @@ class TestModelManager:
 
         assert result is True
 
-    def test_is_html_file_recent_os_error(self, model_manager, tmp_path):
+    def test_is_html_file_recent_os_error(self, model_manager: ModelManager, tmp_path: Path) -> None:
         """Test checking if HTML file is recent with OS error."""
         # Create a file path that will cause stat() to fail
         # Use a non-existent file in a non-existent directory to trigger OSError
@@ -313,7 +313,7 @@ class TestModelManager:
 
         assert result is False
 
-    def test_download_documentation(self, model_manager, mock_downloader):
+    def test_download_documentation(self, model_manager: ModelManager, mock_downloader: Mock) -> None:
         """Test downloading documentation."""
         model_manager._download_documentation()
 
@@ -321,7 +321,7 @@ class TestModelManager:
             url=model_manager.documentation_url, output_path=model_manager.html_output_path
         )
 
-    def test_parse_documentation(self, model_manager, mock_parser):
+    def test_parse_documentation(self, model_manager: ModelManager, mock_parser: Mock) -> None:
         """Test parsing documentation."""
         expected_models = {"Model1": Mock()}
         mock_parser.parse.return_value = expected_models
@@ -331,7 +331,7 @@ class TestModelManager:
         assert result == expected_models
         mock_parser.parse.assert_called_once_with(file_path=model_manager.html_output_path)
 
-    def test_save_catalog_to_json(self, model_manager, mock_serializer):
+    def test_save_catalog_to_json(self, model_manager: ModelManager, mock_serializer: Mock) -> None:
         """Test saving catalog to JSON."""
         catalog = Mock(spec=ModelCatalog)
 
@@ -341,7 +341,7 @@ class TestModelManager:
             catalog=catalog, output_path=model_manager.json_output_path
         )
 
-    def test_repr(self, model_manager):
+    def test_repr(self, model_manager: ModelManager) -> None:
         """Test string representation of ModelManager."""
         repr_str = repr(model_manager)
 
@@ -354,7 +354,7 @@ class TestModelManager:
 class TestModelManagerIntegration:
     """Integration tests for ModelManager."""
 
-    def test_full_refresh_workflow(self, tmp_path):
+    def test_full_refresh_workflow(self, tmp_path: Path) -> None:
         """Test the complete refresh workflow."""
         # Create temporary paths
         html_path = tmp_path / "models.html"
