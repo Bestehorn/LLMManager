@@ -186,9 +186,11 @@ class TestBedrockConverseRequest:
         request = BedrockConverseRequest(messages=messages)
 
         # Test various content types
-        from typing import Any, Dict, List, Union, Tuple
-        
-        test_cases: List[Tuple[str, Union[str, bytes, int, bool, None, Dict[str, Any], List[Any]]]] = [
+        from typing import Any, Dict, List, Tuple, Union
+
+        test_cases: List[
+            Tuple[str, Union[str, bytes, int, bool, None, Dict[str, Any], List[Any]]]
+        ] = [
             # Simple types
             ("text", "hello world"),
             ("bytes", b"binary data"),
@@ -231,7 +233,7 @@ class TestBedrockConverseRequest:
             elif test_name in ["dict_with_bytes", "message_structure"]:
                 # For specific dict test cases with bytes values, check that bytes are replaced
                 from typing import Any, Dict, List, Union
-                
+
                 def check_no_bytes(obj: Union[bytes, Dict[str, Any], List[Any], Any]) -> bool:
                     if isinstance(obj, bytes):
                         return False

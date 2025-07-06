@@ -17,7 +17,9 @@ from bestehorn_llmmanager.bedrock.testing.integration_config import IntegrationT
 class TestAuthenticationIntegration:
     """Integration tests for AWS authentication functionality."""
 
-    def test_authentication_with_primary_region(self, aws_test_client: Any, integration_config: Any) -> None:
+    def test_authentication_with_primary_region(
+        self, aws_test_client: Any, integration_config: Any
+    ) -> None:
         """
         Test authentication with the primary configured region.
 
@@ -37,7 +39,9 @@ class TestAuthenticationIntegration:
         assert "auth_method" in result
 
     @pytest.mark.parametrize("region", ["us-east-1", "us-west-2"])
-    def test_authentication_multiple_regions(self, aws_test_client: Any, integration_config: Any, region: str) -> None:
+    def test_authentication_multiple_regions(
+        self, aws_test_client: Any, integration_config: Any, region: str
+    ) -> None:
         """
         Test authentication across multiple regions.
 
@@ -56,7 +60,9 @@ class TestAuthenticationIntegration:
         assert result["duration_seconds"] > 0
         assert result["duration_seconds"] < integration_config.timeout_seconds
 
-    def test_authentication_all_configured_regions(self, aws_test_client: Any, integration_config: Any) -> None:
+    def test_authentication_all_configured_regions(
+        self, aws_test_client: Any, integration_config: Any
+    ) -> None:
         """
         Test authentication for all configured regions.
 
@@ -94,7 +100,9 @@ class TestAuthenticationIntegration:
 
         assert "not enabled for testing" in str(exc_info.value)
 
-    def test_authentication_performance_benchmarks(self, aws_test_client: Any, integration_config: Any) -> None:
+    def test_authentication_performance_benchmarks(
+        self, aws_test_client: Any, integration_config: Any
+    ) -> None:
         """
         Test authentication performance benchmarks.
 

@@ -40,7 +40,9 @@ class TestModelManager:
         return Mock()
 
     @pytest.fixture
-    def model_manager(self, mock_downloader: Mock, mock_parser: Mock, mock_serializer: Mock) -> ModelManager:
+    def model_manager(
+        self, mock_downloader: Mock, mock_parser: Mock, mock_serializer: Mock
+    ) -> ModelManager:
         """Create a ModelManager instance with mocked components."""
         with patch(
             "bestehorn_llmmanager.bedrock.downloaders.html_downloader.HTMLDocumentationDownloader",
@@ -85,7 +87,11 @@ class TestModelManager:
         assert manager.documentation_url == custom_url
 
     def test_refresh_model_data_success(
-        self, model_manager: ModelManager, mock_downloader: Mock, mock_parser: Mock, mock_serializer: Mock
+        self,
+        model_manager: ModelManager,
+        mock_downloader: Mock,
+        mock_parser: Mock,
+        mock_serializer: Mock,
     ) -> None:
         """Test successful model data refresh."""
         # Setup mocks
@@ -106,7 +112,9 @@ class TestModelManager:
         mock_parser.parse.assert_called_once()
         mock_serializer.serialize_to_file.assert_called_once()
 
-    def test_refresh_model_data_network_error(self, model_manager: ModelManager, mock_downloader: Mock) -> None:
+    def test_refresh_model_data_network_error(
+        self, model_manager: ModelManager, mock_downloader: Mock
+    ) -> None:
         """Test model data refresh with network error."""
         mock_downloader.download.side_effect = NetworkError("Connection failed")
 
@@ -115,7 +123,9 @@ class TestModelManager:
         ):
             model_manager.refresh_model_data()
 
-    def test_refresh_model_data_parsing_error(self, model_manager: ModelManager, mock_parser: Mock) -> None:
+    def test_refresh_model_data_parsing_error(
+        self, model_manager: ModelManager, mock_parser: Mock
+    ) -> None:
         """Test model data refresh with parsing error."""
         mock_parser.parse.side_effect = ParsingError("Invalid HTML structure")
 
@@ -124,7 +134,9 @@ class TestModelManager:
         ):
             model_manager.refresh_model_data()
 
-    def test_refresh_model_data_file_system_error(self, model_manager: ModelManager, mock_serializer: Mock) -> None:
+    def test_refresh_model_data_file_system_error(
+        self, model_manager: ModelManager, mock_serializer: Mock
+    ) -> None:
         """Test model data refresh with file system error."""
         mock_serializer.serialize_to_file.side_effect = FileSystemError("Permission denied")
 
@@ -162,7 +174,9 @@ class TestModelManager:
 
         assert result is None
 
-    def test_load_cached_data_success(self, model_manager: ModelManager, mock_serializer: Mock, tmp_path: Path) -> None:
+    def test_load_cached_data_success(
+        self, model_manager: ModelManager, mock_serializer: Mock, tmp_path: Path
+    ) -> None:
         """Test successful loading of cached data."""
         # Create a JSON file
         json_file = tmp_path / "models.json"
@@ -175,7 +189,9 @@ class TestModelManager:
 
         mock_serializer.load_from_file.assert_called_once_with(input_path=json_file)
 
-    def test_load_cached_data_error(self, model_manager: ModelManager, mock_serializer: Mock, tmp_path: Path) -> None:
+    def test_load_cached_data_error(
+        self, model_manager: ModelManager, mock_serializer: Mock, tmp_path: Path
+    ) -> None:
         """Test loading cached data with error."""
         json_file = tmp_path / "models.json"
         json_file.write_text("invalid json")
@@ -265,7 +281,9 @@ class TestModelManager:
 
         assert result is False
 
-    def test_is_html_file_recent_file_is_old(self, model_manager: ModelManager, tmp_path: Path) -> None:
+    def test_is_html_file_recent_file_is_old(
+        self, model_manager: ModelManager, tmp_path: Path
+    ) -> None:
         """Test checking if HTML file is recent when file is old."""
         import os
         import time
@@ -285,7 +303,9 @@ class TestModelManager:
 
         assert result is False
 
-    def test_is_html_file_recent_file_is_recent(self, model_manager: ModelManager, tmp_path: Path) -> None:
+    def test_is_html_file_recent_file_is_recent(
+        self, model_manager: ModelManager, tmp_path: Path
+    ) -> None:
         """Test checking if HTML file is recent when file is recent."""
         # Create a recent file
         html_file = tmp_path / "recent.html"
@@ -298,7 +318,9 @@ class TestModelManager:
 
         assert result is True
 
-    def test_is_html_file_recent_os_error(self, model_manager: ModelManager, tmp_path: Path) -> None:
+    def test_is_html_file_recent_os_error(
+        self, model_manager: ModelManager, tmp_path: Path
+    ) -> None:
         """Test checking if HTML file is recent with OS error."""
         # Create a file path that will cause stat() to fail
         # Use a non-existent file in a non-existent directory to trigger OSError
@@ -313,7 +335,9 @@ class TestModelManager:
 
         assert result is False
 
-    def test_download_documentation(self, model_manager: ModelManager, mock_downloader: Mock) -> None:
+    def test_download_documentation(
+        self, model_manager: ModelManager, mock_downloader: Mock
+    ) -> None:
         """Test downloading documentation."""
         model_manager._download_documentation()
 

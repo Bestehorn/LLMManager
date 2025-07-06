@@ -389,7 +389,9 @@ class TestLLMManagerErrorHandling:
 class TestLLMManagerUtilityFunctions:
     """Integration tests for LLMManager utility functions."""
 
-    def test_llm_manager_model_access_info(self, unified_model_manager, test_models, test_regions) -> None:
+    def test_llm_manager_model_access_info(
+        self, unified_model_manager, test_models, test_regions
+    ) -> None:
         """
         Test LLMManager model access information retrieval.
 
@@ -437,7 +439,9 @@ class TestLLMManagerUtilityFunctions:
         assert all(model in available_models for model in test_models)
         assert all(region in available_regions for region in test_regions)
 
-    def test_llm_manager_refresh_model_data(self, unified_model_manager, test_models, test_regions) -> None:
+    def test_llm_manager_refresh_model_data(
+        self, unified_model_manager, test_models, test_regions
+    ) -> None:
         """
         Test LLMManager model data refresh functionality.
 

@@ -409,7 +409,9 @@ class TestLLMManagerBasicFunctionality:
 class TestLLMManagerErrorHandling:
     """Integration tests for LLMManager error handling with real AWS."""
 
-    def test_llm_manager_with_invalid_model_name(self, integration_config, sample_test_messages) -> None:
+    def test_llm_manager_with_invalid_model_name(
+        self, integration_config, sample_test_messages
+    ) -> None:
         """
         Test LLMManager behavior with invalid model name.
 
@@ -464,7 +466,9 @@ class TestLLMManagerErrorHandling:
         with pytest.raises(RequestValidationError):
             manager.converse(messages=[{"role": "user"}])  # Missing content
 
-    def test_llm_manager_with_invalid_region(self, integration_config, sample_test_messages) -> None:
+    def test_llm_manager_with_invalid_region(
+        self, integration_config, sample_test_messages
+    ) -> None:
         """
         Test LLMManager with invalid AWS region.
 
@@ -593,7 +597,9 @@ class TestLLMManagerAdvancedFeatures:
 class TestLLMManagerResponseValidation:
     """Integration tests for LLMManager response validation features."""
 
-    def test_llm_manager_basic_response_handling(self, integration_config, sample_test_messages) -> None:
+    def test_llm_manager_basic_response_handling(
+        self, integration_config, sample_test_messages
+    ) -> None:
         """
         Test basic LLMManager response handling and content extraction.
 

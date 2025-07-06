@@ -7,7 +7,7 @@ import os
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any, Dict, Generator, List
 
 import pytest
 
@@ -54,7 +54,7 @@ def temp_dir() -> Generator[Path, None, None]:
 
 
 @pytest.fixture
-def sample_test_messages() -> list[dict[str, object]]:
+def sample_test_messages() -> List[Dict[str, object]]:
     """Sample messages for testing Bedrock converse API."""
     return [
         {
@@ -69,7 +69,7 @@ def sample_test_messages() -> list[dict[str, object]]:
 
 
 @pytest.fixture
-def simple_inference_config() -> dict[str, object]:
+def simple_inference_config() -> Dict[str, object]:
     """Simple inference configuration for testing."""
     return {"maxTokens": 100, "temperature": 0.1, "topP": 0.9}
 
