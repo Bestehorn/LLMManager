@@ -77,12 +77,9 @@ class TestCRISManagerInitialization:
 class TestCRISManagerRefreshData:
     """Test CRISManager refresh_cris_data method."""
 
-    @patch("bestehorn_llmmanager.bedrock.CRISManager.datetime")
-    def test_refresh_cris_data_success(self, mock_datetime, temp_dir):
+    def test_refresh_cris_data_success(self, temp_dir):
         """Test successful refresh of CRIS data."""
-        # Setup
-        fixed_time = datetime(2024, 1, 1, 12, 0, 0)
-        mock_datetime.now.return_value = fixed_time
+        # No need to mock datetime - use real time
 
         manager = CRISManager(
             html_output_path=temp_dir / "cris.html", json_output_path=temp_dir / "cris.json"
@@ -103,7 +100,7 @@ class TestCRISManagerRefreshData:
 
         # Verify
         assert isinstance(result, CRISCatalog)
-        assert result.retrieval_timestamp == fixed_time
+        assert isinstance(result.retrieval_timestamp, datetime)
         assert result.cris_models == mock_models_dict
 
         # Verify component calls

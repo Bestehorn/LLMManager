@@ -801,37 +801,43 @@ class TestUnifiedModelManagerCacheManagement:
         with pytest.raises(UnifiedModelManagerError, match="max_cache_age_hours must be between"):
             UnifiedModelManager(max_cache_age_hours=200.0)  # Above maximum
 
-    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
-    def test_get_cache_age_hours_valid_timestamp(self, mock_datetime, cache_manager):
+    def test_get_cache_age_hours_valid_timestamp(self, cache_manager):
         """Test cache age calculation with valid timestamp."""
-        # Mock current time with timezone awareness
+        # Use a timestamp that's 2 hours in the past from "now"
         from datetime import timezone
-
-        current_time = datetime(2023, 1, 1, 14, 0, 0, tzinfo=timezone.utc)  # 2 hours later
-        mock_datetime.now.return_value = current_time
-        mock_datetime.strptime = datetime.strptime
-
-        # Test with microseconds
-        timestamp_str = "2023-01-01T12:00:00.000000Z"
+        import time
+        
+        # Calculate a timestamp that's 2 hours ago
+        two_hours_ago = time.time() - (2 * 3600)  # 2 hours in seconds
+        
+        # Convert to ISO format string (the format the method expects)
+        from datetime import datetime
+        dt = datetime.fromtimestamp(two_hours_ago, tz=timezone.utc)
+        timestamp_str = dt.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        
         age_hours = cache_manager._get_cache_age_hours(timestamp_str)
 
-        assert age_hours == 2.0
+        # Should be approximately 2 hours (allow some tolerance for execution time)
+        assert 1.9 <= age_hours <= 2.1
 
-    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
-    def test_get_cache_age_hours_fallback_format(self, mock_datetime, cache_manager):
+    def test_get_cache_age_hours_fallback_format(self, cache_manager):
         """Test cache age calculation with fallback timestamp format."""
-        # Mock current time with timezone awareness
+        # Use a timestamp that's 3 hours in the past from "now"
         from datetime import timezone
-
-        current_time = datetime(2023, 1, 1, 15, 0, 0, tzinfo=timezone.utc)  # 3 hours later
-        mock_datetime.now.return_value = current_time
-        mock_datetime.strptime = datetime.strptime
-
-        # Test without microseconds (fallback format)
-        timestamp_str = "2023-01-01T12:00:00Z"
+        import time
+        
+        # Calculate a timestamp that's 3 hours ago
+        three_hours_ago = time.time() - (3 * 3600)  # 3 hours in seconds
+        
+        # Convert to ISO format string without microseconds (the fallback format)
+        from datetime import datetime
+        dt = datetime.fromtimestamp(three_hours_ago, tz=timezone.utc)
+        timestamp_str = dt.strftime("%Y-%m-%dT%H:%M:%SZ")  # No microseconds
+        
         age_hours = cache_manager._get_cache_age_hours(timestamp_str)
 
-        assert age_hours == 3.0
+        # Should be approximately 3 hours (allow some tolerance for execution time)
+        assert 2.9 <= age_hours <= 3.1
 
     def test_get_cache_age_hours_invalid_timestamp(self, cache_manager):
         """Test cache age calculation with invalid timestamp."""

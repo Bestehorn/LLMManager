@@ -300,16 +300,16 @@ class TestModelManager:
 
     def test_is_html_file_recent_os_error(self, model_manager, tmp_path):
         """Test checking if HTML file is recent with OS error."""
-        html_file = tmp_path / "test.html"
-        html_file.write_text("test content")  # Create the file
+        # Create a file path that will cause stat() to fail
+        # Use a non-existent file in a non-existent directory to trigger OSError
+        non_existent_dir = tmp_path / "non_existent_directory" / "deeply" / "nested" / "path"
+        html_file = non_existent_dir / "test.html"
+        
+        # Set the path to the non-existent file
         model_manager.html_output_path = html_file
-
-        # Mock datetime.fromtimestamp to raise OSError to simulate file access errors
-        with patch('bestehorn_llmmanager.bedrock.ModelManager.datetime') as mock_datetime_module:
-            mock_datetime_module.now.return_value = datetime.now()
-            mock_datetime_module.fromtimestamp.side_effect = OSError("Permission denied")
-            
-            result = model_manager._is_html_file_recent()
+        
+        # This should return False because the file doesn't exist (OSError path)
+        result = model_manager._is_html_file_recent()
 
         assert result is False
 
