@@ -277,8 +277,8 @@ class TestModelManager:
 
         model_manager.html_output_path = html_file
 
-        # Mock the datetime methods in the ModelManager module
-        with patch("bestehorn_llmmanager.bedrock.ModelManager.datetime") as mock_datetime_class:
+        # Patch datetime at the module level using string path
+        with patch('bestehorn_llmmanager.bedrock.ModelManager.datetime') as mock_datetime_class:
             mock_datetime_class.now.return_value = datetime.now()
             mock_datetime_class.fromtimestamp.return_value = old_time
 
@@ -305,8 +305,8 @@ class TestModelManager:
         html_file.write_text("test content")  # Create the file
         model_manager.html_output_path = html_file
 
-        # Mock datetime.fromtimestamp to raise OSError
-        with patch("bestehorn_llmmanager.bedrock.ModelManager.datetime") as mock_datetime_class:
+        # Patch datetime at the module level using string path
+        with patch('bestehorn_llmmanager.bedrock.ModelManager.datetime') as mock_datetime_class:
             mock_datetime_class.fromtimestamp.side_effect = OSError("Permission denied")
             result = model_manager._is_html_file_recent()
 
