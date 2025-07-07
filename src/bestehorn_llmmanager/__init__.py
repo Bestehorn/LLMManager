@@ -65,6 +65,7 @@ except ImportError:
     # Fallback for development/editable installs
     try:
         from importlib.metadata import version
+
         __version__ = version("bestehorn-llmmanager")
     except Exception:
         __version__ = "dev"
