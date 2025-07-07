@@ -14,6 +14,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required for setuptools-scm to access git history and tags
     
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v5
@@ -49,6 +51,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Required for setuptools-scm to access git history and tags
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -60,28 +64,22 @@ jobs:
         python -m pip install --upgrade pip
         pip install --upgrade build twine pkginfo
     
-    - name: Verify version import before build
+    - name: Verify setuptools-scm before build
       run: |
-        echo "=== Version Import Diagnostics ==="
-        python -c "
-        import sys
-        print(f'Python version: {sys.version}')
-        print(f'Python path: {sys.path}')
-        print('--- Attempting version import ---')
-        try:
-            from bestehorn_llmmanager._version import __version__
-            print(f'SUCCESS: Version imported: {__version__}')
-        except Exception as e:
-            print(f'ERROR: Failed to import version: {e}')
-            import traceback
-            traceback.print_exc()
+        echo "=== setuptools-scm Diagnostics ==="
+        echo "--- Git repository info ---"
+        git status
+        git log --oneline -5
+        git tag --list | tail -10
         
-        print('--- Attempting full package import ---')
+        echo "--- setuptools-scm version detection ---"
+        python -c "
         try:
-            import bestehorn_llmmanager
-            print(f'SUCCESS: Package imported, version: {bestehorn_llmmanager.__version__}')
+            from setuptools_scm import get_version
+            version = get_version()
+            print(f'✅ setuptools-scm SUCCESS: {version}')
         except Exception as e:
-            print(f'ERROR: Failed to import package: {e}')
+            print(f'❌ setuptools-scm FAILED: {e}')
             import traceback
             traceback.print_exc()
         "
