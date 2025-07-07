@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "setuptools-scm[toml]>=6.2", "wheel"]
+requires = ["setuptools>=61.0,<70.0", "setuptools-scm[toml]>=6.2", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,7 +7,7 @@ name = "bestehorn-llmmanager"
 dynamic = ["version"]
 description = "A comprehensive Python library for managing AWS Bedrock Converse API interactions with multi-model support, intelligent retry logic, and parallel processing capabilities"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = {text = "MIT"}
 authors = [
     {name = "Markus Bestehorn", email = "markus.bestehorn@googlemail.com"}
 ]
