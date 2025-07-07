@@ -59,13 +59,15 @@ __description__ = "AWS Bedrock Converse API Management Library with MessageBuild
 __license__ = "MIT"
 
 # Version management with setuptools-scm
-from importlib.metadata import version
-
 try:
-    __version__ = version("bestehorn-llmmanager")
-except Exception:
-    # Fallback version for development/editable installs
-    __version__ = "dev"
+    from ._version import __version__
+except ImportError:
+    # Fallback for development/editable installs
+    try:
+        from importlib.metadata import version
+        __version__ = version("bestehorn-llmmanager")
+    except Exception:
+        __version__ = "dev"
 
 # Public API
 __all__ = [
