@@ -55,6 +55,7 @@ from .parallel_llm_manager import ParallelLLMManager
 
 # Package metadata
 from ._version import __version__
+
 __author__ = "LLMManager Development Team"
 __description__ = "AWS Bedrock Converse API Management Library with MessageBuilder"
 __license__ = "MIT"
