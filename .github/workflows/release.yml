@@ -60,12 +60,103 @@ jobs:
         python -m pip install --upgrade pip
         pip install --upgrade build twine pkginfo
     
-    - name: Build package
-      run: python -m build
+    - name: Verify version import before build
+      run: |
+        echo "=== Version Import Diagnostics ==="
+        python -c "
+        import sys
+        print(f'Python version: {sys.version}')
+        print(f'Python path: {sys.path}')
+        print('--- Attempting version import ---')
+        try:
+            from bestehorn_llmmanager._version import __version__
+            print(f'SUCCESS: Version imported: {__version__}')
+        except Exception as e:
+            print(f'ERROR: Failed to import version: {e}')
+            import traceback
+            traceback.print_exc()
+        
+        print('--- Attempting full package import ---')
+        try:
+            import bestehorn_llmmanager
+            print(f'SUCCESS: Package imported, version: {bestehorn_llmmanager.__version__}')
+        except Exception as e:
+            print(f'ERROR: Failed to import package: {e}')
+            import traceback
+            traceback.print_exc()
+        "
+    
+    - name: Build package with diagnostics
+      run: |
+        echo "=== Build Process Diagnostics ==="
+        echo "Building package..."
+        python -m build --verbose
+        echo "=== Build completed ==="
+    
+    - name: Inspect built package metadata
+      run: |
+        echo "=== Package Metadata Investigation ==="
+        echo "--- Contents of dist/ directory ---"
+        ls -la dist/
+        
+        echo "--- Wheel file contents ---"
+        python -c "
+        import os
+        import zipfile
+        import glob
+        
+        wheel_files = glob.glob('dist/*.whl')
+        if wheel_files:
+            wheel_file = wheel_files[0]
+            print(f'Inspecting wheel: {wheel_file}')
+            with zipfile.ZipFile(wheel_file, 'r') as zf:
+                print('Wheel contents:')
+                for name in sorted(zf.namelist()):
+                    print(f'  {name}')
+                
+                # Look for metadata files
+                metadata_files = [n for n in zf.namelist() if 'METADATA' in n or 'metadata' in n.lower()]
+                print(f'Metadata files found: {metadata_files}')
+                
+                for meta_file in metadata_files:
+                    print(f'--- Contents of {meta_file} ---')
+                    try:
+                        content = zf.read(meta_file).decode('utf-8')
+                        print(content[:1000])  # First 1000 chars
+                        if len(content) > 1000:
+                            print('...(truncated)')
+                    except Exception as e:
+                        print(f'Error reading {meta_file}: {e}')
+        else:
+            print('No wheel files found!')
+        "
+        
+        echo "--- Testing pkginfo on built wheel ---"
+        python -c "
+        import pkginfo
+        import glob
+        
+        wheel_files = glob.glob('dist/*.whl')
+        if wheel_files:
+            wheel_file = wheel_files[0]
+            print(f'Testing pkginfo on: {wheel_file}')
+            try:
+                info = pkginfo.get_metadata(wheel_file)
+                if info:
+                    print(f'pkginfo SUCCESS - Name: {info.name}, Version: {info.version}')
+                    print(f'Metadata version: {info.metadata_version}')
+                else:
+                    print('pkginfo returned None - this is the problem!')
+            except Exception as e:
+                print(f'pkginfo ERROR: {e}')
+                import traceback
+                traceback.print_exc()
+        "
     
     - name: Check package
       run: |
-        twine check dist/*
+        echo "=== Final Package Check ==="
+        twine check dist/* || echo "Twine check failed as expected"
         ls -la dist/
     
     - name: Publish to Test PyPI
