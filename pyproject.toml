@@ -85,7 +85,7 @@ include = ["bestehorn_llmmanager*"]
 bestehorn_llmmanager = ["py.typed"]
 
 [tool.setuptools.dynamic]
-version = {attr = "bestehorn_llmmanager.__version__"}
+version = {attr = "bestehorn_llmmanager._version.__version__"}
 
 # Testing configuration
 [tool.pytest.ini_options]
