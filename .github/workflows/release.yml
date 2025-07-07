@@ -157,18 +157,54 @@ jobs:
         twine check dist/* || echo "Twine check failed as expected"
         ls -la dist/
     
+    - name: Check if version is clean release (no dev/local identifiers)
+      id: version-check
+      run: |
+        echo "=== Version Analysis ==="
+        # Get the version from setuptools-scm
+        VERSION=$(python -c "from setuptools_scm import get_version; print(get_version())")
+        echo "Generated version: $VERSION"
+        
+        # Check if version contains dev or local identifiers
+        if [[ "$VERSION" == *"dev"* ]] || [[ "$VERSION" == *"+"* ]]; then
+          echo "❌ Development version detected: $VERSION"
+          echo "This suggests the workflow is running on a commit after the tag, not on the tag itself."
+          echo "is_release_version=false" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        else
+          echo "✅ Clean release version: $VERSION"
+          echo "is_release_version=true" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+        fi
+    
     - name: Publish to Test PyPI
+      if: steps.version-check.outputs.is_release_version == 'true'
       uses: pypa/gh-action-pypi-publish@v1.12.2
       with:
         repository-url: https://test.pypi.org/legacy/
         skip-existing: true
         attestations: false
+        verbose: true
+    
+    - name: Skip Test PyPI (Development Version)
+      if: steps.version-check.outputs.is_release_version == 'false'
+      run: |
+        echo "⚠️ Skipping Test PyPI publication for development version: ${{ steps.version-check.outputs.version }}"
+        echo "This is likely because the workflow is running on a commit after the tag."
+        echo "To publish a release, ensure the workflow runs exactly on the tagged commit."
     
     - name: Publish to PyPI
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && steps.version-check.outputs.is_release_version == 'true'
       uses: pypa/gh-action-pypi-publish@v1.12.2
       with:
         attestations: false
+        verbose: true
+    
+    - name: Skip PyPI (Development Version)
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && steps.version-check.outputs.is_release_version == 'false'
+      run: |
+        echo "⚠️ Skipping PyPI publication for development version: ${{ steps.version-check.outputs.version }}"
+        echo "This suggests a problem with git tag detection or the workflow trigger."
     
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1

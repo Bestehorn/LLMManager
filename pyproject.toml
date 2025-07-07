@@ -87,8 +87,8 @@ bestehorn_llmmanager = ["py.typed"]
 [tool.setuptools_scm]
 # Automatically determines version from git tags
 write_to = "src/bestehorn_llmmanager/_version.py"
-version_scheme = "guess-next-dev"
-local_scheme = "node-and-date"
+version_scheme = "release-branch-semver"
+local_scheme = "no-local-version"
 fallback_version = "0.1.0"
 
 # Testing configuration
