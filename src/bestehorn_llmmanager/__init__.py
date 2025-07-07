@@ -35,6 +35,7 @@ Example Usage:
 For detailed documentation, see the documentation in the docs/ directory.
 """
 
+# Package metadata
 from .llm_manager import LLMManager
 
 # MessageBuilder - Direct imports for easy access
@@ -52,9 +53,6 @@ from .message_builder_enums import (
     VideoFormatEnum,
 )
 from .parallel_llm_manager import ParallelLLMManager
-
-# Package metadata
-from ._version import __version__
 
 __author__ = "LLMManager Development Team"
 __description__ = "AWS Bedrock Converse API Management Library with MessageBuilder"
