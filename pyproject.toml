@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0", "setuptools-scm[toml]>=6.2", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -84,8 +84,8 @@ include = ["bestehorn_llmmanager*"]
 [tool.setuptools.package-data]
 bestehorn_llmmanager = ["py.typed"]
 
-[tool.setuptools.dynamic]
-version = {attr = "bestehorn_llmmanager._version.__version__"}
+[tool.setuptools_scm]
+# Automatically determines version from git tags
 
 # Testing configuration
 [tool.pytest.ini_options]
