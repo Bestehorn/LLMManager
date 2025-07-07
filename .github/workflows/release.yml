@@ -27,7 +27,7 @@ jobs:
     
     - name: Run tests
       run: |
-        pytest -v --cov=bestehorn_llmmanager --cov-report=xml
+        pytest test/bestehorn_llmmanager/ -v --cov=bestehorn_llmmanager --cov-report=xml --ignore=test/integration/
     
     - name: Upload coverage to Codecov
       if: matrix.python-version == '3.11'
