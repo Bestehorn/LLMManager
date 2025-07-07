@@ -54,7 +54,7 @@ from .message_builder_enums import (
 from .parallel_llm_manager import ParallelLLMManager
 
 # Package metadata
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __author__ = "LLMManager Development Team"
 __description__ = "AWS Bedrock Converse API Management Library with MessageBuilder"
 __license__ = "MIT"
