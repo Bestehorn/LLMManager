@@ -243,7 +243,7 @@ message = create_user_message()\
 
 ### ⚡ Parallel Processing with MessageBuilder
 
-**❌ Native API Limitation:** Sequential processing only
+**❌ Native API:** Sequential processing only
 ```python
 # With native API, you must process requests one by one
 results = []
@@ -453,7 +453,7 @@ The library automatically downloads and caches AWS Bedrock model information on 
 
 ### 🔄 Custom Retry Configuration
 
-**❌ Native API Limitation:** No automatic retry logic
+**❌ Native API:** No automatic retry logic
 ```python
 # With native API, you must implement your own retry logic
 import time
@@ -469,7 +469,7 @@ def retry_with_backoff(func, max_retries=3):
             time.sleep(2 ** attempt + random.uniform(0, 1))
 ```
 
-**✅ LLMManager Advantage:** Built-in intelligent retry with multiple strategies
+**✅ LLMManager Simplification:** Built-in intelligent retry with multiple strategies
 ```python
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     RetryConfig, RetryStrategy
@@ -501,7 +501,7 @@ manager = LLMManager(
 
 ### 🛡️ Response Validation
 
-**❌ Native API Limitation:** No response validation capabilities
+**❌ Native API:** No response validation capabilities
 ```python
 # With native API, manual validation is required
 response = bedrock.converse(...)
@@ -512,6 +512,12 @@ if "inappropriate" in content.lower():
     # Handle inappropriate content manually
     pass
 ```
+
+LLMs are inherently probabilistic in their responses, i.e., even with exactly the same prompt between to calls, responses from LLMs will differ.
+When you need a specific format, e.g., you want a formatted JSON response for down-stream processing, then even if the prompt explicitly specifies the exact format of the JSON response, there is still a chance you get a malformed response.
+In such cases, it is often advisable to just execute another request to obtain a compliant response from Bedrock.
+With the default converse API, you have to handle this in your application code.
+The LLM Manager gives you a way to handle this more elegantly by poiting to a validation function and having the LLM Manager retry if the validation function determines the response does not conform to the expected format.
 
 **✅ LLMManager Advantage:** Comprehensive response validation system
 ```python
@@ -567,6 +573,11 @@ if response.had_validation_failures():
     for error in response.get_validation_errors():
         print(f"  - {error['error_message']}")
 ```
+
+In the example above, the validation config contains a custom-validation function that checks the content of the message for various errors: length of the response, illegal keywowrds and completeness.
+This function is then passed as a parameter and used before the call from the LLM Manager converse() function returns.
+In case of errors, the LLM Manager will try to get a valid response before returning.
+If you need a JSON-compliant response, then implementing a function that uses the standard Python JSON parser to check the format of the incoming response text is straightforward.
 
 ### 📊 Rich Response Analysis
 
