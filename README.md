@@ -1,4 +1,4 @@
-# Bestehorn LLMManager
+# LLMManager by Markus Bestehorn
 
 [![PyPI version](https://badge.fury.io/py/bestehorn-llmmanager.svg)](https://badge.fury.io/py/bestehorn-llmmanager)
 [![Python Versions](https://img.shields.io/pypi/pyversions/bestehorn-llmmanager.svg)](https://pypi.org/project/bestehorn-llmmanager/)
@@ -14,6 +14,9 @@ One of the key use cases that started the implementation of this project has bee
 It helped me to avoid common mistake and sources for errors when using the [standard AWS Bedrock Converse API](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html).
 
 ⚠️**Important**: The code in this repository comes with no guarentees or liabilities. It is not intended for production use, but rather as an inspiration for implementing your own logic for the Bedrock converse API in production environments.
+
+Quick note on the package name: As there are other packages (public & private) that are named "LLMManager", I have chosen to prefix the name of this package with my last name as I am sure there are no other packages with this name.
+If this is an issue, feel free to contact me and propose another name.
 
 ## 🚀 Key Simplifications Over Native AWS Bedrock Converse API
 
