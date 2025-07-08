@@ -11,7 +11,7 @@
 
 I have implemented this set of functions over time while working on projects and demos using Amazon Bedrock.
 One of the key use cases that started the implementation of this project has been: I have a prompt and I do not care where the prompt gets executed, I just want to make sure I get a response and I do not want to handle any temporal issues such as malformed responses from LLMs or throttling.
-It helped me to avoid common mistake and sources for errors when using the [standard AWS Bedrock Converse API](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html).
+It helped me to avoid common mistakes and sources for errors when using the [standard AWS Bedrock Converse API](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html).
 
 ⚠️**Important**: The code in this repository comes with no guarentees or liabilities. It is not intended for production use, but rather as an inspiration for implementing your own logic for the Bedrock converse API in production environments.
 
