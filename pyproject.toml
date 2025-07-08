@@ -154,6 +154,8 @@ extend-exclude = '''
   | \.venv
   | build
   | dist
+  # generated files
+  | src/bestehorn_llmmanager/_version\.py
 )/
 '''
 
@@ -167,6 +169,21 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 src_paths = ["src", "test"]
+skip = ["src/bestehorn_llmmanager/_version.py"]
+
+# Linting with flake8
+[tool.flake8]
+exclude = [
+    ".git",
+    "__pycache__",
+    "build",
+    "dist",
+    ".eggs",
+    "*.egg-info",
+    ".tox",
+    ".venv",
+    "src/bestehorn_llmmanager/_version.py"
+]
 
 # Type checking with mypy
 [tool.mypy]
@@ -200,3 +217,8 @@ module = "bestehorn_llmmanager.llm_manager"
 # The validation methods have implicit returns that mypy thinks are unreachable
 # but we keep them for robustness when Python's dynamic typing is considered
 warn_unreachable = false
+
+[[tool.mypy.overrides]]
+module = "bestehorn_llmmanager._version"
+# Ignore generated version file
+ignore_errors = true
