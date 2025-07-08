@@ -94,7 +94,9 @@ class TestContentCompatibilityErrorHandling:
         assert is_content_error is True
         assert content_type == "document_processing"
 
-    def test_is_content_compatibility_error_non_content_error(self, retry_manager: RetryManager) -> None:
+    def test_is_content_compatibility_error_non_content_error(
+        self, retry_manager: RetryManager
+    ) -> None:
         """Test that non-content errors are not detected as content compatibility errors."""
         # Create mock error that's not a content compatibility error
         error = ClientError(
@@ -109,7 +111,9 @@ class TestContentCompatibilityErrorHandling:
         assert is_content_error is False
         assert content_type is None
 
-    def test_should_disable_feature_and_retry_excludes_content_errors(self, retry_manager: RetryManager) -> None:
+    def test_should_disable_feature_and_retry_excludes_content_errors(
+        self, retry_manager: RetryManager
+    ) -> None:
         """Test that content compatibility errors trigger feature disabling in current implementation."""
         # Create mock error with video incompatibility message
         error = ClientError(
@@ -128,7 +132,9 @@ class TestContentCompatibilityErrorHandling:
         assert should_disable is True
         assert feature == "video_processing"
 
-    def test_should_disable_feature_and_retry_api_level_errors(self, retry_manager: RetryManager) -> None:
+    def test_should_disable_feature_and_retry_api_level_errors(
+        self, retry_manager: RetryManager
+    ) -> None:
         """Test that API-level errors still trigger feature disabling."""
         # Create mock error with guardrail incompatibility message
         error = ClientError(

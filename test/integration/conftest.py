@@ -36,7 +36,9 @@ def integration_config() -> IntegrationTestConfig:
 
         # Skip integration tests if they're not enabled
         if not config.enabled:
-            pytest.skip("Integration tests are not enabled. Set AWS_INTEGRATION_TESTS_ENABLED=true to enable.")
+            pytest.skip(
+                "Integration tests are not enabled. Set AWS_INTEGRATION_TESTS_ENABLED=true to enable."
+            )
 
         return config
 
@@ -90,11 +92,14 @@ def check_integration_test_marker(request: Any, integration_config: IntegrationT
     markers = [marker.name for marker in request.node.iter_markers()]
 
     # Skip if this is an integration test but integration tests are not enabled
-    if any(marker in markers for marker in ['integration', 'aws_integration']) and not integration_config.enabled:
+    if (
+        any(marker in markers for marker in ["integration", "aws_integration"])
+        and not integration_config.enabled
+    ):
         pytest.skip("Integration tests are disabled")
 
     # Skip slow tests if configured to skip them
-    if 'aws_slow' in markers and integration_config.should_skip_slow_test():
+    if "aws_slow" in markers and integration_config.should_skip_slow_test():
         pytest.skip("Slow integration tests are disabled")
 
 
