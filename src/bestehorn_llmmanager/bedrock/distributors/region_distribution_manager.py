@@ -439,10 +439,11 @@ class RegionDistributionManager:
 
         for region in current_regions:
             if current_load[region] > avg_load * 1.5:  # High load region
-                # Try to replace with a lower load region
+                # Try to replace with a lower load region that's not already in current assignment
                 for low_load_region in sorted_by_load:
                     if (
                         low_load_region not in optimized_regions
+                        and low_load_region not in current_regions  # Avoid using regions already in current assignment
                         and current_load[low_load_region] < avg_load
                     ):
                         optimized_regions.append(low_load_region)

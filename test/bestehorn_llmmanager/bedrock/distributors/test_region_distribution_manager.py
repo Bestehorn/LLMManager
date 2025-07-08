@@ -209,9 +209,13 @@ class TestRegionDistributionManager:
 
     def test_create_region_assignments_with_none_request_id(self):
         """Test creation of region assignments when request has no ID."""
+        # Create request and manually set request_id to None after initialization
         request_without_id = BedrockConverseRequest(
             messages=[{"role": "user", "content": [{"text": "test"}]}]
         )
+        # Manually override the auto-generated request_id to simulate None case
+        request_without_id.request_id = None
+        
         self.manager._initialize_region_tracking(self.sample_regions)
 
         assignments = self.manager._create_region_assignments(
@@ -223,27 +227,22 @@ class TestRegionDistributionManager:
         assert len(assignments) == 1
         assert assignments[0].request_id == "unknown"
 
-    @patch(
-        "bestehorn_llmmanager.bedrock.distributors.region_distribution_manager.logging.getLogger"
-    )
-    def test_log_distribution_stats(self, mock_get_logger):
+    def test_log_distribution_stats(self):
         """Test logging of distribution statistics."""
-        mock_logger = Mock()
-        mock_get_logger.return_value = mock_logger
+        with patch.object(self.manager, '_logger') as mock_logger:
+            self.manager._initialize_region_tracking(self.sample_regions)
+            assignments = [
+                RegionAssignment(
+                    request_id="req-1", assigned_regions=["us-east-1", "us-west-2"], priority=0
+                ),
+                RegionAssignment(request_id="req-2", assigned_regions=["eu-west-1"], priority=0),
+            ]
 
-        self.manager._initialize_region_tracking(self.sample_regions)
-        assignments = [
-            RegionAssignment(
-                request_id="req-1", assigned_regions=["us-east-1", "us-west-2"], priority=0
-            ),
-            RegionAssignment(request_id="req-2", assigned_regions=["eu-west-1"], priority=0),
-        ]
+            self.manager._log_distribution_stats(assignments, self.sample_regions)
 
-        self.manager._log_distribution_stats(assignments, self.sample_regions)
-
-        # Check that info logs were called
-        assert mock_logger.info.call_count >= 2
-        assert mock_logger.debug.call_count >= 1
+            # Check that info logs were called
+            assert mock_logger.info.call_count >= 2
+            assert mock_logger.debug.call_count >= 1
 
     def test_get_region_load_distribution(self):
         """Test getting region load distribution."""
@@ -271,12 +270,7 @@ class TestRegionDistributionManager:
 
     def test_set_load_balancing_strategy(self):
         """Test setting load balancing strategy."""
-        with patch(
-            "bestehorn_llmmanager.bedrock.distributors.region_distribution_manager.logging.getLogger"
-        ) as mock_get_logger:
-            mock_logger = Mock()
-            mock_get_logger.return_value = mock_logger
-
+        with patch.object(self.manager, '_logger') as mock_logger:
             self.manager.set_load_balancing_strategy(LoadBalancingStrategy.RANDOM)
 
             assert self.manager.get_load_balancing_strategy() == LoadBalancingStrategy.RANDOM
@@ -291,12 +285,7 @@ class TestRegionDistributionManager:
             RegionAssignment(request_id="req-2", assigned_regions=["eu-west-1"], priority=1),
         ]
 
-        with patch(
-            "bestehorn_llmmanager.bedrock.distributors.region_distribution_manager.logging.getLogger"
-        ) as mock_get_logger:
-            mock_logger = Mock()
-            mock_get_logger.return_value = mock_logger
-
+        with patch.object(self.manager, '_logger') as mock_logger:
             optimized = self.manager.optimize_region_assignments(assignments, self.sample_regions)
 
             assert len(optimized) == len(assignments)
