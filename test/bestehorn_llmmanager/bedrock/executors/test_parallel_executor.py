@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from bestehorn_llmmanager.bedrock.exceptions.parallel_exceptions import ParallelExecutionError
 from bestehorn_llmmanager.bedrock.executors.parallel_executor import ParallelExecutor
 from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse
 from bestehorn_llmmanager.bedrock.models.parallel_structures import (
@@ -71,6 +70,7 @@ class TestParallelExecutor:
     @pytest.mark.asyncio
     async def test_execute_requests_parallel_success(self):
         """Test successful parallel execution."""
+
         # Mock execute function that returns actual response objects (not coroutines)
         def mock_execute_func(args):
             return self.successful_response
@@ -91,6 +91,7 @@ class TestParallelExecutor:
     @pytest.mark.asyncio
     async def test_execute_requests_parallel_with_failures(self):
         """Test parallel execution with some failures."""
+
         # Mock execute function that fails for req-2
         def mock_execute_func(args):
             if "test2" in str(args):
@@ -110,9 +111,11 @@ class TestParallelExecutor:
     @pytest.mark.asyncio
     async def test_execute_requests_parallel_timeout(self):
         """Test parallel execution with timeout."""
+
         # Mock execute function that hangs
         def mock_execute_func(args):
             import time
+
             time.sleep(20)  # Longer than timeout
             return self.successful_response
 
@@ -131,6 +134,7 @@ class TestParallelExecutor:
     @pytest.mark.asyncio
     async def test_execute_requests_parallel_exception(self):
         """Test parallel execution with exceptions."""
+
         # Mock execute function that raises exception
         def mock_execute_func(args):
             raise Exception("Test exception")
@@ -199,7 +203,7 @@ class TestParallelExecutor:
             RegionAssignment(request_id="missing-req", assigned_regions=["us-east-1"], priority=0)
         ]
 
-        with patch.object(self.executor, '_logger') as mock_logger:
+        with patch.object(self.executor, "_logger") as mock_logger:
             tasks = self.executor._create_execution_tasks(
                 assignments=assignments,
                 request_map=self.sample_requests,
@@ -213,6 +217,7 @@ class TestParallelExecutor:
     @pytest.mark.asyncio
     async def test_execute_single_request_with_context_success(self):
         """Test single request execution with context tracking."""
+
         # Use a function that returns actual response object (not coroutine)
         def mock_func(args):
             return self.successful_response
@@ -248,6 +253,7 @@ class TestParallelExecutor:
         # Mock function that takes too long
         def slow_func(args):
             import time
+
             time.sleep(1)  # Longer than timeout
             return self.successful_response
 
@@ -272,6 +278,7 @@ class TestParallelExecutor:
     @pytest.mark.asyncio
     async def test_execute_single_request_with_context_exception(self):
         """Test single request execution with exception."""
+
         def mock_func(args):
             raise Exception("Test error")
 
@@ -315,6 +322,7 @@ class TestParallelExecutor:
     @pytest.mark.asyncio
     async def test_execute_tasks_with_monitoring_success(self):
         """Test task execution with monitoring - all success."""
+
         # Create actual async tasks that return tuples
         async def create_task_result(request_id, response):
             return (request_id, response)
@@ -331,6 +339,7 @@ class TestParallelExecutor:
     @pytest.mark.asyncio
     async def test_execute_tasks_with_monitoring_with_exceptions(self):
         """Test task execution with monitoring - some exceptions."""
+
         # Create actual async tasks, one success and one failure
         async def create_success_result():
             return ("req-1", self.successful_response)
@@ -341,7 +350,7 @@ class TestParallelExecutor:
         task1 = asyncio.create_task(create_success_result())
         task2 = asyncio.create_task(create_failure_result())
 
-        with patch.object(self.executor, '_logger') as mock_logger:
+        with patch.object(self.executor, "_logger") as mock_logger:
             results = await self.executor._execute_tasks_with_monitoring(tasks=[task1, task2])
 
             assert len(results) == 2
@@ -369,7 +378,7 @@ class TestParallelExecutor:
         # Only provide result for req-1, req-2 is missing
         results = [("req-1", self.successful_response)]
 
-        with patch.object(self.executor, '_logger') as mock_logger:
+        with patch.object(self.executor, "_logger") as mock_logger:
             responses = self.executor._process_execution_results(
                 results=results, assignments=self.sample_assignments
             )
@@ -389,7 +398,7 @@ class TestParallelExecutor:
         # Set up execution context
         self.executor._execution_context = ParallelExecutionContext(start_time=datetime.now())
 
-        with patch.object(self.executor, '_logger') as mock_logger:
+        with patch.object(self.executor, "_logger") as mock_logger:
             self.executor._log_execution_completion(responses=responses)
 
             mock_logger.info.assert_called_once()
@@ -403,7 +412,7 @@ class TestParallelExecutor:
             "req-2": self.failed_response,
         }
 
-        with patch.object(self.executor, '_logger') as mock_logger:
+        with patch.object(self.executor, "_logger") as mock_logger:
             self.executor._log_execution_completion(responses=responses)
 
             mock_logger.info.assert_called_once()
@@ -447,6 +456,7 @@ class TestParallelExecutor:
         # Track execution order
         execution_order = []
         import threading
+
         execution_event = threading.Event()
 
         def ordered_execute(args):
@@ -485,6 +495,7 @@ class TestParallelExecutor:
         def record_execution(args):
             # Simulate some work
             import time
+
             time.sleep(0.01)
             actual_results.append(args)
             return self.successful_response

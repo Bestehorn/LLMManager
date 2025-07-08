@@ -2,7 +2,7 @@
 Unit tests for RegionDistributionManager.
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -215,7 +215,7 @@ class TestRegionDistributionManager:
         )
         # Manually override the auto-generated request_id to simulate None case
         request_without_id.request_id = None
-        
+
         self.manager._initialize_region_tracking(self.sample_regions)
 
         assignments = self.manager._create_region_assignments(
@@ -229,7 +229,7 @@ class TestRegionDistributionManager:
 
     def test_log_distribution_stats(self):
         """Test logging of distribution statistics."""
-        with patch.object(self.manager, '_logger') as mock_logger:
+        with patch.object(self.manager, "_logger") as mock_logger:
             self.manager._initialize_region_tracking(self.sample_regions)
             assignments = [
                 RegionAssignment(
@@ -270,7 +270,7 @@ class TestRegionDistributionManager:
 
     def test_set_load_balancing_strategy(self):
         """Test setting load balancing strategy."""
-        with patch.object(self.manager, '_logger') as mock_logger:
+        with patch.object(self.manager, "_logger") as mock_logger:
             self.manager.set_load_balancing_strategy(LoadBalancingStrategy.RANDOM)
 
             assert self.manager.get_load_balancing_strategy() == LoadBalancingStrategy.RANDOM
@@ -285,7 +285,7 @@ class TestRegionDistributionManager:
             RegionAssignment(request_id="req-2", assigned_regions=["eu-west-1"], priority=1),
         ]
 
-        with patch.object(self.manager, '_logger') as mock_logger:
+        with patch.object(self.manager, "_logger") as mock_logger:
             optimized = self.manager.optimize_region_assignments(assignments, self.sample_regions)
 
             assert len(optimized) == len(assignments)

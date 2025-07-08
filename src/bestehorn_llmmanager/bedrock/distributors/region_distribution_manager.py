@@ -443,7 +443,8 @@ class RegionDistributionManager:
                 for low_load_region in sorted_by_load:
                     if (
                         low_load_region not in optimized_regions
-                        and low_load_region not in current_regions  # Avoid using regions already in current assignment
+                        and low_load_region
+                        not in current_regions  # Avoid using regions already in current assignment
                         and current_load[low_load_region] < avg_load
                     ):
                         optimized_regions.append(low_load_region)
