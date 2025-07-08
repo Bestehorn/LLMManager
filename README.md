@@ -1,6 +1,6 @@
 # LLMManager by Markus Bestehorn
 
-[![PyPI version](https://badge.fury.io/py/bestehorn-llmmanager.svg)](https://badge.fury.io/py/bestehorn-llmmanager)
+[![PyPI version](https://img.shields.io/pypi/v/bestehorn-llmmanager.svg)](https://pypi.org/project/bestehorn-llmmanager/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/bestehorn-llmmanager.svg)](https://pypi.org/project/bestehorn-llmmanager/)
 [![Build Status](https://github.com/Bestehorn/LLMManager/actions/workflows/ci.yml/badge.svg)](https://github.com/Bestehorn/LLMManager/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Bestehorn/LLMManager/graph/badge.svg?token=YOUR_CODECOV_TOKEN)](https://codecov.io/gh/Bestehorn/LLMManager)
