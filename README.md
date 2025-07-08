@@ -9,7 +9,12 @@
 
 **A comprehensive Python library that simplifies and enhances AWS Bedrock Converse API interactions with intelligent message building, automatic file format detection, multi-modal support, and advanced reliability features.**
 
-## 🚀 Key Advantages Over Native AWS Bedrock Converse API
+I have implemented this set of functions over time while working on projects and demos using Amazon Bedrock.
+One of the key use cases that started the implementation of this project has been: I have a prompt and I do not care where the prompt gets executed, I just want to make sure I get a response and I do not want to handle any temporal issues such as malformed responses from LLMs or throttling.
+It helped me to avoid common mistake and sources for errors when using the [standard AWS Bedrock Converse API](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html).
+⚠️**Important**: The code in this repository comes with no guarentees or liabilities. It is not intended for production use, but rather as an inspiration for implementing your own logic for the Bedrock converse API.
+
+## 🚀 Key Simplifications Over Native AWS Bedrock Converse API
 
 This library was built to simplify the [standard AWS Bedrock Converse API](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html). 
 While some of these simplifications come at a loss of flexibility, for most use cases, the code becomes cleaner, less prone to errors and easier to understand when it is based on the abstractions provided in this package: 
@@ -24,7 +29,7 @@ While some of these simplifications come at a loss of flexibility, for most use 
 
 ### ⚡ **Built-in Parallel Processing**
 - **Native API**: Sequential processing only
-- **LLMManager**: Concurrent execution across multiple models and regions; this is particularly important for any kind of batch processing or when throttling becomes an issue.
+- **LLMManager**: Concurrent execution across multiple models and regions; this is particularly important for any kind of batch processing to reduce inference time.
 
 ### 🛡️ **Enhanced Error Handling & Reliability**
 - **Native API**: Basic error responses, no automatic retries
@@ -134,6 +139,14 @@ except Exception as e:
     print(f"Error: {e}")  # Limited error information
 ```
 
+In this example above, you have to load the document and then construct the JSON for the message to get it passed to Bedrock's converse API in a single region.
+Once the response returns, you have to spcifically know where the answer is (which is simple for this straightforward example) and for complex usage scenarios, you will need complex logic to access the right response.
+Furthermore, you have to specifically know the model ID of the model which you want to access.
+If you want to access the model directly (as above), you will have to find the right model in the [AWS documentation](https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html).
+For cross-region inference (CRIS), this becomes even more complex as you have to choose the right inference/model ID for the CRIS profile you want to use, e.g., different CRIS profiles for the model in the US or EU from the [AWS documentation page](https://docs.aws.amazon.com/bedrock/latest/userguide/inference-profiles-support.html#inference-profiles-support-system).
+If the request to Bedrock fails, you get a relatively generic Exception object which you have to handle and there is no automated retry with this approach or other ways to handle errors gracefully.
+The code below covers all of this and more using the LLM Manager:
+
 **✅ With LLMManager and MessageBuilder:**
 ```python
 from bestehorn_llmmanager import LLMManager, create_user_message
@@ -141,7 +154,7 @@ from bestehorn_llmmanager import LLMManager, create_user_message
 # Simple initialization with friendly model names and multi-region support
 manager = LLMManager(
     models=["Claude 3 Haiku", "Claude 3 Sonnet"],  # Friendly names, automatic fallback
-    regions=["us-east-1", "us-west-2"]  # Multi-region with automatic failover
+    regions=["us-east-1", "us-west-2, eu-west-1"]  # Multi-region with automatic failover
 )
 
 # Fluent message building with automatic format detection
@@ -161,6 +174,13 @@ else:
     print(f"Request failed after {len(response.attempts)} attempts")
     print(f"Last error: {response.get_last_error()}")
 ```
+
+First an foremost, you simply select the models you want to use with the models parameter and the LLM Manager will use either CRIS or direct access (with preference to CRIS).
+You do not have to read documentation pages or find model IDs to use model as the LLM Manager has a built-in parsing mechanism for these documentation pages to load the model IDs and inference profiles automatically.
+The list of regions gives flexibility and the default converse API does not give the option to execute prompts in various regions. 
+The loading of the PDF document happens simply by pointing to the local file, the detection of the content will also happen automatically.
+As a response from Bedrock, you always get a BedrockResponse object which allows you to easily determine if the request was sucessful or not.
+The access to the response's text does not require knowing the JSON structure and reduces parsing of JSON. 
 
 ### 🏗️ MessageBuilder: Intelligent Multi-Modal Message Construction
 
