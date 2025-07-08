@@ -158,7 +158,7 @@ from bestehorn_llmmanager import LLMManager, create_user_message
 # Simple initialization with friendly model names and multi-region support
 manager = LLMManager(
     models=["Claude 3 Haiku", "Claude 3 Sonnet"],  # Friendly names, automatic fallback
-    regions=["us-east-1", "us-west-2, eu-west-1"]  # Multi-region with automatic failover
+    regions=["us-east-1", "us-west-2", "eu-west-1"]  # Multi-region with automatic failover
 )
 
 # Fluent message building with automatic format detection
