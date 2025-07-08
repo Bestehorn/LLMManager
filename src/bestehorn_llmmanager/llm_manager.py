@@ -32,6 +32,7 @@ from .bedrock.models.llm_manager_structures import (
 )
 from .bedrock.models.parallel_structures import BedrockConverseRequest
 from .bedrock.retry.retry_manager import RetryManager
+from .bedrock.streaming.streaming_retry_manager import StreamingRetryManager
 from .bedrock.UnifiedModelManager import UnifiedModelManager
 
 
@@ -113,6 +114,7 @@ class LLMManager:
         # Initialize components
         self._auth_manager = AuthManager(auth_config=auth_config)
         self._retry_manager = RetryManager(retry_config=retry_config or RetryConfig())
+        self._streaming_retry_manager = StreamingRetryManager(retry_config=retry_config or RetryConfig())
 
         # Initialize or use provided UnifiedModelManager
         if unified_model_manager:
@@ -466,7 +468,11 @@ class LLMManager:
         prompt_variables: Optional[Dict[str, Any]] = None,
     ) -> StreamingResponse:
         """
-        Send a streaming conversation request to available models.
+        Send a streaming conversation request to available models with retry logic and recovery.
+
+        This method uses the AWS Bedrock converse_stream API to provide real-time streaming
+        responses with intelligent retry logic, stream interruption recovery, and comprehensive
+        error handling.
 
         Args:
             messages: List of message objects for the conversation
@@ -487,8 +493,7 @@ class LLMManager:
             RetryExhaustedError: If all retry attempts fail
             AuthenticationError: If authentication fails
         """
-        # Comment this back in when Streaming Response format is implemented. Avoid flake8 errors
-        # request_start = datetime.now()
+        request_start = datetime.now()
 
         # Validate request
         self._validate_converse_request(messages=messages)
@@ -506,7 +511,7 @@ class LLMManager:
             prompt_variables=prompt_variables,
         )
 
-        # Generate retry targets
+        # Generate retry targets using the regular retry manager
         retry_targets = self._retry_manager.generate_retry_targets(
             models=self._models,
             regions=self._regions,
@@ -520,24 +525,35 @@ class LLMManager:
             )
 
         try:
-            # Execute with retry logic (streaming version)
-            result, attempts, warnings = self._retry_manager.execute_with_retry(
+            # Execute with streaming retry logic and recovery
+            streaming_response, attempts, warnings = self._streaming_retry_manager.execute_streaming_with_recovery(
                 operation=self._execute_converse_stream,
                 operation_args=request_args,
                 retry_targets=retry_targets,
             )
 
-            # Process streaming result
-            streaming_response = StreamingResponse(success=True)
+            # Calculate total duration
+            total_duration = (datetime.now() - request_start).total_seconds() * 1000
+            
+            # Set total duration if not already set by stream processor
+            if streaming_response.total_duration_ms is None:
+                streaming_response.total_duration_ms = total_duration
 
-            # Extract content from streaming result
-            # This would need to be implemented based on the actual streaming response format
-            # For now, create a placeholder implementation
+            # Add attempt information
+            streaming_response.warnings = warnings
 
             return streaming_response
 
         except RetryExhaustedError as e:
-            streaming_response = StreamingResponse(success=False, stream_errors=[e])
+            # Create failed streaming response
+            total_duration = (datetime.now() - request_start).total_seconds() * 1000
+            
+            streaming_response = StreamingResponse(
+                success=False,
+                stream_errors=[e],
+                total_duration_ms=total_duration
+            )
+            
             raise e
 
     def _validate_converse_request(self, messages: List[Dict[str, Any]]) -> None:

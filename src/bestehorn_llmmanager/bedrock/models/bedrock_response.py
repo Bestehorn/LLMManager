@@ -444,6 +444,19 @@ class StreamingResponse:
         final_response: Final consolidated response
         stream_errors: List of errors encountered during streaming
         stream_position: Final position in the stream
+        model_used: Model ID that was used for streaming
+        region_used: AWS region that was used for streaming
+        access_method_used: Access method that was used
+        total_duration_ms: Total streaming duration in milliseconds
+        api_latency_ms: API latency from streaming metadata
+        stop_reason: Reason why streaming stopped
+        usage_info: Token usage information from streaming
+        metrics_info: Performance metrics from streaming
+        trace_info: Trace information from streaming
+        additional_model_response_fields: Additional model-specific response fields
+        current_message_role: Role of the current message being streamed
+        request_attempt: Request attempt information
+        warnings: List of warning messages encountered during streaming
     """
 
     success: bool
@@ -451,6 +464,19 @@ class StreamingResponse:
     final_response: Optional[BedrockResponse] = None
     stream_errors: List[Exception] = field(default_factory=list)
     stream_position: int = 0
+    model_used: Optional[str] = None
+    region_used: Optional[str] = None
+    access_method_used: Optional[str] = None
+    total_duration_ms: Optional[float] = None
+    api_latency_ms: Optional[float] = None
+    stop_reason: Optional[str] = None
+    usage_info: Optional[Dict[str, Any]] = None
+    metrics_info: Optional[Dict[str, Any]] = None
+    trace_info: Optional[Dict[str, Any]] = None
+    additional_model_response_fields: Optional[Dict[str, Any]] = None
+    current_message_role: Optional[str] = None
+    request_attempt: Optional[RequestAttempt] = None
+    warnings: List[str] = field(default_factory=list)
 
     def get_full_content(self) -> str:
         """
