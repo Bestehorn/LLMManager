@@ -254,7 +254,7 @@ class TestParallelExecutor:
         def slow_func(args):
             import time
 
-            time.sleep(1)  # Longer than timeout
+            time.sleep(3)  # Much longer than timeout to ensure timeout triggers
             return self.successful_response
 
         semaphore = asyncio.Semaphore(1)
