@@ -20,7 +20,7 @@ from bestehorn_llmmanager.bedrock.models.constants import (
 class TestJSONFields:
     """Test JSONFields constant class."""
 
-    def test_all_fields_are_strings(self):
+    def test_all_fields_are_strings(self) -> None:
         """Test that all JSONFields constants are strings."""
         assert isinstance(JSONFields.RETRIEVAL_TIMESTAMP, str)
         assert isinstance(JSONFields.MODELS, str)
@@ -33,7 +33,7 @@ class TestJSONFields:
         assert isinstance(JSONFields.INFERENCE_PARAMETERS_LINK, str)
         assert isinstance(JSONFields.HYPERPARAMETERS_LINK, str)
 
-    def test_field_values(self):
+    def test_field_values(self) -> None:
         """Test that JSONFields constants have expected values."""
         assert JSONFields.RETRIEVAL_TIMESTAMP == "retrieval_timestamp"
         assert JSONFields.MODELS == "models"
@@ -47,12 +47,13 @@ class TestJSONFields:
         assert JSONFields.HYPERPARAMETERS_LINK == "hyperparameters_link"
 
     @pytest.mark.skip(reason="Python doesn't enforce Final type immutability at runtime")
-    def test_fields_are_immutable(self):
+    def test_fields_are_immutable(self) -> None:
         """Test that JSONFields constants cannot be reassigned."""
-        with pytest.raises(AttributeError):
-            JSONFields.RETRIEVAL_TIMESTAMP = "new_value"
+        # Note: Python doesn't enforce Final type immutability at runtime
+        # JSONFields.RETRIEVAL_TIMESTAMP = "new_value"  # This would cause mypy error
+        pass
 
-    def test_all_fields_are_non_empty(self):
+    def test_all_fields_are_non_empty(self) -> None:
         """Test that all JSONFields constants are non-empty strings."""
         fields = [
             JSONFields.RETRIEVAL_TIMESTAMP,
@@ -75,7 +76,7 @@ class TestJSONFields:
 class TestHTMLTableColumns:
     """Test HTMLTableColumns constant class."""
 
-    def test_all_columns_are_strings(self):
+    def test_all_columns_are_strings(self) -> None:
         """Test that all HTMLTableColumns constants are strings."""
         assert isinstance(HTMLTableColumns.PROVIDER, str)
         assert isinstance(HTMLTableColumns.MODEL_NAME, str)
@@ -87,7 +88,7 @@ class TestHTMLTableColumns:
         assert isinstance(HTMLTableColumns.INFERENCE_PARAMETERS, str)
         assert isinstance(HTMLTableColumns.HYPERPARAMETERS, str)
 
-    def test_column_values(self):
+    def test_column_values(self) -> None:
         """Test that HTMLTableColumns constants have expected values."""
         assert HTMLTableColumns.PROVIDER == "Provider"
         assert HTMLTableColumns.MODEL_NAME == "Model name"
@@ -100,12 +101,13 @@ class TestHTMLTableColumns:
         assert HTMLTableColumns.HYPERPARAMETERS == "Hyperparameters"
 
     @pytest.mark.skip(reason="Python doesn't enforce Final type immutability at runtime")
-    def test_columns_are_immutable(self):
+    def test_columns_are_immutable(self) -> None:
         """Test that HTMLTableColumns constants cannot be reassigned."""
-        with pytest.raises(AttributeError):
-            HTMLTableColumns.PROVIDER = "new_value"
+        # Note: Python doesn't enforce Final type immutability at runtime
+        # HTMLTableColumns.PROVIDER = "new_value"  # This would cause mypy error
+        pass
 
-    def test_all_columns_are_non_empty(self):
+    def test_all_columns_are_non_empty(self) -> None:
         """Test that all HTMLTableColumns constants are non-empty strings."""
         columns = [
             HTMLTableColumns.PROVIDER,
@@ -127,25 +129,26 @@ class TestHTMLTableColumns:
 class TestBooleanValues:
     """Test BooleanValues constant class."""
 
-    def test_all_values_are_strings(self):
+    def test_all_values_are_strings(self) -> None:
         """Test that all BooleanValues constants are strings."""
         assert isinstance(BooleanValues.YES, str)
         assert isinstance(BooleanValues.NO, str)
         assert isinstance(BooleanValues.NOT_AVAILABLE, str)
 
-    def test_boolean_values(self):
+    def test_boolean_values(self) -> None:
         """Test that BooleanValues constants have expected values."""
         assert BooleanValues.YES == "Yes"
         assert BooleanValues.NO == "No"
         assert BooleanValues.NOT_AVAILABLE == "N/A"
 
     @pytest.mark.skip(reason="Python doesn't enforce Final type immutability at runtime")
-    def test_values_are_immutable(self):
+    def test_values_are_immutable(self) -> None:
         """Test that BooleanValues constants cannot be reassigned."""
-        with pytest.raises(AttributeError):
-            BooleanValues.YES = "new_value"
+        # Note: Python doesn't enforce Final type immutability at runtime
+        # BooleanValues.YES = "new_value"  # This would cause mypy error
+        pass
 
-    def test_all_values_are_non_empty(self):
+    def test_all_values_are_non_empty(self) -> None:
         """Test that all BooleanValues constants are non-empty strings."""
         values = [BooleanValues.YES, BooleanValues.NO, BooleanValues.NOT_AVAILABLE]
 
@@ -157,27 +160,28 @@ class TestBooleanValues:
 class TestURLs:
     """Test URLs constant class."""
 
-    def test_all_urls_are_strings(self):
+    def test_all_urls_are_strings(self) -> None:
         """Test that all URLs constants are strings."""
         assert isinstance(URLs.BEDROCK_MODELS_DOCUMENTATION, str)
 
-    def test_url_values(self):
+    def test_url_values(self) -> None:
         """Test that URLs constants have expected values."""
         expected_url = "https://docs.aws.amazon.com/bedrock/latest/userguide/models-supported.html"
         assert URLs.BEDROCK_MODELS_DOCUMENTATION == expected_url
 
     @pytest.mark.skip(reason="Python doesn't enforce Final type immutability at runtime")
-    def test_urls_are_immutable(self):
+    def test_urls_are_immutable(self) -> None:
         """Test that URLs constants cannot be reassigned."""
-        with pytest.raises(AttributeError):
-            URLs.BEDROCK_MODELS_DOCUMENTATION = "new_value"
+        # Note: Python doesn't enforce Final type immutability at runtime
+        # URLs.BEDROCK_MODELS_DOCUMENTATION = "new_value"  # This would cause mypy error
+        pass
 
-    def test_url_format(self):
+    def test_url_format(self) -> None:
         """Test that URL constants have valid URL format."""
         assert URLs.BEDROCK_MODELS_DOCUMENTATION.startswith("https://")
         assert "docs.aws.amazon.com" in URLs.BEDROCK_MODELS_DOCUMENTATION
 
-    def test_url_is_non_empty(self):
+    def test_url_is_non_empty(self) -> None:
         """Test that URL constants are non-empty strings."""
         assert URLs.BEDROCK_MODELS_DOCUMENTATION.strip() != ""
         assert len(URLs.BEDROCK_MODELS_DOCUMENTATION) > 0
@@ -186,30 +190,31 @@ class TestURLs:
 class TestFilePaths:
     """Test FilePaths constant class."""
 
-    def test_all_paths_are_strings(self):
+    def test_all_paths_are_strings(self) -> None:
         """Test that all FilePaths constants are strings."""
         assert isinstance(FilePaths.DEFAULT_HTML_OUTPUT, str)
         assert isinstance(FilePaths.DEFAULT_JSON_OUTPUT, str)
 
-    def test_path_values(self):
+    def test_path_values(self) -> None:
         """Test that FilePaths constants have expected values."""
         assert FilePaths.DEFAULT_HTML_OUTPUT == "docs/FoundationalModels.htm"
         assert FilePaths.DEFAULT_JSON_OUTPUT == "docs/FoundationalModels.json"
 
     @pytest.mark.skip(reason="Python doesn't enforce Final type immutability at runtime")
-    def test_paths_are_immutable(self):
+    def test_paths_are_immutable(self) -> None:
         """Test that FilePaths constants cannot be reassigned."""
-        with pytest.raises(AttributeError):
-            FilePaths.DEFAULT_HTML_OUTPUT = "new_value"
+        # Note: Python doesn't enforce Final type immutability at runtime
+        # FilePaths.DEFAULT_HTML_OUTPUT = "new_value"  # This would cause mypy error
+        pass
 
-    def test_path_format(self):
+    def test_path_format(self) -> None:
         """Test that file paths have expected formats."""
         assert FilePaths.DEFAULT_HTML_OUTPUT.endswith(".htm")
         assert FilePaths.DEFAULT_JSON_OUTPUT.endswith(".json")
         assert FilePaths.DEFAULT_HTML_OUTPUT.startswith("docs/")
         assert FilePaths.DEFAULT_JSON_OUTPUT.startswith("docs/")
 
-    def test_paths_are_non_empty(self):
+    def test_paths_are_non_empty(self) -> None:
         """Test that FilePaths constants are non-empty strings."""
         paths = [FilePaths.DEFAULT_HTML_OUTPUT, FilePaths.DEFAULT_JSON_OUTPUT]
 
@@ -221,7 +226,7 @@ class TestFilePaths:
 class TestLogMessages:
     """Test LogMessages constant class."""
 
-    def test_all_messages_are_strings(self):
+    def test_all_messages_are_strings(self) -> None:
         """Test that all LogMessages constants are strings."""
         assert isinstance(LogMessages.DOWNLOAD_STARTED, str)
         assert isinstance(LogMessages.DOWNLOAD_COMPLETED, str)
@@ -233,7 +238,7 @@ class TestLogMessages:
         assert isinstance(LogMessages.PARSING_ERROR, str)
         assert isinstance(LogMessages.FILE_ERROR, str)
 
-    def test_message_values(self):
+    def test_message_values(self) -> None:
         """Test that LogMessages constants have expected values."""
         assert LogMessages.DOWNLOAD_STARTED == "Starting download of Bedrock documentation"
         assert (
@@ -248,12 +253,13 @@ class TestLogMessages:
         assert LogMessages.FILE_ERROR == "File operation error: {error}"
 
     @pytest.mark.skip(reason="Python doesn't enforce Final type immutability at runtime")
-    def test_messages_are_immutable(self):
+    def test_messages_are_immutable(self) -> None:
         """Test that LogMessages constants cannot be reassigned."""
-        with pytest.raises(AttributeError):
-            LogMessages.DOWNLOAD_STARTED = "new_value"
+        # Note: Python doesn't enforce Final type immutability at runtime
+        # LogMessages.DOWNLOAD_STARTED = "new_value"  # This would cause mypy error
+        pass
 
-    def test_template_messages_have_placeholders(self):
+    def test_template_messages_have_placeholders(self) -> None:
         """Test that template messages contain expected placeholders."""
         template_messages = [
             (LogMessages.DOWNLOAD_COMPLETED, "{file_path}"),
@@ -267,7 +273,7 @@ class TestLogMessages:
         for message, placeholder in template_messages:
             assert placeholder in message
 
-    def test_all_messages_are_non_empty(self):
+    def test_all_messages_are_non_empty(self) -> None:
         """Test that all LogMessages constants are non-empty strings."""
         messages = [
             LogMessages.DOWNLOAD_STARTED,
@@ -285,7 +291,7 @@ class TestLogMessages:
             assert message.strip() != ""
             assert len(message) > 0
 
-    def test_message_formatting(self):
+    def test_message_formatting(self) -> None:
         """Test that template messages can be formatted correctly."""
         # Test messages with file_path placeholder
         file_path_messages = [LogMessages.DOWNLOAD_COMPLETED, LogMessages.JSON_EXPORT_COMPLETED]
@@ -316,7 +322,7 @@ class TestLogMessages:
 class TestConstantsIntegration:
     """Integration tests for all constants classes."""
 
-    def test_no_duplicate_values_across_classes(self):
+    def test_no_duplicate_values_across_classes(self) -> None:
         """Test that there are no duplicate values across different constant classes."""
         # Collect all string constants
         all_constants = []
@@ -366,7 +372,7 @@ class TestConstantsIntegration:
         unique_constants = set(all_constants)
         assert len(unique_constants) == len(all_constants), "Found duplicate constant values"
 
-    def test_constants_module_structure(self):
+    def test_constants_module_structure(self) -> None:
         """Test that the constants module has the expected structure."""
         # Test that all expected classes exist
         from bestehorn_llmmanager.bedrock.models import constants
@@ -384,18 +390,15 @@ class TestConstantsIntegration:
             assert hasattr(constants, class_name), f"Missing class: {class_name}"
 
     @pytest.mark.skip(reason="Python doesn't enforce Final type immutability at runtime")
-    def test_final_type_annotations(self):
+    def test_final_type_annotations(self) -> None:
         """Test that constants use Final type annotations correctly."""
         # This test verifies that the constants are properly typed
         # The actual Final enforcement is tested in individual class tests
 
         # We can't directly test Final annotations at runtime, but we can verify
         # that the constants behave as expected (immutable)
-        with pytest.raises(AttributeError):
-            JSONFields.RETRIEVAL_TIMESTAMP = "changed"
-
-        with pytest.raises(AttributeError):
-            HTMLTableColumns.PROVIDER = "changed"
-
-        with pytest.raises(AttributeError):
-            BooleanValues.YES = "changed"
+        # Note: These assignments would cause mypy errors:
+        # JSONFields.RETRIEVAL_TIMESTAMP = "changed"
+        # HTMLTableColumns.PROVIDER = "changed"
+        # BooleanValues.YES = "changed"
+        pass

@@ -2,7 +2,7 @@
 Tests for content compatibility error handling in retry manager.
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from botocore.exceptions import ClientError
@@ -19,19 +19,19 @@ class TestContentCompatibilityErrorHandling:
     """Test content compatibility error detection and handling."""
 
     @pytest.fixture
-    def retry_config(self):
+    def retry_config(self) -> RetryConfig:
         """Create retry configuration for testing."""
         return RetryConfig(
             max_retries=3, retry_strategy=RetryStrategy.MODEL_FIRST, enable_feature_fallback=True
         )
 
     @pytest.fixture
-    def retry_manager(self, retry_config):
+    def retry_manager(self, retry_config: RetryConfig) -> RetryManager:
         """Create retry manager for testing."""
         return RetryManager(retry_config=retry_config)
 
     @pytest.fixture
-    def mock_access_info(self):
+    def mock_access_info(self) -> ModelAccessInfo:
         """Create mock access info."""
         return ModelAccessInfo(
             model_id="claude-3-sonnet",
@@ -40,7 +40,7 @@ class TestContentCompatibilityErrorHandling:
             inference_profile_id=None,
         )
 
-    def test_is_content_compatibility_error_video(self, retry_manager):
+    def test_is_content_compatibility_error_video(self, retry_manager: RetryManager) -> None:
         """Test detection of video compatibility error."""
         # Create mock error with video incompatibility message
         error = ClientError(
@@ -58,7 +58,7 @@ class TestContentCompatibilityErrorHandling:
         assert is_content_error is True
         assert content_type == "video_processing"
 
-    def test_is_content_compatibility_error_image(self, retry_manager):
+    def test_is_content_compatibility_error_image(self, retry_manager: RetryManager) -> None:
         """Test detection of image compatibility error."""
         # Create mock error with image incompatibility message
         error = ClientError(
@@ -76,7 +76,7 @@ class TestContentCompatibilityErrorHandling:
         assert is_content_error is True
         assert content_type == "image_processing"
 
-    def test_is_content_compatibility_error_document(self, retry_manager):
+    def test_is_content_compatibility_error_document(self, retry_manager: RetryManager) -> None:
         """Test detection of document compatibility error."""
         # Create mock error with document incompatibility message
         error = ClientError(
@@ -94,7 +94,7 @@ class TestContentCompatibilityErrorHandling:
         assert is_content_error is True
         assert content_type == "document_processing"
 
-    def test_is_content_compatibility_error_non_content_error(self, retry_manager):
+    def test_is_content_compatibility_error_non_content_error(self, retry_manager: RetryManager) -> None:
         """Test that non-content errors are not detected as content compatibility errors."""
         # Create mock error that's not a content compatibility error
         error = ClientError(
@@ -109,7 +109,7 @@ class TestContentCompatibilityErrorHandling:
         assert is_content_error is False
         assert content_type is None
 
-    def test_should_disable_feature_and_retry_excludes_content_errors(self, retry_manager):
+    def test_should_disable_feature_and_retry_excludes_content_errors(self, retry_manager: RetryManager) -> None:
         """Test that content compatibility errors trigger feature disabling in current implementation."""
         # Create mock error with video incompatibility message
         error = ClientError(
@@ -128,7 +128,7 @@ class TestContentCompatibilityErrorHandling:
         assert should_disable is True
         assert feature == "video_processing"
 
-    def test_should_disable_feature_and_retry_api_level_errors(self, retry_manager):
+    def test_should_disable_feature_and_retry_api_level_errors(self, retry_manager: RetryManager) -> None:
         """Test that API-level errors still trigger feature disabling."""
         # Create mock error with guardrail incompatibility message
         error = ClientError(
@@ -148,8 +148,8 @@ class TestContentCompatibilityErrorHandling:
 
     @patch("bestehorn_llmmanager.bedrock.retry.retry_manager.time.sleep")
     def test_execute_with_retry_content_compatibility_skips_feature_fallback(
-        self, mock_sleep, retry_manager, mock_access_info
-    ):
+        self, mock_sleep: MagicMock, retry_manager: RetryManager, mock_access_info: ModelAccessInfo
+    ) -> None:
         """Test that content compatibility errors skip feature fallback and try next model."""
         # Mock operation that fails with video compatibility error on first model
         # but succeeds on second model
@@ -206,8 +206,8 @@ class TestContentCompatibilityErrorHandling:
 
     @patch("bestehorn_llmmanager.bedrock.retry.retry_manager.time.sleep")
     def test_execute_with_retry_api_error_uses_feature_fallback(
-        self, mock_sleep, retry_manager, mock_access_info
-    ):
+        self, mock_sleep: MagicMock, retry_manager: RetryManager, mock_access_info: ModelAccessInfo
+    ) -> None:
         """Test that API-level errors still use feature fallback."""
         # Mock operation that fails with guardrail error, then succeeds with fallback
         mock_operation = Mock()

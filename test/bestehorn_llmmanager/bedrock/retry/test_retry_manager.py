@@ -5,7 +5,8 @@ Tests the enhanced retry manager that fixes the image analysis issue by properly
 managing content filtering and restoration across retry attempts.
 """
 
-from unittest.mock import patch
+from typing import Any, Dict
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -21,7 +22,7 @@ from bestehorn_llmmanager.bedrock.retry.retry_manager import RetryManager
 class TestRetryManagerContentFiltering:
     """Test cases for RetryManager with content filtering."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.retry_config = RetryConfig(
             max_retries=3, retry_delay=0.1, enable_feature_fallback=True  # Short delay for tests
@@ -65,16 +66,16 @@ class TestRetryManagerContentFiltering:
             access_method=ModelAccessMethod.DIRECT,
         )
 
-    def test_content_filter_initialization(self):
+    def test_content_filter_initialization(self) -> None:
         """Test that content filter is properly initialized."""
         assert hasattr(self.retry_manager, "_content_filter")
         assert self.retry_manager._content_filter is not None
 
-    def test_execute_with_retry_image_restoration(self):
+    def test_execute_with_retry_image_restoration(self) -> None:
         """Test the main fix: image content restoration across model attempts."""
 
         # Mock operation that fails for text model, succeeds for multimodal
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             model_id = kwargs.get("model_id")
             messages = kwargs.get(ConverseAPIFields.MESSAGES, [])
 
@@ -114,10 +115,10 @@ class TestRetryManagerContentFiltering:
         # Should have warnings about feature restoration
         assert any("Restored image_processing" in warning for warning in warnings)
 
-    def test_feature_fallback_on_same_model(self):
+    def test_feature_fallback_on_same_model(self) -> None:
         """Test feature fallback on the same model."""
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             messages = kwargs.get(ConverseAPIFields.MESSAGES, [])
 
             # Check if image content is present
@@ -149,11 +150,11 @@ class TestRetryManagerContentFiltering:
         # Should have warning about disabled feature
         assert any("image_processing" in warning for warning in warnings)
 
-    def test_content_restoration_between_models(self):
+    def test_content_restoration_between_models(self) -> None:
         """Test that content is properly restored when switching between models."""
         requests_received = []
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             # Store the request to analyze later
             messages = kwargs.get(ConverseAPIFields.MESSAGES, [])
             requests_received.append(messages)
@@ -194,7 +195,7 @@ class TestRetryManagerContentFiltering:
         has_image_third = any(ConverseAPIFields.IMAGE in block for block in third_content_blocks)
         assert has_image_third, "Image content should be restored for multimodal model"
 
-    def test_multiple_content_types_restoration(self):
+    def test_multiple_content_types_restoration(self) -> None:
         """Test restoration of multiple content types."""
         multimodal_request = {
             ConverseAPIFields.MESSAGES: [
@@ -217,7 +218,7 @@ class TestRetryManagerContentFiltering:
 
         requests_received = []
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             messages = kwargs.get(ConverseAPIFields.MESSAGES, [])
             requests_received.append(messages)
 
@@ -262,11 +263,11 @@ class TestRetryManagerContentFiltering:
         # Document processing might not be explicitly disabled if handled together
 
     @patch("time.sleep")  # Mock sleep to speed up tests
-    def test_retry_delay_with_content_filtering(self, mock_sleep):
+    def test_retry_delay_with_content_filtering(self, mock_sleep: MagicMock) -> None:
         """Test that retry delays work correctly with content filtering."""
         call_count = 0
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             nonlocal call_count
             call_count += 1
             if call_count <= 2:
@@ -290,11 +291,11 @@ class TestRetryManagerContentFiltering:
         # Should have called sleep for delays (not for the final successful attempt)
         assert mock_sleep.call_count >= 1
 
-    def test_filter_state_preservation(self):
+    def test_filter_state_preservation(self) -> None:
         """Test that filter state is preserved across retry attempts."""
         filter_states = []
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             # We can't directly access the filter state, but we can observe
             # the pattern of content filtering
             messages = kwargs.get(ConverseAPIFields.MESSAGES, [])
@@ -328,10 +329,10 @@ class TestRetryManagerContentFiltering:
         assert state["image_count"] == 1
         assert state["total_blocks"] == 2
 
-    def test_all_retries_exhausted_with_filtering(self):
+    def test_all_retries_exhausted_with_filtering(self) -> None:
         """Test retry exhaustion with content filtering."""
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> None:
             raise Exception("persistent failure")
 
         retry_targets = [
@@ -356,12 +357,12 @@ class TestRetryManagerContentFiltering:
 class TestRetryManagerBackwardCompatibility:
     """Test that retry manager maintains backward compatibility."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         self.retry_config = RetryConfig(max_retries=2)
         self.retry_manager = RetryManager(retry_config=self.retry_config)
 
-    def test_text_only_requests_unchanged(self):
+    def test_text_only_requests_unchanged(self) -> None:
         """Test that text-only requests work exactly as before."""
         text_request = {
             ConverseAPIFields.MESSAGES: [
@@ -372,7 +373,7 @@ class TestRetryManagerBackwardCompatibility:
             ]
         }
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             return {"output": {"message": {"content": [{"text": "I'm doing well!"}]}}}
 
         access_info = ModelAccessInfo(
@@ -393,11 +394,11 @@ class TestRetryManagerBackwardCompatibility:
         assert attempts[0].success is True
         assert len(warnings) == 0  # No filtering warnings for text-only
 
-    def test_existing_retry_logic_preserved(self):
+    def test_existing_retry_logic_preserved(self) -> None:
         """Test that existing retry logic (delays, error classification) is preserved."""
         call_count = 0
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             nonlocal call_count
             call_count += 1
             if call_count == 1:

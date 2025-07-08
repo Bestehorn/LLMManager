@@ -168,11 +168,12 @@ class TestBedrockConverseRequest:
         # Verify original bytes are preserved in the message structure
         image_block = None
         for content_block in message_with_image["content"]:
-            if "image" in content_block:
+            if isinstance(content_block, dict) and "image" in content_block:
                 image_block = content_block
                 break
 
         assert image_block is not None
+        assert isinstance(image_block, dict)
         assert image_block["image"]["source"]["bytes"] == test_image_bytes
 
         # Verify to_converse_args() works with the image content
@@ -244,7 +245,7 @@ class TestBedrockConverseRequest:
                     return True
 
                 assert check_no_bytes(
-                    sanitized  # type: ignore[arg-type]
+                    sanitized
                 ), f"Sanitized content still contains bytes objects for test '{test_name}'"
 
 

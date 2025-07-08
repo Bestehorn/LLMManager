@@ -6,7 +6,8 @@ objects and automatic retry when validation fails.
 """
 
 import json
-from unittest.mock import patch
+from typing import Any, Callable, Dict
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -69,7 +70,7 @@ class TestResponseValidation:
             access_method=ModelAccessMethod.DIRECT,
         )
 
-    def create_json_validation_function(self):  # type: ignore[no-untyped-def]
+    def create_json_validation_function(self) -> Callable[[BedrockResponse], ValidationResult]:
         """Create a validation function that checks for valid JSON."""
 
         def validate_json_response(response: BedrockResponse) -> ValidationResult:
@@ -136,7 +137,7 @@ class TestResponseValidation:
                 response_validation_function=validation_function, response_validation_delay=-1.0
             )
 
-    def test_successful_validation_no_retries(self):
+    def test_successful_validation_no_retries(self) -> None:
         """Test successful validation that requires no retries."""
         validation_function = self.create_json_validation_function()
         validation_config = ResponseValidationConfig(
@@ -145,7 +146,7 @@ class TestResponseValidation:
             response_validation_delay=0.0,
         )
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             return self.success_response_data
 
         retry_targets = [("Claude 3.5 Sonnet", "us-east-1", self.access_info)]
@@ -167,11 +168,11 @@ class TestResponseValidation:
             assert len(result.validation_attempts) >= 1
             assert result.validation_attempts[0].validation_result.success is True
 
-    def test_validation_retries_then_success(self):
+    def test_validation_retries_then_success(self) -> None:
         """Test validation that fails a few times then succeeds."""
         call_count = 0
 
-        def create_validation_function():
+        def create_validation_function() -> Callable[[BedrockResponse], ValidationResult]:
             def validate_response(response: BedrockResponse) -> ValidationResult:
                 nonlocal call_count
                 call_count += 1
@@ -194,7 +195,7 @@ class TestResponseValidation:
             response_validation_delay=0.0,
         )
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             return self.success_response_data
 
         retry_targets = [("Claude 3.5 Sonnet", "us-east-1", self.access_info)]
@@ -218,7 +219,7 @@ class TestResponseValidation:
             assert result.validation_attempts[1].validation_result.success is False
             assert result.validation_attempts[2].validation_result.success is True
 
-    def test_validation_exhausted_switches_model(self):
+    def test_validation_exhausted_switches_model(self) -> None:
         """Test that exhausted validation retries switch to next model."""
         validation_function = self.create_json_validation_function()
         validation_config = ResponseValidationConfig(
@@ -227,7 +228,7 @@ class TestResponseValidation:
             response_validation_delay=0.0,
         )
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             model_id = kwargs.get("model_id", "")
             if "claude" in model_id.lower():
                 # First model returns invalid JSON
@@ -267,11 +268,11 @@ class TestResponseValidation:
             assert len(result.validation_attempts) >= 1
 
     @patch("time.sleep")  # Mock sleep to speed up tests
-    def test_validation_delay_respected(self, mock_sleep):
+    def test_validation_delay_respected(self, mock_sleep: MagicMock) -> None:
         """Test that validation delay is respected between validation retries."""
         call_count = 0
 
-        def create_validation_function():
+        def create_validation_function() -> Callable[[BedrockResponse], ValidationResult]:
             def validate_response(response: BedrockResponse) -> ValidationResult:
                 nonlocal call_count
                 call_count += 1
@@ -290,7 +291,7 @@ class TestResponseValidation:
             response_validation_delay=0.5,  # 500ms delay
         )
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             return self.success_response_data
 
         retry_targets = [("Claude 3.5 Sonnet", "us-east-1", self.access_info)]
@@ -313,7 +314,7 @@ class TestResponseValidation:
         for call in mock_sleep.call_args_list:
             assert call[0][0] == 0.5
 
-    def test_validation_function_exception_handling(self):
+    def test_validation_function_exception_handling(self) -> None:
         """Test that exceptions in validation functions are handled correctly."""
 
         def buggy_validation_function(response: BedrockResponse) -> ValidationResult:
@@ -324,7 +325,7 @@ class TestResponseValidation:
             response_validation_function=buggy_validation_function, response_validation_retries=2
         )
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             return self.success_response_data
 
         retry_targets = [("Claude 3.5 Sonnet", "us-east-1", self.access_info)]
@@ -344,10 +345,10 @@ class TestResponseValidation:
         assert len(error.models_tried) == 1
         assert "Validation function error" in str(error.last_errors[0])
 
-    def test_no_validation_config_uses_regular_retry(self):
+    def test_no_validation_config_uses_regular_retry(self) -> None:
         """Test that without validation config, regular retry logic is used."""
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             return self.success_response_data
 
         retry_targets = [("Claude 3.5 Sonnet", "us-east-1", self.access_info)]
@@ -369,7 +370,7 @@ class TestResponseValidation:
         if isinstance(result, BedrockResponse):
             assert len(result.validation_attempts) == 0
 
-    def test_validation_with_content_filtering(self):
+    def test_validation_with_content_filtering(self) -> None:
         """Test validation works with content filtering (complex scenario)."""
         validation_function = self.create_json_validation_function()
         validation_config = ResponseValidationConfig(
@@ -389,7 +390,7 @@ class TestResponseValidation:
             ]
         }
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             model_id = kwargs.get("model_id", "")
             messages = kwargs.get(ConverseAPIFields.MESSAGES, [])
 
@@ -439,14 +440,14 @@ class TestResponseValidation:
         assert error.attempts_made == 2
         assert len(error.models_tried) == 2
 
-    def test_all_validation_retries_exhausted(self):
+    def test_all_validation_retries_exhausted(self) -> None:
         """Test behavior when all models fail validation."""
         validation_function = self.create_json_validation_function()
         validation_config = ResponseValidationConfig(
             response_validation_function=validation_function, response_validation_retries=2
         )
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             # Always return invalid JSON
             return self.failed_response_data
 
@@ -475,7 +476,7 @@ class TestResponseValidation:
         assert error.attempts_made == 2
         assert len(error.models_tried) == 2
 
-    def test_validation_result_serialization(self):
+    def test_validation_result_serialization(self) -> None:
         """Test ValidationResult serialization to/from dict."""
         # Test successful result
         success_result = ValidationResult(success=True)
@@ -503,7 +504,7 @@ class TestResponseValidation:
         assert reconstructed.error_message == "Invalid JSON format"
         assert reconstructed.error_details == {"line": 1, "column": 5}
 
-    def test_bedrock_response_validation_methods(self):
+    def test_bedrock_response_validation_methods(self) -> None:
         """Test BedrockResponse validation convenience methods."""
         # Create response with validation data
         response = BedrockResponse(True)
@@ -546,14 +547,14 @@ class TestResponseValidation:
         assert metrics["had_validation_failures"] is True
         assert metrics["successful_validation_attempt"] == 2
 
-    def test_validation_logging(self):
+    def test_validation_logging(self) -> None:
         """Test that validation events are properly logged by checking behavior."""
         validation_function = self.create_json_validation_function()
         validation_config = ResponseValidationConfig(
             response_validation_function=validation_function, response_validation_retries=2
         )
 
-        def mock_operation(**kwargs):
+        def mock_operation(**kwargs: Any) -> Dict[str, Any]:
             return self.failed_response_data  # Invalid JSON
 
         retry_targets = [("Claude 3.5 Sonnet", "us-east-1", self.access_info)]
@@ -576,11 +577,11 @@ class TestResponseValidation:
 class TestValidationIntegration:
     """Integration tests for validation with LLMManager."""
 
-    def setup_method(self):
+    def setup_method(self) -> None:
         """Set up test fixtures."""
         pass
 
-    def test_json_validation_example(self):
+    def test_json_validation_example(self) -> None:
         """Test the JSON validation example from the requirements."""
 
         def validate_json_response(response: BedrockResponse) -> ValidationResult:
