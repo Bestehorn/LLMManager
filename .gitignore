@@ -135,3 +135,5 @@ src/docs/FoundationalModels.json
 notebooks/src/docs/UnifiedModels.json
 bestehorn_llmmanager_v1.0.0.zip
 *.zip
+flake8_output.txt
+mypy_output.txt
