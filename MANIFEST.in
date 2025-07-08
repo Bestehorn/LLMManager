@@ -11,6 +11,9 @@ include SECURITY.md
 recursive-include src/bestehorn_llmmanager *.py
 include src/bestehorn_llmmanager/py.typed
 
+# Exclude generated version file (handled by setuptools_scm)
+exclude src/bestehorn_llmmanager/_version.py
+
 # Include build and test configuration
 include tox.ini
 include .coveragerc
