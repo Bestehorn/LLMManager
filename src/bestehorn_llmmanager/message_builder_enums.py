@@ -32,7 +32,7 @@ class ImageFormatEnum(str, Enum):
 
     JPEG = "jpeg"
     PNG = "png"
-    GIF = "gi"
+    GIF = "gif"
     WEBP = "webp"
 
 
@@ -43,7 +43,7 @@ class DocumentFormatEnum(str, Enum):
     These formats are compatible with AWS Bedrock document processing capabilities.
     """
 
-    PDF = "pd"
+    PDF = "pdf"
     CSV = "csv"
     DOC = "doc"
     DOCX = "docx"

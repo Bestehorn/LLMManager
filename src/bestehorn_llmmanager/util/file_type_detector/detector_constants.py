@@ -59,12 +59,12 @@ class FileExtensionConstants:
         ".jpg": "jpeg",
         ".jpeg": "jpeg",
         ".png": "png",
-        ".gi": "gi",
+        ".gif": "gif",
         ".webp": "webp",
     }
 
     DOCUMENT_EXTENSIONS: Final[Dict[str, str]] = {
-        ".pd": "pd",
+        ".pdf": "pdf",
         ".doc": "doc",
         ".docx": "docx",
         ".xls": "xls",

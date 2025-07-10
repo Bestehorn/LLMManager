@@ -589,12 +589,13 @@ class ConverseMessageBuilder:
                 MessageBuilderErrorMessages.CONTENT_BLOCK_LIMIT_EXCEEDED.format(limit=max_count)
             )
 
-        # Warning at 80% of limit
-        warning_threshold = int(max_count * 0.8)
-        if current_count >= warning_threshold:
+        # Warning at 80% of limit (after adding the current block)
+        # For a limit of 5, warn when we have 3 blocks (before adding the 4th)
+        warning_threshold = int(max_count * 0.8) - 1
+        if current_count >= warning_threshold and current_count >= 3:
             self._logger.warning(
                 MessageBuilderLogMessages.CONTENT_BLOCK_LIMIT_WARNING.format(
-                    count=current_count, limit=max_count
+                    count=current_count + 1, limit=max_count
                 )
             )
 

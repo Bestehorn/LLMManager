@@ -221,7 +221,7 @@ class TestAddDocumentBytesMethod:
         doc_block = message[ConverseAPIFields.CONTENT][0]
 
         assert ConverseAPIFields.DOCUMENT in doc_block
-        assert doc_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.FORMAT] == "pd"
+        assert doc_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.FORMAT] == "pdf"
         assert (
             doc_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.SOURCE][ConverseAPIFields.BYTES]
             == pdf_data
@@ -397,28 +397,31 @@ class TestAddLocalImageMethod:
 
     def test_add_local_image_success(self):
         """Test successfully adding local image file."""
+        # Write some JPEG-like data
+        jpeg_data = b"\xff\xd8\xff\xe0\x00\x10JFIF"
+        
+        # Create temp file, write data, and close it properly for Windows compatibility
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
-            # Write some JPEG-like data
-            jpeg_data = b"\xff\xd8\xff\xe0\x00\x10JFIF"
             tmp_file.write(jpeg_data)
             tmp_file.flush()
+            tmp_file_path = tmp_file.name
+        
+        try:
+            builder = ConverseMessageBuilder(role=RolesEnum.USER)
             
-            try:
-                builder = ConverseMessageBuilder(role=RolesEnum.USER)
+            with patch.object(builder, 'add_image_bytes') as mock_add_image:
+                mock_add_image.return_value = builder
                 
-                with patch.object(builder, 'add_image_bytes') as mock_add_image:
-                    mock_add_image.return_value = builder
-                    
-                    result = builder.add_local_image(path_to_local_file=tmp_file.name)
-                    
-                    assert result is builder
-                    mock_add_image.assert_called_once_with(
-                        bytes=jpeg_data, 
-                        format=None, 
-                        filename=Path(tmp_file.name).name
-                    )
-            finally:
-                Path(tmp_file.name).unlink(missing_ok=True)
+                result = builder.add_local_image(path_to_local_file=tmp_file_path)
+                
+                assert result is builder
+                mock_add_image.assert_called_once_with(
+                    bytes=jpeg_data, 
+                    format=None, 
+                    filename=Path(tmp_file_path).name
+                )
+        finally:
+            Path(tmp_file_path).unlink(missing_ok=True)
 
     def test_add_local_image_file_not_found(self):
         """Test adding non-existent local image raises FileNotFoundError."""
@@ -437,35 +440,40 @@ class TestAddLocalImageMethod:
 
     def test_add_local_image_size_exceeded(self):
         """Test adding oversized image raises RequestValidationError."""
+        # Write data larger than limit
+        large_data = b"x" * (5 * 1024 * 1024)  # 5MB
+        
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
-            # Write data larger than limit
-            large_data = b"x" * (5 * 1024 * 1024)  # 5MB
             tmp_file.write(large_data)
             tmp_file.flush()
+            tmp_file_path = tmp_file.name
             
-            try:
-                builder = ConverseMessageBuilder(role=RolesEnum.USER)
-                
-                with pytest.raises(RequestValidationError, match="exceeds limit"):
-                    builder.add_local_image(path_to_local_file=tmp_file.name, max_size_mb=3.75)
-            finally:
-                Path(tmp_file.name).unlink()
+        try:
+            builder = ConverseMessageBuilder(role=RolesEnum.USER)
+            
+            with pytest.raises(RequestValidationError, match="size limit exceeded"):
+                builder.add_local_image(path_to_local_file=tmp_file_path, max_size_mb=3.75)
+        finally:
+            Path(tmp_file_path).unlink(missing_ok=True)
 
     def test_add_local_image_read_error(self):
         """Test file read error raises RequestValidationError."""
         builder = ConverseMessageBuilder(role=RolesEnum.USER)
         
+        # Create temp file, write data, and get the path
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmp_file:
             tmp_file.write(b"test")
             tmp_file.flush()
-            
-            try:
-                # Mock open to raise an exception
-                with patch("builtins.open", side_effect=PermissionError("Access denied")):
-                    with pytest.raises(RequestValidationError, match="Failed to read image file"):
-                        builder.add_local_image(path_to_local_file=tmp_file.name)
-            finally:
-                Path(tmp_file.name).unlink()
+            tmp_file_path = tmp_file.name
+        
+        # Now the file is closed and we can use it
+        try:
+            # Mock open to raise an exception
+            with patch("builtins.open", side_effect=PermissionError("Access denied")):
+                with pytest.raises(RequestValidationError, match="Failed to read image file"):
+                    builder.add_local_image(path_to_local_file=tmp_file_path)
+        finally:
+            Path(tmp_file_path).unlink(missing_ok=True)
 
 
 class TestAddVideoBytesMethod:
@@ -571,27 +579,29 @@ class TestAddLocalVideoMethod:
 
     def test_add_local_video_success(self):
         """Test successfully adding local video file."""
+        video_data = b"\x00\x00\x00\x18ftypmp4"
+        
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_file:
-            video_data = b"\x00\x00\x00\x18ftypmp4"
             tmp_file.write(video_data)
             tmp_file.flush()
+            tmp_file_path = tmp_file.name
             
-            try:
-                builder = ConverseMessageBuilder(role=RolesEnum.USER)
+        try:
+            builder = ConverseMessageBuilder(role=RolesEnum.USER)
+            
+            with patch.object(builder, 'add_video_bytes') as mock_add_video:
+                mock_add_video.return_value = builder
                 
-                with patch.object(builder, 'add_video_bytes') as mock_add_video:
-                    mock_add_video.return_value = builder
-                    
-                    result = builder.add_local_video(path_to_local_file=tmp_file.name)
-                    
-                    assert result is builder
-                    mock_add_video.assert_called_once_with(
-                        bytes=video_data, 
-                        format=None, 
-                        filename=Path(tmp_file.name).name
-                    )
-            finally:
-                Path(tmp_file.name).unlink()
+                result = builder.add_local_video(path_to_local_file=tmp_file_path)
+                
+                assert result is builder
+                mock_add_video.assert_called_once_with(
+                    bytes=video_data, 
+                    format=None, 
+                    filename=Path(tmp_file_path).name
+                )
+        finally:
+            Path(tmp_file_path).unlink(missing_ok=True)
 
     def test_add_local_video_file_not_found(self):
         """Test adding non-existent local video raises FileNotFoundError."""
@@ -602,19 +612,21 @@ class TestAddLocalVideoMethod:
 
     def test_add_local_video_size_exceeded(self):
         """Test adding oversized video raises RequestValidationError."""
+        # Write data larger than limit
+        large_data = b"x" * (150 * 1024 * 1024)  # 150MB
+        
         with tempfile.NamedTemporaryFile(suffix=".mp4", delete=False) as tmp_file:
-            # Write data larger than limit
-            large_data = b"x" * (150 * 1024 * 1024)  # 150MB
             tmp_file.write(large_data)
             tmp_file.flush()
+            tmp_file_path = tmp_file.name
             
-            try:
-                builder = ConverseMessageBuilder(role=RolesEnum.USER)
-                
-                with pytest.raises(RequestValidationError, match="exceeds limit"):
-                    builder.add_local_video(path_to_local_file=tmp_file.name, max_size_mb=100.0)
-            finally:
-                Path(tmp_file.name).unlink()
+        try:
+            builder = ConverseMessageBuilder(role=RolesEnum.USER)
+            
+            with pytest.raises(RequestValidationError, match="size limit exceeded"):
+                builder.add_local_video(path_to_local_file=tmp_file_path, max_size_mb=100.0)
+        finally:
+            Path(tmp_file_path).unlink(missing_ok=True)
 
 
 class TestAddLocalDocumentMethod:
@@ -622,31 +634,33 @@ class TestAddLocalDocumentMethod:
 
     def test_add_local_document_success(self):
         """Test successfully adding local document file."""
+        pdf_data = b"%PDF-1.4"
+        
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
-            pdf_data = b"%PDF-1.4"
             tmp_file.write(pdf_data)
             tmp_file.flush()
+            tmp_file_path = tmp_file.name
             
-            try:
-                builder = ConverseMessageBuilder(role=RolesEnum.USER)
+        try:
+            builder = ConverseMessageBuilder(role=RolesEnum.USER)
+            
+            with patch.object(builder, 'add_document_bytes') as mock_add_doc:
+                mock_add_doc.return_value = builder
                 
-                with patch.object(builder, 'add_document_bytes') as mock_add_doc:
-                    mock_add_doc.return_value = builder
-                    
-                    result = builder.add_local_document(
-                        path_to_local_file=tmp_file.name, 
-                        name="Test Document"
-                    )
-                    
-                    assert result is builder
-                    mock_add_doc.assert_called_once_with(
-                        bytes=pdf_data, 
-                        format=None, 
-                        filename=Path(tmp_file.name).name, 
-                        name="Test Document"
-                    )
-            finally:
-                Path(tmp_file.name).unlink()
+                result = builder.add_local_document(
+                    path_to_local_file=tmp_file_path, 
+                    name="Test Document"
+                )
+                
+                assert result is builder
+                mock_add_doc.assert_called_once_with(
+                    bytes=pdf_data, 
+                    format=None, 
+                    filename=Path(tmp_file_path).name, 
+                    name="Test Document"
+                )
+        finally:
+            Path(tmp_file_path).unlink(missing_ok=True)
 
     def test_add_local_document_file_not_found(self):
         """Test adding non-existent local document raises FileNotFoundError."""
@@ -657,19 +671,21 @@ class TestAddLocalDocumentMethod:
 
     def test_add_local_document_size_exceeded(self):
         """Test adding oversized document raises RequestValidationError."""
+        # Write data larger than limit
+        large_data = b"x" * (6 * 1024 * 1024)  # 6MB
+        
         with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_file:
-            # Write data larger than limit
-            large_data = b"x" * (6 * 1024 * 1024)  # 6MB
             tmp_file.write(large_data)
             tmp_file.flush()
+            tmp_file_path = tmp_file.name
             
-            try:
-                builder = ConverseMessageBuilder(role=RolesEnum.USER)
-                
-                with pytest.raises(RequestValidationError, match="exceeds limit"):
-                    builder.add_local_document(path_to_local_file=tmp_file.name, max_size_mb=4.5)
-            finally:
-                Path(tmp_file.name).unlink()
+        try:
+            builder = ConverseMessageBuilder(role=RolesEnum.USER)
+            
+            with pytest.raises(RequestValidationError, match="size limit exceeded"):
+                builder.add_local_document(path_to_local_file=tmp_file_path, max_size_mb=4.5)
+        finally:
+            Path(tmp_file_path).unlink(missing_ok=True)
 
 
 class TestContentSizeValidation:

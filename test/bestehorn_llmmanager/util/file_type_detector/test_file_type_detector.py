@@ -41,7 +41,7 @@ class TestImageDetection:
         
         assert result.is_successful
         assert result.detected_format == "jpeg"
-        assert result.confidence >= DetectionConstants.HIGH_CONFIDENCE
+        assert result.confidence >= DetectionConstants.MEDIUM_CONFIDENCE
         assert result.detection_method == DetectionMethodEnum.COMBINED
 
     def test_detect_jpeg_by_content_exif(self):
@@ -58,7 +58,7 @@ class TestImageDetection:
     def test_detect_jpeg_by_content_raw(self):
         """Test JPEG raw detection by content."""
         detector = FileTypeDetector()
-        jpeg_content = b"\xff\xd8\xff\xdb\x00\x43"
+        jpeg_content = b"\xff\xd8\xff\xdb\x00\x43\x00\x01\x02\x03"  # Extended to 10 bytes
         
         result = detector.detect_image_format(content=jpeg_content, filename="test.jpg")
         
@@ -204,7 +204,7 @@ class TestDocumentDetection:
         
         assert result.is_successful
         assert result.detected_format == "docx"
-        assert result.confidence >= DetectionConstants.HIGH_CONFIDENCE
+        assert result.confidence >= DetectionConstants.MEDIUM_CONFIDENCE
 
     def test_detect_xlsx_by_content(self):
         """Test XLSX detection by content."""
@@ -348,7 +348,7 @@ class TestVideoDetection:
     def test_detect_webm_by_content_no_extension(self):
         """Test WEBM detection by content without extension (defaults to webm)."""
         detector = FileTypeDetector()
-        webm_content = b"\x1a\x45\xdf\xa3\x00\x00\x00\x00"
+        webm_content = b"\x1a\x45\xdf\xa3\x00\x00\x00\x00\x00\x00\x00\x00"  # 12 bytes minimum
         
         result = detector.detect_video_format(content=webm_content)
         

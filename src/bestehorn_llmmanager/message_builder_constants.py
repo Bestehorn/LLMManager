@@ -84,15 +84,15 @@ class MessageBuilderErrorMessages:
 
     # Size limit errors
     CONTENT_SIZE_EXCEEDED: Final[str] = (
-        "Content size ({size} bytes) exceeds limit ({limit} bytes) for {content_type}"
+        "{content_type} size limit exceeded: {size} bytes > {limit} bytes"
     )
     CONTENT_BLOCK_LIMIT_EXCEEDED: Final[str] = (
-        "Cannot add more content blocks. Maximum allowed: {limit}"
+        "Content block limit exceeded: cannot add more than {limit} blocks"
     )
 
     # Detection errors
-    DETECTION_FAILED: Final[str] = "Failed to detect file type for {filename}: {error}"
-    UNSUPPORTED_FORMAT: Final[str] = "Unsupported {content_type} format detected: {format}"
+    DETECTION_FAILED: Final[str] = "Detection failed for {filename}: {error}"
+    UNSUPPORTED_FORMAT: Final[str] = "Unsupported format detected: {format} for {content_type}"
     DETECTION_CONFIDENCE_LOW: Final[str] = (
         "Detection confidence too low ({confidence:.2f}) for {filename}. Minimum required: {min_confidence:.2f}"
     )
@@ -105,9 +105,9 @@ class MessageBuilderErrorMessages:
 class SupportedFormats:
     """Lists of supported formats for validation purposes."""
 
-    IMAGE_FORMATS: Final[List[str]] = ["jpeg", "png", "gi", "webp"]
+    IMAGE_FORMATS: Final[List[str]] = ["jpeg", "png", "gif", "webp"]
     DOCUMENT_FORMATS: Final[List[str]] = [
-        "pd",
+        "pdf",
         "csv",
         "doc",
         "docx",
