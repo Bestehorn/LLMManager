@@ -520,7 +520,7 @@ class StreamingResponse:
         self._retrying_iterator = retrying_iterator
         self._stream_iterator = iter(retrying_iterator)
 
-    def __iter__(self) -> 'StreamingResponse':
+    def __iter__(self) -> "StreamingResponse":
         """
         Return self as iterator.
 
@@ -627,7 +627,9 @@ class StreamingResponse:
         # Unknown event type
         raise ValueError(f"Unknown streaming event type. Available keys: {list(event.keys())}")
 
-    def _update_from_streaming_event(self, event_type: Any, processed_event: Dict[str, Any]) -> Optional[str]:
+    def _update_from_streaming_event(
+        self, event_type: Any, processed_event: Dict[str, Any]
+    ) -> Optional[str]:
         """
         Update StreamingResponse from processed event and return content if available.
 
@@ -706,8 +708,7 @@ class StreamingResponse:
         if self.stream_errors:
             # Check if these are unrecovered errors
             unrecovered_errors = [
-                error for error in self.stream_errors 
-                if not self._is_recovered_error(error)
+                error for error in self.stream_errors if not self._is_recovered_error(error)
             ]
             if unrecovered_errors:
                 self.success = False
@@ -725,21 +726,21 @@ class StreamingResponse:
     def _is_recovered_error(self, error: Exception) -> bool:
         """
         Check if an error was recovered from during streaming.
-        
+
         Args:
             error: Error to check
-            
+
         Returns:
             True if error was recovered from
         """
         if not self._retrying_iterator:
             return False
-            
+
         # Check if this error appears in the recovered exceptions
         for mid_stream_exc in self._retrying_iterator.mid_stream_exceptions:
             if mid_stream_exc.recovered and mid_stream_exc.error == error:
                 return True
-        
+
         return False
 
     def get_full_content(self) -> str:
@@ -853,13 +854,15 @@ class StreamingResponse:
             metrics["time_to_last_token_ms"] = time_to_last_token
 
         if self._first_token_time and self._last_token_time:
-            token_generation_time = (self._last_token_time - self._first_token_time).total_seconds() * 1000
+            token_generation_time = (
+                self._last_token_time - self._first_token_time
+            ).total_seconds() * 1000
             metrics["token_generation_duration_ms"] = token_generation_time
 
         # Streaming-specific metrics
-        metrics["content_parts"] = len(self.content_parts)
-        metrics["stream_position"] = self.stream_position
-        metrics["stream_errors"] = len(self.stream_errors)
+        metrics["content_parts"] = int(len(self.content_parts))
+        metrics["stream_position"] = int(self.stream_position)
+        metrics["stream_errors"] = int(len(self.stream_errors))
 
         return metrics if metrics else None
 
@@ -884,16 +887,18 @@ class StreamingResponse:
 
         exceptions = []
         for mid_stream_exc in self._retrying_iterator.mid_stream_exceptions:
-            exceptions.append({
-                "error_type": type(mid_stream_exc.error).__name__,
-                "error_message": str(mid_stream_exc.error),
-                "position": mid_stream_exc.position,
-                "model": mid_stream_exc.model,
-                "region": mid_stream_exc.region,
-                "timestamp": mid_stream_exc.timestamp.isoformat(),
-                "recovered": mid_stream_exc.recovered
-            })
-        
+            exceptions.append(
+                {
+                    "error_type": type(mid_stream_exc.error).__name__,
+                    "error_message": str(mid_stream_exc.error),
+                    "position": mid_stream_exc.position,
+                    "model": mid_stream_exc.model,
+                    "region": mid_stream_exc.region,
+                    "timestamp": mid_stream_exc.timestamp.isoformat(),
+                    "recovered": mid_stream_exc.recovered,
+                }
+            )
+
         return exceptions
 
     def get_target_switches(self) -> int:
@@ -905,7 +910,7 @@ class StreamingResponse:
         """
         if not self._retrying_iterator:
             return 0
-        
+
         return self._retrying_iterator.target_switches
 
     def get_recovery_info(self) -> Dict[str, Any]:
@@ -920,7 +925,7 @@ class StreamingResponse:
                 "total_exceptions": 0,
                 "recovered_exceptions": 0,
                 "target_switches": 0,
-                "recovery_enabled": False
+                "recovery_enabled": False,
             }
 
         mid_stream_exceptions = self._retrying_iterator.mid_stream_exceptions
@@ -933,7 +938,7 @@ class StreamingResponse:
             "recovery_enabled": True,
             "final_model": self._retrying_iterator.current_model,
             "final_region": self._retrying_iterator.current_region,
-            "partial_content_preserved": len(self._retrying_iterator.partial_content) > 0
+            "partial_content_preserved": len(self._retrying_iterator.partial_content) > 0,
         }
 
     def __repr__(self) -> str:
@@ -945,5 +950,5 @@ class StreamingResponse:
 
         return (
             f"StreamingResponse(status={status}, parts={len(self.content_parts)}, "
-            f"position={self.stream_position}, errors={len(self.stream_errors)})"
+            f"position={self.stream_position}, errors={int(len(self.stream_errors))})"
         )

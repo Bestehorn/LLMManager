@@ -16,7 +16,6 @@ from .stream_processor import StreamProcessor
 from .streaming_constants import (
     StreamingConstants,
     StreamingErrorMessages,
-    StreamingLogMessages,
 )
 
 
@@ -35,7 +34,7 @@ class StreamInterruptedException(Exception):
         message: str,
         partial_content: str = "",
         interruption_point: int = 0,
-        original_error: Optional[Exception] = None
+        original_error: Optional[Exception] = None,
     ) -> None:
         """
         Initialize stream interruption exception.
@@ -80,7 +79,7 @@ class StreamingRetryManager(RetryManager):
         """
         Execute streaming operation with recovery logic using RetryingStreamIterator.
 
-        This method creates a RetryingStreamIterator that provides seamless 
+        This method creates a RetryingStreamIterator that provides seamless
         mid-stream error recovery with automatic target switching and partial
         content preservation.
 
@@ -115,44 +114,44 @@ class StreamingRetryManager(RetryManager):
                 retry_targets=retry_targets,
                 operation=operation,
                 operation_args=operation_args,
-                disabled_features=disabled_features
+                disabled_features=disabled_features,
             )
 
             # Create StreamingResponse with the retrying iterator
             streaming_response = StreamingResponse(True)
-            
+
             # Set up the retrying iterator for the streaming response
             streaming_response._set_retrying_iterator(retrying_iterator)
 
             # Create minimal attempt record for successful setup
             setup_attempt = RequestAttempt(
                 model_id="multiple",  # Will be updated when iterator starts
-                region="multiple",    # Will be updated when iterator starts
-                access_method="mixed", # Will be updated when iterator starts
+                region="multiple",  # Will be updated when iterator starts
+                access_method="mixed",  # Will be updated when iterator starts
                 attempt_number=1,
                 start_time=datetime.now(),
                 end_time=datetime.now(),
-                success=True
+                success=True,
             )
 
             self._logger.info("Streaming with recovery initialized successfully")
-            
+
             return streaming_response, [setup_attempt], warnings
 
         except Exception as error:
             # Handle initialization errors
             self._logger.error(f"Failed to initialize streaming with recovery: {error}")
-            
+
             # Create failed attempt
-            failed_attempt = RequestAttempt(
+            RequestAttempt(
                 model_id="initialization",
-                region="initialization", 
+                region="initialization",
                 access_method="initialization",
                 attempt_number=1,
                 start_time=datetime.now(),
                 end_time=datetime.now(),
                 success=False,
-                error=error
+                error=error,
             )
 
             raise RetryExhaustedError(
@@ -170,7 +169,7 @@ class StreamingRetryManager(RetryManager):
         model: str,
         region: str,
         access_info: ModelAccessInfo,
-        attempt: RequestAttempt
+        attempt: RequestAttempt,
     ) -> StreamingResponse:
         """
         Execute a single streaming operation and set up EventStream for lazy processing.
@@ -223,7 +222,7 @@ class StreamingRetryManager(RetryManager):
         model: str,
         disabled_features: List[str],
         filter_state: Any,
-        partial_content: str = ""
+        partial_content: str = "",
     ) -> Dict[str, Any]:
         """
         Prepare streaming operation arguments with recovery context.
@@ -245,7 +244,7 @@ class StreamingRetryManager(RetryManager):
             access_info=access_info,
             model=model,
             disabled_features=disabled_features,
-            filter_state=filter_state
+            filter_state=filter_state,
         )
 
         # Add recovery context if we have partial content
@@ -254,7 +253,7 @@ class StreamingRetryManager(RetryManager):
             recovery_messages = self._stream_processor.build_recovery_context(
                 original_messages=original_messages,
                 partial_content=partial_content,
-                failure_context="Stream was interrupted"
+                failure_context="Stream was interrupted",
             )
             current_args["messages"] = recovery_messages
 
@@ -283,7 +282,7 @@ class StreamingRetryManager(RetryManager):
             "stream",
             "socket",
             "eof",
-            "read timeout"
+            "read timeout",
         ]
 
         for pattern in interruption_patterns:
@@ -298,7 +297,7 @@ class StreamingRetryManager(RetryManager):
             "service unavailable",
             "internal server error",
             "modelstreamerrorexception",
-            "validationexception"
+            "validationexception",
         ]
 
         for pattern in aws_retryable_patterns:
@@ -306,8 +305,8 @@ class StreamingRetryManager(RetryManager):
                 return True
 
         # Check for specific AWS streaming errors in exception structure
-        if hasattr(error, 'response'):
-            error_response = getattr(error, 'response', None)
+        if hasattr(error, "response"):
+            error_response = getattr(error, "response", None)
             if error_response:
                 error_code = error_response.get("Error", {}).get("Code", "")
                 streaming_error_codes = [
@@ -315,17 +314,18 @@ class StreamingRetryManager(RetryManager):
                     "ThrottlingException",
                     "ServiceUnavailableException",
                     "InternalServerException",
-                    "ValidationException"
+                    "ValidationException",
                 ]
                 if error_code in streaming_error_codes:
                     return True
 
         # Check for boto3 exception types
-        if hasattr(error, '__class__'):
+        if hasattr(error, "__class__"):
             error_class_name = error.__class__.__name__.lower()
-            if any(exc_type in error_class_name for exc_type in [
-                "throttling", "serviceexception", "clienterror", "botocore"
-            ]):
+            if any(
+                exc_type in error_class_name
+                for exc_type in ["throttling", "serviceexception", "clienterror", "botocore"]
+            ):
                 return True
 
         return False

@@ -10,7 +10,7 @@ from .streaming_retry_manager import StreamingRetryManager
 
 __all__ = [
     "StreamProcessor",
-    "StreamEventHandler", 
+    "StreamEventHandler",
     "StreamingConstants",
     "StreamingEventTypes",
     "StreamingRetryManager",

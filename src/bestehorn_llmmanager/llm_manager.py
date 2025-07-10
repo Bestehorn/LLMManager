@@ -114,7 +114,9 @@ class LLMManager:
         # Initialize components
         self._auth_manager = AuthManager(auth_config=auth_config)
         self._retry_manager = RetryManager(retry_config=retry_config or RetryConfig())
-        self._streaming_retry_manager = StreamingRetryManager(retry_config=retry_config or RetryConfig())
+        self._streaming_retry_manager = StreamingRetryManager(
+            retry_config=retry_config or RetryConfig()
+        )
 
         # Initialize or use provided UnifiedModelManager
         if unified_model_manager:
@@ -526,10 +528,12 @@ class LLMManager:
 
         try:
             # Execute with streaming retry logic and recovery
-            streaming_response, attempts, warnings = self._streaming_retry_manager.execute_streaming_with_recovery(
-                operation=self._execute_converse_stream,
-                operation_args=request_args,
-                retry_targets=retry_targets,
+            streaming_response, attempts, warnings = (
+                self._streaming_retry_manager.execute_streaming_with_recovery(
+                    operation=self._execute_converse_stream,
+                    operation_args=request_args,
+                    retry_targets=retry_targets,
+                )
             )
 
             # Add attempt information and warnings
@@ -540,13 +544,11 @@ class LLMManager:
         except RetryExhaustedError as e:
             # Create failed streaming response
             total_duration = (datetime.now() - request_start).total_seconds() * 1000
-            
+
             streaming_response = StreamingResponse(
-                success=False,
-                stream_errors=[e],
-                total_duration_ms=total_duration
+                success=False, stream_errors=[e], total_duration_ms=total_duration
             )
-            
+
             raise e
 
     def _validate_converse_request(self, messages: List[Dict[str, Any]]) -> None:

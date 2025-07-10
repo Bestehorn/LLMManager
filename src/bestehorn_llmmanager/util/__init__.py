@@ -14,10 +14,10 @@ from .streaming_display import (
 )
 
 __all__ = [
-    "FileTypeDetector", 
+    "FileTypeDetector",
     "DetectionResult",
     "StreamingDisplayFormatter",
     "display_streaming_response",
-    "display_streaming_summary", 
+    "display_streaming_summary",
     "display_recovery_information",
 ]

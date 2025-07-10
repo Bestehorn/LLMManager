@@ -8,7 +8,7 @@ from enum import Enum
 
 class StreamingEventTypes(str, Enum):
     """Enumeration of AWS Bedrock Converse Stream event types."""
-    
+
     MESSAGE_START = "messageStart"
     CONTENT_BLOCK_START = "contentBlockStart"
     CONTENT_BLOCK_DELTA = "contentBlockDelta"
@@ -24,7 +24,7 @@ class StreamingEventTypes(str, Enum):
 
 class StreamingConstants:
     """Constants for streaming field names and configuration."""
-    
+
     # Event Stream Fields
     FIELD_STREAM = "stream"
     FIELD_ROLE = "role"
@@ -33,7 +33,7 @@ class StreamingConstants:
     FIELD_CONTENT_BLOCK_INDEX = "contentBlockIndex"
     FIELD_STOP_REASON = "stopReason"
     FIELD_ADDITIONAL_MODEL_RESPONSE_FIELDS = "additionalModelResponseFields"
-    
+
     # Content Block Fields
     FIELD_TEXT = "text"
     FIELD_TOOL_USE = "toolUse"
@@ -47,7 +47,7 @@ class StreamingConstants:
     FIELD_LOCATION = "location"
     FIELD_REDACTED_CONTENT = "redactedContent"
     FIELD_SIGNATURE = "signature"
-    
+
     # Metadata Fields
     FIELD_USAGE = "usage"
     FIELD_INPUT_TOKENS = "inputTokens"
@@ -59,12 +59,12 @@ class StreamingConstants:
     FIELD_LATENCY_MS = "latencyMs"
     FIELD_TRACE = "trace"
     FIELD_PERFORMANCE_CONFIG = "performanceConfig"
-    
+
     # Error Fields
     FIELD_MESSAGE = "message"
     FIELD_ORIGINAL_STATUS_CODE = "originalStatusCode"
     FIELD_ORIGINAL_MESSAGE = "originalMessage"
-    
+
     # Stop Reasons
     STOP_REASON_END_TURN = "end_turn"
     STOP_REASON_TOOL_USE = "tool_use"
@@ -72,7 +72,7 @@ class StreamingConstants:
     STOP_REASON_STOP_SEQUENCE = "stop_sequence"
     STOP_REASON_GUARDRAIL_INTERVENED = "guardrail_intervened"
     STOP_REASON_CONTENT_FILTERED = "content_filtered"
-    
+
     # Configuration
     DEFAULT_STREAM_TIMEOUT = 300  # seconds
     DEFAULT_RETRY_ON_STREAM_ERROR = True
@@ -83,20 +83,22 @@ class StreamingConstants:
 
 class StreamingLogMessages:
     """Log message templates for streaming operations."""
-    
+
     STREAM_STARTED = "Started streaming request for model '{model}' in region '{region}'"
     STREAM_EVENT_RECEIVED = "Received streaming event: {event_type}"
     STREAM_CONTENT_CHUNK = "Received content chunk: {chunk_size} characters"
     STREAM_COMPLETED = "Streaming completed successfully for model '{model}' in region '{region}'"
     STREAM_INTERRUPTED = "Stream interrupted for model '{model}' in region '{region}': {error}"
     STREAM_RETRY_ATTEMPT = "Attempting stream retry {attempt}/{max_attempts} for model '{model}'"
-    STREAM_RECOVERY_CONTEXT = "Building recovery context with {partial_length} characters of partial content"
+    STREAM_RECOVERY_CONTEXT = (
+        "Building recovery context with {partial_length} characters of partial content"
+    )
     STREAM_ERROR = "Stream error in model '{model}', region '{region}': {error}"
 
 
 class StreamingErrorMessages:
     """Error message templates for streaming operations."""
-    
+
     STREAM_PROCESSING_FAILED = "Failed to process streaming event: {event_type}"
     INVALID_STREAM_EVENT = "Invalid streaming event format: {event}"
     STREAM_INTERRUPTED_ERROR = "Stream was interrupted unexpectedly"

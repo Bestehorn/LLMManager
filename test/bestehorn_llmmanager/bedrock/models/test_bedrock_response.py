@@ -909,9 +909,7 @@ class TestStreamingResponse:
 
     def test_streaming_response_repr_streaming(self) -> None:
         """Test string representation of StreamingResponse while streaming is in progress."""
-        response = StreamingResponse(
-            success=False, content_parts=["Hello"], stream_position=5
-        )
+        response = StreamingResponse(success=False, content_parts=["Hello"], stream_position=5)
         # Don't mark as completed - should show "STREAMING" status
 
         repr_str = repr(response)
