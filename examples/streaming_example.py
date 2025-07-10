@@ -5,25 +5,38 @@ This example shows how to use the new converse_stream method that provides
 real-time streaming responses using the AWS Bedrock converse_stream API.
 """
 
-import asyncio
 import logging
-from typing import Iterator
 
 from bestehorn_llmmanager import LLMManager
-from bestehorn_llmmanager.bedrock.models.llm_manager_structures import AuthConfig, RetryConfig
-from bestehorn_llmmanager.bedrock.streaming.stream_processor import StreamProcessor
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConfig
 
 
 def basic_streaming_example():
     """Demonstrate basic streaming functionality."""
     print("=== Basic Streaming Example ===")
     
-    # Initialize LLM Manager
-    manager = LLMManager(
-        models=["Claude 3 Haiku"],
-        regions=["us-east-1"],
-        log_level=logging.INFO
-    )
+    # Use available models after refresh
+    models = ["Claude 3.5 Sonnet v2", "Claude 3 Haiku", "Claude 3 Sonnet"]
+    regions = ["us-east-1", "us-west-2", "eu-west-1"]
+    
+    try:
+        manager = LLMManager(
+            models=models,
+            regions=regions,
+            log_level=logging.INFO
+        )
+    except Exception as e:
+        # If models not found, refresh and try again
+        print("Model data not available, refreshing...")
+        from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager
+        umm = UnifiedModelManager()
+        umm.refresh_unified_data()
+        
+        manager = LLMManager(
+            models=models,
+            regions=regions,
+            log_level=logging.INFO
+        )
     
     # Prepare messages
     messages = [
@@ -34,117 +47,274 @@ def basic_streaming_example():
     ]
     
     try:
-        # Use streaming API
-        print("Starting streaming request...")
+        # Use streaming API with real-time display
+        print("Starting real-time streaming...")
         streaming_response = manager.converse_stream(messages=messages)
         
-        print(f"Streaming completed!")
-        print(f"Success: {streaming_response.success}")
-        print(f"Model used: {streaming_response.model_used}")
-        print(f"Region used: {streaming_response.region_used}")
-        print(f"Total duration: {streaming_response.total_duration_ms:.1f}ms")
-        print(f"API latency: {streaming_response.api_latency_ms}ms" if streaming_response.api_latency_ms else "API latency: N/A")
-        print(f"Content parts received: {len(streaming_response.content_parts)}")
-        print(f"Stop reason: {streaming_response.stop_reason}")
-        
-        # Get full content
-        full_content = streaming_response.get_full_content()
-        print(f"\nGenerated content ({len(full_content)} characters):")
-        print("-" * 50)
-        print(full_content)
+        print("\n📺 Real-time streaming output:")
         print("-" * 50)
         
-        # Show streaming metadata
-        if streaming_response.usage_info:
-            usage = streaming_response.usage_info
-            print(f"\nToken usage:")
-            print(f"  Input tokens: {usage.get('input_tokens', 0)}")
-            print(f"  Output tokens: {usage.get('output_tokens', 0)}")
-            print(f"  Total tokens: {usage.get('total_tokens', 0)}")
+        # Iterate through streaming response for real-time display
+        try:
+            for chunk in streaming_response:
+                print(chunk, end='', flush=True)  # Real-time streaming display
+        except Exception as stream_error:
+            print(f"\n❌ Streaming interrupted: {stream_error}")
+        
+        print(f"\n{'-' * 50}")
+        print(f"✅ Streaming completed!")
+        
+        # Now show model/region info after streaming completes
+        print(f"🌊 Model: {streaming_response.model_used}")
+        print(f"🌍 Region: {streaming_response.region_used}")
+        
+        # Show final metadata (available after streaming completes)
+        print(f"📊 Final Status:")
+        print(f"   Success: {streaming_response.success}")
+        print(f"   Duration: {streaming_response.total_duration_ms:.1f}ms" if streaming_response.total_duration_ms else "   Duration: N/A")
+        print(f"   API Latency: {streaming_response.api_latency_ms:.1f}ms" if streaming_response.api_latency_ms else "   API Latency: N/A")
+        print(f"   Content Parts: {len(streaming_response.content_parts)}")
+        print(f"   Stop Reason: {streaming_response.stop_reason}")
+        
+        # Show streaming token usage (available after completion)
+        usage = streaming_response.get_usage()
+        if usage:
+            print(f"\n🎯 Token Usage:")
+            print(f"   Input tokens: {usage.get('input_tokens', 0)}")
+            print(f"   Output tokens: {usage.get('output_tokens', 0)}")
+            print(f"   Total tokens: {usage.get('total_tokens', 0)}")
             
         if streaming_response.warnings:
-            print(f"\nWarnings: {streaming_response.warnings}")
+            print(f"\n⚠️ Warnings: {streaming_response.warnings}")
             
     except Exception as e:
-        print(f"Streaming failed: {e}")
-        # Additional error details if available
-        if hasattr(e, '__dict__'):
-            error_attrs = [attr for attr in dir(e) if not attr.startswith('_') and hasattr(e, attr)]
-            if error_attrs:
-                print(f"Error details: {[f'{attr}={getattr(e, attr, None)}' for attr in error_attrs[:3]]}")
+        print(f"❌ Streaming failed: {e}")
 
 
 def streaming_with_iterator_example():
-    """Demonstrate real-time streaming with iterator (conceptual example)."""
-    print("\n=== Real-time Streaming Iterator Concept ===")
+    """Demonstrate real-time streaming with iterator (actual implementation)."""
+    print("\n=== Real-time Streaming Iterator Example ===")
     
-    # Note: This is a conceptual example showing how you could implement
-    # real-time streaming iteration. The actual implementation would require
-    # modifications to expose the iterator from the StreamProcessor.
+    models = ["Claude 3.5 Sonnet v2", "Claude 3 Haiku"]
+    regions = ["us-east-1", "us-west-2", "eu-west-1"]
     
-    print("This would allow real-time processing of streaming chunks:")
-    print("for chunk in manager.converse_stream_iterator(messages):")
-    print("    print(chunk, end='', flush=True)  # Print as it arrives")
-    print("\nTo implement this, you could modify StreamProcessor.create_streaming_iterator")
-    print("to be exposed through the LLM Manager interface.")
-
-
-def streaming_error_recovery_example():
-    """Demonstrate streaming error recovery."""
-    print("\n=== Streaming Error Recovery Example ===")
+    try:
+        manager = LLMManager(
+            models=models,
+            regions=regions,
+            log_level=logging.WARNING
+        )
+    except Exception as e:
+        print("Model data not available, refreshing...")
+        from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager
+        umm = UnifiedModelManager()
+        umm.refresh_unified_data()
+        
+        manager = LLMManager(
+            models=models,
+            regions=regions,
+            log_level=logging.WARNING
+        )
     
-    # Configure with specific retry settings
-    retry_config = RetryConfig(
-        max_retries=3,
-        retry_delay=1.0,
-        max_retry_delay=10.0,
-        backoff_multiplier=2.0  # Exponential backoff multiplier
-    )
-    
-    manager = LLMManager(
-        models=["Claude 3 Haiku", "Claude 3 Sonnet"],  # Multiple models for fallback
-        regions=["us-east-1", "us-west-2"],  # Multiple regions for fallback
-        retry_config=retry_config,
-        log_level=logging.INFO
-    )
-    
-    # Long prompt that might be more prone to interruption
     messages = [
         {
-            "role": "user", 
-            "content": [{"text": "Write a detailed technical explanation of how neural networks work, including the mathematical foundations, backpropagation algorithm, and common architectures. Make it comprehensive and detailed."}]
+            "role": "user",
+            "content": [{"text": "Explain how machine learning works in 2 paragraphs."}]
         }
     ]
     
     try:
-        print("Starting streaming request with error recovery...")
+        print("Real-time streaming iterator usage:")
+        print(">>> streaming_response = manager.converse_stream(messages)")
+        print(">>> for chunk in streaming_response:")
+        print("...     print(chunk, end='', flush=True)")
+        print()
+        
         streaming_response = manager.converse_stream(messages=messages)
         
+        print("📡 Live streaming output:")
+        print("-" * 40)
+        
+        for chunk in streaming_response:
+            print(chunk, end='', flush=True)  # Real-time display
+            
+        print("\n" + "-" * 40)
+        print(f"✅ Iterator completed! Final status: {streaming_response.success}")
+        
+        # Show enhanced metrics with timing
+        metrics = streaming_response.get_metrics()
+        if metrics:
+            print(f"⏱️  Enhanced Timing Metrics:")
+            if "time_to_first_token_ms" in metrics:
+                print(f"   Time to first token: {metrics['time_to_first_token_ms']:.1f}ms")
+            if "time_to_last_token_ms" in metrics:
+                print(f"   Time to last token: {metrics['time_to_last_token_ms']:.1f}ms")
+            if "token_generation_duration_ms" in metrics:
+                print(f"   Token generation duration: {metrics['token_generation_duration_ms']:.1f}ms")
+        
+    except Exception as e:
+        print(f"❌ Iterator example failed: {e}")
+
+
+def streaming_error_recovery_example():
+    """Demonstrate streaming error recovery with detailed diagnostics."""
+    print("\n=== Streaming Error Recovery Example ===")
+    
+    # Configure with specific retry settings for better recovery demonstration
+    retry_config = RetryConfig(
+        max_retries=4,
+        retry_delay=0.5,
+        max_retry_delay=8.0,
+        backoff_multiplier=1.8
+    )
+    
+    # Use multiple models and regions for comprehensive fallback testing
+    models = ["Claude 3.5 Sonnet v2", "Claude 3 Haiku", "Claude 3 Sonnet", "Nova Pro"]
+    regions = ["us-east-1", "us-west-2", "eu-west-1"]
+    
+    try:
+        manager = LLMManager(
+            models=models,
+            regions=regions,
+            retry_config=retry_config,
+            log_level=logging.WARNING  # Reduce noise but capture important events
+        )
+    except Exception as e:
+        print(f"❌ Failed to initialize LLM Manager: {e}")
+        return
+    
+    # Create a challenging prompt that might trigger throttling or other issues
+    messages = [
+        {
+            "role": "user", 
+            "content": [{"text": "Write a comprehensive technical explanation of machine learning algorithms, including supervised learning, unsupervised learning, neural networks, deep learning architectures, optimization techniques, and practical applications. Include mathematical foundations and real-world examples. Make it detailed and thorough."}]
+        }
+    ]
+    
+    print("🔄 Starting streaming request with enhanced error recovery...")
+    print(f"📊 Configuration: {len(models)} models × {len(regions)} regions = {len(models) * len(regions)} possible attempts")
+    
+    try:
+        streaming_response = manager.converse_stream(messages=messages)
+        
+        print("📡 Live streaming output:")
+        print("-" * 50)
+        
+        # Actually consume the stream to trigger API calls and recovery logic
+        try:
+            for chunk in streaming_response:
+                print(chunk, end='', flush=True)  # Real-time streaming display
+        except Exception as stream_error:
+            print(f"\n❌ Streaming interrupted: {stream_error}")
+        
+        print(f"\n{'-' * 50}")
+        
+        # NOW we can check recovery info after the stream has been consumed
+        recovery_info = streaming_response.get_recovery_info()
+        mid_stream_exceptions = streaming_response.get_mid_stream_exceptions()
+        
+        print(f"\n📈 Results:")
         if streaming_response.success:
-            print(f"✓ Streaming completed successfully!")
-            print(f"Model: {streaming_response.model_used}")
-            print(f"Region: {streaming_response.region_used}")
-            print(f"Content length: {len(streaming_response.get_full_content())} characters")
+            print(f"✅ Streaming completed successfully!")
+            print(f"🤖 Model used: {streaming_response.model_used}")
+            print(f"🌍 Region used: {streaming_response.region_used}")
+            print(f"📝 Content length: {len(streaming_response.get_full_content())} characters")
+            print(f"📦 Content parts: {len(streaming_response.content_parts)}")
+            print(f"⏱️  Duration: {streaming_response.total_duration_ms:.1f}ms" if streaming_response.total_duration_ms else "⏱️  Duration: N/A")
+            print(f"🔚 Stop reason: {streaming_response.stop_reason}")
+            
+            # Show mid-stream recovery information
+            if recovery_info.get("recovery_enabled", False):
+                print(f"\n🔄 Mid-Stream Recovery Information:")
+                print(f"   Total exceptions: {recovery_info.get('total_exceptions', 0)}")
+                print(f"   Recovered exceptions: {recovery_info.get('recovered_exceptions', 0)}")
+                print(f"   Target switches: {recovery_info.get('target_switches', 0)}")
+                
+                if mid_stream_exceptions:
+                    print(f"   Mid-stream exceptions handled:")
+                    for i, exc in enumerate(mid_stream_exceptions, 1):
+                        status = "✅ recovered" if exc["recovered"] else "❌ failed"
+                        print(f"     {i}. {exc['error_type']} at position {exc['position']} ({exc['model']}, {exc['region']}) - {status}")
+                        if len(exc['error_message']) < 100:
+                            print(f"        Error: {exc['error_message']}")
+                else:
+                    print(f"   No mid-stream exceptions occurred")
+                
+                if recovery_info.get("final_model") != models[0] or recovery_info.get("final_region") != regions[0]:
+                    print(f"   🔄 Stream switched to: {recovery_info.get('final_model')} in {recovery_info.get('final_region')}")
+            
+            # Show token usage if available
+            usage = streaming_response.get_usage()
+            if usage and usage.get('total_tokens', 0) > 0:
+                print(f"\n🎯 Token usage: {usage['input_tokens']} input + {usage['output_tokens']} output = {usage['total_tokens']} total")
+            
+            # Show enhanced timing metrics
+            metrics = streaming_response.get_metrics()
+            if metrics:
+                print(f"\n⚡ Enhanced Timing Metrics:")
+                if "time_to_first_token_ms" in metrics:
+                    print(f"   Time to first token: {metrics['time_to_first_token_ms']:.1f}ms")
+                if "token_generation_duration_ms" in metrics:
+                    print(f"   Token generation time: {metrics['token_generation_duration_ms']:.1f}ms")
             
             if streaming_response.warnings:
-                print(f"⚠ Warnings encountered: {streaming_response.warnings}")
+                print(f"\n⚠️  Warnings: {streaming_response.warnings}")
                 
         else:
-            print("✗ Streaming failed despite retry attempts")
+            print("❌ Streaming failed despite retry attempts")
+            print(f"🔍 Diagnosis:")
+            
+            # Show recovery information for failed requests too
+            if recovery_info.get("recovery_enabled", False):
+                print(f"   Recovery attempts made:")
+                print(f"     Total exceptions: {recovery_info.get('total_exceptions', 0)}")
+                print(f"     Recovered exceptions: {recovery_info.get('recovered_exceptions', 0)}")
+                print(f"     Target switches: {recovery_info.get('target_switches', 0)}")
+                
+                if mid_stream_exceptions:
+                    print(f"   Mid-stream exceptions:")
+                    for i, exc in enumerate(mid_stream_exceptions, 1):
+                        status = "recovered" if exc["recovered"] else "failed"
+                        print(f"     {i}. {exc['error_type']} at pos {exc['position']} ({status})")
+            
+            # Show stream errors
             if streaming_response.stream_errors:
-                print(f"Errors: {[str(e) for e in streaming_response.stream_errors]}")
+                print(f"   Stream errors ({len(streaming_response.stream_errors)}):")
+                for i, error in enumerate(streaming_response.stream_errors, 1):
+                    print(f"     {i}. {type(error).__name__}: {str(error)}")
+            
+            # Show partial content if any was received
+            partial_content = streaming_response.get_full_content()
+            if partial_content:
+                print(f"   Partial content received: {len(partial_content)} characters")
+                print(f"   Content parts: {len(streaming_response.content_parts)}")
+            else:
+                print(f"   No content received")
                 
     except Exception as e:
-        print(f"Streaming failed with exception: {e}")
+        print(f"❌ Exception during streaming: {type(e).__name__}: {e}")
+        
+        # Try to extract more detailed error information
+        if hasattr(e, 'response'):
+            error_response = getattr(e, 'response', None)
+            if error_response:
+                error_code = error_response.get("Error", {}).get("Code", "Unknown")
+                error_message = error_response.get("Error", {}).get("Message", str(e))
+                print(f"   AWS Error Code: {error_code}")
+                print(f"   AWS Error Message: {error_message}")
 
 
 def compare_streaming_vs_regular():
     """Compare streaming vs regular response for the same prompt."""
     print("\n=== Streaming vs Regular Comparison ===")
     
+    # Use correct model names
+    models = ["Claude 3.5 Sonnet v2", "Claude 3 Haiku", "Nova Pro", "Nova Lite"]
+    regions = ["us-east-1", "us-west-2", "eu-west-1"]
+    
     manager = LLMManager(
-        models=["Claude 3 Haiku"],
-        regions=["us-east-1"],
+        models=models,
+        regions=regions,
         log_level=logging.WARNING  # Reduce noise for comparison
     )
     
@@ -167,8 +337,14 @@ def compare_streaming_vs_regular():
     print("\n2. Streaming converse_stream() call:")
     try:
         streaming_response = manager.converse_stream(messages=messages)
+        
+        # Actually consume the stream to get the content
+        for chunk in streaming_response:
+            pass  # Just consume without printing for this comparison
+        
         print(f"   ✓ Success: {streaming_response.success}")
-        print(f"   ✓ Duration: {streaming_response.total_duration_ms:.1f}ms")
+        duration_str = f"{streaming_response.total_duration_ms:.1f}ms" if streaming_response.total_duration_ms is not None else "N/A"
+        print(f"   ✓ Duration: {duration_str}")
         print(f"   ✓ Content length: {len(streaming_response.get_full_content())}")
         print(f"   ✓ Content parts: {len(streaming_response.content_parts)}")
     except Exception as e:

@@ -6,7 +6,7 @@ Provides modular handlers for different streaming event types.
 import logging
 from typing import Any, Dict, Optional
 
-from .streaming_constants import StreamingConstants, StreamingEventTypes, StreamingErrorMessages
+from .streaming_constants import StreamingConstants, StreamingErrorMessages, StreamingEventTypes
 
 
 class StreamEventHandler:

@@ -436,7 +436,12 @@ class BedrockResponse:
 @dataclass
 class StreamingResponse:
     """
-    Response object for streaming operations.
+    Response object for streaming operations with iterator protocol support.
+
+    This class implements the iterator protocol to provide real-time streaming
+    where content chunks are yielded as they arrive from the AWS EventStream.
+    After iteration completes, all metadata (tokens, metrics, etc.) is available
+    just like a regular BedrockResponse.
 
     Attributes:
         success: Whether the streaming was successful
@@ -457,6 +462,10 @@ class StreamingResponse:
         current_message_role: Role of the current message being streamed
         request_attempt: Request attempt information
         warnings: List of warning messages encountered during streaming
+        _event_stream: Internal AWS EventStream for lazy processing
+        _stream_iterator: Internal iterator for EventStream processing
+        _stream_completed: Flag indicating if streaming has completed
+        _start_time: When streaming started (for duration calculation)
     """
 
     success: bool
@@ -478,9 +487,267 @@ class StreamingResponse:
     request_attempt: Optional[RequestAttempt] = None
     warnings: List[str] = field(default_factory=list)
 
+    # Internal fields for iterator protocol
+    _event_stream: Optional[Any] = field(default=None, init=False, repr=False)
+    _retrying_iterator: Optional[Any] = field(default=None, init=False, repr=False)
+    _stream_iterator: Optional[Any] = field(default=None, init=False, repr=False)
+    _stream_completed: bool = field(default=False, init=False, repr=False)
+    _start_time: Optional[datetime] = field(default=None, init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        """Initialize the streaming response."""
+        self._start_time = datetime.now()
+        self._first_token_time: Optional[datetime] = None
+        self._last_token_time: Optional[datetime] = None
+
+    def _set_event_stream(self, event_stream: Any) -> None:
+        """
+        Set the AWS EventStream for lazy processing.
+
+        Args:
+            event_stream: AWS EventStream from converse_stream API
+        """
+        self._event_stream = event_stream
+        self._stream_iterator = iter(event_stream) if event_stream else None
+
+    def _set_retrying_iterator(self, retrying_iterator: Any) -> None:
+        """
+        Set the RetryingStreamIterator for advanced retry handling.
+
+        Args:
+            retrying_iterator: RetryingStreamIterator instance for mid-stream recovery
+        """
+        self._retrying_iterator = retrying_iterator
+        self._stream_iterator = iter(retrying_iterator)
+
+    def __iter__(self) -> 'StreamingResponse':
+        """
+        Return self as iterator.
+
+        Returns:
+            Self for iterator protocol
+        """
+        return self
+
+    def __next__(self) -> str:
+        """
+        Get the next content chunk from the stream.
+
+        This method processes EventStream events lazily and yields content
+        chunks as they arrive, providing true real-time streaming.
+
+        Returns:
+            Content chunk string
+
+        Raises:
+            StopIteration: When streaming completes
+        """
+        if self._stream_completed:
+            raise StopIteration
+
+        if not self._stream_iterator:
+            self._stream_completed = True
+            raise StopIteration
+
+        try:
+            # Process events until we get content or stream ends
+            while True:
+                try:
+                    event = next(self._stream_iterator)
+                    content_chunk = self._process_streaming_event(event)
+
+                    if content_chunk:
+                        # Got content, return it
+                        return content_chunk
+                    # No content in this event, continue to next event
+
+                except StopIteration:
+                    # Stream completed
+                    self._finalize_streaming()
+                    raise
+
+        except StopIteration:
+            # Normal completion - re-raise without treating as error
+            self._finalize_streaming()
+            raise
+        except Exception as error:
+            # Handle actual streaming errors (not normal completion)
+            self.add_stream_error(error)
+            self._stream_completed = True
+            # Don't automatically set success=False here - let _finalize_streaming determine final status
+            self._finalize_streaming()
+            raise StopIteration
+
+    def _process_streaming_event(self, event: Dict[str, Any]) -> Optional[str]:
+        """
+        Process a single streaming event and return content if available.
+
+        Args:
+            event: Event from AWS EventStream
+
+        Returns:
+            Content chunk if available, None otherwise
+        """
+        # Import here to avoid circular imports
+        from ..streaming.event_handlers import StreamEventHandler
+
+        try:
+            # Determine event type
+            event_type = self._determine_event_type(event)
+
+            # Get handler and process event
+            handler = StreamEventHandler().get_event_handler(event_type)
+            processed_event = handler(event[event_type.value])
+
+            # Update response based on event type
+            return self._update_from_streaming_event(event_type, processed_event)
+
+        except Exception as error:
+            self.add_stream_error(error)
+            return None
+
+    def _determine_event_type(self, event: Dict[str, Any]) -> Any:
+        """
+        Determine the type of streaming event.
+
+        Args:
+            event: Event dictionary from EventStream
+
+        Returns:
+            StreamingEventTypes enum value
+        """
+        # Import here to avoid circular imports
+        from ..streaming.streaming_constants import StreamingEventTypes
+
+        # Check for each possible event type
+        for event_type in StreamingEventTypes:
+            if event_type.value in event:
+                return event_type
+
+        # Unknown event type
+        raise ValueError(f"Unknown streaming event type. Available keys: {list(event.keys())}")
+
+    def _update_from_streaming_event(self, event_type: Any, processed_event: Dict[str, Any]) -> Optional[str]:
+        """
+        Update StreamingResponse from processed event and return content if available.
+
+        Args:
+            event_type: Type of the event
+            processed_event: Processed event data
+
+        Returns:
+            Content chunk if this event contains content, None otherwise
+        """
+        # Import here to avoid circular imports
+        from ..streaming.streaming_constants import StreamingConstants, StreamingEventTypes
+
+        if event_type == StreamingEventTypes.MESSAGE_START:
+            # Initialize message tracking
+            self.current_message_role = processed_event.get(StreamingConstants.FIELD_ROLE)
+
+        elif event_type == StreamingEventTypes.CONTENT_BLOCK_DELTA:
+            # Add content chunk and return it for real-time display
+            content = processed_event.get("content", "")
+            if content and isinstance(content, str):
+                self.add_content_part(content)
+                return str(content)  # Return for real-time display
+
+        elif event_type == StreamingEventTypes.MESSAGE_STOP:
+            # Store stop reason and additional fields
+            self.stop_reason = processed_event.get(StreamingConstants.FIELD_STOP_REASON)
+            self.additional_model_response_fields = processed_event.get(
+                StreamingConstants.FIELD_ADDITIONAL_MODEL_RESPONSE_FIELDS
+            )
+
+        elif event_type == StreamingEventTypes.METADATA:
+            # Store metadata information
+            self.usage_info = processed_event.get(StreamingConstants.FIELD_USAGE)
+            self.metrics_info = processed_event.get(StreamingConstants.FIELD_METRICS)
+            self.trace_info = processed_event.get(StreamingConstants.FIELD_TRACE)
+            self.api_latency_ms = processed_event.get("latency_ms")
+
+        elif event_type in [
+            StreamingEventTypes.INTERNAL_SERVER_EXCEPTION,
+            StreamingEventTypes.MODEL_STREAM_ERROR_EXCEPTION,
+            StreamingEventTypes.VALIDATION_EXCEPTION,
+            StreamingEventTypes.THROTTLING_EXCEPTION,
+            StreamingEventTypes.SERVICE_UNAVAILABLE_EXCEPTION,
+        ]:
+            # Handle error events
+            error_message = processed_event.get(StreamingConstants.FIELD_MESSAGE, "Unknown error")
+            error = Exception(f"{event_type.value}: {error_message}")
+            self.add_stream_error(error)
+
+        return None  # No content to return for non-content events
+
+    def _finalize_streaming(self) -> None:
+        """Finalize streaming when iteration completes."""
+        self._stream_completed = True
+
+        # Calculate total duration
+        if self._start_time:
+            end_time = datetime.now()
+            self.total_duration_ms = (end_time - self._start_time).total_seconds() * 1000
+
+        # Extract information from RetryingStreamIterator if available
+        if self._retrying_iterator:
+            # Update model/region used from successful stream
+            if self._retrying_iterator.current_model:
+                self.model_used = self._retrying_iterator.current_model
+            if self._retrying_iterator.current_region:
+                self.region_used = self._retrying_iterator.current_region
+
+            # Get timing metrics from the iterator
+            iterator_metrics = self._retrying_iterator.get_timing_metrics()
+            if iterator_metrics.get("total_duration_ms"):
+                self.total_duration_ms = iterator_metrics["total_duration_ms"]
+
+        # Determine final success status based on streaming results
+        if self.stream_errors:
+            # Check if these are unrecovered errors
+            unrecovered_errors = [
+                error for error in self.stream_errors 
+                if not self._is_recovered_error(error)
+            ]
+            if unrecovered_errors:
+                self.success = False
+            else:
+                # All errors were recovered, mark as successful if we have content
+                self.success = bool(self.content_parts or self.stop_reason)
+        elif self.content_parts or self.stop_reason:
+            # If we have content or a proper stop reason, mark as successful
+            self.success = True
+        else:
+            # No content and no explicit stop reason - this could be a problem
+            # But if no errors occurred, we'll consider it successful (empty response)
+            self.success = True
+
+    def _is_recovered_error(self, error: Exception) -> bool:
+        """
+        Check if an error was recovered from during streaming.
+        
+        Args:
+            error: Error to check
+            
+        Returns:
+            True if error was recovered from
+        """
+        if not self._retrying_iterator:
+            return False
+            
+        # Check if this error appears in the recovered exceptions
+        for mid_stream_exc in self._retrying_iterator.mid_stream_exceptions:
+            if mid_stream_exc.recovered and mid_stream_exc.error == error:
+                return True
+        
+        return False
+
     def get_full_content(self) -> str:
         """
         Get the full content by concatenating all parts.
+
+        If streaming is still in progress, this returns content accumulated so far.
+        If streaming is complete, this returns the complete content.
 
         Returns:
             Complete content string
@@ -503,6 +770,15 @@ class StreamingResponse:
         Args:
             content: Content part to add
         """
+        current_time = datetime.now()
+
+        # Track first token timing
+        if not self._first_token_time:
+            self._first_token_time = current_time
+
+        # Always update last token timing
+        self._last_token_time = current_time
+
         self.content_parts.append(content)
         self.stream_position += len(content)
 
@@ -524,9 +800,149 @@ class StreamingResponse:
         """
         return self.stream_errors.copy()
 
+    def get_usage(self) -> Optional[Dict[str, int]]:
+        """
+        Get token usage information from streaming metadata.
+
+        This follows the same pattern as BedrockResponse.get_usage()
+
+        Returns:
+            Dictionary with usage information, None if not available
+        """
+        if not self.usage_info:
+            return None
+
+        try:
+            # Usage info from streaming already has normalized field names from event handlers
+            return {
+                "input_tokens": self.usage_info.get("input_tokens", 0),
+                "output_tokens": self.usage_info.get("output_tokens", 0),
+                "total_tokens": self.usage_info.get("total_tokens", 0),
+                "cache_read_tokens": self.usage_info.get("cache_read_tokens", 0),
+                "cache_write_tokens": self.usage_info.get("cache_write_tokens", 0),
+            }
+        except (KeyError, TypeError, AttributeError):
+            return None
+
+    def get_metrics(self) -> Optional[Dict[str, Union[float, int]]]:
+        """
+        Get performance metrics from streaming.
+
+        This follows the same pattern as BedrockResponse.get_metrics()
+
+        Returns:
+            Dictionary with metrics information, None if not available
+        """
+        metrics = {}
+
+        # API latency from streaming metadata
+        if self.api_latency_ms is not None:
+            metrics["api_latency_ms"] = self.api_latency_ms
+
+        # Total duration from our tracking
+        if self.total_duration_ms is not None:
+            metrics["total_duration_ms"] = self.total_duration_ms
+
+        # Streaming-specific timing metrics
+        if self._start_time and self._first_token_time:
+            time_to_first_token = (self._first_token_time - self._start_time).total_seconds() * 1000
+            metrics["time_to_first_token_ms"] = time_to_first_token
+
+        if self._start_time and self._last_token_time:
+            time_to_last_token = (self._last_token_time - self._start_time).total_seconds() * 1000
+            metrics["time_to_last_token_ms"] = time_to_last_token
+
+        if self._first_token_time and self._last_token_time:
+            token_generation_time = (self._last_token_time - self._first_token_time).total_seconds() * 1000
+            metrics["token_generation_duration_ms"] = token_generation_time
+
+        # Streaming-specific metrics
+        metrics["content_parts"] = len(self.content_parts)
+        metrics["stream_position"] = self.stream_position
+        metrics["stream_errors"] = len(self.stream_errors)
+
+        return metrics if metrics else None
+
+    def is_streaming_complete(self) -> bool:
+        """
+        Check if streaming has completed.
+
+        Returns:
+            True if streaming is complete, False if still in progress
+        """
+        return self._stream_completed
+
+    def get_mid_stream_exceptions(self) -> List[Dict[str, Any]]:
+        """
+        Get mid-stream exceptions that occurred during streaming.
+
+        Returns:
+            List of dictionaries with exception information
+        """
+        if not self._retrying_iterator:
+            return []
+
+        exceptions = []
+        for mid_stream_exc in self._retrying_iterator.mid_stream_exceptions:
+            exceptions.append({
+                "error_type": type(mid_stream_exc.error).__name__,
+                "error_message": str(mid_stream_exc.error),
+                "position": mid_stream_exc.position,
+                "model": mid_stream_exc.model,
+                "region": mid_stream_exc.region,
+                "timestamp": mid_stream_exc.timestamp.isoformat(),
+                "recovered": mid_stream_exc.recovered
+            })
+        
+        return exceptions
+
+    def get_target_switches(self) -> int:
+        """
+        Get number of target switches that occurred during streaming.
+
+        Returns:
+            Number of model/region switches that occurred
+        """
+        if not self._retrying_iterator:
+            return 0
+        
+        return self._retrying_iterator.target_switches
+
+    def get_recovery_info(self) -> Dict[str, Any]:
+        """
+        Get comprehensive recovery information from streaming.
+
+        Returns:
+            Dictionary with recovery statistics and details
+        """
+        if not self._retrying_iterator:
+            return {
+                "total_exceptions": 0,
+                "recovered_exceptions": 0,
+                "target_switches": 0,
+                "recovery_enabled": False
+            }
+
+        mid_stream_exceptions = self._retrying_iterator.mid_stream_exceptions
+        recovered_count = len([exc for exc in mid_stream_exceptions if exc.recovered])
+
+        return {
+            "total_exceptions": len(mid_stream_exceptions),
+            "recovered_exceptions": recovered_count,
+            "target_switches": self._retrying_iterator.target_switches,
+            "recovery_enabled": True,
+            "final_model": self._retrying_iterator.current_model,
+            "final_region": self._retrying_iterator.current_region,
+            "partial_content_preserved": len(self._retrying_iterator.partial_content) > 0
+        }
+
     def __repr__(self) -> str:
         """Return string representation of the StreamingResponse."""
-        status = "SUCCESS" if self.success else "FAILED"
+        if self._stream_completed:
+            status = "SUCCESS" if self.success else "FAILED"
+        else:
+            status = "STREAMING"
+
         return (
             f"StreamingResponse(status={status}, parts={len(self.content_parts)}, "
             f"position={self.stream_position}, errors={len(self.stream_errors)})"

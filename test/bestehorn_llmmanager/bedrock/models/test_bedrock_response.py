@@ -884,6 +884,8 @@ class TestStreamingResponse:
         response = StreamingResponse(
             success=True, content_parts=["Hello", " world"], stream_position=11
         )
+        # Mark streaming as completed to show final status
+        response._stream_completed = True
 
         repr_str = repr(response)
 
@@ -895,6 +897,8 @@ class TestStreamingResponse:
     def test_streaming_response_repr_failed(self) -> None:
         """Test string representation of failed StreamingResponse."""
         response = StreamingResponse(success=False, stream_errors=[Exception("Error")])
+        # Mark streaming as completed to show final status
+        response._stream_completed = True
 
         repr_str = repr(response)
 
@@ -902,3 +906,17 @@ class TestStreamingResponse:
         assert "parts=0" in repr_str
         assert "position=0" in repr_str
         assert "errors=1" in repr_str
+
+    def test_streaming_response_repr_streaming(self) -> None:
+        """Test string representation of StreamingResponse while streaming is in progress."""
+        response = StreamingResponse(
+            success=False, content_parts=["Hello"], stream_position=5
+        )
+        # Don't mark as completed - should show "STREAMING" status
+
+        repr_str = repr(response)
+
+        assert "STREAMING" in repr_str
+        assert "parts=1" in repr_str
+        assert "position=5" in repr_str
+        assert "errors=0" in repr_str

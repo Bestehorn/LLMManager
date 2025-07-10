@@ -532,14 +532,7 @@ class LLMManager:
                 retry_targets=retry_targets,
             )
 
-            # Calculate total duration
-            total_duration = (datetime.now() - request_start).total_seconds() * 1000
-            
-            # Set total duration if not already set by stream processor
-            if streaming_response.total_duration_ms is None:
-                streaming_response.total_duration_ms = total_duration
-
-            # Add attempt information
+            # Add attempt information and warnings
             streaming_response.warnings = warnings
 
             return streaming_response
