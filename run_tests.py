@@ -6,10 +6,10 @@ This script provides a convenient way to run tests with various options
 and generate comprehensive reports.
 
 Usage:
-    python run_tests.py                    # Run all tests
+    python run_tests.py                    # Run all tests with coverage
     python run_tests.py --unit             # Run only unit tests
     python run_tests.py --integration      # Run only integration tests
-    python run_tests.py --coverage         # Run with coverage report
+    python run_tests.py --no-coverage      # Run without coverage report
     python run_tests.py --fast             # Skip slow tests
     python run_tests.py --html             # Generate HTML report
     python run_tests.py --parallel         # Run tests in parallel

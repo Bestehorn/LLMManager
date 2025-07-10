@@ -21,7 +21,7 @@ if "%~1"=="--unit" set "PYTEST_ARGS=-m unit test/ --cov=src --cov-report=term-mi
 if "%~1"=="--integration" set "PYTEST_ARGS=-m integration test/ --cov=src --cov-report=term-missing --cov-report=json:coverage.json"
 if "%~1"=="--fast" set "PYTEST_ARGS=-m 'not slow' test/ --cov=src --cov-report=term-missing --cov-report=json:coverage.json"
 if "%~1"=="--no-coverage" set "PYTEST_ARGS=test/"
-if "%~1"=="--html" set "PYTEST_ARGS=test/ --cov=src --cov-report=html:htmlcov --html=test_results.html --self-contained-html"
+if "%~1"=="--html" set "PYTEST_ARGS=test/ --cov=src --cov-report=html:htmlcov --html=test_results.html --self-contained-html --cov-report=term-missing --cov-report=json:coverage.json"
 if "%~1"=="--parallel" set "PYTEST_ARGS=%PYTEST_ARGS% -n auto"
 if "%~1"=="--verbose" set "PYTEST_ARGS=%PYTEST_ARGS% -v"
 if "%~1"=="--install-deps" (
