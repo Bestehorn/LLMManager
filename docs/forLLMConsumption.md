@@ -1351,3 +1351,82 @@ The MessageBuilder eliminates the need to manually construct complex message dic
 - Full type safety with enums for formats and roles
 
 Use the MessageBuilder for all message construction needs to ensure proper formatting, validation, and compatibility with the AWS Bedrock Converse API.
+
+## CI/CD Integration and Workflow Synchronization
+
+### GitHub CI Workflow Integration
+
+This project uses GitHub Actions for continuous integration. The primary CI configuration is located at `.github/workflows/ci.yml` and includes the following jobs:
+
+1. **lint**: Code quality checks (black, isort, flake8, mypy)
+2. **test**: Unit tests with coverage across Python versions 3.8-3.12  
+3. **build**: Package building and validation
+4. **security**: CodeQL security analysis
+
+### Cline Workflow Synchronization
+
+**IMPORTANT FOR LLM ASSISTANTS**: The project includes a Cline Workflow at `.clinerules/workflows/pre-commit-checks.md` that must be kept synchronized with the GitHub CI workflow. When working with this project, LLM assistants should:
+
+#### 1. Monitor CI Workflow Changes
+
+Always check if the GitHub CI workflow (`.github/workflows/ci.yml`) has been modified when:
+- Making changes to the project structure
+- Updating dependencies or tooling
+- Modifying linting/testing configurations
+- Any changes that might affect the CI pipeline
+
+#### 2. Update Cline Workflow When CI Changes
+
+When the CI workflow is updated, automatically update the Cline Workflow (`.clinerules/workflows/pre-commit-checks.md`) to match:
+
+**Key synchronization points:**
+- **Lint job commands**: Ensure the pre-commit workflow uses identical commands as the CI lint job
+- **Dependencies**: Match the exact versions and installation commands
+- **File exclusions**: Keep the same exclusion patterns for `_version.py` files
+- **Command flags**: Use identical flags and options for all tools (black, isort, flake8, mypy)
+- **Directory paths**: Maintain consistent `src/` and `test/` directory references
+
+**Example mapping:**
+```yaml
+# CI workflow lint job step:
+- name: Check code formatting with Black
+  run: black --check --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/
+
+# Should map to Cline workflow step:
+### Step 2: Code Formatting Check (Black)
+```bash
+black --check --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/
+```
+```
+
+#### 3. Synchronization Checklist
+
+When updating the Cline Workflow after CI changes, verify:
+
+- [ ] All lint job commands are reflected in the pre-commit workflow
+- [ ] Installation commands match (pip install statements)
+- [ ] File exclusion patterns are identical
+- [ ] Command flags and options are the same
+- [ ] Directory paths are consistent
+- [ ] New tools or checks are added to the workflow
+- [ ] Removed tools or checks are removed from the workflow
+- [ ] Step descriptions and expected results are updated
+
+#### 4. Configuration File Dependencies
+
+The Cline Workflow depends on these configuration files:
+- `pyproject.toml` - Contains tool configurations for black, isort, pytest, mypy
+- `.github/workflows/ci.yml` - Source of truth for CI pipeline commands
+
+When these files change, review and update the Cline Workflow documentation accordingly.
+
+#### 5. Automatic Synchronization Process
+
+**For LLM Assistants working on this project:**
+
+1. **Before making changes**: Always read `.github/workflows/ci.yml` to understand current CI setup
+2. **After CI modifications**: Immediately update `.clinerules/workflows/pre-commit-checks.md` to match
+3. **Verification**: Test that the Cline Workflow commands produce the same results as CI
+4. **Documentation**: Update any step descriptions or troubleshooting sections as needed
+
+This synchronization ensures that developers can run the same checks locally through Cline that will be executed in the CI pipeline, preventing CI failures and improving development workflow efficiency.

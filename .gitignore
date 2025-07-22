@@ -137,3 +137,4 @@ bestehorn_llmmanager_v1.0.0.zip
 *.zip
 flake8_output.txt
 mypy_output.txt
+src/bestehorn_llmmanager/_version.py

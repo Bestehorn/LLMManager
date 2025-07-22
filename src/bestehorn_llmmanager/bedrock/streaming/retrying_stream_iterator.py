@@ -311,9 +311,11 @@ class RetryingStreamIterator:
             True if we should try the next target
         """
         # Use retry manager's logic for determining retryable errors
-        return bool(self._retry_manager.is_streaming_retryable_error(
-            error=error, attempt_count=self._current_target_index + 1
-        ))
+        return bool(
+            self._retry_manager.is_streaming_retryable_error(
+                error=error, attempt_count=self._current_target_index + 1
+            )
+        )
 
     def _switch_to_next_target(self) -> bool:
         """

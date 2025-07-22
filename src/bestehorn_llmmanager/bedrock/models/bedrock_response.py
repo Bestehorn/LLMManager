@@ -911,7 +911,7 @@ class StreamingResponse:
         if not self._retrying_iterator:
             return 0
 
-        return self._retrying_iterator.target_switches
+        return int(self._retrying_iterator.target_switches)
 
     def get_recovery_info(self) -> Dict[str, Any]:
         """

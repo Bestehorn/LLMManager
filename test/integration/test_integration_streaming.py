@@ -359,7 +359,9 @@ class TestLLMManagerStreamingBasics:
         except ConfigurationError as e:
             pytest.skip(f"Could not initialize LLMManager for streaming: {str(e)}")
 
-    def test_streaming_response_metadata(self, short_streaming_messages: List[Dict[str, Any]]) -> None:
+    def test_streaming_response_metadata(
+        self, short_streaming_messages: List[Dict[str, Any]]
+    ) -> None:
         """
         Test streaming response metadata collection.
 
@@ -413,7 +415,9 @@ class TestLLMManagerStreamingBasics:
         except ConfigurationError as e:
             pytest.skip(f"Could not initialize LLMManager for metadata tests: {str(e)}")
 
-    def test_streaming_with_multiple_regions_basic(self, short_streaming_messages: List[Dict[str, Any]]) -> None:
+    def test_streaming_with_multiple_regions_basic(
+        self, short_streaming_messages: List[Dict[str, Any]]
+    ) -> None:
         """
         Test streaming with multiple regions (no failure injection).
 
@@ -459,7 +463,9 @@ class TestLLMManagerStreamingErrorRecovery:
     """Integration tests for streaming error recovery and mid-stream failure handling."""
 
     def test_simulated_mid_stream_recovery(
-        self, streaming_error_injector: StreamingErrorInjector, short_streaming_messages: List[Dict[str, Any]]
+        self,
+        streaming_error_injector: StreamingErrorInjector,
+        short_streaming_messages: List[Dict[str, Any]],
     ) -> None:
         """
         Test mid-stream error recovery using mock injection.
@@ -519,7 +525,9 @@ class TestLLMManagerStreamingErrorRecovery:
         except ConfigurationError as e:
             pytest.skip(f"Could not initialize LLMManager for recovery tests: {str(e)}")
 
-    def test_streaming_with_retry_configuration(self, short_streaming_messages: List[Dict[str, Any]]) -> None:
+    def test_streaming_with_retry_configuration(
+        self, short_streaming_messages: List[Dict[str, Any]]
+    ) -> None:
         """
         Test streaming with custom retry configuration.
 
@@ -562,7 +570,9 @@ class TestLLMManagerStreamingErrorRecovery:
         except ConfigurationError as e:
             pytest.skip(f"Could not initialize LLMManager with retry config: {str(e)}")
 
-    def test_streaming_timeout_handling(self, streaming_error_injector: StreamingErrorInjector) -> None:
+    def test_streaming_timeout_handling(
+        self, streaming_error_injector: StreamingErrorInjector
+    ) -> None:
         """
         Test streaming behavior with timeout scenarios.
 
@@ -654,7 +664,9 @@ class TestLLMManagerStreamingErrorRecovery:
 class TestLLMManagerStreamingAdvanced:
     """Advanced integration tests for streaming functionality."""
 
-    def test_streaming_content_accumulation(self, sample_streaming_messages: List[Dict[str, Any]]) -> None:
+    def test_streaming_content_accumulation(
+        self, sample_streaming_messages: List[Dict[str, Any]]
+    ) -> None:
         """
         Test content accumulation during streaming.
 
@@ -707,7 +719,9 @@ class TestLLMManagerStreamingAdvanced:
         except ConfigurationError as e:
             pytest.skip(f"Could not initialize LLMManager for accumulation tests: {str(e)}")
 
-    def test_streaming_with_system_messages(self, short_streaming_messages: List[Dict[str, Any]]) -> None:
+    def test_streaming_with_system_messages(
+        self, short_streaming_messages: List[Dict[str, Any]]
+    ) -> None:
         """
         Test streaming with system message configuration.
 
@@ -745,7 +759,9 @@ class TestLLMManagerStreamingAdvanced:
         except ConfigurationError as e:
             pytest.skip(f"Could not initialize LLMManager for system message tests: {str(e)}")
 
-    def test_streaming_error_tracking(self, streaming_error_injector: StreamingErrorInjector) -> None:
+    def test_streaming_error_tracking(
+        self, streaming_error_injector: StreamingErrorInjector
+    ) -> None:
         """
         Test error tracking during streaming operations.
 
@@ -788,7 +804,9 @@ class TestLLMManagerStreamingAdvanced:
 
                 # Verify error tracking
                 stream_errors = streaming_response.get_stream_errors()
-                assert len(stream_errors) >= 0  # May or may not have errors depending on implementation
+                assert (
+                    len(stream_errors) >= 0
+                )  # May or may not have errors depending on implementation
 
                 # Verify we got some chunks before failure
                 if chunks:
@@ -804,7 +822,9 @@ class TestLLMManagerStreamingAdvanced:
 class TestLLMManagerStreamingRealWorldScenarios:
     """Real-world streaming scenario tests."""
 
-    def test_streaming_model_switching_scenario(self, short_streaming_messages: List[Dict[str, Any]]) -> None:
+    def test_streaming_model_switching_scenario(
+        self, short_streaming_messages: List[Dict[str, Any]]
+    ) -> None:
         """
         Test realistic scenario where first model is unavailable.
 
@@ -820,9 +840,7 @@ class TestLLMManagerStreamingRealWorldScenarios:
         models = ["NonExistentModel", working_model]
 
         try:
-            manager = LLMManager(
-                models=models, regions=regions[:1], timeout=60, log_level="INFO"
-            )
+            manager = LLMManager(models=models, regions=regions[:1], timeout=60, log_level="INFO")
 
             streaming_response = manager.converse_stream(
                 messages=short_streaming_messages,
@@ -846,7 +864,9 @@ class TestLLMManagerStreamingRealWorldScenarios:
             else:
                 pytest.skip(f"Unexpected configuration error: {str(e)}")
 
-    def test_streaming_region_failover_scenario(self, short_streaming_messages: List[Dict[str, Any]]) -> None:
+    def test_streaming_region_failover_scenario(
+        self, short_streaming_messages: List[Dict[str, Any]]
+    ) -> None:
         """
         Test realistic region failover scenario.
 
@@ -887,7 +907,9 @@ class TestLLMManagerStreamingRealWorldScenarios:
             else:
                 pytest.skip(f"Unexpected configuration error: {str(e)}")
 
-    def test_streaming_performance_characteristics(self, sample_streaming_messages: List[Dict[str, Any]]) -> None:
+    def test_streaming_performance_characteristics(
+        self, sample_streaming_messages: List[Dict[str, Any]]
+    ) -> None:
         """
         Test streaming performance and timing characteristics.
 
