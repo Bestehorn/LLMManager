@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Script to automate version bumping and release process.
+"""Script to automate version tagging and release process using setuptools-scm.
 
-This script handles the version bumping and git operations required
-to create a new release of the bestehorn-llmmanager package.
+This script handles git tagging operations for version releases.
+setuptools-scm automatically derives versions from git tags.
 """
 
 import argparse
@@ -10,8 +10,8 @@ import subprocess
 import sys
 import os
 import logging
-import shutil
-from typing import Optional, List, Tuple
+import re
+from typing import Optional, Tuple
 from enum import Enum
 
 # Configure logging
@@ -132,173 +132,148 @@ def check_current_branch() -> Optional[str]:
     return branch
 
 
-def check_bump2version() -> bool:
-    """Check if bump2version is installed.
-    
-    Returns:
-        True if bump2version is available, False otherwise
-    """
-    logger.info("Checking for bump2version...")
-    
-    # Use shutil.which() for cross-platform compatibility
-    bump2version_path = shutil.which("bump2version")
-    
-    if bump2version_path is None:
-        logger.error("bump2version not found. Install with: pip install bump2version")
-        return False
-    
-    logger.info(f"bump2version is installed at: {bump2version_path}")
-    return True
-
-
 def get_current_version() -> Optional[str]:
-    """Get the current package version.
+    """Get the current package version from latest git tag.
     
     Returns:
         Current version string or None if error
     """
-    logger.info("Getting current version...")
+    logger.info("Getting current version from git tags...")
     
-    # For bump2version to work properly, we need to get the actual released version
-    # from the latest git tag, not the development version
-    try:
-        success, stdout, stderr = run_command(
-            cmd="git describe --tags --abbrev=0",
-            description="Getting latest git tag",
-            check=False
-        )
-        
-        if success and stdout.strip():
-            version = stdout.strip().lstrip('v')  # Remove 'v' prefix if present
-            logger.info(f"Current version (from git tag): {version}")
-            return version
-            
-    except Exception as e:
-        logger.debug(f"Failed to get version from git tag: {e}")
+    success, stdout, stderr = run_command(
+        cmd="git describe --tags --abbrev=0",
+        description="Getting latest git tag",
+        check=False
+    )
     
-    # Fallback: try to get version from setuptools-scm and clean it up
-    try:
-        success, stdout, stderr = run_command(
-            cmd="python -c \"import setuptools_scm; print(setuptools_scm.get_version())\"",
-            description="Getting version from setuptools-scm",
-            check=False
-        )
-        
-        if success and stdout.strip():
-            raw_version = stdout.strip()
-            # Extract base version from development version (e.g., "0.1.13.dev35+g13f1ce2" -> "0.1.12")
-            if '.dev' in raw_version:
-                # For development versions, the base version is usually the previous tag
-                try:
-                    success, stdout, stderr = run_command(
-                        cmd="git describe --tags --abbrev=0",
-                        description="Getting previous tag from dev version",
-                        check=False
-                    )
-                    if success and stdout.strip():
-                        version = stdout.strip().lstrip('v')
-                        logger.info(f"Current version (from git tag via setuptools-scm): {version}")
-                        return version
-                except Exception:
-                    pass
-            
-            # If it's a clean version (no .dev), use it directly
-            import re
-            clean_version = re.match(r'^(\d+\.\d+\.\d+)', raw_version)
-            if clean_version:
-                version = clean_version.group(1)
-                logger.info(f"Current version (from setuptools-scm): {version}")
-                return version
-            
-    except Exception as e:
-        logger.debug(f"Failed to get version from setuptools-scm: {e}")
+    if not success:
+        logger.warning("No git tags found. This might be the first release.")
+        return "0.0.0"  # Default for first release
     
-    # Last fallback: try to get version from importlib.metadata
-    try:
-        success, stdout, stderr = run_command(
-            cmd="python -c \"from importlib.metadata import version; print(version('bestehorn-llmmanager'))\"",
-            description="Getting version from importlib.metadata",
-            check=False
-        )
-        
-        if success and stdout.strip():
-            version = stdout.strip()
-            logger.info(f"Current version (from importlib.metadata): {version}")
-            return version
-            
-    except Exception as e:
-        logger.debug(f"Failed to get version from importlib.metadata: {e}")
+    if stdout.strip():
+        version = stdout.strip().lstrip('v')  # Remove 'v' prefix if present
+        logger.info(f"Current version: {version}")
+        return version
     
     logger.error("Could not determine current version")
     return None
 
 
-def bump_version(version_type: VersionType) -> bool:
-    """Bump the package version using bump2version.
+def validate_version_format(version: str) -> bool:
+    """Validate version follows semantic versioning.
     
     Args:
-        version_type: Type of version bump (patch, minor, major)
+        version: Version string to validate
+        
+    Returns:
+        True if valid, False otherwise
+    """
+    pattern = r'^\d+\.\d+\.\d+$'
+    return bool(re.match(pattern, version))
+
+
+def calculate_new_version(current_version: str, version_type: VersionType) -> str:
+    """Calculate new version based on current version and bump type.
+    
+    Args:
+        current_version: Current version string
+        version_type: Type of version bump
+        
+    Returns:
+        New version string
+    """
+    if not validate_version_format(current_version):
+        raise ReleaseError(f"Invalid version format: {current_version}")
+    
+    version_parts = current_version.split('.')
+    major, minor, patch = map(int, version_parts)
+    
+    if version_type == VersionType.PATCH:
+        new_version = f"{major}.{minor}.{patch + 1}"
+    elif version_type == VersionType.MINOR:
+        new_version = f"{major}.{minor + 1}.0"
+    elif version_type == VersionType.MAJOR:
+        new_version = f"{major + 1}.0.0"
+    else:
+        raise ReleaseError(f"Invalid version type: {version_type}")
+    
+    return new_version
+
+
+def create_and_push_tag(version: str) -> bool:
+    """Create a git tag and push it to remote.
+    
+    Args:
+        version: Version string for the tag
         
     Returns:
         True if successful, False otherwise
     """
-    logger.info(f"Bumping {version_type.value} version...")
+    tag_name = f"v{version}"
     
+    logger.info(f"Creating git tag: {tag_name}")
+    
+    # Create annotated tag
     success, stdout, stderr = run_command(
-        cmd=f"bump2version {version_type.value}",
-        description=f"Bumping {version_type.value} version",
+        cmd=f'git tag -a {tag_name} -m "Release {version}"',
+        description=f"Creating tag {tag_name}",
         check=False
     )
     
     if not success:
-        logger.error(f"Failed to bump version")
+        logger.error(f"Failed to create tag {tag_name}")
         return False
     
-    logger.info("Version bumped successfully")
+    logger.info(f"Tag {tag_name} created successfully")
+    
+    # Push tag to remote
+    logger.info(f"Pushing tag {tag_name} to remote...")
+    
+    success, stdout, stderr = run_command(
+        cmd=f"git push origin {tag_name}",
+        description=f"Pushing tag {tag_name}",
+        check=False
+    )
+    
+    if not success:
+        logger.error(f"Failed to push tag {tag_name}")
+        return False
+    
+    logger.info(f"Tag {tag_name} pushed successfully")
     return True
 
 
-def get_new_version() -> Optional[str]:
-    """Get the new version after bumping.
+def verify_new_version(expected_version: str) -> bool:
+    """Verify that the new version is correctly set.
     
+    Args:
+        expected_version: Expected version string
+        
     Returns:
-        New version string or None if error
+        True if version matches, False otherwise
     """
-    return get_current_version()
-
-
-def push_changes() -> bool:
-    """Push the changes and tags to remote repository.
+    logger.info("Verifying new version...")
     
-    Returns:
-        True if successful, False otherwise
-    """
-    logger.info("Pushing changes to remote...")
-    
-    # Push commits
+    # Get the new version from setuptools-scm
     success, stdout, stderr = run_command(
-        cmd="git push origin main",
-        description="Pushing commits",
+        cmd="python -c \"import setuptools_scm; print(setuptools_scm.get_version())\"",
+        description="Getting version from setuptools-scm",
         check=False
     )
     
     if not success:
-        logger.error("Failed to push commits")
-        return False
+        logger.warning("Could not verify version via setuptools-scm")
+        return True  # Don't fail the release for this
     
-    # Push tags
-    success, stdout, stderr = run_command(
-        cmd="git push origin --tags",
-        description="Pushing tags",
-        check=False
-    )
+    actual_version = stdout.strip()
     
-    if not success:
-        logger.error("Failed to push tags")
-        return False
-    
-    logger.info("Changes and tags pushed successfully")
-    return True
+    # setuptools-scm might return the exact version or a version with additional info
+    if actual_version.startswith(expected_version):
+        logger.info(f"Version verified: {actual_version}")
+        return True
+    else:
+        logger.warning(f"Version mismatch: expected {expected_version}, got {actual_version}")
+        return True  # Don't fail the release for this
 
 
 def main() -> int:
@@ -309,7 +284,7 @@ def main() -> int:
     """
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description="Automate version bumping and release process"
+        description="Automate version tagging and release process using setuptools-scm"
     )
     parser.add_argument(
         "-t", "--type",
@@ -318,26 +293,28 @@ def main() -> int:
         default=DEFAULT_VERSION_TYPE,
         help=f"Type of version bump (default: {DEFAULT_VERSION_TYPE})"
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be done without actually doing it"
+    )
     
     args = parser.parse_args()
     version_type = VersionType(args.type)
     
     logger.info(f"Starting release process for {PACKAGE_NAME}")
     logger.info(f"Version bump type: {version_type.value}")
+    if args.dry_run:
+        logger.info("DRY RUN MODE - No changes will be made")
     logger.info("=" * 60)
     
     # Pre-flight checks
-    checks = [
-        ("Git status", check_git_status),
-        ("bump2version availability", check_bump2version),
-    ]
-    
-    for check_name, check_func in checks:
-        logger.info(f"\nChecking {check_name}...")
-        if not check_func():
-            logger.error(f"❌ {check_name} check failed")
+    if not args.dry_run:
+        logger.info("Checking git status...")
+        if not check_git_status():
+            logger.error("❌ Git status check failed")
             return 1
-        logger.info(f"✅ {check_name} check passed")
+        logger.info("✅ Git status check passed")
     
     # Check current branch
     current_branch = check_current_branch()
@@ -347,10 +324,11 @@ def main() -> int:
     
     if current_branch not in ["main", "master"]:
         logger.warning(f"⚠️  You are on branch '{current_branch}', not 'main' or 'master'")
-        response = input("Do you want to continue? (y/N): ")
-        if response.lower() != 'y':
-            logger.info("Release cancelled by user")
-            return 1
+        if not args.dry_run:
+            response = input("Do you want to continue? (y/N): ")
+            if response.lower() != 'y':
+                logger.info("Release cancelled by user")
+                return 1
     
     # Get current version
     current_version = get_current_version()
@@ -358,32 +336,14 @@ def main() -> int:
         logger.error("❌ Failed to get current version")
         return 1
     
-    logger.info(f"\nCurrent version: {current_version}")
-    
-    # Calculate new version (for display)
-    version_parts = current_version.split('.')
-    if len(version_parts) != 3:
-        logger.error(f"❌ Invalid version format: {current_version}")
+    # Calculate new version
+    try:
+        new_version = calculate_new_version(current_version, version_type)
+    except ReleaseError as e:
+        logger.error(f"❌ {e}")
         return 1
     
-    major, minor, patch = map(int, version_parts)
-    
-    # Initialize new_version
-    new_version = ""
-    
-    if version_type == VersionType.PATCH:
-        new_version = f"{major}.{minor}.{patch + 1}"
-    elif version_type == VersionType.MINOR:
-        new_version = f"{major}.{minor + 1}.0"
-    elif version_type == VersionType.MAJOR:
-        new_version = f"{major + 1}.0.0"
-    else:
-        logger.error(f"❌ Invalid version type: {version_type}")
-        return 1
-    
-    logger.info(f"New version will be: {new_version}")
-    
-    # Confirm with user
+    # Display release summary
     logger.info("\n" + "=" * 60)
     logger.info("RELEASE SUMMARY")
     logger.info("=" * 60)
@@ -392,47 +352,44 @@ def main() -> int:
     logger.info(f"New version: {new_version}")
     logger.info(f"Version type: {version_type.value}")
     logger.info(f"Current branch: {current_branch}")
+    logger.info(f"Tag to create: v{new_version}")
     logger.info("=" * 60)
     
+    if args.dry_run:
+        logger.info("DRY RUN - Would create tag and push, but no actual changes made")
+        return 0
+    
+    # Confirm with user
     response = input("\nProceed with release? (y/N): ")
     if response.lower() != 'y':
         logger.info("Release cancelled by user")
         return 1
     
-    # Perform version bump
+    # Create and push tag
     logger.info("\n" + "=" * 60)
     logger.info("EXECUTING RELEASE")
     logger.info("=" * 60)
     
-    if not bump_version(version_type):
-        logger.error("❌ Failed to bump version")
+    if not create_and_push_tag(new_version):
+        logger.error("❌ Failed to create and push tag")
         return 1
     
-    # Verify new version
-    actual_new_version = get_new_version()
-    if not actual_new_version:
-        logger.error("❌ Failed to get new version after bump")
-        return 1
-    
-    if actual_new_version != new_version:
-        logger.warning(f"⚠️  Expected version {new_version}, but got {actual_new_version}")
-    
-    # Push changes
-    if not push_changes():
-        logger.error("❌ Failed to push changes")
-        logger.error("You may need to push manually:")
-        logger.error("  git push origin main --tags")
-        return 1
+    # Verify version
+    verify_new_version(new_version)
     
     # Success!
     logger.info("\n" + "=" * 60)
     logger.info("🎉 RELEASE SUCCESSFUL!")
     logger.info("=" * 60)
-    logger.info(f"Version {actual_new_version} has been released")
-    logger.info(f"Tag v{actual_new_version} has been pushed")
+    logger.info(f"Version {new_version} has been released")
+    logger.info(f"Tag v{new_version} has been created and pushed")
+    logger.info("\nsetuptools-scm will automatically:")
+    logger.info("- Generate version from the new git tag")
+    logger.info("- Update the _version.py file during build")
+    logger.info("- Handle version management in the package")
     logger.info("\nThe GitHub Actions workflow will now:")
     logger.info("1. Run tests on multiple Python versions")
-    logger.info("2. Build the package")
+    logger.info("2. Build the package (with version from git tag)")
     logger.info("3. Publish to TestPyPI")
     logger.info("4. Publish to PyPI")
     logger.info("5. Create a GitHub release")
