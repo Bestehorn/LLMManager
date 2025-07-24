@@ -10,6 +10,7 @@ import subprocess
 import sys
 import os
 import logging
+import shutil
 from typing import Optional, List, Tuple
 from enum import Enum
 
@@ -139,17 +140,14 @@ def check_bump2version() -> bool:
     """
     logger.info("Checking for bump2version...")
     
-    success, stdout, stderr = run_command(
-        cmd="which bump2version",
-        description="Checking bump2version installation",
-        check=False
-    )
+    # Use shutil.which() for cross-platform compatibility
+    bump2version_path = shutil.which("bump2version")
     
-    if not success:
+    if bump2version_path is None:
         logger.error("bump2version not found. Install with: pip install bump2version")
         return False
     
-    logger.info("bump2version is installed")
+    logger.info(f"bump2version is installed at: {bump2version_path}")
     return True
 
 
