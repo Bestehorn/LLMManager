@@ -159,41 +159,8 @@ def get_current_version() -> Optional[str]:
     """
     logger.info("Getting current version...")
     
-    # This project uses setuptools-scm, so we need to get the version from git tags
-    # or from the installed package
-    try:
-        # Try to get version from setuptools-scm directly
-        success, stdout, stderr = run_command(
-            cmd="python -c \"import setuptools_scm; print(setuptools_scm.get_version())\"",
-            description="Getting version from setuptools-scm",
-            check=False
-        )
-        
-        if success and stdout.strip():
-            version = stdout.strip()
-            logger.info(f"Current version (from setuptools-scm): {version}")
-            return version
-            
-    except Exception as e:
-        logger.debug(f"Failed to get version from setuptools-scm: {e}")
-    
-    # Fallback: try to get version from importlib.metadata
-    try:
-        success, stdout, stderr = run_command(
-            cmd="python -c \"from importlib.metadata import version; print(version('bestehorn-llmmanager'))\"",
-            description="Getting version from importlib.metadata",
-            check=False
-        )
-        
-        if success and stdout.strip():
-            version = stdout.strip()
-            logger.info(f"Current version (from importlib.metadata): {version}")
-            return version
-            
-    except Exception as e:
-        logger.debug(f"Failed to get version from importlib.metadata: {e}")
-    
-    # Last fallback: try to get latest git tag
+    # For bump2version to work properly, we need to get the actual released version
+    # from the latest git tag, not the development version
     try:
         success, stdout, stderr = run_command(
             cmd="git describe --tags --abbrev=0",
@@ -208,6 +175,59 @@ def get_current_version() -> Optional[str]:
             
     except Exception as e:
         logger.debug(f"Failed to get version from git tag: {e}")
+    
+    # Fallback: try to get version from setuptools-scm and clean it up
+    try:
+        success, stdout, stderr = run_command(
+            cmd="python -c \"import setuptools_scm; print(setuptools_scm.get_version())\"",
+            description="Getting version from setuptools-scm",
+            check=False
+        )
+        
+        if success and stdout.strip():
+            raw_version = stdout.strip()
+            # Extract base version from development version (e.g., "0.1.13.dev35+g13f1ce2" -> "0.1.12")
+            if '.dev' in raw_version:
+                # For development versions, the base version is usually the previous tag
+                try:
+                    success, stdout, stderr = run_command(
+                        cmd="git describe --tags --abbrev=0",
+                        description="Getting previous tag from dev version",
+                        check=False
+                    )
+                    if success and stdout.strip():
+                        version = stdout.strip().lstrip('v')
+                        logger.info(f"Current version (from git tag via setuptools-scm): {version}")
+                        return version
+                except Exception:
+                    pass
+            
+            # If it's a clean version (no .dev), use it directly
+            import re
+            clean_version = re.match(r'^(\d+\.\d+\.\d+)', raw_version)
+            if clean_version:
+                version = clean_version.group(1)
+                logger.info(f"Current version (from setuptools-scm): {version}")
+                return version
+            
+    except Exception as e:
+        logger.debug(f"Failed to get version from setuptools-scm: {e}")
+    
+    # Last fallback: try to get version from importlib.metadata
+    try:
+        success, stdout, stderr = run_command(
+            cmd="python -c \"from importlib.metadata import version; print(version('bestehorn-llmmanager'))\"",
+            description="Getting version from importlib.metadata",
+            check=False
+        )
+        
+        if success and stdout.strip():
+            version = stdout.strip()
+            logger.info(f"Current version (from importlib.metadata): {version}")
+            return version
+            
+    except Exception as e:
+        logger.debug(f"Failed to get version from importlib.metadata: {e}")
     
     logger.error("Could not determine current version")
     return None
