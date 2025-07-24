@@ -159,26 +159,57 @@ def get_current_version() -> Optional[str]:
     """
     logger.info("Getting current version...")
     
-    # Read version from __init__.py
-    init_file_path = os.path.join("src", "bestehorn_llmmanager", "__init__.py")
-    
-    if not os.path.exists(init_file_path):
-        logger.error(f"File not found: {init_file_path}")
-        return None
-    
+    # This project uses setuptools-scm, so we need to get the version from git tags
+    # or from the installed package
     try:
-        with open(init_file_path, 'r') as f:
-            for line in f:
-                if line.startswith('__version__'):
-                    # Extract version from line like: __version__ = "1.0.0"
-                    version = line.split('=')[1].strip().strip('"\'')
-                    logger.info(f"Current version: {version}")
-                    return version
+        # Try to get version from setuptools-scm directly
+        success, stdout, stderr = run_command(
+            cmd="python -c \"import setuptools_scm; print(setuptools_scm.get_version())\"",
+            description="Getting version from setuptools-scm",
+            check=False
+        )
+        
+        if success and stdout.strip():
+            version = stdout.strip()
+            logger.info(f"Current version (from setuptools-scm): {version}")
+            return version
+            
     except Exception as e:
-        logger.error(f"Error reading version: {e}")
-        return None
+        logger.debug(f"Failed to get version from setuptools-scm: {e}")
     
-    logger.error("Version not found in __init__.py")
+    # Fallback: try to get version from importlib.metadata
+    try:
+        success, stdout, stderr = run_command(
+            cmd="python -c \"from importlib.metadata import version; print(version('bestehorn-llmmanager'))\"",
+            description="Getting version from importlib.metadata",
+            check=False
+        )
+        
+        if success and stdout.strip():
+            version = stdout.strip()
+            logger.info(f"Current version (from importlib.metadata): {version}")
+            return version
+            
+    except Exception as e:
+        logger.debug(f"Failed to get version from importlib.metadata: {e}")
+    
+    # Last fallback: try to get latest git tag
+    try:
+        success, stdout, stderr = run_command(
+            cmd="git describe --tags --abbrev=0",
+            description="Getting latest git tag",
+            check=False
+        )
+        
+        if success and stdout.strip():
+            version = stdout.strip().lstrip('v')  # Remove 'v' prefix if present
+            logger.info(f"Current version (from git tag): {version}")
+            return version
+            
+    except Exception as e:
+        logger.debug(f"Failed to get version from git tag: {e}")
+    
+    logger.error("Could not determine current version")
     return None
 
 
