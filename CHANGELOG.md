@@ -7,7 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [1.0.0] - 2025-01-23
+## [0.1.13] - 2025-07-24
+
+### Added
+- Comprehensive streaming functionality for real-time responses
+- Stream processing with robust retry mechanisms
+- Event-based streaming handlers for different response types
+- Streaming constants and configuration management
+- Retrying stream iterator for handling connection issues
+- Streaming retry manager with exponential backoff
+- Integration tests for streaming functionality
+- Streaming examples and documentation
+
+### Fixed
+- Cross-platform compatibility issues in release script
+- Native setuptools-scm integration for version management
+- Improved version detection and release automation
+
+### Changed
+- Migrated from bump2version to native setuptools-scm approach
+- Simplified release process using git tags only
+- Enhanced release script with dry-run support
+
+## [0.1.12] - 2025-07-24
 
 ### Added
 - Initial release of bestehorn-llmmanager
@@ -31,5 +53,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Input validation for all user inputs
 - Safe file handling with proper error management
 
-[Unreleased]: https://github.com/example/bestehorn-llmmanager/compare/v1.0.0...HEAD
-[1.0.0]: https://github.com/example/bestehorn-llmmanager/releases/tag/v1.0.0
+[Unreleased]: https://github.com/Bestehorn/LLMManager/compare/v0.1.13...HEAD
+[0.1.13]: https://github.com/Bestehorn/LLMManager/releases/tag/v0.1.13
+[0.1.12]: https://github.com/Bestehorn/LLMManager/releases/tag/v0.1.12
