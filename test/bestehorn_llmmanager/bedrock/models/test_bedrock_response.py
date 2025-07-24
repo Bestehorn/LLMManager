@@ -1,13 +1,15 @@
 """
-Unit tests for bedrock.models.bedrock_response module.
 Tests for BedrockResponse and StreamingResponse classes.
 """
 
 import json
 from datetime import datetime
+from unittest.mock import Mock
 
-from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
-from bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields
+from bestehorn_llmmanager.bedrock.models.bedrock_response import (
+    BedrockResponse,
+    StreamingResponse,
+)
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     RequestAttempt,
     ValidationAttempt,
@@ -16,303 +18,211 @@ from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
 
 
 class TestBedrockResponse:
-    """Test cases for BedrockResponse class."""
+    """Test BedrockResponse functionality."""
 
-    def setup_method(self) -> None:
-        """Set up test fixtures."""
-        self.sample_response_data = {
-            ConverseAPIFields.OUTPUT: {
-                ConverseAPIFields.MESSAGE: {
-                    ConverseAPIFields.CONTENT: [
-                        {ConverseAPIFields.TEXT: "Hello, how can I help you?"},
-                        {ConverseAPIFields.TEXT: "I'm here to assist."},
-                    ]
-                }
-            },
-            ConverseAPIFields.USAGE: {
-                ConverseAPIFields.INPUT_TOKENS: 10,
-                ConverseAPIFields.OUTPUT_TOKENS: 15,
-                ConverseAPIFields.TOTAL_TOKENS: 25,
-                ConverseAPIFields.CACHE_READ_INPUT_TOKENS_COUNT: 5,
-                ConverseAPIFields.CACHE_WRITE_INPUT_TOKENS_COUNT: 3,
-            },
-            ConverseAPIFields.METRICS: {ConverseAPIFields.LATENCY_MS: 250.5},
-            ConverseAPIFields.STOP_REASON: "end_turn",
-            ConverseAPIFields.ADDITIONAL_MODEL_RESPONSE_FIELDS: {"custom_field": "custom_value"},
-        }
-
-        self.sample_attempt = RequestAttempt(
-            model_id="anthropic.claude-3-5-sonnet-20241022-v2:0",
-            region="us-east-1",
-            access_method="direct",
-            attempt_number=1,
-            start_time=datetime.now(),
-            success=True,
-            error=None,
-        )
-
-    def test_successful_response_creation(self) -> None:
-        """Test creation of successful BedrockResponse."""
-        response = BedrockResponse(
-            success=True,
-            response_data=self.sample_response_data,
-            model_used="anthropic.claude-3-5-sonnet-20241022-v2:0",
-            region_used="us-east-1",
-            access_method_used="direct",
-            attempts=[self.sample_attempt],
-            total_duration_ms=500.0,
-            api_latency_ms=250.5,
-            warnings=["Test warning"],
-            features_disabled=["streaming"],
-            validation_attempts=[],
-            validation_errors=[],
-        )
-
+    def test_init_successful_response(self):
+        """Test basic successful response initialization."""
+        response = BedrockResponse(success=True)
         assert response.success is True
-        assert response.model_used == "anthropic.claude-3-5-sonnet-20241022-v2:0"
-        assert response.region_used == "us-east-1"
-        assert response.access_method_used == "direct"
-        assert len(response.attempts) == 1
-        assert response.total_duration_ms == 500.0
-        assert response.api_latency_ms == 250.5
-        assert response.warnings == ["Test warning"]
-        assert response.features_disabled == ["streaming"]
-
-    def test_failed_response_creation(self) -> None:
-        """Test creation of failed BedrockResponse."""
-        failed_attempt = RequestAttempt(
-            model_id="anthropic.claude-3-5-sonnet-20241022-v2:0",
-            region="us-east-1",
-            access_method="direct",
-            attempt_number=1,
-            start_time=datetime.now(),
-            success=False,
-            error=Exception("API Error"),
-        )
-
-        response = BedrockResponse(success=False, attempts=[failed_attempt])
-
-        assert response.success is False
         assert response.response_data is None
         assert response.model_used is None
-        assert len(response.attempts) == 1
+        assert response.region_used is None
+        assert response.attempts == []
+        assert response.warnings == []
+        assert response.features_disabled == []
 
-    def test_get_content_success(self) -> None:
-        """Test extracting content from successful response."""
-        response = BedrockResponse(success=True, response_data=self.sample_response_data)
+    def test_init_failed_response(self):
+        """Test basic failed response initialization."""
+        response = BedrockResponse(success=False)
+        assert response.success is False
+        assert response.was_successful() is False
 
+    def test_get_content_successful(self):
+        """Test get_content with successful response."""
+        response_data = {"output": {"message": {"content": [{"text": "Hello"}, {"text": "World"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
         content = response.get_content()
+        assert content == "Hello\nWorld"
 
-        assert content == "Hello, how can I help you?\nI'm here to assist."
-
-    def test_get_content_no_response_data(self) -> None:
-        """Test get_content when no response data available."""
+    def test_get_content_no_response_data(self):
+        """Test get_content with no response data."""
         response = BedrockResponse(success=True, response_data=None)
+        assert response.get_content() is None
 
-        content = response.get_content()
+    def test_get_content_failed_response(self):
+        """Test get_content with failed response."""
+        response = BedrockResponse(success=False, response_data={"some": "data"})
+        assert response.get_content() is None
 
-        assert content is None
-
-    def test_get_content_failed_response(self) -> None:
-        """Test get_content on failed response."""
-        response = BedrockResponse(success=False, response_data=self.sample_response_data)
-
-        content = response.get_content()
-
-        assert content is None
-
-    def test_get_content_malformed_data(self) -> None:
+    def test_get_content_malformed_data(self):
         """Test get_content with malformed response data."""
-        malformed_data = {ConverseAPIFields.OUTPUT: "invalid_structure"}
+        # Missing content blocks
+        response_data = {"output": {"message": {}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_content() is None
 
-        response = BedrockResponse(success=True, response_data=malformed_data)
+        # Invalid structure
+        response_data = {"output": None}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_content() is None
 
-        content = response.get_content()
+        # Non-dict content blocks
+        response_data = {"output": {"message": {"content": ["not_a_dict", {"text": "valid"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_content() == "valid"
 
-        assert content is None
+    def test_get_content_exception_handling(self):
+        """Test get_content exception handling."""
+        # Test with response data that will cause KeyError/TypeError/AttributeError
+        response_data = {"malformed": True}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_content() is None
 
-    def test_get_content_empty_content_blocks(self) -> None:
-        """Test get_content with empty content blocks."""
-        empty_content_data: dict = {
-            ConverseAPIFields.OUTPUT: {ConverseAPIFields.MESSAGE: {ConverseAPIFields.CONTENT: []}}
+    def test_get_usage_successful(self):
+        """Test get_usage with successful response."""
+        response_data = {
+            "usage": {
+                "inputTokens": 100,
+                "outputTokens": 50,
+                "totalTokens": 150,
+                "cacheReadInputTokensCount": 10,
+                "cacheWriteInputTokensCount": 5,
+            }
         }
-
-        response = BedrockResponse(success=True, response_data=empty_content_data)
-
-        content = response.get_content()
-
-        assert content is None
-
-    def test_get_usage_success(self) -> None:
-        """Test getting usage information from response."""
-        response = BedrockResponse(success=True, response_data=self.sample_response_data)
-
+        response = BedrockResponse(success=True, response_data=response_data)
         usage = response.get_usage()
 
         expected = {
-            "input_tokens": 10,
-            "output_tokens": 15,
-            "total_tokens": 25,
-            "cache_read_tokens": 5,
-            "cache_write_tokens": 3,
+            "input_tokens": 100,
+            "output_tokens": 50,
+            "total_tokens": 150,
+            "cache_read_tokens": 10,
+            "cache_write_tokens": 5,
         }
-
         assert usage == expected
 
-    def test_get_usage_no_response_data(self) -> None:
-        """Test get_usage when no response data available."""
+    def test_get_usage_no_data(self):
+        """Test get_usage with no response data."""
         response = BedrockResponse(success=True, response_data=None)
+        assert response.get_usage() is None
 
+        response = BedrockResponse(success=False, response_data={"usage": {}})
+        assert response.get_usage() is None
+
+    def test_get_usage_partial_data(self):
+        """Test get_usage with partial data."""
+        response_data = {"usage": {"inputTokens": 100}}
+        response = BedrockResponse(success=True, response_data=response_data)
         usage = response.get_usage()
 
-        assert usage is None
+        expected = {
+            "input_tokens": 100,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+        }
+        assert usage == expected
 
-    def test_get_usage_failed_response(self) -> None:
-        """Test get_usage on failed response."""
-        response = BedrockResponse(success=False, response_data=self.sample_response_data)
+    def test_get_usage_exception_handling(self):
+        """Test get_usage exception handling."""
+        response_data = {"usage": None}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_usage() is None
 
-        usage = response.get_usage()
-
-        assert usage is None
-
-    def test_get_usage_malformed_data(self) -> None:
-        """Test get_usage with malformed response data."""
-        malformed_data = {ConverseAPIFields.USAGE: "invalid_structure"}
-
-        response = BedrockResponse(success=True, response_data=malformed_data)
-
-        usage = response.get_usage()
-
-        assert usage is None
-
-    def test_get_metrics_success(self) -> None:
-        """Test getting metrics from response."""
-        response = BedrockResponse(
-            success=True,
-            response_data=self.sample_response_data,
-            attempts=[self.sample_attempt],
-            total_duration_ms=500.0,
-        )
-
-        metrics = response.get_metrics()
-
-        assert metrics is not None
-        assert metrics["api_latency_ms"] == 250.5
-        assert metrics["total_duration_ms"] == 500.0
-        assert metrics["attempts_made"] == 1
-        assert metrics["successful_attempt_number"] == 1
-
-    def test_get_metrics_no_response_data(self) -> None:
-        """Test get_metrics when no response data available."""
-        response = BedrockResponse(success=True, response_data=None)
-
-        metrics = response.get_metrics()
-
-        assert metrics is None
-
-    def test_get_metrics_failed_response(self) -> None:
-        """Test get_metrics on failed response."""
-        response = BedrockResponse(success=False, response_data=self.sample_response_data)
-
-        metrics = response.get_metrics()
-
-        assert metrics is None
-
-    def test_get_metrics_partial_data(self) -> None:
-        """Test get_metrics with partial data available."""
-        failed_attempt = RequestAttempt(
-            model_id="test",
+    def test_get_metrics_successful(self):
+        """Test get_metrics with successful response."""
+        attempt = RequestAttempt(
+            model_id="claude-3",
             region="us-east-1",
             access_method="direct",
             attempt_number=1,
             start_time=datetime.now(),
-            success=False,
-            error=Exception("Error"),
+            success=True,
         )
 
+        response_data = {"metrics": {"latencyMs": 1500}}
         response = BedrockResponse(
-            success=True,
-            response_data={"dummy": "data"},  # Some response data but no metrics section
-            attempts=[failed_attempt],
-            total_duration_ms=300.0,
+            success=True, response_data=response_data, total_duration_ms=2000.0, attempts=[attempt]
         )
 
         metrics = response.get_metrics()
-
         assert metrics is not None
-        assert "api_latency_ms" not in metrics
-        assert metrics["total_duration_ms"] == 300.0
+        assert metrics["api_latency_ms"] == 1500
+        assert metrics["total_duration_ms"] == 2000.0
         assert metrics["attempts_made"] == 1
-        assert "successful_attempt_number" not in metrics
+        assert metrics["successful_attempt_number"] == 1
 
-    def test_get_stop_reason_success(self) -> None:
-        """Test getting stop reason from response."""
-        response = BedrockResponse(success=True, response_data=self.sample_response_data)
-
-        stop_reason = response.get_stop_reason()
-
-        assert stop_reason == "end_turn"
-
-    def test_get_stop_reason_no_response_data(self) -> None:
-        """Test get_stop_reason when no response data available."""
+    def test_get_metrics_no_data(self):
+        """Test get_metrics with no data."""
         response = BedrockResponse(success=True, response_data=None)
+        assert response.get_metrics() is None
 
-        stop_reason = response.get_stop_reason()
+        response = BedrockResponse(success=False, response_data={})
+        assert response.get_metrics() is None
 
-        assert stop_reason is None
+    def test_get_metrics_exception_handling(self):
+        """Test get_metrics exception handling."""
+        response_data = {"metrics": None}
+        response = BedrockResponse(success=True, response_data=response_data)
+        metrics = response.get_metrics()
+        assert metrics is not None
+        assert metrics["attempts_made"] == 0
 
-    def test_get_additional_model_response_fields_success(self) -> None:
-        """Test getting additional model response fields."""
-        response = BedrockResponse(success=True, response_data=self.sample_response_data)
+    def test_get_stop_reason_successful(self):
+        """Test get_stop_reason with successful response."""
+        response_data = {"stopReason": "max_tokens"}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_stop_reason() == "max_tokens"
 
-        additional_fields = response.get_additional_model_response_fields()
-
-        assert additional_fields == {"custom_field": "custom_value"}
-
-    def test_get_additional_model_response_fields_no_response_data(self) -> None:
-        """Test get_additional_model_response_fields when no response data available."""
+    def test_get_stop_reason_no_data(self):
+        """Test get_stop_reason with no data."""
         response = BedrockResponse(success=True, response_data=None)
+        assert response.get_stop_reason() is None
 
-        additional_fields = response.get_additional_model_response_fields()
+        response = BedrockResponse(success=False, response_data={})
+        assert response.get_stop_reason() is None
 
-        assert additional_fields is None
+    def test_get_additional_model_response_fields(self):
+        """Test get_additional_model_response_fields."""
+        response_data = {"additionalModelResponseFields": {"custom_field": "custom_value"}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        fields = response.get_additional_model_response_fields()
+        assert fields == {"custom_field": "custom_value"}
 
-    def test_was_successful(self) -> None:
-        """Test was_successful method."""
-        successful_response = BedrockResponse(success=True)
-        failed_response = BedrockResponse(success=False)
+        # Test no data cases
+        response = BedrockResponse(success=True, response_data=None)
+        assert response.get_additional_model_response_fields() is None
 
-        assert successful_response.was_successful() is True
-        assert failed_response.was_successful() is False
+        response = BedrockResponse(success=False, response_data=response_data)
+        assert response.get_additional_model_response_fields() is None
 
-    def test_get_warnings(self) -> None:
-        """Test getting warnings."""
+    def test_get_warnings(self):
+        """Test get_warnings method."""
         warnings = ["Warning 1", "Warning 2"]
         response = BedrockResponse(success=True, warnings=warnings)
 
-        result_warnings = response.get_warnings()
+        result = response.get_warnings()
+        assert result == warnings
+        assert result is not warnings  # Should be a copy
 
-        assert result_warnings == warnings
-        assert result_warnings is not response.warnings  # Should be a copy
+    def test_get_disabled_features(self):
+        """Test get_disabled_features method."""
+        features = ["feature1", "feature2"]
+        response = BedrockResponse(success=True, features_disabled=features)
 
-    def test_get_disabled_features(self) -> None:
-        """Test getting disabled features."""
-        disabled_features = ["feature1", "feature2"]
-        response = BedrockResponse(success=True, features_disabled=disabled_features)
+        result = response.get_disabled_features()
+        assert result == features
+        assert result is not features  # Should be a copy
 
-        result_features = response.get_disabled_features()
+    def test_get_last_error(self):
+        """Test get_last_error method."""
+        error1 = ValueError("First error")
+        error2 = RuntimeError("Second error")
 
-        assert result_features == disabled_features
-        assert result_features is not response.features_disabled  # Should be a copy
-
-    def test_get_last_error_success(self) -> None:
-        """Test getting last error from failed attempts."""
-        error1 = Exception("First error")
-        error2 = Exception("Second error")
-
-        failed_attempt1 = RequestAttempt(
-            model_id="test1",
-            region="us-east-1",
+        attempt1 = RequestAttempt(
+            model_id="model1",
+            region="region1",
             access_method="direct",
             attempt_number=1,
             start_time=datetime.now(),
@@ -320,48 +230,31 @@ class TestBedrockResponse:
             error=error1,
         )
 
-        failed_attempt2 = RequestAttempt(
-            model_id="test2",
-            region="us-west-2",
-            access_method="cris",
+        attempt2 = RequestAttempt(
+            model_id="model2",
+            region="region2",
+            access_method="direct",
             attempt_number=2,
             start_time=datetime.now(),
             success=False,
             error=error2,
         )
 
-        response = BedrockResponse(success=False, attempts=[failed_attempt1, failed_attempt2])
+        response = BedrockResponse(success=False, attempts=[attempt1, attempt2])
+        assert response.get_last_error() is error2
 
-        last_error = response.get_last_error()
+        # Test no errors
+        response = BedrockResponse(success=True, attempts=[])
+        assert response.get_last_error() is None
 
-        assert last_error == error2
+    def test_get_all_errors(self):
+        """Test get_all_errors method."""
+        error1 = ValueError("First error")
+        error2 = RuntimeError("Second error")
 
-    def test_get_last_error_no_errors(self) -> None:
-        """Test getting last error when no errors exist."""
-        successful_attempt = RequestAttempt(
-            model_id="test",
-            region="us-east-1",
-            access_method="direct",
-            attempt_number=1,
-            start_time=datetime.now(),
-            success=True,
-            error=None,
-        )
-
-        response = BedrockResponse(success=True, attempts=[successful_attempt])
-
-        last_error = response.get_last_error()
-
-        assert last_error is None
-
-    def test_get_all_errors(self) -> None:
-        """Test getting all errors from failed attempts."""
-        error1 = Exception("First error")
-        error2 = Exception("Second error")
-
-        failed_attempt1 = RequestAttempt(
-            model_id="test1",
-            region="us-east-1",
+        attempt1 = RequestAttempt(
+            model_id="model1",
+            region="region1",
             access_method="direct",
             attempt_number=1,
             start_time=datetime.now(),
@@ -369,9 +262,9 @@ class TestBedrockResponse:
             error=error1,
         )
 
-        successful_attempt = RequestAttempt(
-            model_id="test2",
-            region="us-west-2",
+        attempt2 = RequestAttempt(
+            model_id="model2",
+            region="region2",
             access_method="direct",
             attempt_number=2,
             start_time=datetime.now(),
@@ -379,236 +272,148 @@ class TestBedrockResponse:
             error=None,
         )
 
-        failed_attempt2 = RequestAttempt(
-            model_id="test3",
-            region="eu-west-1",
-            access_method="cris",
+        attempt3 = RequestAttempt(
+            model_id="model3",
+            region="region3",
+            access_method="direct",
             attempt_number=3,
             start_time=datetime.now(),
             success=False,
             error=error2,
         )
 
-        response = BedrockResponse(
-            success=False, attempts=[failed_attempt1, successful_attempt, failed_attempt2]
+        response = BedrockResponse(success=False, attempts=[attempt1, attempt2, attempt3])
+        errors = response.get_all_errors()
+        assert errors == [error1, error2]
+
+    def test_get_attempt_count(self):
+        """Test get_attempt_count method."""
+        attempt = RequestAttempt(
+            model_id="model",
+            region="region",
+            access_method="direct",
+            attempt_number=1,
+            start_time=datetime.now(),
+            success=True,
         )
 
-        all_errors = response.get_all_errors()
+        response = BedrockResponse(success=True, attempts=[attempt])
+        assert response.get_attempt_count() == 1
 
-        assert len(all_errors) == 2
-        assert error1 in all_errors
-        assert error2 in all_errors
+        response = BedrockResponse(success=True, attempts=[])
+        assert response.get_attempt_count() == 0
 
-    def test_get_attempt_count(self) -> None:
-        """Test getting attempt count."""
-        attempts = [self.sample_attempt, self.sample_attempt]
-        response = BedrockResponse(success=True, attempts=attempts)
-
-        count = response.get_attempt_count()
-
-        assert count == 2
-
-    def test_get_successful_attempt(self) -> None:
-        """Test getting successful attempt."""
+    def test_get_successful_attempt(self):
+        """Test get_successful_attempt method."""
         failed_attempt = RequestAttempt(
-            model_id="test1",
-            region="us-east-1",
+            model_id="model1",
+            region="region1",
             access_method="direct",
             attempt_number=1,
             start_time=datetime.now(),
             success=False,
-            error=Exception("Error"),
         )
 
-        response = BedrockResponse(success=True, attempts=[failed_attempt, self.sample_attempt])
-
-        successful_attempt = response.get_successful_attempt()
-
-        assert successful_attempt == self.sample_attempt
-
-    def test_get_successful_attempt_no_success(self) -> None:
-        """Test getting successful attempt when no success exists."""
-        failed_attempt = RequestAttempt(
-            model_id="test1",
-            region="us-east-1",
+        successful_attempt = RequestAttempt(
+            model_id="model2",
+            region="region2",
             access_method="direct",
-            attempt_number=1,
+            attempt_number=2,
             start_time=datetime.now(),
-            success=False,
-            error=Exception("Error"),
+            success=True,
         )
 
+        response = BedrockResponse(success=True, attempts=[failed_attempt, successful_attempt])
+        assert response.get_successful_attempt() is successful_attempt
+
+        # Test no successful attempts
         response = BedrockResponse(success=False, attempts=[failed_attempt])
+        assert response.get_successful_attempt() is None
 
-        successful_attempt = response.get_successful_attempt()
-
-        assert successful_attempt is None
-
-    def test_get_cached_tokens_info_with_cache(self) -> None:
-        """Test getting cached tokens info when cache data is available."""
-        response = BedrockResponse(success=True, response_data=self.sample_response_data)
-
+    def test_get_cached_tokens_info(self):
+        """Test get_cached_tokens_info method."""
+        # Test with cache info
+        response_data = {
+            "usage": {"cacheReadInputTokensCount": 100, "cacheWriteInputTokensCount": 50}
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
         cache_info = response.get_cached_tokens_info()
 
         expected = {
-            "cache_read_tokens": 5,
-            "cache_write_tokens": 3,
+            "cache_read_tokens": 100,
+            "cache_write_tokens": 50,
             "cache_hit": True,
             "cache_write": True,
         }
-
         assert cache_info == expected
 
-    def test_get_cached_tokens_info_no_cache(self) -> None:
-        """Test getting cached tokens info when no cache data is available."""
-        no_cache_data = {
-            ConverseAPIFields.USAGE: {
-                ConverseAPIFields.INPUT_TOKENS: 10,
-                ConverseAPIFields.OUTPUT_TOKENS: 15,
-                ConverseAPIFields.TOTAL_TOKENS: 25,
-            }
-        }
+        # Test with no cache activity
+        response_data = {"usage": {}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_cached_tokens_info() is None
 
-        response = BedrockResponse(success=True, response_data=no_cache_data)
+        # Test with no usage data
+        response = BedrockResponse(success=True, response_data=None)
+        assert response.get_cached_tokens_info() is None
 
-        cache_info = response.get_cached_tokens_info()
-
-        assert cache_info is None
-
-    def test_get_cached_tokens_info_no_usage(self) -> None:
-        """Test getting cached tokens info when no usage data is available."""
-        response = BedrockResponse(success=True, response_data={})
-
-        cache_info = response.get_cached_tokens_info()
-
-        assert cache_info is None
-
-    def test_had_validation_failures_true(self) -> None:
-        """Test had_validation_failures when validation attempts exist."""
-        validation_result = ValidationResult(
-            success=False, error_message="Validation error", error_details={"detail": "error"}
-        )
-
+    def test_validation_methods(self):
+        """Test validation-related methods."""
+        validation_result = ValidationResult(success=False, error_message="Test error")
         validation_attempt = ValidationAttempt(
             attempt_number=1, validation_result=validation_result, failed_content="failed content"
         )
 
-        response = BedrockResponse(success=True, validation_attempts=[validation_attempt])
-
-        assert response.had_validation_failures() is True
-
-    def test_had_validation_failures_false(self) -> None:
-        """Test had_validation_failures when no validation attempts exist."""
-        response = BedrockResponse(success=True)
-
-        assert response.had_validation_failures() is False
-
-    def test_get_validation_attempt_count(self) -> None:
-        """Test getting validation attempt count."""
-        validation_result1 = ValidationResult(success=True)
-        validation_result2 = ValidationResult(success=False, error_message="Error")
-
-        validation_attempt1 = ValidationAttempt(
-            attempt_number=1, validation_result=validation_result1
-        )
-        validation_attempt2 = ValidationAttempt(
-            attempt_number=2, validation_result=validation_result2
-        )
-
-        response = BedrockResponse(
-            success=True, validation_attempts=[validation_attempt1, validation_attempt2]
-        )
-
-        count = response.get_validation_attempt_count()
-
-        assert count == 2
-
-    def test_get_validation_errors(self) -> None:
-        """Test getting validation errors."""
-        validation_errors = [{"error": "test_error_1"}, {"error": "test_error_2"}]
-        response = BedrockResponse(success=True, validation_errors=validation_errors)
-
-        result_errors = response.get_validation_errors()
-
-        assert result_errors == validation_errors
-        assert result_errors is not response.validation_errors  # Should be a copy
-
-    def test_get_last_validation_error(self) -> None:
-        """Test getting last validation error."""
-        error1 = {"error": "first_error"}
-        error2 = {"error": "second_error"}
-        validation_errors = [error1, error2]
-
-        response = BedrockResponse(success=True, validation_errors=validation_errors)
-
-        last_error = response.get_last_validation_error()
-
-        assert last_error == error2
-
-    def test_get_last_validation_error_no_errors(self) -> None:
-        """Test getting last validation error when no errors exist."""
-        response = BedrockResponse(success=True)
-
-        last_error = response.get_last_validation_error()
-
-        assert last_error is None
-
-    def test_get_validation_metrics_with_success(self) -> None:
-        """Test getting validation metrics with successful validation."""
-        successful_validation_result = ValidationResult(
-            success=True, error_message=None, error_details=None
-        )
-
-        validation_attempt = ValidationAttempt(
-            attempt_number=2, validation_result=successful_validation_result, failed_content=None
-        )
+        validation_error = {
+            "error_message": "Validation failed",
+            "error_details": {"field": "value"},
+        }
 
         response = BedrockResponse(
             success=True,
             validation_attempts=[validation_attempt],
-            validation_errors=[{"error": "test"}],
+            validation_errors=[validation_error],
+        )
+
+        assert response.had_validation_failures() is True
+        assert response.get_validation_attempt_count() == 1
+        assert response.get_validation_errors() == [validation_error]
+        assert response.get_last_validation_error() == validation_error
+
+        # Test validation metrics
+        metrics = response.get_validation_metrics()
+        assert metrics["validation_attempts"] == 1
+        assert metrics["validation_errors"] == 1
+        assert metrics["had_validation_failures"] is True
+
+        # Test no validation failures
+        response = BedrockResponse(success=True)
+        assert response.had_validation_failures() is False
+        assert response.get_validation_attempt_count() == 0
+        assert response.get_validation_errors() == []
+        assert response.get_last_validation_error() is None
+
+    def test_validation_metrics_with_successful_validation(self):
+        """Test validation metrics with successful validation attempt."""
+        success_result = ValidationResult(success=True)
+        success_attempt = ValidationAttempt(attempt_number=2, validation_result=success_result)
+
+        failed_result = ValidationResult(success=False, error_message="Failed")
+        failed_attempt = ValidationAttempt(attempt_number=1, validation_result=failed_result)
+
+        response = BedrockResponse(
+            success=True, validation_attempts=[failed_attempt, success_attempt]
         )
 
         metrics = response.get_validation_metrics()
+        assert metrics["successful_validation_attempt"] == 2
 
-        expected = {
-            "validation_attempts": 1,
-            "validation_errors": 1,
-            "had_validation_failures": True,
-            "successful_validation_attempt": 2,
-        }
-
-        assert metrics == expected
-
-    def test_get_validation_metrics_no_success(self) -> None:
-        """Test getting validation metrics with no successful validation."""
-        failed_validation_result = ValidationResult(
-            success=False, error_message="Validation failed", error_details={"error": "details"}
-        )
-
-        validation_attempt = ValidationAttempt(
-            attempt_number=1, validation_result=failed_validation_result, failed_content="failed"
-        )
-
-        response = BedrockResponse(success=True, validation_attempts=[validation_attempt])
-
-        metrics = response.get_validation_metrics()
-
-        expected = {
-            "validation_attempts": 1,
-            "validation_errors": 0,
-            "had_validation_failures": True,
-        }
-
-        assert metrics == expected
-
-    def test_to_dict(self) -> None:
-        """Test converting response to dictionary."""
+    def test_to_dict(self):
+        """Test to_dict method."""
         start_time = datetime.now()
         end_time = datetime.now()
 
         attempt = RequestAttempt(
-            model_id="test_model",
+            model_id="claude-3",
             region="us-east-1",
             access_method="direct",
             attempt_number=1,
@@ -618,88 +423,95 @@ class TestBedrockResponse:
             error=None,
         )
 
-        validation_result = ValidationResult(success=True, error_message=None, error_details=None)
-
+        validation_result = ValidationResult(success=True)
         validation_attempt = ValidationAttempt(
-            attempt_number=1, validation_result=validation_result, failed_content=None
+            attempt_number=1, validation_result=validation_result, failed_content="content"
         )
 
         response = BedrockResponse(
             success=True,
             response_data={"test": "data"},
-            model_used="test_model",
+            model_used="claude-3",
             region_used="us-east-1",
             access_method_used="direct",
+            total_duration_ms=1000.0,
+            api_latency_ms=500.0,
+            warnings=["warning1"],
+            features_disabled=["feature1"],
             attempts=[attempt],
-            total_duration_ms=500.0,
-            api_latency_ms=250.0,
-            warnings=["warning"],
-            features_disabled=["feature"],
             validation_attempts=[validation_attempt],
             validation_errors=[{"error": "test"}],
         )
 
-        result_dict = response.to_dict()
+        result = response.to_dict()
 
-        assert result_dict["success"] is True
-        assert result_dict["response_data"] == {"test": "data"}
-        assert result_dict["model_used"] == "test_model"
-        assert result_dict["region_used"] == "us-east-1"
-        assert result_dict["access_method_used"] == "direct"
-        assert result_dict["total_duration_ms"] == 500.0
-        assert result_dict["api_latency_ms"] == 250.0
-        assert result_dict["warnings"] == ["warning"]
-        assert result_dict["features_disabled"] == ["feature"]
-        assert len(result_dict["attempts"]) == 1
-        assert len(result_dict["validation_attempts"]) == 1
-        assert result_dict["validation_errors"] == [{"error": "test"}]
+        assert result["success"] is True
+        assert result["response_data"] == {"test": "data"}
+        assert result["model_used"] == "claude-3"
+        assert result["region_used"] == "us-east-1"
+        assert result["access_method_used"] == "direct"
+        assert result["total_duration_ms"] == 1000.0
+        assert result["api_latency_ms"] == 500.0
+        assert result["warnings"] == ["warning1"]
+        assert result["features_disabled"] == ["feature1"]
+        assert len(result["attempts"]) == 1
+        assert len(result["validation_attempts"]) == 1
+        assert result["validation_errors"] == [{"error": "test"}]
 
-    def test_to_json(self) -> None:
-        """Test converting response to JSON string."""
-        response = BedrockResponse(success=True, model_used="test_model")
+    def test_to_dict_with_error(self):
+        """Test to_dict method with error in attempt."""
+        error = ValueError("Test error")
+        attempt = RequestAttempt(
+            model_id="claude-3",
+            region="us-east-1",
+            access_method="direct",
+            attempt_number=1,
+            start_time=datetime.now(),
+            success=False,
+            error=error,
+        )
 
+        response = BedrockResponse(success=False, attempts=[attempt])
+        result = response.to_dict()
+
+        assert result["attempts"][0]["error"] == str(error)
+
+    def test_to_json(self):
+        """Test to_json method."""
+        response = BedrockResponse(success=True, model_used="claude-3")
+
+        # Test compact JSON
         json_str = response.to_json()
-
-        # Should be valid JSON
+        assert isinstance(json_str, str)
         parsed = json.loads(json_str)
         assert parsed["success"] is True
-        assert parsed["model_used"] == "test_model"
+        assert parsed["model_used"] == "claude-3"
 
-    def test_to_json_with_indent(self) -> None:
-        """Test converting response to formatted JSON string."""
-        response = BedrockResponse(success=True, model_used="test_model")
-
+        # Test indented JSON
         json_str = response.to_json(indent=2)
+        assert isinstance(json_str, str)
+        assert "\n" in json_str  # Should be formatted
 
-        # Should be valid JSON with formatting
-        assert "\n" in json_str
-        parsed = json.loads(json_str)
-        assert parsed["success"] is True
-
-    def test_from_dict(self) -> None:
-        """Test creating response from dictionary."""
-        start_time = datetime.now()
-        end_time = datetime.now()
-
+    def test_from_dict(self):
+        """Test from_dict class method."""
         data = {
             "success": True,
             "response_data": {"test": "data"},
-            "model_used": "test_model",
+            "model_used": "claude-3",
             "region_used": "us-east-1",
             "access_method_used": "direct",
-            "total_duration_ms": 500.0,
-            "api_latency_ms": 250.0,
-            "warnings": ["warning"],
-            "features_disabled": ["feature"],
+            "total_duration_ms": 1000.0,
+            "api_latency_ms": 500.0,
+            "warnings": ["warning1"],
+            "features_disabled": ["feature1"],
             "attempts": [
                 {
-                    "model_id": "test_model",
+                    "model_id": "claude-3",
                     "region": "us-east-1",
                     "access_method": "direct",
                     "attempt_number": 1,
-                    "start_time": start_time.isoformat(),
-                    "end_time": end_time.isoformat(),
-                    "duration_ms": 100.0,
+                    "start_time": "2023-01-01T12:00:00",
+                    "end_time": "2023-01-01T12:00:01",
                     "success": True,
                     "error": None,
                 }
@@ -712,209 +524,295 @@ class TestBedrockResponse:
                         "error_message": None,
                         "error_details": None,
                     },
-                    "failed_content": None,
+                    "failed_content": "content",
                 }
             ],
             "validation_errors": [{"error": "test"}],
         }
 
-        response = BedrockResponse.from_dict(data=data)
+        response = BedrockResponse.from_dict(data)
 
         assert response.success is True
         assert response.response_data == {"test": "data"}
-        assert response.model_used == "test_model"
+        assert response.model_used == "claude-3"
         assert response.region_used == "us-east-1"
         assert response.access_method_used == "direct"
-        assert response.total_duration_ms == 500.0
-        assert response.api_latency_ms == 250.0
-        assert response.warnings == ["warning"]
-        assert response.features_disabled == ["feature"]
+        assert response.total_duration_ms == 1000.0
+        assert response.api_latency_ms == 500.0
+        assert response.warnings == ["warning1"]
+        assert response.features_disabled == ["feature1"]
         assert len(response.attempts) == 1
         assert len(response.validation_attempts) == 1
         assert response.validation_errors == [{"error": "test"}]
 
-    def test_from_dict_with_error_attempt(self) -> None:
-        """Test creating response from dictionary with error attempt."""
-        start_time = datetime.now()
-
+    def test_from_dict_with_error(self):
+        """Test from_dict with error in attempt."""
         data = {
             "success": False,
             "attempts": [
                 {
-                    "model_id": "test_model",
+                    "model_id": "claude-3",
                     "region": "us-east-1",
                     "access_method": "direct",
                     "attempt_number": 1,
-                    "start_time": start_time.isoformat(),
+                    "start_time": "2023-01-01T12:00:00",
                     "end_time": None,
-                    "duration_ms": None,
                     "success": False,
                     "error": "Test error message",
                 }
             ],
         }
 
-        response = BedrockResponse.from_dict(data=data)
-
+        response = BedrockResponse.from_dict(data)
         assert response.success is False
         assert len(response.attempts) == 1
-        assert response.attempts[0].success is False
+        assert response.attempts[0].error is not None
         assert str(response.attempts[0].error) == "Test error message"
 
-    def test_repr(self) -> None:
-        """Test string representation of BedrockResponse."""
+    def test_repr(self):
+        """Test __repr__ method."""
         response = BedrockResponse(
-            success=True,
-            model_used="test_model",
-            region_used="us-east-1",
-            attempts=[self.sample_attempt],
+            success=True, model_used="claude-3", region_used="us-east-1", attempts=[Mock(), Mock()]
         )
 
         repr_str = repr(response)
-
         assert "SUCCESS" in repr_str
-        assert "test_model" in repr_str
+        assert "claude-3" in repr_str
         assert "us-east-1" in repr_str
-        assert "attempts=1" in repr_str
+        assert "attempts=2" in repr_str
 
-    def test_repr_failed(self) -> None:
-        """Test string representation of failed BedrockResponse."""
-        response = BedrockResponse(success=False, attempts=[])
-
+        # Test failed response
+        response = BedrockResponse(success=False)
         repr_str = repr(response)
-
         assert "FAILED" in repr_str
-        assert "attempts=0" in repr_str
 
 
 class TestStreamingResponse:
-    """Test cases for StreamingResponse class."""
+    """Test StreamingResponse functionality."""
 
-    def test_successful_streaming_response_creation(self) -> None:
-        """Test creation of successful StreamingResponse."""
-        final_response = BedrockResponse(success=True)
-
-        response = StreamingResponse(
-            success=True,
-            content_parts=["Hello", " world"],
-            final_response=final_response,
-            stream_errors=[],
-            stream_position=11,
-        )
-
+    def test_init_basic(self):
+        """Test basic StreamingResponse initialization."""
+        response = StreamingResponse(success=True)
         assert response.success is True
-        assert response.content_parts == ["Hello", " world"]
-        assert response.final_response == final_response
-        assert len(response.stream_errors) == 0
-        assert response.stream_position == 11
-
-    def test_failed_streaming_response_creation(self) -> None:
-        """Test creation of failed StreamingResponse."""
-        stream_error = Exception("Streaming error")
-
-        response = StreamingResponse(success=False, stream_errors=[stream_error])
-
-        assert response.success is False
-        assert len(response.content_parts) == 0
-        assert response.final_response is None
-        assert len(response.stream_errors) == 1
+        assert response.content_parts == []
+        assert response.stream_errors == []
         assert response.stream_position == 0
+        assert response._stream_completed is False
+        assert response._start_time is not None
 
-    def test_get_full_content(self) -> None:
-        """Test getting full content from streaming parts."""
-        response = StreamingResponse(success=True, content_parts=["Hello", " ", "world", "!"])
-
-        full_content = response.get_full_content()
-
-        assert full_content == "Hello world!"
-
-    def test_get_full_content_empty(self) -> None:
-        """Test getting full content when no parts exist."""
-        response = StreamingResponse(success=True, content_parts=[])
-
-        full_content = response.get_full_content()
-
-        assert full_content == ""
-
-    def test_get_content_parts(self) -> None:
-        """Test getting content parts."""
-        parts = ["Hello", " world"]
-        response = StreamingResponse(success=True, content_parts=parts)
-
-        result_parts = response.get_content_parts()
-
-        assert result_parts == parts
-        assert result_parts is not response.content_parts  # Should be a copy
-
-    def test_add_content_part(self) -> None:
-        """Test adding content part to streaming response."""
+    def test_add_content_part(self):
+        """Test add_content_part method."""
         response = StreamingResponse(success=True)
 
         response.add_content_part("Hello")
-        response.add_content_part(" world")
+        assert response.content_parts == ["Hello"]
+        assert response.stream_position == 5
 
-        assert response.content_parts == ["Hello", " world"]
+        response.add_content_part(" World")
+        assert response.content_parts == ["Hello", " World"]
         assert response.stream_position == 11
 
-    def test_add_stream_error(self) -> None:
-        """Test adding stream error."""
+    def test_get_full_content(self):
+        """Test get_full_content method."""
         response = StreamingResponse(success=True)
-        error = Exception("Stream error")
+        response.add_content_part("Hello")
+        response.add_content_part(" World")
+
+        assert response.get_full_content() == "Hello World"
+
+    def test_get_content_parts(self):
+        """Test get_content_parts method."""
+        response = StreamingResponse(success=True)
+        response.add_content_part("Part1")
+        response.add_content_part("Part2")
+
+        parts = response.get_content_parts()
+        assert parts == ["Part1", "Part2"]
+        assert parts is not response.content_parts  # Should be a copy
+
+    def test_add_stream_error(self):
+        """Test add_stream_error method."""
+        response = StreamingResponse(success=True)
+        error = ValueError("Test error")
 
         response.add_stream_error(error)
+        assert response.stream_errors == [error]
 
-        assert len(response.stream_errors) == 1
-        assert response.stream_errors[0] == error
+    def test_get_stream_errors(self):
+        """Test get_stream_errors method."""
+        response = StreamingResponse(success=True)
+        error1 = ValueError("Error 1")
+        error2 = RuntimeError("Error 2")
 
-    def test_get_stream_errors(self) -> None:
-        """Test getting stream errors."""
-        error1 = Exception("Error 1")
-        error2 = Exception("Error 2")
-        errors = [error1, error2]
+        response.add_stream_error(error1)
+        response.add_stream_error(error2)
 
-        response = StreamingResponse(success=False, stream_errors=errors)
+        errors = response.get_stream_errors()
+        assert errors == [error1, error2]
+        assert errors is not response.stream_errors  # Should be a copy
 
-        result_errors = response.get_stream_errors()
+    def test_get_usage(self):
+        """Test get_usage method."""
+        usage_info = {
+            "input_tokens": 100,
+            "output_tokens": 50,
+            "total_tokens": 150,
+            "cache_read_tokens": 10,
+            "cache_write_tokens": 5,
+        }
 
-        assert result_errors == errors
-        assert result_errors is not response.stream_errors  # Should be a copy
+        response = StreamingResponse(success=True, usage_info=usage_info)
+        usage = response.get_usage()
 
-    def test_streaming_response_repr_success(self) -> None:
-        """Test string representation of successful StreamingResponse."""
-        response = StreamingResponse(
-            success=True, content_parts=["Hello", " world"], stream_position=11
-        )
-        # Mark streaming as completed to show final status
+        assert usage == usage_info
+
+        # Test no usage info
+        response = StreamingResponse(success=True)
+        assert response.get_usage() is None
+
+    def test_get_usage_exception_handling(self):
+        """Test get_usage exception handling."""
+        response = StreamingResponse(success=True, usage_info=None)
+        assert response.get_usage() is None
+
+    def test_get_metrics(self):
+        """Test get_metrics method."""
+        response = StreamingResponse(success=True, api_latency_ms=1000.0, total_duration_ms=2000.0)
+        response.add_content_part("Part1")
+        response.add_content_part("Part2")
+
+        metrics = response.get_metrics()
+
+        assert metrics is not None
+        assert metrics["api_latency_ms"] == 1000.0
+        assert metrics["total_duration_ms"] == 2000.0
+        assert metrics["content_parts"] == 2
+        assert metrics["stream_position"] == 10  # "Part1Part2"
+        assert metrics["stream_errors"] == 0
+
+    def test_get_metrics_with_timing(self):
+        """Test get_metrics with timing information."""
+        response = StreamingResponse(success=True)
+
+        # Simulate timing
+        response._start_time = datetime(2023, 1, 1, 12, 0, 0)
+        response._first_token_time = datetime(2023, 1, 1, 12, 0, 1)
+        response._last_token_time = datetime(2023, 1, 1, 12, 0, 2)
+
+        metrics = response.get_metrics()
+
+        assert metrics is not None
+        assert metrics["time_to_first_token_ms"] == 1000.0
+        assert metrics["time_to_last_token_ms"] == 2000.0
+        assert metrics["token_generation_duration_ms"] == 1000.0
+
+    def test_get_metrics_no_data(self):
+        """Test get_metrics with no data."""
+        response = StreamingResponse(success=True)
+        metrics = response.get_metrics()
+
+        # Should still return basic metrics
+        assert metrics is not None
+        assert metrics["content_parts"] == 0
+        assert metrics["stream_position"] == 0
+        assert metrics["stream_errors"] == 0
+
+    def test_is_streaming_complete(self):
+        """Test is_streaming_complete method."""
+        response = StreamingResponse(success=True)
+        assert response.is_streaming_complete() is False
+
         response._stream_completed = True
+        assert response.is_streaming_complete() is True
+
+    def test_get_mid_stream_exceptions_no_iterator(self):
+        """Test get_mid_stream_exceptions without retrying iterator."""
+        response = StreamingResponse(success=True)
+        assert response.get_mid_stream_exceptions() == []
+
+    def test_get_target_switches_no_iterator(self):
+        """Test get_target_switches without retrying iterator."""
+        response = StreamingResponse(success=True)
+        assert response.get_target_switches() == 0
+
+    def test_get_recovery_info_no_iterator(self):
+        """Test get_recovery_info without retrying iterator."""
+        response = StreamingResponse(success=True)
+        info = response.get_recovery_info()
+
+        expected = {
+            "total_exceptions": 0,
+            "recovered_exceptions": 0,
+            "target_switches": 0,
+            "recovery_enabled": False,
+        }
+        assert info == expected
+
+    def test_get_recovery_info_with_iterator(self):
+        """Test get_recovery_info with retrying iterator."""
+        mock_iterator = Mock()
+        mock_iterator.mid_stream_exceptions = [Mock(recovered=True), Mock(recovered=False)]
+        mock_iterator.target_switches = 2
+        mock_iterator.current_model = "claude-3"
+        mock_iterator.current_region = "us-east-1"
+        mock_iterator.partial_content = ["content"]
+
+        response = StreamingResponse(success=True)
+        response._retrying_iterator = mock_iterator
+
+        info = response.get_recovery_info()
+
+        assert info["total_exceptions"] == 2
+        assert info["recovered_exceptions"] == 1
+        assert info["target_switches"] == 2
+        assert info["recovery_enabled"] is True
+        assert info["final_model"] == "claude-3"
+        assert info["final_region"] == "us-east-1"
+        assert info["partial_content_preserved"] is True
+
+    def test_repr_streaming(self):
+        """Test __repr__ while streaming."""
+        response = StreamingResponse(success=True)
+        response.add_content_part("Hello")
 
         repr_str = repr(response)
-
-        assert "SUCCESS" in repr_str
-        assert "parts=2" in repr_str
-        assert "position=11" in repr_str
-        assert "errors=0" in repr_str
-
-    def test_streaming_response_repr_failed(self) -> None:
-        """Test string representation of failed StreamingResponse."""
-        response = StreamingResponse(success=False, stream_errors=[Exception("Error")])
-        # Mark streaming as completed to show final status
-        response._stream_completed = True
-
-        repr_str = repr(response)
-
-        assert "FAILED" in repr_str
-        assert "parts=0" in repr_str
-        assert "position=0" in repr_str
-        assert "errors=1" in repr_str
-
-    def test_streaming_response_repr_streaming(self) -> None:
-        """Test string representation of StreamingResponse while streaming is in progress."""
-        response = StreamingResponse(success=False, content_parts=["Hello"], stream_position=5)
-        # Don't mark as completed - should show "STREAMING" status
-
-        repr_str = repr(response)
-
         assert "STREAMING" in repr_str
         assert "parts=1" in repr_str
         assert "position=5" in repr_str
         assert "errors=0" in repr_str
+
+    def test_repr_completed_success(self):
+        """Test __repr__ after successful completion."""
+        response = StreamingResponse(success=True)
+        response._stream_completed = True
+
+        repr_str = repr(response)
+        assert "SUCCESS" in repr_str
+
+    def test_repr_completed_failed(self):
+        """Test __repr__ after failed completion."""
+        response = StreamingResponse(success=False)
+        response._stream_completed = True
+
+        repr_str = repr(response)
+        assert "FAILED" in repr_str
+
+    def test_get_metrics_timing_edge_cases(self):
+        """Test get_metrics with timing edge cases."""
+        response = StreamingResponse(success=True)
+
+        # Test with only start time
+        response._start_time = datetime(2023, 1, 1, 12, 0, 0)
+        metrics = response.get_metrics()
+        assert metrics is not None
+        assert "time_to_first_token_ms" not in metrics
+        assert "time_to_last_token_ms" not in metrics
+        assert "token_generation_duration_ms" not in metrics
+
+        # Test with start and first token time only
+        response._first_token_time = datetime(2023, 1, 1, 12, 0, 1)
+        metrics = response.get_metrics()
+        assert metrics is not None
+        assert metrics["time_to_first_token_ms"] == 1000.0
+        assert "time_to_last_token_ms" not in metrics
+        assert "token_generation_duration_ms" not in metrics
