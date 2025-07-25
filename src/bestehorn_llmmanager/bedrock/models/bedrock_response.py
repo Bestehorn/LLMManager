@@ -253,6 +253,51 @@ class BedrockResponse:
 
         return None
 
+    def get_cache_efficiency(self) -> Optional[Dict[str, Any]]:
+        """
+        Get cache efficiency metrics.
+
+        Returns:
+            Dictionary with cache efficiency metrics, None if not available
+        """
+        cache_info = self.get_cached_tokens_info()
+        if not cache_info:
+            return None
+
+        usage = self.get_usage()
+        if not usage:
+            return None
+
+        # Calculate metrics
+        cache_read_tokens = cache_info.get("cache_read_tokens", 0)
+        cache_write_tokens = cache_info.get("cache_write_tokens", 0)
+        total_input_tokens = usage.get("input_tokens", 0)
+        
+        # Avoid division by zero
+        if total_input_tokens == 0:
+            return None
+
+        # Cache hit ratio
+        cache_hit_ratio = cache_read_tokens / total_input_tokens if total_input_tokens > 0 else 0.0
+        
+        # Estimate cost savings (example rate: $0.03 per 1K tokens)
+        COST_PER_1K_TOKENS = 0.03
+        cache_savings_tokens = cache_read_tokens
+        cache_savings_cost = (cache_savings_tokens / 1000) * COST_PER_1K_TOKENS
+        
+        # Estimate latency reduction (rough estimate: 1ms per 100 cached tokens)
+        latency_reduction_ms = int(cache_read_tokens / 100)
+
+        return {
+            "cache_hit_ratio": round(cache_hit_ratio, 2),
+            "cache_savings_tokens": cache_savings_tokens,
+            "cache_savings_cost": f"${cache_savings_cost:.2f}",
+            "latency_reduction_ms": latency_reduction_ms,
+            "cache_write_tokens": cache_write_tokens,
+            "cache_read_tokens": cache_read_tokens,
+            "cache_effectiveness": round(cache_hit_ratio * 100, 1)  # Percentage
+        }
+
     def had_validation_failures(self) -> bool:
         """
         Check if any validation failures occurred during the request.

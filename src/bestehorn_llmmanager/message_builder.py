@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional
 
 from .bedrock.exceptions.llm_manager_exceptions import RequestValidationError
 from .bedrock.models.llm_manager_constants import ConverseAPIFields
+from .bedrock.models.cache_structures import CacheConfig
 from .message_builder_constants import (
     MessageBuilderConfig,
     MessageBuilderErrorMessages,
@@ -35,12 +36,13 @@ class ConverseMessageBuilder:
             .build()
     """
 
-    def __init__(self, role: RolesEnum) -> None:
+    def __init__(self, role: RolesEnum, cache_config: Optional[CacheConfig] = None) -> None:
         """
-        Initialize the message builder with a role.
+        Initialize the message builder with a role and optional cache configuration.
 
         Args:
             role: The role for this message (USER or ASSISTANT)
+            cache_config: Optional cache configuration for automatic cache point optimization
         """
         self._logger = logging.getLogger(__name__)
 
@@ -50,15 +52,18 @@ class ConverseMessageBuilder:
         self._role = role
         self._content_blocks: List[Dict[str, Any]] = []
         self._file_detector = FileTypeDetector()
+        self._cache_config = cache_config
+        self._cacheable_blocks: List[bool] = []  # Track which blocks are cacheable
 
         self._logger.debug(f"Initialized ConverseMessageBuilder with role: {role.value}")
 
-    def add_text(self, text: str) -> "ConverseMessageBuilder":
+    def add_text(self, text: str, cacheable: Optional[bool] = None) -> "ConverseMessageBuilder":
         """
         Add a text content block to the message.
 
         Args:
             text: Text content to add
+            cacheable: Optional hint for caching (True to prefer caching, False to avoid)
 
         Returns:
             Self for method chaining
@@ -76,6 +81,7 @@ class ConverseMessageBuilder:
         text_block = {ConverseAPIFields.TEXT: text.strip()}
 
         self._content_blocks.append(text_block)
+        self._cacheable_blocks.append(cacheable if cacheable is not None else True)
 
         self._logger.debug(
             MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
@@ -86,7 +92,8 @@ class ConverseMessageBuilder:
         return self
 
     def add_image_bytes(
-        self, bytes: bytes, format: Optional[ImageFormatEnum] = None, filename: Optional[str] = None
+        self, bytes: bytes, format: Optional[ImageFormatEnum] = None, filename: Optional[str] = None,
+        cacheable: Optional[bool] = None
     ) -> "ConverseMessageBuilder":
         """
         Add an image content block to the message.
@@ -95,6 +102,7 @@ class ConverseMessageBuilder:
             bytes: Raw image bytes
             format: Optional image format (auto-detected if not provided)
             filename: Optional filename for format detection and logging
+            cacheable: Optional hint for caching (True to prefer caching, False to avoid)
 
         Returns:
             Self for method chaining
@@ -168,6 +176,7 @@ class ConverseMessageBuilder:
         }
 
         self._content_blocks.append(image_block)
+        self._cacheable_blocks.append(cacheable if cacheable is not None else True)
 
         self._logger.debug(
             MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
@@ -540,6 +549,40 @@ class ConverseMessageBuilder:
         # Use the existing add_video_bytes method
         return self.add_video_bytes(bytes=video_bytes, format=format, filename=file_path.name)
 
+    def add_cache_point(self, cache_type: str = "default") -> "ConverseMessageBuilder":
+        """
+        Add an explicit cache point at the current position.
+        
+        Cache points mark boundaries for content caching in Bedrock's Converse API.
+        Content before a cache point can be reused in subsequent requests.
+        
+        Args:
+            cache_type: Type of cache point (default: "default")
+            
+        Returns:
+            Self for method chaining
+            
+        Raises:
+            RequestValidationError: If no content blocks exist before the cache point
+        """
+        if not self._content_blocks:
+            raise RequestValidationError("Cannot add cache point without any preceding content blocks")
+        
+        self._validate_content_block_limit()
+        
+        cache_point_block = {
+            ConverseAPIFields.CACHE_POINT: {
+                "type": cache_type
+            }
+        }
+        
+        self._content_blocks.append(cache_point_block)
+        self._cacheable_blocks.append(False)  # Cache points themselves are not cacheable
+        
+        self._logger.debug(f"Added cache point of type '{cache_type}' at position {len(self._content_blocks)}")
+        
+        return self
+
     def build(self) -> Dict[str, Any]:
         """
         Build and return the complete message dictionary.
@@ -670,7 +713,7 @@ class ConverseMessageBuilder:
 
 
 # Factory Functions
-def create_message(role: RolesEnum) -> ConverseMessageBuilder:
+def create_message(role: RolesEnum, cache_config: Optional[CacheConfig] = None) -> ConverseMessageBuilder:
     """
     Factory function to create a new ConverseMessageBuilder instance.
 
@@ -679,6 +722,7 @@ def create_message(role: RolesEnum) -> ConverseMessageBuilder:
 
     Args:
         role: The role for the message (RolesEnum.USER or RolesEnum.ASSISTANT)
+        cache_config: Optional cache configuration for automatic cache point optimization
 
     Returns:
         ConverseMessageBuilder instance ready for method chaining
@@ -706,15 +750,27 @@ def create_message(role: RolesEnum) -> ConverseMessageBuilder:
         ...     .add_image_bytes(bytes=image_data, format=ImageFormatEnum.JPEG)\\
         ...     .add_document_bytes(bytes=pdf_data, format=DocumentFormatEnum.PDF)\\
         ...     .build()
+        
+        Message with caching:
+        >>> from bestehorn_llmmanager.bedrock.models.cache_structures import CacheConfig
+        >>> cache_config = CacheConfig(enabled=True)
+        >>> message = create_message(role=RolesEnum.USER, cache_config=cache_config)\\
+        ...     .add_text(text="Shared context", cacheable=True)\\
+        ...     .add_cache_point()\\
+        ...     .add_text(text="Variable question", cacheable=False)\\
+        ...     .build()
     """
-    return ConverseMessageBuilder(role=role)
+    return ConverseMessageBuilder(role=role, cache_config=cache_config)
 
 
-def create_user_message() -> ConverseMessageBuilder:
+def create_user_message(cache_config: Optional[CacheConfig] = None) -> ConverseMessageBuilder:
     """
     Convenience factory function to create a user message builder.
 
     Equivalent to create_message(role=RolesEnum.USER).
+
+    Args:
+        cache_config: Optional cache configuration for automatic cache point optimization
 
     Returns:
         ConverseMessageBuilder instance with USER role
@@ -723,15 +779,27 @@ def create_user_message() -> ConverseMessageBuilder:
         >>> message = create_user_message()\\
         ...     .add_text(text="What's the weather like?")\\
         ...     .build()
+        
+        With caching:
+        >>> from bestehorn_llmmanager.bedrock.models.cache_structures import CacheConfig
+        >>> cache_config = CacheConfig(enabled=True)
+        >>> message = create_user_message(cache_config=cache_config)\\
+        ...     .add_text(text="Context", cacheable=True)\\
+        ...     .add_cache_point()\\
+        ...     .add_text(text="Question")\\
+        ...     .build()
     """
-    return create_message(role=RolesEnum.USER)
+    return create_message(role=RolesEnum.USER, cache_config=cache_config)
 
 
-def create_assistant_message() -> ConverseMessageBuilder:
+def create_assistant_message(cache_config: Optional[CacheConfig] = None) -> ConverseMessageBuilder:
     """
     Convenience factory function to create an assistant message builder.
 
     Equivalent to create_message(role=RolesEnum.ASSISTANT).
+
+    Args:
+        cache_config: Optional cache configuration for automatic cache point optimization
 
     Returns:
         ConverseMessageBuilder instance with ASSISTANT role
@@ -741,7 +809,7 @@ def create_assistant_message() -> ConverseMessageBuilder:
         ...     .add_text(text="The weather is sunny and warm.")\\
         ...     .build()
     """
-    return create_message(role=RolesEnum.ASSISTANT)
+    return create_message(role=RolesEnum.ASSISTANT, cache_config=cache_config)
 
 
 # Alias for backwards compatibility and naming consistency

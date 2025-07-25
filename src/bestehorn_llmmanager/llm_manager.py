@@ -30,6 +30,8 @@ from .bedrock.models.llm_manager_structures import (
     ResponseValidationConfig,
     RetryConfig,
 )
+from .bedrock.models.cache_structures import CacheConfig
+from .bedrock.cache import CachePointManager
 from .bedrock.models.parallel_structures import BedrockConverseRequest
 from .bedrock.retry.retry_manager import RetryManager
 from .bedrock.streaming.streaming_retry_manager import StreamingRetryManager
@@ -76,6 +78,7 @@ class LLMManager:
         regions: List[str],
         auth_config: Optional[AuthConfig] = None,
         retry_config: Optional[RetryConfig] = None,
+        cache_config: Optional[CacheConfig] = None,
         unified_model_manager: Optional[UnifiedModelManager] = None,
         default_inference_config: Optional[Dict[str, Any]] = None,
         timeout: int = LLMManagerConfig.DEFAULT_TIMEOUT,
@@ -89,6 +92,7 @@ class LLMManager:
             regions: List of AWS regions to try
             auth_config: Authentication configuration. If None, uses auto-detection
             retry_config: Retry behavior configuration. If None, uses defaults
+            cache_config: Cache configuration for prompt caching. If None, caching is disabled
             unified_model_manager: Pre-configured UnifiedModelManager. If None, creates new one
             default_inference_config: Default inference parameters to apply
             timeout: Request timeout in seconds
@@ -117,6 +121,13 @@ class LLMManager:
         self._streaming_retry_manager = StreamingRetryManager(
             retry_config=retry_config or RetryConfig()
         )
+        
+        # Initialize cache manager if caching is enabled
+        self._cache_config = cache_config or CacheConfig(enabled=False)
+        self._cache_point_manager = None
+        if self._cache_config.enabled:
+            self._cache_point_manager = CachePointManager(self._cache_config)
+            self._logger.info(f"Caching enabled with strategy: {self._cache_config.strategy.value}")
 
         # Initialize or use provided UnifiedModelManager
         if unified_model_manager:
@@ -649,8 +660,22 @@ class LLMManager:
         prompt_variables: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Build the request arguments for the Converse API."""
+        # Apply cache point injection if caching is enabled
+        processed_messages = messages
+        if self._cache_point_manager and self._cache_config.enabled:
+            # Note: Model and region will be determined during retry execution
+            # For now, we inject cache points without model/region validation
+            processed_messages = self._cache_point_manager.inject_cache_points(messages)
+            
+            # Validate cache configuration
+            validation_warnings = self._cache_point_manager.validate_cache_configuration({
+                ConverseAPIFields.MESSAGES: processed_messages
+            })
+            for warning in validation_warnings:
+                self._logger.warning(f"Cache configuration warning: {warning}")
+        
         # Explicitly type the request args dictionary to avoid type inference issues
-        request_args: Dict[str, Any] = {ConverseAPIFields.MESSAGES: messages}
+        request_args: Dict[str, Any] = {ConverseAPIFields.MESSAGES: processed_messages}
 
         # Add optional fields
         if system:
