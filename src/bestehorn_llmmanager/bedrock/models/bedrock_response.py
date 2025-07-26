@@ -234,7 +234,7 @@ class BedrockResponse:
         Get prompt caching information if available.
 
         Returns:
-            Dictionary with cache hit/write information, None if not available
+            Dictionary with cache hit/write information, None if usage unavailable
         """
         usage = self.get_usage()
         if not usage:
@@ -243,15 +243,13 @@ class BedrockResponse:
         cache_read = usage.get("cache_read_tokens", 0)
         cache_write = usage.get("cache_write_tokens", 0)
 
-        if cache_read > 0 or cache_write > 0:
-            return {
-                "cache_read_tokens": cache_read,
-                "cache_write_tokens": cache_write,
-                "cache_hit": cache_read > 0,
-                "cache_write": cache_write > 0,
-            }
-
-        return None
+        # Always return cache information, even if 0 (shows caching status)
+        return {
+            "cache_read_tokens": cache_read,
+            "cache_write_tokens": cache_write,
+            "cache_hit": cache_read > 0,
+            "cache_write": cache_write > 0,
+        }
 
     def get_cache_efficiency(self) -> Optional[Dict[str, Any]]:
         """
