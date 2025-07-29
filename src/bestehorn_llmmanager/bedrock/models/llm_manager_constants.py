@@ -66,8 +66,8 @@ class ConverseAPIFields:
     INPUT_TOKENS: Final[str] = "inputTokens"
     OUTPUT_TOKENS: Final[str] = "outputTokens"
     TOTAL_TOKENS: Final[str] = "totalTokens"
-    CACHE_READ_INPUT_TOKENS_COUNT: Final[str] = "cacheReadInputTokensCount"
-    CACHE_WRITE_INPUT_TOKENS_COUNT: Final[str] = "cacheWriteInputTokensCount"
+    CACHE_READ_INPUT_TOKENS_COUNT: Final[str] = "cacheReadInputTokens"
+    CACHE_WRITE_INPUT_TOKENS_COUNT: Final[str] = "cacheWriteInputTokens"
 
     # Metrics fields
     LATENCY_MS: Final[str] = "latencyMs"
