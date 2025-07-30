@@ -7,23 +7,35 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-**A comprehensive Python library that simplifies and enhances AWS Bedrock Converse API interactions with intelligent message building, automatic file format detection, multi-modal support, and advanced reliability features.**
+**A comprehensive Python library that simplifies and enhances AWS Bedrock Converse API interactions with intelligent message building, automatic file format detection, multi-modal support, streaming capabilities, caching, and advanced reliability features.**
 
-I have implemented this set of functions over time while working on projects and demos using Amazon Bedrock.
-One of the key use cases that started the implementation of this project has been: I have a prompt and I do not care where the prompt gets executed, I just want to make sure I get a response and I do not want to handle any temporal issues such as malformed responses from LLMs or throttling.
-It helped me to avoid common mistakes and sources for errors when using the [standard AWS Bedrock Converse API](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html).
+## 🚀 Quick Start
 
-⚠️**Important**: The code in this repository comes with no guarentees or liabilities. It is not intended for production use, but rather as an inspiration for implementing your own logic for the Bedrock converse API in production environments.
+### Prerequisites
+- Python 3.8+
+- AWS credentials configured (AWS CLI, environment variables, or IAM roles)
 
-Quick note on the package name: As there are other packages (public & private) that are named "LLMManager", I have chosen to prefix the name of this package with my last name as I am sure there are no other packages with this name.
-If this is an issue, feel free to contact me and propose another name.
+### Installation & Basic Usage
 
-## 🚀 Key Simplifications Over Native AWS Bedrock Converse API
+```python
+# Install the package
+pip install bestehorn-llmmanager
+
+# Simple example - get started in 5 lines
+from bestehorn_llmmanager import LLMManager, create_user_message
+
+manager = LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+message = create_user_message().add_text("Explain quantum computing").build()
+response = manager.converse(messages=[message])
+print(response.get_content())
+```
+
+## 🎯 Key Simplifications Over Native AWS Bedrock Converse API
 
 This library was built to simplify the [standard AWS Bedrock Converse API](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html). 
 While some of these simplifications come at a loss of flexibility, for most use cases, the code becomes cleaner, less prone to errors and easier to understand when it is based on the abstractions provided in this package: 
 
-### 🎯 **Fluent MessageBuilder with Automatic Format Detection**
+### 🏗️ **Fluent MessageBuilder with Automatic Format Detection**
 - **Native API**: Manual message dictionary construction with complex nested structures resulting in complex JSON
 - **LLMManager**: Intuitive fluent interface with automatic file type detection and validation that hides the intricacies of building message JSON for Bedrock's converse API.
 
@@ -42,6 +54,23 @@ While some of these simplifications come at a loss of flexibility, for most use 
 ### 📊 **Rich Response Management**
 - **Native API**: Raw response dictionaries, i.e., you have to parse and understand the JSON structure from Bedrock.
 - **LLMManager**: Structured response objects with metadata, utilities, and validation that provide data access through typed functions.
+
+### 🌊 **Real-Time Streaming Support**
+- **Native API**: Basic streaming with manual chunk handling
+- **LLMManager**: Enhanced streaming with automatic retry, recovery, and real-time display utilities
+
+### 💾 **Intelligent Caching**
+- **Native API**: Manual cache point management required
+- **LLMManager**: Automatic cache optimization with configurable strategies for cost reduction
+
+I have implemented this set of functions over time while working on projects and demos using Amazon Bedrock.
+One of the key use cases that started the implementation of this project has been: I have a prompt and I do not care where the prompt gets executed, I just want to make sure I get a response and I do not want to handle any temporal issues such as malformed responses from LLMs or throttling.
+It helped me to avoid common mistakes and sources for errors when using the [standard AWS Bedrock Converse API](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html).
+
+⚠️**Important**: The code in this repository comes with no guarentees or liabilities. It is not intended for production use, but rather as an inspiration for implementing your own logic for the Bedrock converse API in production environments.
+
+Quick note on the package name: As there are other packages (public & private) that are named "LLMManager", I have chosen to prefix the name of this package with my last name as I am sure there are no other packages with this name.
+If this is an issue, feel free to contact me and propose another name.
 
 ## ✨ Features
 
@@ -63,6 +92,19 @@ While some of these simplifications come at a loss of flexibility, for most use 
 - **Load Balancing**: Intelligent distribution across available resources
 - **Connection Pooling**: Efficient resource management for high-throughput scenarios
 - **Streaming Support**: Real-time response streaming for long-form content
+
+### 🌊 **Streaming Capabilities**
+- **Real-Time Output**: See responses as they're generated with `converse_stream()`
+- **Automatic Recovery**: Stream interruption detection and intelligent retry
+- **Rich Metadata**: Streaming performance metrics and token usage tracking
+- **Display Utilities**: Built-in utilities for streaming visualization
+
+### 💾 **Caching Support**
+- **Automatic Optimization**: Intelligent cache point placement based on content patterns
+- **Cost Reduction**: Up to 90% reduction in token costs for repetitive prompts
+- **Simple Configuration**: Enable with `CacheConfig(enabled=True)`
+- **Flexible Strategies**: Conservative, Aggressive, or Custom caching approaches
+- **MessageBuilder Integration**: Seamless cache control with `add_cache_point()`
 
 ### 🛡️ **Security & Authentication**
 - **Flexible Authentication**: Support for AWS profiles, credentials, IAM roles, and auto-detection
@@ -100,7 +142,7 @@ pip install -e .
 pip install -e .[dev]
 ```
 
-## 🚀 Quick Start
+## 🚀 Quick Start Examples
 
 ### MessageBuilder vs. Native API Comparison
 
@@ -243,6 +285,113 @@ message = create_user_message()\
 # Images: JPEG, PNG, GIF, WEBP
 # Documents: PDF, CSV, DOC, DOCX, XLS, XLSX, HTML, TXT, MD  
 # Videos: MP4, MOV, AVI, WEBM, MKV
+```
+
+### 🌊 Streaming Responses
+
+**❌ Native API:** Basic streaming support
+```python
+# Native API streaming is limited
+response = bedrock.converse_stream(...)
+for chunk in response['stream']:
+    if 'contentBlockDelta' in chunk:
+        print(chunk['contentBlockDelta'].get('text', ''), end='')
+```
+
+**✅ LLMManager Advantage:** Enhanced streaming with MessageBuilder
+```python
+# Create streaming request with MessageBuilder
+message = create_user_message()\
+    .add_text("Write a detailed explanation of machine learning algorithms.")\
+    .add_text("Include examples and use cases for each algorithm.")\
+    .build()
+
+# Stream response with enhanced error handling
+try:
+    stream_response = manager.converse_stream(messages=[message])
+    
+    print("Streaming response:")
+    full_content = ""
+    
+    for chunk in stream_response:
+        if chunk.get("contentBlockDelta"):
+            delta = chunk["contentBlockDelta"]
+            if "text" in delta:
+                text_chunk = delta["text"]
+                print(text_chunk, end="", flush=True)
+                full_content += text_chunk
+        
+        # Handle tool use in streaming
+        elif chunk.get("contentBlockStart"):
+            block_start = chunk["contentBlockStart"]
+            if "toolUse" in block_start:
+                print(f"\n[Tool use started: {block_start['toolUse']['name']}]")
+    
+    print(f"\n\nStream completed. Total characters: {len(full_content)}")
+    
+except Exception as e:
+    print(f"Streaming error: {e}")
+    # Automatic fallback to non-streaming if needed
+    fallback_response = manager.converse(messages=[message])
+    print(f"Fallback response: {fallback_response.get_content()}")
+```
+
+### 💾 Caching for Cost Optimization
+
+**❌ Native API:** Manual cache point management
+```python
+# With native API, manual cache point construction required
+messages = [{
+    "role": "user",
+    "content": [
+        {"text": "Analyze these images..."},
+        {"image": {"format": "jpeg", "source": {"bytes": image_bytes}}},
+        {"cachePoint": {"type": "default"}},  # Manual placement
+        {"text": "What do you see?"}
+    ]
+}]
+```
+
+**✅ LLMManager Advantage:** Automatic cache optimization
+```python
+from bestehorn_llmmanager.bedrock.models.cache_structures import CacheConfig, CacheStrategy
+
+# Enable caching for dramatic cost reduction
+cache_config = CacheConfig(
+    enabled=True,
+    strategy=CacheStrategy.CONSERVATIVE  # Automatic optimization
+)
+
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"],
+    cache_config=cache_config
+)
+
+# Build message with automatic cache optimization
+message = create_user_message()\
+    .add_text("Analyze these architectural images...")  # Cached after first use\
+    .add_local_image("building1.jpg")                  # Cached\
+    .add_local_image("building2.jpg")                  # Cached\
+    .add_cache_point()  # Optional explicit control\
+    .add_text("Focus on the Gothic elements")          # Unique per request\
+    .build()
+
+# First request: writes to cache
+response1 = manager.converse(messages=[message])
+
+# Subsequent requests: reads from cache (90% cost reduction!)
+for i in range(9):
+    unique_message = create_user_message()\
+        .add_text("Analyze these architectural images...")\
+        .add_local_image("building1.jpg")\
+        .add_local_image("building2.jpg")\
+        .add_cache_point()\
+        .add_text(f"Focus on aspect {i+2}")  # Different question each time\
+        .build()
+    
+    response = manager.converse(messages=[unique_message])
+    print(f"Cache efficiency: {response.get_cache_efficiency()}")
 ```
 
 ### ⚡ Parallel Processing with MessageBuilder
@@ -581,693 +730,4 @@ if response.had_validation_failures():
 In the example above, the validation config contains a custom-validation function that checks the content of the message for various errors: length of the response, illegal keywowrds and completeness.
 This function is then passed as a parameter and used before the call from the LLM Manager converse() function returns.
 In case of errors, the LLM Manager will try to get a valid response before returning.
-If you need a JSON-compliant response, then implementing a function that uses the standard Python JSON parser to check the format of the incoming response text is straightforward.
-
-### 📊 Rich Response Analysis
-
-**❌ Native API Limitation:** Basic response dictionaries only
-```python
-# Native API provides minimal response information
-response = bedrock.converse(...)
-content = response['output']['message']['content'][0]['text']
-usage = response.get('usage', {})
-# Limited metadata available
-```
-
-**✅ LLMManager Advantage:** Comprehensive response objects with detailed metadata
-```python
-message = create_user_message().add_text("Explain quantum computing").build()
-response = manager.converse(messages=[message])
-
-# Rich response information
-print(f"Success: {response.success}")
-print(f"Content: {response.get_content()}")
-
-# Performance metrics
-print(f"Total duration: {response.total_duration_ms}ms")
-print(f"Model used: {response.model_used}")
-print(f"Region used: {response.region_used}")
-
-# Token usage analysis
-usage = response.get_usage()
-if usage:
-    print(f"Input tokens: {usage.get('inputTokens', 'N/A')}")
-    print(f"Output tokens: {usage.get('outputTokens', 'N/A')}")
-    print(f"Total tokens: {usage.get('totalTokens', 'N/A')}")
-
-# Detailed execution metrics
-metrics = response.get_metrics()
-print(f"Request preparation time: {metrics.get('request_prep_ms', 'N/A')}ms")
-print(f"Network latency: {metrics.get('network_latency_ms', 'N/A')}ms")
-
-# Retry and error information
-print(f"Total attempts: {len(response.attempts)}")
-for i, attempt in enumerate(response.attempts):
-    print(f"  Attempt {i+1}: {attempt.model_used} in {attempt.region_used}")
-    if attempt.error:
-        print(f"    Error: {attempt.error}")
-
-# Stop reason analysis
-stop_reason = response.get_stop_reason()
-print(f"Stop reason: {stop_reason}")  # max_tokens, end_turn, tool_use, etc.
-
-# Warnings and issues
-warnings = response.get_warnings()
-if warnings:
-    print(f"Warnings: {warnings}")
-```
-
-### 🧪 Streaming Responses
-
-**❌ Native API:** Basic streaming support
-```python
-# Native API streaming is limited
-response = bedrock.converse_stream(...)
-for chunk in response['stream']:
-    if 'contentBlockDelta' in chunk:
-        print(chunk['contentBlockDelta'].get('text', ''), end='')
-```
-
-**✅ LLMManager Advantage:** Enhanced streaming with MessageBuilder
-```python
-# Create streaming request with MessageBuilder
-message = create_user_message()\
-    .add_text("Write a detailed explanation of machine learning algorithms.")\
-    .add_text("Include examples and use cases for each algorithm.")\
-    .build()
-
-# Stream response with enhanced error handling
-try:
-    stream_response = manager.converse_stream(messages=[message])
-    
-    print("Streaming response:")
-    full_content = ""
-    
-    for chunk in stream_response:
-        if chunk.get("contentBlockDelta"):
-            delta = chunk["contentBlockDelta"]
-            if "text" in delta:
-                text_chunk = delta["text"]
-                print(text_chunk, end="", flush=True)
-                full_content += text_chunk
-        
-        # Handle tool use in streaming
-        elif chunk.get("contentBlockStart"):
-            block_start = chunk["contentBlockStart"]
-            if "toolUse" in block_start:
-                print(f"\n[Tool use started: {block_start['toolUse']['name']}]")
-    
-    print(f"\n\nStream completed. Total characters: {len(full_content)}")
-    
-except Exception as e:
-    print(f"Streaming error: {e}")
-    # Automatic fallback to non-streaming if needed
-    fallback_response = manager.converse(messages=[messages])
-    print(f"Fallback response: {fallback_response.get_content()}")
-```
-
-### 🔧 Tool Use Integration
-
-**Native API:** Complex tool configuration
-```python
-# Manual tool definition with native API
-tools = [
-    {
-        "toolSpec": {
-            "name": "calculator",
-            "description": "Perform mathematical calculations",
-            "inputSchema": {
-                "json": {
-                    "type": "object",
-                    "properties": {
-                        "expression": {"type": "string"}
-                    },
-                    "required": ["expression"]
-                }
-            }
-        }
-    }
-]
-
-tool_config = {"tools": tools}
-```
-
-**✅ LLMManager Enhancement:** Simplified tool integration with MessageBuilder
-```python
-# Define tools with enhanced configuration
-def calculator_function(expression: str) -> str:
-    """Safe calculator function."""
-    try:
-        # Simple expression evaluation (in practice, use a safe evaluator)
-        result = eval(expression.replace('^', '**'))
-        return str(result)
-    except Exception as e:
-        return f"Error: {str(e)}"
-
-# Tool configuration
-tool_config = {
-    "tools": [
-        {
-            "toolSpec": {
-                "name": "calculator",
-                "description": "Perform basic mathematical calculations",
-                "inputSchema": {
-                    "json": {
-                        "type": "object",
-                        "properties": {
-                            "expression": {
-                                "type": "string",
-                                "description": "Mathematical expression to evaluate"
-                            }
-                        },
-                        "required": ["expression"]
-                    }
-                }
-            }
-        }
-    ]
-}
-
-# Create message with tool request
-message = create_user_message()\
-    .add_text("Please calculate 25 * 37 + 15 and explain the result.")\
-    .build()
-
-response = manager.converse(
-    messages=[message],
-    tool_config=tool_config
-)
-
-# Handle tool use in response
-if response.success:
-    # Check for tool use in the response
-    response_data = response.response_data
-    content = response_data.get("output", {}).get("message", {}).get("content", [])
-    
-    for block in content:
-        if "toolUse" in block:
-            tool_use = block["toolUse"]
-            tool_name = tool_use["name"]
-            tool_input = tool_use["input"]
-            tool_id = tool_use["toolUseId"]
-            
-            print(f"Tool called: {tool_name}")
-            print(f"Input: {tool_input}")
-            
-            # Execute the tool function
-            if tool_name == "calculator":
-                result = calculator_function(tool_input["expression"])
-                
-                # Create tool result message
-                tool_result_message = create_user_message()\
-                    .add_tool_result(
-                        tool_use_id=tool_id,
-                        content=result,
-                        status="success"
-                    )\
-                    .build()
-                
-                # Continue conversation with tool result
-                final_response = manager.converse(messages=[
-                    message,
-                    response_data["output"]["message"],
-                    tool_result_message
-                ])
-                
-                print(f"Final response: {final_response.get_content()}")
-```
-
-## Development
-
-### Setting Up Development Environment
-
-```bash
-# Clone the repository
-git clone <repository-url>
-cd bestehorn-llmmanager
-
-# Install in editable mode with development dependencies
-pip install -e .[dev]
-
-# Run tests
-pytest
-
-# Run tests with coverage
-pytest --cov=bestehorn_llmmanager
-```
-
-### Project Structure
-
-```
-bestehorn-llmmanager/
-├── src/
-│   └── bestehorn_llmmanager/
-│       ├── __init__.py
-│       ├── llm_manager.py
-│       ├── parallel_llm_manager.py
-│       └── bedrock/
-├── test/
-├── docs/
-├── pyproject.toml
-└── README.md
-```
-
-### Running Tests
-
-```bash
-# Unit tests only
-pytest test/bestehorn_llmmanager/
-
-# Integration tests (requires AWS credentials)
-pytest test/integration/ -m integration
-
-# All tests
-pytest
-```
-
-## 📚 API Reference
-
-### 🏗️ MessageBuilder API
-
-The MessageBuilder provides a fluent interface for constructing multi-modal messages with automatic format detection.
-
-#### Factory Functions
-```python
-from bestehorn_llmmanager import (
-    create_user_message, create_assistant_message, 
-    create_message, MessageBuilder, RolesEnum
-)
-
-# Convenience factories
-create_user_message() -> ConverseMessageBuilder
-create_assistant_message() -> ConverseMessageBuilder
-create_message(role: RolesEnum) -> ConverseMessageBuilder
-
-# Direct instantiation
-MessageBuilder(role: RolesEnum) -> ConverseMessageBuilder
-```
-
-#### Core Methods
-
-**Text Content**
-```python
-def add_text(self, text: str) -> 'ConverseMessageBuilder'
-```
-Add text content to the message. Text is automatically stripped of whitespace.
-
-**Image Content**
-```python
-def add_image_bytes(
-    self, bytes: bytes, 
-    format: Optional[ImageFormatEnum] = None,
-    filename: Optional[str] = None
-) -> 'ConverseMessageBuilder'
-
-def add_local_image(
-    self, path_to_local_file: str,
-    format: Optional[ImageFormatEnum] = None,
-    max_size_mb: float = 3.75
-) -> 'ConverseMessageBuilder'
-```
-
-**Document Content**
-```python
-def add_document_bytes(
-    self, bytes: bytes,
-    format: Optional[DocumentFormatEnum] = None,
-    filename: Optional[str] = None,
-    name: Optional[str] = None
-) -> 'ConverseMessageBuilder'
-
-def add_local_document(
-    self, path_to_local_file: str,
-    format: Optional[DocumentFormatEnum] = None,
-    name: Optional[str] = None,
-    max_size_mb: float = 4.5
-) -> 'ConverseMessageBuilder'
-```
-
-**Video Content**
-```python
-def add_video_bytes(
-    self, bytes: bytes,
-    format: Optional[VideoFormatEnum] = None,
-    filename: Optional[str] = None
-) -> 'ConverseMessageBuilder'
-
-def add_local_video(
-    self, path_to_local_file: str,
-    format: Optional[VideoFormatEnum] = None,
-    max_size_mb: float = 100.0
-) -> 'ConverseMessageBuilder'
-```
-
-**Build Message**
-```python
-def build(self) -> Dict[str, Any]
-```
-Build and return the AWS Bedrock-compatible message dictionary.
-
-#### Supported Formats
-
-**Images**: JPEG, PNG, GIF, WEBP  
-**Documents**: PDF, CSV, DOC, DOCX, XLS, XLSX, HTML, TXT, MD  
-**Videos**: MP4, MOV, AVI, WEBM, MKV
-
-### 🔧 LLMManager
-
-Primary interface for single AWS Bedrock requests with enhanced reliability.
-
-#### Constructor
-```python
-LLMManager(
-    models: List[str],                                    # Model names/IDs
-    regions: List[str],                                   # AWS regions
-    auth_config: Optional[AuthConfig] = None,             # Authentication config
-    retry_config: Optional[RetryConfig] = None,           # Retry configuration
-    default_inference_config: Optional[Dict] = None,     # Default inference params
-    timeout: int = 300,                                   # Request timeout (seconds)
-    log_level: Union[int, str] = logging.WARNING         # Logging level
-)
-```
-
-#### Core Methods
-```python
-def converse(
-    self, messages: List[Dict[str, Any]],
-    system: Optional[List[Dict[str, str]]] = None,
-    inference_config: Optional[Dict[str, Any]] = None,
-    **kwargs
-) -> BedrockResponse
-
-def converse_stream(
-    self, messages: List[Dict[str, Any]],
-    **kwargs
-) -> StreamingResponse
-
-def validate_configuration(self) -> Dict[str, Any]
-def refresh_model_data(self) -> None
-def get_available_models(self) -> List[str]
-def get_available_regions(self) -> List[str]
-```
-
-### ⚡ ParallelLLMManager
-
-Interface for concurrent multi-region processing.
-
-#### Constructor
-```python
-ParallelLLMManager(
-    models: List[str],                                    # Model names/IDs
-    regions: List[str],                                   # AWS regions
-    parallel_config: Optional[ParallelProcessingConfig] = None,
-    **kwargs                                              # Same as LLMManager
-)
-```
-
-#### Core Methods
-```python
-def converse_parallel(
-    self, requests: List[BedrockConverseRequest],
-    target_regions_per_request: int = 2,
-    response_validation_config: Optional[ResponseValidationConfig] = None
-) -> ParallelResponse
-
-def get_parallel_config(self) -> ParallelProcessingConfig
-```
-
-### 📊 Response Objects
-
-#### BedrockResponse
-```python
-# Status and content
-response.success: bool
-response.get_content() -> str
-response.get_usage() -> Dict[str, Any]
-response.get_stop_reason() -> str
-
-# Execution details
-response.model_used: str
-response.region_used: str
-response.total_duration_ms: float
-response.attempts: List[RequestAttempt]
-
-# Error handling
-response.get_last_error() -> Exception
-response.get_all_errors() -> List[Exception]
-response.get_warnings() -> List[str]
-
-# Validation (if used)
-response.had_validation_failures() -> bool
-response.get_validation_errors() -> List[Dict]
-
-# Serialization
-response.to_dict() -> Dict[str, Any]
-response.to_json(indent: int = None) -> str
-```
-
-#### ParallelResponse
-```python
-# Overall results
-parallel_response.success: bool
-parallel_response.get_success_rate() -> float
-parallel_response.total_duration_ms: float
-
-# Individual responses
-parallel_response.request_responses: Dict[str, BedrockResponse]
-parallel_response.get_successful_responses() -> Dict[str, BedrockResponse]
-parallel_response.failed_requests: List[str]
-
-# Statistics
-parallel_response.parallel_execution_stats.total_requests: int
-parallel_response.parallel_execution_stats.successful_requests: int
-parallel_response.parallel_execution_stats.average_request_duration_ms: float
-```
-
-### 🔧 Configuration Classes
-
-#### AuthConfig
-```python
-from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
-    AuthConfig, AuthenticationType
-)
-
-AuthConfig(
-    auth_type: AuthenticationType,                # PROFILE, CREDENTIALS, IAM_ROLE, AUTO
-    profile_name: Optional[str] = None,           # AWS profile name
-    access_key_id: Optional[str] = None,          # AWS access key
-    secret_access_key: Optional[str] = None,      # AWS secret key
-    session_token: Optional[str] = None,          # AWS session token
-    region: Optional[str] = None                  # Default region
-)
-```
-
-#### RetryConfig
-```python
-from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
-    RetryConfig, RetryStrategy
-)
-
-RetryConfig(
-    max_retries: int = 3,                         # Maximum retry attempts
-    retry_delay: float = 1.0,                     # Initial delay (seconds)
-    backoff_multiplier: float = 2.0,              # Exponential backoff multiplier
-    max_retry_delay: float = 60.0,                # Maximum delay cap
-    retry_strategy: RetryStrategy = RetryStrategy.REGION_FIRST,
-    enable_feature_fallback: bool = True          # Disable features on errors
-)
-```
-
-### 🎯 Enums
-
-#### MessageBuilder Enums
-```python
-from bestehorn_llmmanager import (
-    RolesEnum, ImageFormatEnum, 
-    DocumentFormatEnum, VideoFormatEnum
-)
-
-class RolesEnum(str, Enum):
-    USER = "user"
-    ASSISTANT = "assistant"
-
-class ImageFormatEnum(str, Enum):
-    JPEG = "jpeg"
-    PNG = "png"
-    GIF = "gif"
-    WEBP = "webp"
-
-class DocumentFormatEnum(str, Enum):
-    PDF = "pdf"
-    CSV = "csv"
-    DOC = "doc"
-    DOCX = "docx"
-    XLS = "xls"
-    XLSX = "xlsx"
-    HTML = "html"
-    TXT = "txt"
-    MD = "md"
-
-class VideoFormatEnum(str, Enum):
-    MP4 = "mp4"
-    MOV = "mov"
-    AVI = "avi"
-    WEBM = "webm"
-    MKV = "mkv"
-```
-
-## 🎯 Complete Example: Multi-Modal Document Analysis
-
-Here's a comprehensive example showcasing the library's key features:
-
-```python
-from bestehorn_llmmanager import (
-    LLMManager, ParallelLLMManager, create_user_message,
-    AuthConfig, AuthenticationType, RetryConfig, RetryStrategy
-)
-from bestehorn_llmmanager.bedrock.models.parallel_structures import BedrockConverseRequest
-from bestehorn_llmmanager.bedrock.models.llm_manager_structures import ResponseValidationConfig, ValidationResult
-
-# Configure authentication and retry behavior
-auth_config = AuthConfig(
-    auth_type=AuthenticationType.PROFILE,
-    profile_name="bedrock-profile"
-)
-
-retry_config = RetryConfig(
-    max_retries=5,
-    retry_strategy=RetryStrategy.REGION_FIRST,
-    enable_feature_fallback=True
-)
-
-# Custom response validation
-def validate_analysis_quality(response):
-    content = response.get_content()
-    if len(content) < 100:
-        return ValidationResult(
-            success=False,
-            error_message="Analysis too brief"
-        )
-    return ValidationResult(success=True)
-
-validation_config = ResponseValidationConfig(
-    response_validation_function=validate_analysis_quality,
-    response_validation_retries=2
-)
-
-# Initialize managers
-single_manager = LLMManager(
-    models=["Claude 3 Sonnet", "Claude 3 Haiku"],
-    regions=["us-east-1", "us-west-2", "eu-west-1"],
-    auth_config=auth_config,
-    retry_config=retry_config
-)
-
-parallel_manager = ParallelLLMManager(
-    models=["Claude 3 Sonnet", "Claude 3 Haiku"],
-    regions=["us-east-1", "us-west-2", "eu-west-1"],
-    auth_config=auth_config,
-    retry_config=retry_config
-)
-
-# Single request with multi-modal content
-message = create_user_message()\
-    .add_text("Please analyze this comprehensive business report:")\
-    .add_local_document("reports/quarterly_report.pdf")\
-    .add_text("Focus on these key areas:")\
-    .add_text("1. Financial performance trends")\
-    .add_text("2. Market position analysis")\
-    .add_text("3. Strategic recommendations")\
-    .add_local_image("charts/performance_chart.png")\
-    .add_text("How does the visual data support the written analysis?")\
-    .build()
-
-# Execute single request with validation
-response = single_manager.converse(
-    messages=[message],
-    response_validation_config=validation_config
-)
-
-if response.success:
-    print(f"Analysis completed in {response.total_duration_ms}ms")
-    print(f"Using {response.model_used} in {response.region_used}")
-    print(f"Content: {response.get_content()[:500]}...")
-    
-    # Check token usage
-    usage = response.get_usage()
-    if usage:
-        print(f"Tokens used: {usage.get('totalTokens', 'N/A')}")
-else:
-    print(f"Analysis failed: {response.get_last_error()}")
-
-# Parallel processing for multiple documents
-documents = ["doc1.pdf", "doc2.pdf", "doc3.pdf"]
-requests = []
-
-for i, doc in enumerate(documents):
-    message = create_user_message()\
-        .add_text(f"Provide a executive summary of this document:")\
-        .add_local_document(doc)\
-        .build()
-    
-    requests.append(BedrockConverseRequest(
-        request_id=f"summary-{i}",
-        messages=[message]
-    ))
-
-# Execute in parallel with high availability
-parallel_response = parallel_manager.converse_parallel(
-    requests=requests,
-    target_regions_per_request=2,
-    response_validation_config=validation_config
-)
-
-print(f"Parallel execution results:")
-print(f"Success rate: {parallel_response.get_success_rate():.1%}")
-print(f"Total time: {parallel_response.total_duration_ms}ms")
-print(f"Average per request: {parallel_response.parallel_execution_stats.average_request_duration_ms:.1f}ms")
-
-# Process results
-for request_id, response in parallel_response.get_successful_responses().items():
-    print(f"\n{request_id}: {response.get_content()[:200]}...")
-```
-
-This comprehensive example demonstrates:
-- **Multi-modal message construction** with text, documents, and images
-- **Automatic format detection** for uploaded files
-- **Multi-region failover** with intelligent retry logic
-- **Response validation** with custom validation functions
-- **Parallel processing** across multiple models and regions
-- **Detailed performance monitoring** and error handling
-- **Flexible authentication** configuration
-
-## Error Handling
-
-The library provides comprehensive error handling with specific exception types:
-
-- `LLMManagerError`: Base exception for all library errors
-- `ConfigurationError`: Configuration-related errors
-- `AuthenticationError`: AWS authentication failures
-- `RequestValidationError`: Request validation failures
-- `RetryExhaustedError`: All retry attempts failed
-- `ParallelProcessingError`: Parallel execution errors
-
-## License
-
-MIT License - see LICENSE file for details.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Run the test suite
-6. Submit a pull request
-
-## Support
-
-For issues and questions:
-- Check the documentation in the `docs/` directory
-- Review existing issues on GitHub
-- Create a new issue with detailed information about your problem
+If you need a JSON
