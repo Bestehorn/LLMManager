@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .bedrock.exceptions.llm_manager_exceptions import RequestValidationError
-from .bedrock.models.llm_manager_constants import ConverseAPIFields
 from .bedrock.models.cache_structures import CacheConfig
+from .bedrock.models.llm_manager_constants import ConverseAPIFields
 from .message_builder_constants import (
     MessageBuilderConfig,
     MessageBuilderErrorMessages,
@@ -92,8 +92,11 @@ class ConverseMessageBuilder:
         return self
 
     def add_image_bytes(
-        self, bytes: bytes, format: Optional[ImageFormatEnum] = None, filename: Optional[str] = None,
-        cacheable: Optional[bool] = None
+        self,
+        bytes: bytes,
+        format: Optional[ImageFormatEnum] = None,
+        filename: Optional[str] = None,
+        cacheable: Optional[bool] = None,
     ) -> "ConverseMessageBuilder":
         """
         Add an image content block to the message.
@@ -552,35 +555,35 @@ class ConverseMessageBuilder:
     def add_cache_point(self, cache_type: str = "default") -> "ConverseMessageBuilder":
         """
         Add an explicit cache point at the current position.
-        
+
         Cache points mark boundaries for content caching in Bedrock's Converse API.
         Content before a cache point can be reused in subsequent requests.
-        
+
         Args:
             cache_type: Type of cache point (default: "default")
-            
+
         Returns:
             Self for method chaining
-            
+
         Raises:
             RequestValidationError: If no content blocks exist before the cache point
         """
         if not self._content_blocks:
-            raise RequestValidationError("Cannot add cache point without any preceding content blocks")
-        
+            raise RequestValidationError(
+                "Cannot add cache point without any preceding content blocks"
+            )
+
         self._validate_content_block_limit()
-        
-        cache_point_block = {
-            ConverseAPIFields.CACHE_POINT: {
-                "type": cache_type
-            }
-        }
-        
+
+        cache_point_block = {ConverseAPIFields.CACHE_POINT: {"type": cache_type}}
+
         self._content_blocks.append(cache_point_block)
         self._cacheable_blocks.append(False)  # Cache points themselves are not cacheable
-        
-        self._logger.debug(f"Added cache point of type '{cache_type}' at position {len(self._content_blocks)}")
-        
+
+        self._logger.debug(
+            f"Added cache point of type '{cache_type}' at position {len(self._content_blocks)}"
+        )
+
         return self
 
     def build(self) -> Dict[str, Any]:
@@ -713,7 +716,9 @@ class ConverseMessageBuilder:
 
 
 # Factory Functions
-def create_message(role: RolesEnum, cache_config: Optional[CacheConfig] = None) -> ConverseMessageBuilder:
+def create_message(
+    role: RolesEnum, cache_config: Optional[CacheConfig] = None
+) -> ConverseMessageBuilder:
     """
     Factory function to create a new ConverseMessageBuilder instance.
 
@@ -750,7 +755,7 @@ def create_message(role: RolesEnum, cache_config: Optional[CacheConfig] = None) 
         ...     .add_image_bytes(bytes=image_data, format=ImageFormatEnum.JPEG)\\
         ...     .add_document_bytes(bytes=pdf_data, format=DocumentFormatEnum.PDF)\\
         ...     .build()
-        
+
         Message with caching:
         >>> from bestehorn_llmmanager.bedrock.models.cache_structures import CacheConfig
         >>> cache_config = CacheConfig(enabled=True)
@@ -779,7 +784,7 @@ def create_user_message(cache_config: Optional[CacheConfig] = None) -> ConverseM
         >>> message = create_user_message()\\
         ...     .add_text(text="What's the weather like?")\\
         ...     .build()
-        
+
         With caching:
         >>> from bestehorn_llmmanager.bedrock.models.cache_structures import CacheConfig
         >>> cache_config = CacheConfig(enabled=True)

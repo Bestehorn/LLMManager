@@ -10,6 +10,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional, Union, cast
 
 from .bedrock.auth.auth_manager import AuthManager
+from .bedrock.cache import CachePointManager
 from .bedrock.exceptions.llm_manager_exceptions import (
     AuthenticationError,
     ConfigurationError,
@@ -18,6 +19,7 @@ from .bedrock.exceptions.llm_manager_exceptions import (
     RetryExhaustedError,
 )
 from .bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
+from .bedrock.models.cache_structures import CacheConfig
 from .bedrock.models.llm_manager_constants import (
     ContentLimits,
     ConverseAPIFields,
@@ -30,8 +32,6 @@ from .bedrock.models.llm_manager_structures import (
     ResponseValidationConfig,
     RetryConfig,
 )
-from .bedrock.models.cache_structures import CacheConfig
-from .bedrock.cache import CachePointManager
 from .bedrock.models.parallel_structures import BedrockConverseRequest
 from .bedrock.retry.retry_manager import RetryManager
 from .bedrock.streaming.streaming_retry_manager import StreamingRetryManager
@@ -121,7 +121,7 @@ class LLMManager:
         self._streaming_retry_manager = StreamingRetryManager(
             retry_config=retry_config or RetryConfig()
         )
-        
+
         # Initialize cache manager if caching is enabled
         self._cache_config = cache_config or CacheConfig(enabled=False)
         self._cache_point_manager = None
@@ -666,14 +666,14 @@ class LLMManager:
             # Note: Model and region will be determined during retry execution
             # For now, we inject cache points without model/region validation
             processed_messages = self._cache_point_manager.inject_cache_points(messages)
-            
+
             # Validate cache configuration
-            validation_warnings = self._cache_point_manager.validate_cache_configuration({
-                ConverseAPIFields.MESSAGES: processed_messages
-            })
+            validation_warnings = self._cache_point_manager.validate_cache_configuration(
+                {ConverseAPIFields.MESSAGES: processed_messages}
+            )
             for warning in validation_warnings:
                 self._logger.warning(f"Cache configuration warning: {warning}")
-        
+
         # Explicitly type the request args dictionary to avoid type inference issues
         request_args: Dict[str, Any] = {ConverseAPIFields.MESSAGES: processed_messages}
 

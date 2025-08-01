@@ -4,7 +4,9 @@ Tests for BedrockResponse and StreamingResponse classes.
 
 import json
 from datetime import datetime
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
+
+import pytest
 
 from bestehorn_llmmanager.bedrock.models.bedrock_response import (
     BedrockResponse,
@@ -85,8 +87,8 @@ class TestBedrockResponse:
                 "inputTokens": 100,
                 "outputTokens": 50,
                 "totalTokens": 150,
-                "cacheReadInputTokensCount": 10,
-                "cacheWriteInputTokensCount": 5,
+                "cacheReadInputTokens": 10,
+                "cacheWriteInputTokens": 5,
             }
         }
         response = BedrockResponse(success=True, response_data=response_data)
@@ -333,9 +335,7 @@ class TestBedrockResponse:
     def test_get_cached_tokens_info(self):
         """Test get_cached_tokens_info method."""
         # Test with cache info
-        response_data = {
-            "usage": {"cacheReadInputTokensCount": 100, "cacheWriteInputTokensCount": 50}
-        }
+        response_data = {"usage": {"cacheReadInputTokens": 100, "cacheWriteInputTokens": 50}}
         response = BedrockResponse(success=True, response_data=response_data)
         cache_info = response.get_cached_tokens_info()
 
@@ -350,7 +350,14 @@ class TestBedrockResponse:
         # Test with no cache activity
         response_data = {"usage": {}}
         response = BedrockResponse(success=True, response_data=response_data)
-        assert response.get_cached_tokens_info() is None
+        cache_info = response.get_cached_tokens_info()
+        expected_no_cache = {
+            "cache_read_tokens": 0,
+            "cache_write_tokens": 0,
+            "cache_hit": False,
+            "cache_write": False,
+        }
+        assert cache_info == expected_no_cache
 
         # Test with no usage data
         response = BedrockResponse(success=True, response_data=None)
@@ -816,3 +823,373 @@ class TestStreamingResponse:
         assert metrics["time_to_first_token_ms"] == 1000.0
         assert "time_to_last_token_ms" not in metrics
         assert "token_generation_duration_ms" not in metrics
+
+
+class TestBedrockResponseCacheEfficiency:
+    """Test BedrockResponse cache efficiency functionality."""
+
+    def test_get_cache_efficiency_successful(self):
+        """Test get_cache_efficiency with cache data."""
+        response_data = {
+            "usage": {
+                "inputTokens": 1000,
+                "outputTokens": 200,
+                "totalTokens": 1200,
+                "cacheReadInputTokens": 500,
+                "cacheWriteInputTokens": 100,
+            }
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+
+        cache_efficiency = response.get_cache_efficiency()
+
+        assert cache_efficiency is not None
+        assert cache_efficiency["cache_hit_ratio"] == 0.5  # 500/1000
+        assert cache_efficiency["cache_savings_tokens"] == 500
+        assert (
+            cache_efficiency["cache_savings_cost"] == "$0.01"
+        )  # (500/1000) * 0.03 = 0.015 rounds to $0.01
+        assert cache_efficiency["latency_reduction_ms"] == 5  # 500/100
+        assert cache_efficiency["cache_write_tokens"] == 100
+        assert cache_efficiency["cache_read_tokens"] == 500
+        assert cache_efficiency["cache_effectiveness"] == 50.0  # 0.5 * 100
+
+    def test_get_cache_efficiency_no_cache_info(self):
+        """Test get_cache_efficiency with no cache info."""
+        response = BedrockResponse(success=True, response_data=None)
+        assert response.get_cache_efficiency() is None
+
+    def test_get_cache_efficiency_no_usage(self):
+        """Test get_cache_efficiency with no usage data."""
+        response_data = {"usage": {"cacheReadInputTokens": 100}}
+        response = BedrockResponse(success=True, response_data=response_data)
+
+        # This will have usage but input_tokens will be 0
+        cache_efficiency = response.get_cache_efficiency()
+        assert cache_efficiency is None  # Should return None for zero division case
+
+    def test_get_cache_efficiency_zero_input_tokens(self):
+        """Test get_cache_efficiency with zero input tokens."""
+        response_data = {
+            "usage": {
+                "inputTokens": 0,
+                "cacheReadInputTokens": 100,
+                "cacheWriteInputTokens": 50,
+            }
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+
+        cache_efficiency = response.get_cache_efficiency()
+        assert cache_efficiency is None
+
+    def test_get_cache_efficiency_no_cache_activity(self):
+        """Test get_cache_efficiency with no cache activity."""
+        response_data = {
+            "usage": {
+                "inputTokens": 1000,
+                "outputTokens": 200,
+                "totalTokens": 1200,
+                "cacheReadInputTokens": 0,
+                "cacheWriteInputTokens": 0,
+            }
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+
+        cache_efficiency = response.get_cache_efficiency()
+
+        assert cache_efficiency is not None
+        assert cache_efficiency["cache_hit_ratio"] == 0.0
+        assert cache_efficiency["cache_savings_tokens"] == 0
+        assert cache_efficiency["cache_savings_cost"] == "$0.00"
+        assert cache_efficiency["latency_reduction_ms"] == 0
+        assert cache_efficiency["cache_effectiveness"] == 0.0
+
+
+class TestStreamingResponseIteratorProtocol:
+    """Test StreamingResponse iterator protocol and event processing."""
+
+    def test_iter_protocol(self):
+        """Test iterator protocol implementation."""
+        response = StreamingResponse(success=True)
+        assert iter(response) is response
+
+    def test_set_event_stream(self):
+        """Test _set_event_stream method."""
+        response = StreamingResponse(success=True)
+        mock_stream = Mock()
+        mock_stream.__iter__ = Mock(return_value=iter([]))
+
+        response._set_event_stream(mock_stream)
+        assert response._event_stream is mock_stream
+        assert response._stream_iterator is not None
+
+    def test_set_event_stream_none(self):
+        """Test _set_event_stream with None."""
+        response = StreamingResponse(success=True)
+        response._set_event_stream(None)
+        assert response._event_stream is None
+        assert response._stream_iterator is None
+
+    def test_set_retrying_iterator(self):
+        """Test _set_retrying_iterator method."""
+        response = StreamingResponse(success=True)
+        mock_iterator = Mock()
+        mock_iterator.__iter__ = Mock(return_value=iter([]))
+
+        response._set_retrying_iterator(mock_iterator)
+        assert response._retrying_iterator is mock_iterator
+        assert response._stream_iterator is not None
+
+    def test_next_stream_completed(self):
+        """Test __next__ when stream is already completed."""
+        response = StreamingResponse(success=True)
+        response._stream_completed = True
+
+        with pytest.raises(StopIteration):
+            next(response)
+
+    def test_next_no_stream_iterator(self):
+        """Test __next__ when no stream iterator is set."""
+        response = StreamingResponse(success=True)
+        response._stream_iterator = None
+
+        with pytest.raises(StopIteration):
+            next(response)
+
+        assert response._stream_completed is True
+
+    def test_next_normal_stop_iteration(self):
+        """Test __next__ when stream ends normally."""
+        response = StreamingResponse(success=True)
+        response._stream_iterator = iter([])
+
+        with pytest.raises(StopIteration):
+            next(response)
+
+        assert response._stream_completed is True
+
+    def test_next_with_exception(self):
+        """Test __next__ when an exception occurs during iteration."""
+        response = StreamingResponse(success=True)
+
+        def error_iterator():
+            raise RuntimeError("Stream error")
+            yield  # Never reached but makes it a generator
+
+        response._stream_iterator = error_iterator()
+
+        with pytest.raises(StopIteration):
+            next(response)
+
+        assert response._stream_completed is True
+        assert len(response.stream_errors) == 1
+        assert isinstance(response.stream_errors[0], RuntimeError)
+
+    @patch(
+        "bestehorn_llmmanager.bedrock.models.bedrock_response.StreamingResponse._process_streaming_event"
+    )
+    def test_next_with_content(self, mock_process_event):
+        """Test __next__ successfully returning content."""
+        mock_process_event.return_value = "Hello"
+
+        response = StreamingResponse(success=True)
+        mock_event = {"contentBlockDelta": {"delta": {"text": "Hello"}}}
+        response._stream_iterator = iter([mock_event])
+
+        content = next(response)
+        assert content == "Hello"
+        mock_process_event.assert_called_once_with(mock_event)
+
+    @patch(
+        "bestehorn_llmmanager.bedrock.models.bedrock_response.StreamingResponse._process_streaming_event"
+    )
+    def test_next_with_no_content_event(self, mock_process_event):
+        """Test __next__ with event that has no content."""
+        mock_process_event.side_effect = [None, "Hello"]  # First event has no content, second does
+
+        response = StreamingResponse(success=True)
+        mock_events = [
+            {"messageStart": {"role": "assistant"}},
+            {"contentBlockDelta": {"delta": {"text": "Hello"}}},
+        ]
+        response._stream_iterator = iter(mock_events)
+
+        content = next(response)
+        assert content == "Hello"
+        assert mock_process_event.call_count == 2
+
+    @patch("bestehorn_llmmanager.bedrock.streaming.event_handlers.StreamEventHandler")
+    def test_process_streaming_event(self, mock_handler_class):
+        """Test _process_streaming_event method."""
+        # Set up mocks
+        mock_handler = Mock()
+        mock_handler_instance = Mock()
+        mock_handler_instance.get_event_handler.return_value = mock_handler
+        mock_handler_class.return_value = mock_handler_instance
+
+        mock_handler.return_value = {"content": "processed"}
+
+        response = StreamingResponse(success=True)
+
+        # Mock the event type determination
+        with patch.object(response, "_determine_event_type") as mock_determine, patch.object(
+            response, "_update_from_streaming_event"
+        ) as mock_update:
+
+            mock_event_type = Mock()
+            mock_event_type.value = "contentBlockDelta"
+            mock_determine.return_value = mock_event_type
+            mock_update.return_value = "Hello"
+
+            event = {"contentBlockDelta": {"delta": {"text": "Hello"}}}
+            result = response._process_streaming_event(event)
+
+            assert result == "Hello"
+            mock_determine.assert_called_once_with(event)
+            mock_handler_instance.get_event_handler.assert_called_once_with(mock_event_type)
+            mock_update.assert_called_once_with(mock_event_type, {"content": "processed"})
+
+    def test_process_streaming_event_exception(self):
+        """Test _process_streaming_event with exception."""
+        response = StreamingResponse(success=True)
+
+        # Mock to raise an exception
+        with patch.object(response, "_determine_event_type", side_effect=ValueError("Bad event")):
+            event = {"invalid": "event"}
+            result = response._process_streaming_event(event)
+
+            assert result is None
+            assert len(response.stream_errors) == 1
+            assert isinstance(response.stream_errors[0], ValueError)
+
+    # Note: Complex streaming event processing methods are tested through integration
+    # tests rather than unit tests due to complex import dependencies
+
+    def test_finalize_streaming_basic(self):
+        """Test _finalize_streaming basic functionality."""
+        response = StreamingResponse(success=True)
+        start_time = datetime(2023, 1, 1, 12, 0, 0)
+        response._start_time = start_time
+
+        with patch(
+            "bestehorn_llmmanager.bedrock.models.bedrock_response.datetime"
+        ) as mock_datetime:
+            end_time = datetime(2023, 1, 1, 12, 0, 2)
+            mock_datetime.now.return_value = end_time
+
+            response._finalize_streaming()
+
+            assert response._stream_completed is True
+            assert response.total_duration_ms == 2000.0  # 2 seconds
+
+    def test_finalize_streaming_with_retrying_iterator(self):
+        """Test _finalize_streaming with retrying iterator."""
+        response = StreamingResponse(success=True)
+
+        mock_iterator = Mock()
+        mock_iterator.current_model = "claude-3"
+        mock_iterator.current_region = "us-east-1"
+        mock_iterator.get_timing_metrics.return_value = {"total_duration_ms": 3000.0}
+
+        response._retrying_iterator = mock_iterator
+
+        response._finalize_streaming()
+
+        assert response.model_used == "claude-3"
+        assert response.region_used == "us-east-1"
+        assert response.total_duration_ms == 3000.0
+
+    def test_finalize_streaming_success_determination(self):
+        """Test _finalize_streaming success determination logic."""
+        response = StreamingResponse(success=True)
+
+        # Test with content - should be successful
+        response.content_parts = ["Hello"]
+        response._finalize_streaming()
+        assert response.success is True
+
+        # Test with stop reason - should be successful
+        response = StreamingResponse(success=True)
+        response.stop_reason = "end_turn"
+        response._finalize_streaming()
+        assert response.success is True
+
+        # Test with unrecovered errors
+        response = StreamingResponse(success=True)
+        error = RuntimeError("Unrecovered error")
+        response.stream_errors = [error]
+        with patch.object(response, "_is_recovered_error", return_value=False):
+            response._finalize_streaming()
+            assert response.success is False
+
+        # Test with recovered errors
+        response = StreamingResponse(success=True)
+        error = RuntimeError("Recovered error")
+        response.stream_errors = [error]
+        response.content_parts = ["Content"]
+        with patch.object(response, "_is_recovered_error", return_value=True):
+            response._finalize_streaming()
+            assert response.success is True
+
+    def test_is_recovered_error_no_iterator(self):
+        """Test _is_recovered_error without retrying iterator."""
+        response = StreamingResponse(success=True)
+        error = RuntimeError("Test error")
+
+        result = response._is_recovered_error(error)
+        assert result is False
+
+    def test_is_recovered_error_with_iterator(self):
+        """Test _is_recovered_error with retrying iterator."""
+        response = StreamingResponse(success=True)
+        error = RuntimeError("Test error")
+
+        mock_exception = Mock()
+        mock_exception.recovered = True
+        mock_exception.error = error
+
+        mock_iterator = Mock()
+        mock_iterator.mid_stream_exceptions = [mock_exception]
+        response._retrying_iterator = mock_iterator
+
+        result = response._is_recovered_error(error)
+        assert result is True
+
+    def test_get_mid_stream_exceptions_with_iterator(self):
+        """Test get_mid_stream_exceptions with retrying iterator."""
+        response = StreamingResponse(success=True)
+
+        mock_exception = Mock()
+        mock_exception.error = RuntimeError("Test error")
+        mock_exception.position = 100
+        mock_exception.model = "claude-3"
+        mock_exception.region = "us-east-1"
+        mock_exception.timestamp = datetime(2023, 1, 1, 12, 0, 0)
+        mock_exception.recovered = True
+
+        mock_iterator = Mock()
+        mock_iterator.mid_stream_exceptions = [mock_exception]
+        response._retrying_iterator = mock_iterator
+
+        exceptions = response.get_mid_stream_exceptions()
+
+        assert len(exceptions) == 1
+        exc = exceptions[0]
+        assert exc["error_type"] == "RuntimeError"
+        assert exc["error_message"] == "Test error"
+        assert exc["position"] == 100
+        assert exc["model"] == "claude-3"
+        assert exc["region"] == "us-east-1"
+        assert exc["timestamp"] == "2023-01-01T12:00:00"
+        assert exc["recovered"] is True
+
+    def test_get_target_switches_with_iterator(self):
+        """Test get_target_switches with retrying iterator."""
+        response = StreamingResponse(success=True)
+
+        mock_iterator = Mock()
+        mock_iterator.target_switches = 3
+        response._retrying_iterator = mock_iterator
+
+        switches = response.get_target_switches()
+        assert switches == 3
