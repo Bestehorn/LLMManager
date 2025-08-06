@@ -140,7 +140,7 @@ class CachePointManager:
                 if remaining_tokens < self._config.cache_point_threshold:
                     optimal_position = i + 1
                     break
-                
+
                 # If we're at 80% of content, place cache point
                 elif (estimated_tokens + remaining_tokens) > 0:
                     ratio = estimated_tokens / (estimated_tokens + remaining_tokens)
