@@ -100,10 +100,8 @@ class CachePointManager:
             modified_content = self._inject_conservative(content_blocks)
         elif self._config.strategy == CacheStrategy.AGGRESSIVE:
             modified_content = self._inject_aggressive(content_blocks)
-        elif self._config.strategy == CacheStrategy.CUSTOM:
+        else:  # CacheStrategy.CUSTOM
             modified_content = self._inject_custom(content_blocks)
-        else:
-            modified_content = content_blocks
 
         # Create a new message with modified content
         return {**message, ConverseAPIFields.CONTENT: modified_content}
@@ -144,11 +142,11 @@ class CachePointManager:
                     break
                 
                 # If we're at 80% of content, place cache point
-                if (estimated_tokens + remaining_tokens) > 0:
+                elif (estimated_tokens + remaining_tokens) > 0:
                     ratio = estimated_tokens / (estimated_tokens + remaining_tokens)
                     if ratio > 0.8:
                         optimal_position = i + 1
-                        break  # type: ignore[unreachable]
+                        break
 
         # If we found a good position, inject cache point
         if optimal_position > 0 and optimal_position < len(content_blocks):
