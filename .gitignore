@@ -129,6 +129,7 @@ docs/CRIS.json
 docs/FoundationalModels.json
 docs/UnifiedModels.json
 docs/demo_models.json
+docs/bestehorn-llmmanager-forLLMConsumption.md
 src/docs/CRIS.json
 src/docs/UnifiedModels.json
 src/docs/FoundationalModels.json
