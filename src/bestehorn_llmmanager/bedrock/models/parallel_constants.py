@@ -46,6 +46,7 @@ class ParallelConfig:
     # Default values
     DEFAULT_MAX_CONCURRENT_REQUESTS: Final[int] = 5
     DEFAULT_REQUEST_TIMEOUT_SECONDS: Final[int] = 300
+    # DEPRECATED: Use auto-calculation based on available regions and max_concurrent_requests
     DEFAULT_TARGET_REGIONS_PER_REQUEST: Final[int] = 5
     DEFAULT_ENABLE_REQUEST_PRIORITIZATION: Final[bool] = True
 
@@ -102,6 +103,20 @@ class ParallelLogMessages:
     )
     EXECUTION_PERFORMANCE: Final[str] = (
         "Execution performance - Avg: {avg_ms}ms, Min: {min_ms}ms, Max: {max_ms}ms"
+    )
+
+    # Auto-adjustment messages
+    TARGET_REGIONS_AUTO_ADJUSTED: Final[str] = (
+        "target_regions_per_request not specified, auto-adjusted to {adjusted_value} "
+        "(based on max_concurrent_requests={max_concurrent} and available_regions={available_regions})"
+    )
+    TARGET_REGIONS_CAPPED_BY_AVAILABILITY: Final[str] = (
+        "target_regions_per_request auto-adjusted to {adjusted_value} due to limited region availability "
+        "(available_regions={available_regions})"
+    )
+    TARGET_REGIONS_CAPPED_BY_CONCURRENCY: Final[str] = (
+        "target_regions_per_request auto-adjusted to {adjusted_value} based on concurrency limit "
+        "(max_concurrent_requests={max_concurrent})"
     )
 
 

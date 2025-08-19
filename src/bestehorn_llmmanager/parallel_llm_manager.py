@@ -132,6 +132,52 @@ class ParallelLLMManager:
             )
         )
 
+    def _calculate_optimal_target_regions(self) -> int:
+        """
+        Calculate optimal target_regions_per_request based on configuration and available regions.
+
+        Returns:
+            Optimal number of target regions per request
+        """
+        available_regions_count = len(self._regions)
+        max_concurrent = self._parallel_config.max_concurrent_requests
+
+        # Use the smaller of max_concurrent_requests and available regions
+        optimal_target = min(max_concurrent, available_regions_count)
+
+        # Ensure at least 1 region is used
+        return max(1, optimal_target)
+
+    def _log_target_regions_adjustment(self, adjusted_value: int) -> None:
+        """
+        Log warning message when target_regions_per_request is auto-adjusted.
+
+        Args:
+            adjusted_value: The auto-calculated target regions value
+        """
+        available_regions_count = len(self._regions)
+        max_concurrent = self._parallel_config.max_concurrent_requests
+
+        if adjusted_value == available_regions_count and available_regions_count < max_concurrent:
+            # Capped by region availability
+            message = ParallelLogMessages.TARGET_REGIONS_CAPPED_BY_AVAILABILITY.format(
+                adjusted_value=adjusted_value, available_regions=available_regions_count
+            )
+        elif adjusted_value == max_concurrent and max_concurrent < available_regions_count:
+            # Capped by concurrency limit
+            message = ParallelLogMessages.TARGET_REGIONS_CAPPED_BY_CONCURRENCY.format(
+                adjusted_value=adjusted_value, max_concurrent=max_concurrent
+            )
+        else:
+            # General auto-adjustment message
+            message = ParallelLogMessages.TARGET_REGIONS_AUTO_ADJUSTED.format(
+                adjusted_value=adjusted_value,
+                max_concurrent=max_concurrent,
+                available_regions=available_regions_count,
+            )
+
+        self._logger.warning(message)
+
     def _validate_initialization_params(self, models: List[str], regions: List[str]) -> None:
         """
         Validate initialization parameters.
@@ -165,7 +211,7 @@ class ParallelLLMManager:
     def converse_parallel(
         self,
         requests: List[BedrockConverseRequest],
-        target_regions_per_request: int = ParallelConfig.DEFAULT_TARGET_REGIONS_PER_REQUEST,
+        target_regions_per_request: Optional[int] = None,
         response_validation_config: Optional[ResponseValidationConfig] = None,
     ) -> ParallelResponse:
         """
@@ -189,11 +235,17 @@ class ParallelLLMManager:
             # Step 1: Validate requests
             self._request_validator.validate_batch_requests(requests=requests)
 
+            # Step 1.5: Auto-calculate target_regions_per_request if not provided
+            calculated_target_regions = target_regions_per_request
+            if calculated_target_regions is None:
+                calculated_target_regions = self._calculate_optimal_target_regions()
+                self._log_target_regions_adjustment(calculated_target_regions)
+
             # Step 2: Distribute requests across regions
             assignments = self._region_distributor.distribute_requests(
                 requests=requests,
                 available_regions=self._regions,
-                target_regions_per_request=target_regions_per_request,
+                target_regions_per_request=calculated_target_regions,
             )
 
             # Step 3: Create request map for execution

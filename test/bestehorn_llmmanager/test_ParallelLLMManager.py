@@ -232,3 +232,221 @@ class TestParallelLLMManager:
             assert "regions=3" in repr_str
             assert "max_concurrent=5" in repr_str  # default value
             assert "strategy=round_robin" in repr_str  # default value
+
+    def test_auto_calculate_target_regions_with_more_regions_than_concurrent(self) -> None:
+        """Test auto-calculation when available regions > max_concurrent_requests."""
+        models = ["claude-3-haiku"]
+        regions = [
+            "us-east-1",
+            "us-west-2",
+            "eu-west-1",
+            "ap-southeast-1",
+            "ca-central-1",
+        ]  # 5 regions
+
+        custom_config = ParallelProcessingConfig(max_concurrent_requests=2)  # 2 < 5 regions
+
+        with patch("bestehorn_llmmanager.parallel_llm_manager.LLMManager"):
+            parallel_manager = ParallelLLMManager(
+                models=models, regions=regions, parallel_config=custom_config
+            )
+
+            # Test the private method directly
+            optimal_target = parallel_manager._calculate_optimal_target_regions()
+
+            # Should use max_concurrent_requests (2) since it's smaller than available regions (5)
+            assert optimal_target == 2
+
+    def test_auto_calculate_target_regions_with_fewer_regions_than_concurrent(self) -> None:
+        """Test auto-calculation when available regions < max_concurrent_requests."""
+        models = ["claude-3-haiku"]
+        regions = ["us-east-1", "us-west-2"]  # 2 regions
+
+        custom_config = ParallelProcessingConfig(max_concurrent_requests=5)  # 5 > 2 regions
+
+        with patch("bestehorn_llmmanager.parallel_llm_manager.LLMManager"):
+            parallel_manager = ParallelLLMManager(
+                models=models, regions=regions, parallel_config=custom_config
+            )
+
+            # Test the private method directly
+            optimal_target = parallel_manager._calculate_optimal_target_regions()
+
+            # Should use available regions (2) since it's smaller than max_concurrent_requests (5)
+            assert optimal_target == 2
+
+    def test_auto_calculate_target_regions_equal_values(self) -> None:
+        """Test auto-calculation when available regions == max_concurrent_requests."""
+        models = ["claude-3-haiku"]
+        regions = ["us-east-1", "us-west-2", "eu-west-1"]  # 3 regions
+
+        custom_config = ParallelProcessingConfig(max_concurrent_requests=3)  # 3 == 3 regions
+
+        with patch("bestehorn_llmmanager.parallel_llm_manager.LLMManager"):
+            parallel_manager = ParallelLLMManager(
+                models=models, regions=regions, parallel_config=custom_config
+            )
+
+            # Test the private method directly
+            optimal_target = parallel_manager._calculate_optimal_target_regions()
+
+            # Should use either value (both are 3)
+            assert optimal_target == 3
+
+    def test_converse_parallel_auto_calculation_triggers_warning(self) -> None:
+        """Test that auto-calculation triggers appropriate warning messages."""
+        models = ["claude-3-haiku"]
+        regions = ["us-east-1", "us-west-2"]  # 2 regions
+
+        custom_config = ParallelProcessingConfig(max_concurrent_requests=5)  # 5 > 2 regions
+
+        with patch("bestehorn_llmmanager.parallel_llm_manager.LLMManager"):
+            parallel_manager = ParallelLLMManager(
+                models=models, regions=regions, parallel_config=custom_config
+            )
+
+            # Mock successful responses
+            mock_responses = {
+                "req_test1_123456": BedrockResponse(success=True),
+            }
+
+            # Create test request
+            requests = [
+                BedrockConverseRequest(
+                    messages=[{"role": "user", "content": [{"text": "Hello"}]}],
+                    request_id="req_test1_123456",
+                ),
+            ]
+
+            with patch.object(parallel_manager._request_validator, "validate_batch_requests"):
+                with patch.object(
+                    parallel_manager._region_distributor, "distribute_requests"
+                ) as mock_distribute:
+                    with patch.object(
+                        parallel_manager._parallel_executor, "execute_requests_parallel"
+                    ) as mock_execute:
+                        with patch.object(parallel_manager._logger, "warning") as mock_warning:
+                            mock_distribute.return_value = [
+                                Mock(request_id="req_test1_123456", assigned_regions=["us-east-1"]),
+                            ]
+                            mock_execute.return_value = mock_responses
+
+                            # Call without target_regions_per_request (should trigger auto-calculation)
+                            parallel_manager.converse_parallel(requests)
+
+                            # Verify warning was logged
+                            mock_warning.assert_called_once()
+                            warning_message = mock_warning.call_args[0][0]
+                            assert "auto-adjusted to 2" in warning_message
+                            assert "available_regions=2" in warning_message
+
+                            # Verify distribute_requests was called with auto-calculated value (2)
+                            mock_distribute.assert_called_once()
+                            call_args = mock_distribute.call_args
+                            assert call_args[1]["target_regions_per_request"] == 2
+
+    def test_converse_parallel_explicit_target_regions_no_warning(self) -> None:
+        """Test that explicitly providing target_regions_per_request doesn't trigger auto-calculation."""
+        models = ["claude-3-haiku"]
+        regions = ["us-east-1", "us-west-2"]  # 2 regions
+
+        with patch("bestehorn_llmmanager.parallel_llm_manager.LLMManager"):
+            parallel_manager = ParallelLLMManager(models=models, regions=regions)
+
+            # Mock successful responses
+            mock_responses = {
+                "req_test1_123456": BedrockResponse(success=True),
+            }
+
+            # Create test request
+            requests = [
+                BedrockConverseRequest(
+                    messages=[{"role": "user", "content": [{"text": "Hello"}]}],
+                    request_id="req_test1_123456",
+                ),
+            ]
+
+            with patch.object(parallel_manager._request_validator, "validate_batch_requests"):
+                with patch.object(
+                    parallel_manager._region_distributor, "distribute_requests"
+                ) as mock_distribute:
+                    with patch.object(
+                        parallel_manager._parallel_executor, "execute_requests_parallel"
+                    ) as mock_execute:
+                        with patch.object(parallel_manager._logger, "warning") as mock_warning:
+                            mock_distribute.return_value = [
+                                Mock(request_id="req_test1_123456", assigned_regions=["us-east-1"]),
+                            ]
+                            mock_execute.return_value = mock_responses
+
+                            # Call WITH explicit target_regions_per_request (should NOT trigger auto-calculation)
+                            parallel_manager.converse_parallel(
+                                requests, target_regions_per_request=1
+                            )
+
+                            # Verify NO warning was logged
+                            mock_warning.assert_not_called()
+
+                            # Verify distribute_requests was called with explicit value (1)
+                            mock_distribute.assert_called_once()
+                            call_args = mock_distribute.call_args
+                            assert call_args[1]["target_regions_per_request"] == 1
+
+    def test_log_target_regions_adjustment_messages(self) -> None:
+        """Test different warning messages for different adjustment scenarios."""
+        models = ["claude-3-haiku"]
+
+        # Test case 1: Adjustment capped by region availability
+        regions_limited = ["us-east-1", "us-west-2"]  # 2 regions
+        config_high_concurrent = ParallelProcessingConfig(max_concurrent_requests=5)  # 5 > 2
+
+        with patch("bestehorn_llmmanager.parallel_llm_manager.LLMManager"):
+            parallel_manager = ParallelLLMManager(
+                models=models, regions=regions_limited, parallel_config=config_high_concurrent
+            )
+
+            with patch.object(parallel_manager._logger, "warning") as mock_warning:
+                parallel_manager._log_target_regions_adjustment(2)
+
+                warning_message = mock_warning.call_args[0][0]
+                assert "due to limited region availability" in warning_message
+                assert "available_regions=2" in warning_message
+
+        # Test case 2: Adjustment capped by concurrency limit
+        regions_many = [
+            "us-east-1",
+            "us-west-2",
+            "eu-west-1",
+            "ap-southeast-1",
+            "ca-central-1",
+        ]  # 5 regions
+        config_low_concurrent = ParallelProcessingConfig(max_concurrent_requests=2)  # 2 < 5
+
+        with patch("bestehorn_llmmanager.parallel_llm_manager.LLMManager"):
+            parallel_manager = ParallelLLMManager(
+                models=models, regions=regions_many, parallel_config=config_low_concurrent
+            )
+
+            with patch.object(parallel_manager._logger, "warning") as mock_warning:
+                parallel_manager._log_target_regions_adjustment(2)
+
+                warning_message = mock_warning.call_args[0][0]
+                assert "based on concurrency limit" in warning_message
+                assert "max_concurrent_requests=2" in warning_message
+
+        # Test case 3: General auto-adjustment message (equal values)
+        regions_equal = ["us-east-1", "us-west-2", "eu-west-1"]  # 3 regions
+        config_equal = ParallelProcessingConfig(max_concurrent_requests=3)  # 3 == 3
+
+        with patch("bestehorn_llmmanager.parallel_llm_manager.LLMManager"):
+            parallel_manager = ParallelLLMManager(
+                models=models, regions=regions_equal, parallel_config=config_equal
+            )
+
+            with patch.object(parallel_manager._logger, "warning") as mock_warning:
+                parallel_manager._log_target_regions_adjustment(3)
+
+                warning_message = mock_warning.call_args[0][0]
+                assert "not specified, auto-adjusted to 3" in warning_message
+                assert "max_concurrent_requests=3" in warning_message
+                assert "available_regions=3" in warning_message
