@@ -219,6 +219,12 @@ module = "bestehorn_llmmanager.llm_manager"
 warn_unreachable = false
 
 [[tool.mypy.overrides]]
+module = "bestehorn_llmmanager.bedrock.parsers.cris_parser"
+# Suppress unreachable code warnings for defensive programming
+# Multiple early return guards are used for robustness in HTML parsing
+warn_unreachable = false
+
+[[tool.mypy.overrides]]
 module = "bestehorn_llmmanager._version"
 # Ignore generated version file
 ignore_errors = true

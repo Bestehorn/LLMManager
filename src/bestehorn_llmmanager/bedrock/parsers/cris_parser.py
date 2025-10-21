@@ -398,63 +398,6 @@ class CRISHTMLParser(BaseCRISParser):
 
         return inference_profiles
 
-    def _select_primary_variant(self, variants: List[CRISRegionalVariant]) -> CRISRegionalVariant:
-        """
-        Select the primary variant from a list of regional variants.
-
-        Preference order: US > EU > APAC > first available
-
-        Args:
-            variants: List of regional variants for a model
-
-        Returns:
-            The selected primary variant
-        """
-        if not variants:
-            raise ValueError("Cannot select primary variant from empty list")
-
-        # Define preference order
-        preference_order = [
-            CRISRegionPrefixes.US_IDENTIFIER,
-            CRISRegionPrefixes.EU_IDENTIFIER,
-            CRISRegionPrefixes.APAC_IDENTIFIER,
-        ]
-
-        # Try to find variant in preference order
-        for preferred_prefix in preference_order:
-            for variant in variants:
-                if variant.region_prefix == preferred_prefix:
-                    return variant
-
-        # If no preferred variant found, return the first one
-        return variants[0]
-
-    def _merge_region_mappings(self, variants: List[CRISRegionalVariant]) -> Dict[str, List[str]]:
-        """
-        Merge region mappings from all variants into a comprehensive mapping.
-
-        Args:
-            variants: List of regional variants to merge
-
-        Returns:
-            Dictionary with merged region mappings from all variants
-        """
-        merged_mappings: Dict[str, List[str]] = {}
-
-        for variant in variants:
-            for source_region, destination_regions in variant.region_mappings.items():
-                if source_region in merged_mappings:
-                    # Merge destination regions, avoiding duplicates
-                    existing_destinations = set(merged_mappings[source_region])
-                    new_destinations = set(destination_regions)
-                    merged_mappings[source_region] = sorted(
-                        list(existing_destinations | new_destinations)
-                    )
-                else:
-                    merged_mappings[source_region] = destination_regions.copy()
-
-        return merged_mappings
-
     def _extract_clean_model_name(self, section: Tag) -> Optional[str]:
         """
         Extract the clean model name from a section header.
@@ -553,11 +496,10 @@ class CRISHTMLParser(BaseCRISParser):
         if not table or not isinstance(table, Tag):
             # Try looking in nested table-contents div
             table_contents = table_container.find(class_="table-contents")
-            if table_contents and isinstance(table_contents, Tag):
-                table = table_contents.find("table")
-                if not table or not isinstance(table, Tag):
-                    return region_mappings
-            else:
+            if not table_contents or not isinstance(table_contents, Tag):
+                return region_mappings
+            table = table_contents.find("table")
+            if not table or not isinstance(table, Tag):
                 return region_mappings
 
         # Find table rows
