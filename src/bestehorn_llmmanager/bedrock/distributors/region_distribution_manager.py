@@ -5,7 +5,7 @@ Handles intelligent assignment of requests to regions for optimal parallel execu
 
 import logging
 import random
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from typing_extensions import assert_never
 
@@ -341,6 +341,63 @@ class RegionDistributionManager:
         self._region_assignment_counter.clear()
         self._last_assigned_region_index = 0
         self._logger.debug("Region load tracking reset")
+
+    def redistribute_request(
+        self,
+        request: BedrockConverseRequest,
+        available_regions: List[str],
+        exclude_regions: Optional[List[str]] = None,
+        target_regions_per_request: int = 1,
+    ) -> RegionAssignment:
+        """
+        Redistribute a failed request to different regions, excluding previously failed ones.
+
+        This method is used for retry scenarios where we want to avoid regions that
+        have previously failed for this request.
+
+        Args:
+            request: Request to redistribute
+            available_regions: All available regions
+            exclude_regions: Regions to avoid (previously failed)
+            target_regions_per_request: Number of regions to assign
+
+        Returns:
+            New RegionAssignment with different regions
+
+        Raises:
+            RegionDistributionError: If no suitable regions available
+        """
+        if exclude_regions is None:
+            exclude_regions = []
+
+        # Filter out excluded regions
+        eligible_regions = [r for r in available_regions if r not in exclude_regions]
+
+        if not eligible_regions:
+            raise RegionDistributionError(
+                message=f"No eligible regions available for retry after excluding {len(exclude_regions)} regions",
+                requested_regions=target_regions_per_request,
+                available_regions=0,
+            )
+
+        if target_regions_per_request > len(eligible_regions):
+            self._logger.warning(
+                f"Requested {target_regions_per_request} regions but only {len(eligible_regions)} available after exclusions"
+            )
+            target_regions_per_request = len(eligible_regions)
+
+        # Assign regions using current strategy, but from eligible regions only
+        assigned_regions = self._assign_regions_for_request(
+            request=request,
+            available_regions=eligible_regions,
+            target_regions_per_request=target_regions_per_request,
+        )
+
+        return RegionAssignment(
+            request_id=request.request_id or "unknown",
+            assigned_regions=assigned_regions,
+            priority=0,
+        )
 
     def get_load_balancing_strategy(self) -> LoadBalancingStrategy:
         """

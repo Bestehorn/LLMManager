@@ -104,6 +104,7 @@ class ParallelLLMManager:
         # Store configuration
         self._models = models.copy()
         self._regions = regions.copy()
+        self._retry_config = retry_config
         self._parallel_config = parallel_config or ParallelProcessingConfig()
 
         # Initialize core LLMManager for single request execution
@@ -253,13 +254,15 @@ class ParallelLLMManager:
                 request.request_id: request for request in requests if request.request_id
             }
 
-            # Step 4: Execute requests in parallel
+            # Step 4: Execute requests in parallel with retry support
             execution_responses = self._parallel_executor.execute_requests_parallel(
                 assignments=assignments,
                 request_map=request_map,
                 execute_single_request_func=self._create_single_request_executor(
                     response_validation_config=response_validation_config
                 ),
+                retry_config=self._retry_config,
+                available_regions=self._regions,
             )
 
             # Step 5: Calculate execution statistics
@@ -270,11 +273,12 @@ class ParallelLLMManager:
                 total_duration_ms=total_duration,
             )
 
-            # Step 6: Create aggregated response
+            # Step 6: Create aggregated response with original requests
             parallel_response = self._create_parallel_response(
                 responses=execution_responses,
                 execution_stats=execution_stats,
                 total_duration_ms=total_duration,
+                original_requests=request_map,
             )
 
             # Step 7: Handle failure strategies
@@ -371,22 +375,40 @@ class ParallelLLMManager:
         responses: Dict[str, "BedrockResponse"],
         execution_stats: ParallelExecutionStats,
         total_duration_ms: float,
+        original_requests: Dict[str, BedrockConverseRequest],
     ) -> ParallelResponse:
         """
-        Create aggregated parallel response.
+        Create aggregated parallel response with categorized request IDs.
 
         Args:
             responses: Dictionary of individual responses
             execution_stats: Execution statistics
             total_duration_ms: Total execution duration
+            original_requests: Dictionary of original requests for retry support
 
         Returns:
-            ParallelResponse object
+            ParallelResponse object with categorized request IDs
         """
         successful_responses = {
             req_id: response for req_id, response in responses.items() if response.success
         }
         failed_requests = [req_id for req_id, response in responses.items() if not response.success]
+
+        # Categorize request IDs by outcome
+        successful_request_ids = list(successful_responses.keys())
+        failed_request_ids = []
+        timed_out_request_ids = []
+
+        for req_id, response in responses.items():
+            if not response.success:
+                # Check if this is a timeout by examining warnings
+                is_timeout = any(
+                    "timed out" in warning.lower() for warning in response.get_warnings()
+                )
+                if is_timeout:
+                    timed_out_request_ids.append(req_id)
+                else:
+                    failed_request_ids.append(req_id)
 
         # Collect warnings from all responses
         all_warnings = []
@@ -416,6 +438,10 @@ class ParallelLLMManager:
             parallel_execution_stats=execution_stats,
             warnings=all_warnings,
             failed_requests=failed_requests,
+            successful_request_ids=successful_request_ids,
+            failed_request_ids=failed_request_ids,
+            timed_out_request_ids=timed_out_request_ids,
+            original_requests=original_requests,
         )
 
     def _handle_failure_strategy(self, parallel_response: ParallelResponse) -> None:
@@ -452,6 +478,265 @@ class ParallelLLMManager:
                         failed_requests=parallel_response.failed_requests,
                         total_requests=len(parallel_response.request_responses),
                     )
+
+    def retry_failed_requests(
+        self,
+        previous_response: ParallelResponse,
+        filter_func: Optional[Callable[[str, BedrockResponse], bool]] = None,
+        target_regions_per_request: Optional[int] = None,
+        response_validation_config: Optional[ResponseValidationConfig] = None,
+    ) -> ParallelResponse:
+        """
+        Retry failed requests from a previous parallel execution.
+
+        This method allows selective retry of failed requests with optional filtering.
+        The retry results are merged with previous successful results to create a
+        comprehensive response.
+
+        Args:
+            previous_response: Previous ParallelResponse containing failed requests
+            filter_func: Optional function to filter which failed requests to retry.
+                        Signature: func(request_id: str, response: BedrockResponse) -> bool
+                        Return True to retry the request, False to skip it.
+            target_regions_per_request: Target number of regions for retry attempts
+            response_validation_config: Optional validation configuration for responses
+
+        Returns:
+            ParallelResponse with merged results (previous successful + retry results)
+
+        Raises:
+            ParallelProcessingError: If retry execution fails
+            ValueError: If previous_response has no failed requests to retry
+
+        Example:
+            >>> # Retry only throttled requests
+            >>> def retry_throttled(req_id, response):
+            ...     return any("throttl" in w.lower() for w in response.get_warnings())
+            >>> retry_response = manager.retry_failed_requests(
+            ...     previous_response=initial_response,
+            ...     filter_func=retry_throttled
+            ... )
+        """
+        # Validate that there are requests to retry
+        if not previous_response.failed_request_ids and not previous_response.timed_out_request_ids:
+            raise ValueError("No failed or timed-out requests to retry in previous response")
+
+        # Build list of requests to retry
+        retry_requests = self._build_retry_requests(
+            previous_response=previous_response,
+            filter_func=filter_func,
+        )
+
+        if not retry_requests:
+            self._logger.warning("No requests selected for retry after applying filter")
+            return previous_response
+
+        self._logger.info(f"Retrying {len(retry_requests)} failed requests")
+
+        # Execute retry
+        retry_response = self.converse_parallel(
+            requests=retry_requests,
+            target_regions_per_request=target_regions_per_request,
+            response_validation_config=response_validation_config,
+        )
+
+        # Merge retry results with previous results
+        merged_response = self._merge_responses(
+            previous_response=previous_response,
+            retry_response=retry_response,
+        )
+
+        return merged_response
+
+    def _build_retry_requests(
+        self,
+        previous_response: ParallelResponse,
+        filter_func: Optional[Callable[[str, BedrockResponse], bool]] = None,
+    ) -> List[BedrockConverseRequest]:
+        """
+        Build list of requests to retry from previous response.
+
+        Args:
+            previous_response: Previous ParallelResponse with failed requests
+            filter_func: Optional filter function to select which requests to retry
+
+        Returns:
+            List of BedrockConverseRequest objects to retry
+        """
+        retry_requests = []
+
+        # Get all failed and timed-out request IDs
+        failed_ids = set(
+            previous_response.failed_request_ids + previous_response.timed_out_request_ids
+        )
+
+        for req_id in failed_ids:
+            # Get the original request
+            original_request = previous_response.original_requests.get(req_id)
+            if original_request is None:
+                self._logger.warning(f"Original request not found for {req_id}, skipping retry")
+                continue
+
+            # Get the failed response for filtering
+            failed_response = previous_response.request_responses.get(req_id)
+            if failed_response is None:
+                self._logger.warning(f"Response not found for {req_id}, skipping retry")
+                continue
+
+            # Apply filter if provided
+            if filter_func is not None:
+                try:
+                    should_retry = filter_func(req_id, failed_response)
+                    if not should_retry:
+                        self._logger.debug(f"Request {req_id} filtered out from retry")
+                        continue
+                except Exception as e:
+                    self._logger.error(f"Error in filter function for {req_id}: {e}, skipping")
+                    continue
+
+            # Reset retry count for clean retry attempt
+            original_request.retry_count = 0
+            original_request.failure_history.clear()
+
+            retry_requests.append(original_request)
+
+        return retry_requests
+
+    def _merge_responses(
+        self,
+        previous_response: ParallelResponse,
+        retry_response: ParallelResponse,
+    ) -> ParallelResponse:
+        """
+        Merge retry response with previous response.
+
+        Combines successful responses from both previous and retry executions,
+        keeping only the latest attempt for each request ID.
+
+        Args:
+            previous_response: Original ParallelResponse
+            retry_response: ParallelResponse from retry execution
+
+        Returns:
+            Merged ParallelResponse with combined results
+        """
+        # Start with previous successful responses
+        merged_responses = {}
+        for req_id, response in previous_response.request_responses.items():
+            if response.success:
+                merged_responses[req_id] = response
+
+        # Override/add responses from retry
+        for req_id, response in retry_response.request_responses.items():
+            merged_responses[req_id] = response
+
+        # Recalculate categorized lists
+        successful_request_ids = []
+        failed_request_ids = []
+        timed_out_request_ids = []
+
+        for req_id, response in merged_responses.items():
+            if response.success:
+                successful_request_ids.append(req_id)
+            else:
+                # Check if timeout
+                is_timeout = any(
+                    "timed out" in warning.lower() for warning in response.get_warnings()
+                )
+                if is_timeout:
+                    timed_out_request_ids.append(req_id)
+                else:
+                    failed_request_ids.append(req_id)
+
+        # Combine warnings
+        all_warnings = []
+        for response in merged_responses.values():
+            all_warnings.extend(response.get_warnings())
+
+        # Calculate merged statistics
+        total_duration_ms = previous_response.total_duration_ms + retry_response.total_duration_ms
+
+        # Recalculate execution stats
+        successful_count = len(successful_request_ids)
+        failed_count = len(failed_request_ids) + len(timed_out_request_ids)
+
+        # Calculate duration stats from merged responses
+        successful_durations = []
+        for response in merged_responses.values():
+            if response.success and response.total_duration_ms is not None:
+                successful_durations.append(response.total_duration_ms)
+
+        if successful_durations:
+            avg_duration = sum(successful_durations) / len(successful_durations)
+            max_duration = max(successful_durations)
+            min_duration = min(successful_durations)
+        else:
+            avg_duration = max_duration = min_duration = 0.0
+
+        # Merge region distributions
+        merged_region_dist: Dict[str, int] = {}
+        if previous_response.parallel_execution_stats:
+            merged_region_dist = (
+                previous_response.parallel_execution_stats.region_distribution.copy()
+            )
+        if retry_response.parallel_execution_stats:
+            for (
+                region,
+                count,
+            ) in retry_response.parallel_execution_stats.region_distribution.items():
+                merged_region_dist[region] = merged_region_dist.get(region, 0) + count
+
+        merged_stats = ParallelExecutionStats(
+            total_requests=len(merged_responses),
+            successful_requests=successful_count,
+            failed_requests_count=failed_count,
+            average_request_duration_ms=avg_duration,
+            max_request_duration_ms=max_duration,
+            min_request_duration_ms=min_duration,
+            concurrent_executions=max(
+                (
+                    previous_response.parallel_execution_stats.concurrent_executions
+                    if previous_response.parallel_execution_stats
+                    else 0
+                ),
+                (
+                    retry_response.parallel_execution_stats.concurrent_executions
+                    if retry_response.parallel_execution_stats
+                    else 0
+                ),
+            ),
+            region_distribution=merged_region_dist,
+        )
+
+        # Determine overall success
+        overall_success = successful_count > 0
+        if (
+            self._parallel_config.failure_handling_strategy
+            == FailureHandlingStrategy.STOP_ON_FIRST_FAILURE
+        ):
+            overall_success = failed_count == 0
+        elif (
+            self._parallel_config.failure_handling_strategy
+            == FailureHandlingStrategy.STOP_ON_THRESHOLD
+        ):
+            failure_rate = failed_count / len(merged_responses) if merged_responses else 0
+            overall_success = failure_rate <= self._parallel_config.failure_threshold
+
+        # Preserve original requests from previous response
+        original_requests = previous_response.original_requests.copy()
+
+        return ParallelResponse(
+            success=overall_success,
+            request_responses=merged_responses,
+            total_duration_ms=total_duration_ms,
+            parallel_execution_stats=merged_stats,
+            warnings=all_warnings,
+            failed_requests=failed_request_ids + timed_out_request_ids,
+            successful_request_ids=successful_request_ids,
+            failed_request_ids=failed_request_ids,
+            timed_out_request_ids=timed_out_request_ids,
+            original_requests=original_requests,
+        )
 
     def converse_with_request(self, request: BedrockConverseRequest) -> "BedrockResponse":
         """

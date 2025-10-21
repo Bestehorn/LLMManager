@@ -526,6 +526,24 @@ def converse_parallel(
 ) -> ParallelResponse
 ```
 
+**retry_failed_requests() - Retry failed requests from previous execution**
+```python
+def retry_failed_requests(
+    self,
+    previous_response: ParallelResponse,                  # Required: Previous ParallelResponse with failures
+    filter_func: Optional[Callable[[str, BedrockResponse], bool]] = None,  # Optional: Filter function
+    target_regions_per_request: Optional[int] = None,     # Optional: Target regions for retry
+    response_validation_config: Optional[ResponseValidationConfig] = None  # Optional: Response validation
+) -> ParallelResponse
+```
+
+The `retry_failed_requests()` method enables selective retry of failed requests from a previous parallel execution. Key features:
+
+- **Selective retry**: Optional filter function to choose which failures to retry
+- **Automatic merging**: Combines retry results with previous successful results
+- **Fresh attempts**: Resets retry count and failure history for clean retry
+- **Flexible filtering**: Filter by error type, timeout, or custom criteria
+
 **Single Request Methods**
 ```python
 def converse_with_request(self, request: BedrockConverseRequest) -> BedrockResponse  # Execute single request
@@ -906,6 +924,174 @@ for request_id, response in parallel_response.request_responses.items():
         print(f"Request {request_id}: {response.get_content()}")
     else:
         print(f"Request {request_id} failed: {response.get_last_error()}")
+```
+
+### Parallel Processing with Automatic Retry
+
+```python
+from bestehorn_llmmanager import ParallelLLMManager, create_user_message
+from bestehorn_llmmanager.bedrock.models.parallel_structures import (
+    BedrockConverseRequest, ParallelProcessingConfig
+)
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConfig
+
+# Configure automatic retry behavior
+retry_config = RetryConfig(
+    max_retries=3,
+    retry_delay=1.0,
+    backoff_multiplier=2.0
+)
+
+# Configure parallel processing with automatic retry
+parallel_config = ParallelProcessingConfig(
+    max_concurrent_requests=10,
+    enable_automatic_retry=True,  # Enable automatic retry
+    max_retries_per_request=3      # Max retries per request
+)
+
+# Initialize manager with retry configuration
+parallel_manager = ParallelLLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1", "us-west-2", "eu-west-1"],
+    retry_config=retry_config,
+    parallel_config=parallel_config
+)
+
+# Create and execute requests
+# Failed requests will automatically retry with exponential backoff
+parallel_response = parallel_manager.converse_parallel(requests=requests)
+
+# Check results after automatic retry
+print(f"Final success rate: {parallel_response.get_success_rate():.1%}")
+print(f"Successful: {len(parallel_response.successful_request_ids)}")
+print(f"Failed: {len(parallel_response.failed_request_ids)}")
+print(f"Timed out: {len(parallel_response.timed_out_request_ids)}")
+```
+
+### Manual Retry of Failed Requests
+
+```python
+# Execute initial parallel request
+initial_response = parallel_manager.converse_parallel(requests=requests)
+
+# Check if any requests failed
+if initial_response.failed_request_ids or initial_response.timed_out_request_ids:
+    print(f"Initial execution: {len(initial_response.failed_request_ids)} failed")
+    
+    # Retry all failed requests
+    retry_response = parallel_manager.retry_failed_requests(
+        previous_response=initial_response
+    )
+    
+    print(f"After retry: {retry_response.get_success_rate():.1%} success rate")
+    print(f"Total duration: {retry_response.total_duration_ms}ms")
+```
+
+### Selective Retry with Filter Function
+
+```python
+from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse
+
+# Define filter function to retry only throttled requests
+def retry_throttled_only(request_id: str, response: BedrockResponse) -> bool:
+    """Retry only requests that were throttled."""
+    warnings = response.get_warnings()
+    return any("throttl" in w.lower() for w in warnings)
+
+# Execute initial request
+initial_response = parallel_manager.converse_parallel(requests=requests)
+
+# Retry only throttled requests
+retry_response = parallel_manager.retry_failed_requests(
+    previous_response=initial_response,
+    filter_func=retry_throttled_only
+)
+
+# Define filter function to retry only timeouts
+def retry_timeouts_only(request_id: str, response: BedrockResponse) -> bool:
+    """Retry only requests that timed out."""
+    warnings = response.get_warnings()
+    return any("timed out" in w.lower() for w in warnings)
+
+# Retry only timed out requests
+retry_response = parallel_manager.retry_failed_requests(
+    previous_response=initial_response,
+    filter_func=retry_timeouts_only
+)
+
+# Complex filter: retry based on request ID pattern
+def retry_critical_requests(request_id: str, response: BedrockResponse) -> bool:
+    """Retry only critical requests (based on ID pattern)."""
+    return request_id.startswith("critical-")
+
+retry_response = parallel_manager.retry_failed_requests(
+    previous_response=initial_response,
+    filter_func=retry_critical_requests
+)
+```
+
+### Multi-Stage Retry Strategy
+
+```python
+# Stage 1: Initial execution
+print("Stage 1: Initial execution")
+response = parallel_manager.converse_parallel(requests=requests)
+print(f"Success rate: {response.get_success_rate():.1%}")
+
+# Stage 2: Retry timeouts with more regions
+if response.timed_out_request_ids:
+    print("\nStage 2: Retrying timeouts with more regions")
+    
+    def retry_timeouts(req_id: str, resp: BedrockResponse) -> bool:
+        return any("timed out" in w.lower() for w in resp.get_warnings())
+    
+    response = parallel_manager.retry_failed_requests(
+        previous_response=response,
+        filter_func=retry_timeouts,
+        target_regions_per_request=3  # Use more regions for retry
+    )
+    print(f"Success rate: {response.get_success_rate():.1%}")
+
+# Stage 3: Retry throttled requests with delay
+if response.failed_request_ids:
+    print("\nStage 3: Retrying throttled requests")
+    import time
+    time.sleep(2)  # Wait before retrying throttled requests
+    
+    def retry_throttled(req_id: str, resp: BedrockResponse) -> bool:
+        return any("throttl" in w.lower() for w in resp.get_warnings())
+    
+    response = parallel_manager.retry_failed_requests(
+        previous_response=response,
+        filter_func=retry_throttled
+    )
+    print(f"Final success rate: {response.get_success_rate():.1%}")
+
+# Final results
+print(f"\nFinal Results:")
+print(f"  Successful: {len(response.successful_request_ids)}")
+print(f"  Failed: {len(response.failed_request_ids)}")
+print(f"  Total duration: {response.total_duration_ms}ms")
+```
+
+### Accessing Retry History
+
+```python
+from bestehorn_llmmanager.bedrock.models.parallel_structures import BedrockConverseRequest
+
+# After execution, check retry history for each request
+for request_id, request in response.original_requests.items():
+    if request.failure_history:
+        print(f"\nRequest {request_id} retry history:")
+        print(f"  Total retry attempts: {request.retry_count}")
+        
+        for i, failure in enumerate(request.failure_history, 1):
+            print(f"  Attempt {failure.attempt_number}:")
+            print(f"    Timestamp: {failure.timestamp}")
+            print(f"    Error type: {failure.exception_type}")
+            print(f"    Error message: {failure.error_message}")
+            if failure.region:
+                print(f"    Failed region: {failure.region}")
 ```
 
 ### Tool Use Configuration

@@ -3,14 +3,18 @@ Thread-based parallel execution engine for LLM Manager system.
 Handles synchronous execution of requests using ThreadPoolExecutor for concurrency control.
 """
 
+import collections
 import concurrent.futures
 import logging
+import math
 import threading
+import time
 from datetime import datetime
-from typing import Callable, Dict, List, Optional, cast
+from typing import Any, Callable, Dict, List, Optional, cast
 
 from ..exceptions.parallel_exceptions import ParallelExecutionError, RequestTimeoutError
 from ..models.bedrock_response import BedrockResponse
+from ..models.llm_manager_structures import RetryConfig
 from ..models.parallel_constants import ParallelErrorMessages, ParallelLogMessages
 from ..models.parallel_structures import (
     BedrockConverseRequest,
@@ -103,19 +107,135 @@ class ThreadParallelExecutor:
         # Execution context for tracking
         self._execution_context: Optional[ThreadExecutionContext] = None
 
+    def _calculate_total_timeout(
+        self, total_requests: int, max_concurrent: int, per_request_timeout: int
+    ) -> float:
+        """
+        Calculate proper timeout for parallel execution accounting for sequential batches.
+
+        When requests exceed max_concurrent workers, they process in sequential batches.
+        This method calculates total time needed: batches * timeout + buffer.
+
+        Formula: ceil(total_requests / max_concurrent) * per_request_timeout + buffer
+
+        Args:
+            total_requests: Total number of requests to process
+            max_concurrent: Maximum concurrent requests
+            per_request_timeout: Timeout per individual request in seconds
+
+        Returns:
+            Total timeout in seconds with 10% buffer for cleanup/overhead
+        """
+        if total_requests == 0 or max_concurrent == 0:
+            return float(per_request_timeout)
+
+        # Calculate number of sequential batches needed
+        num_batches = math.ceil(total_requests / max_concurrent)
+
+        # Total time = batches * per_request_timeout + 10% buffer
+        total_time = num_batches * per_request_timeout
+        buffer = total_time * 0.1  # 10% buffer for overhead
+
+        return total_time + buffer
+
+    def _handle_timeout(
+        self,
+        responses: Dict[str, BedrockResponse],
+        in_flight_futures: Dict[concurrent.futures.Future, str],
+        pending_assignments: List[RegionAssignment],
+    ) -> Dict[str, BedrockResponse]:
+        """
+        Handle timeout by collecting completed responses and creating failed responses for unfinished.
+
+        This method preserves partial results by returning all successfully completed responses
+        and creating timeout responses for requests that didn't complete.
+
+        Args:
+            responses: Already completed responses
+            in_flight_futures: Futures currently being processed
+            pending_assignments: Assignments that haven't been started yet
+
+        Returns:
+            Complete response dictionary with all request IDs
+        """
+        self._logger.warning(
+            f"Parallel execution timeout - preserving {len(responses)} completed responses"
+        )
+
+        # Create timeout responses for in-flight requests
+        for future, request_id in in_flight_futures.items():
+            if request_id not in responses:
+                responses[request_id] = self._create_timeout_response(request_id=request_id)
+
+        # Create timeout responses for pending requests that never started
+        for assignment in pending_assignments:
+            if assignment.request_id not in responses:
+                responses[assignment.request_id] = self._create_timeout_response(
+                    request_id=assignment.request_id
+                )
+
+        return responses
+
+    def _redistribute_to_new_region(
+        self,
+        request: BedrockConverseRequest,
+        previous_assignment: RegionAssignment,
+        available_regions: List[str],
+    ) -> RegionAssignment:
+        """
+        Create new region assignment for a failed request, avoiding previously failed regions.
+
+        Args:
+            request: The request that failed
+            previous_assignment: Previous assignment that failed
+            available_regions: All available regions
+
+        Returns:
+            New RegionAssignment with different regions
+        """
+        # Extract regions that failed from failure history
+        exclude_regions = []
+        for failure in request.failure_history:
+            if failure.region and failure.region not in exclude_regions:
+                exclude_regions.append(failure.region)
+
+        # Try to get new regions excluding failed ones
+        eligible_regions = [r for r in available_regions if r not in exclude_regions]
+
+        if not eligible_regions:
+            # All regions have been tried, use any available region
+            self._logger.warning(
+                f"All regions have been tried for request {request.request_id}, reusing regions"
+            )
+            eligible_regions = available_regions
+
+        # Simple round-robin selection from eligible regions
+        # Take the first eligible region (can be enhanced with load balancing)
+        assigned_region = eligible_regions[0] if eligible_regions else available_regions[0]
+
+        return RegionAssignment(
+            request_id=request.request_id or "unknown",
+            assigned_regions=[assigned_region],
+            priority=previous_assignment.priority,
+        )
+
     def execute_requests_parallel(
         self,
         assignments: List[RegionAssignment],
         request_map: Dict[str, BedrockConverseRequest],
         execute_single_request_func: Callable,
+        retry_config: Optional[RetryConfig] = None,
+        available_regions: Optional[List[str]] = None,
     ) -> Dict[str, BedrockResponse]:
         """
-        Execute multiple requests in parallel using ThreadPoolExecutor.
+        Execute multiple requests in parallel using ThreadPoolExecutor with automatic retry.
 
         Args:
             assignments: List of region assignments for requests
             request_map: Dictionary mapping request_id to BedrockConverseRequest
             execute_single_request_func: Function to execute a single request
+            retry_config: Configuration for retry behavior (optional)
+            available_regions: List of all available regions for redistribution (optional)
 
         Returns:
             Dictionary mapping request_id to BedrockResponse
@@ -132,6 +252,8 @@ class ThreadParallelExecutor:
                 assignments=assignments,
                 request_map=request_map,
                 execute_single_request_func=execute_single_request_func,
+                retry_config=retry_config,
+                available_regions=available_regions,
             )
 
             self._log_execution_completion(responses=responses)
@@ -176,14 +298,22 @@ class ThreadParallelExecutor:
         assignments: List[RegionAssignment],
         request_map: Dict[str, BedrockConverseRequest],
         execute_single_request_func: Callable,
+        retry_config: Optional[RetryConfig] = None,
+        available_regions: Optional[List[str]] = None,
     ) -> Dict[str, BedrockResponse]:
         """
-        Execute requests using ThreadPoolExecutor with proper resource management.
+        Execute requests using ThreadPoolExecutor with retry queue and exponential backoff.
+
+        This method implements a retry queue pattern that processes requests iteratively.
+        Failed requests are automatically retried with exponential backoff if retry is
+        enabled and the request hasn't exceeded its retry limit.
 
         Args:
             assignments: List of region assignments
             request_map: Dictionary of requests
             execute_single_request_func: Function to execute single request
+            retry_config: Configuration for retry behavior (optional)
+            available_regions: List of all available regions for redistribution (optional)
 
         Returns:
             Dictionary of responses
@@ -195,25 +325,202 @@ class ThreadParallelExecutor:
             )
         )
 
-        responses = {}
+        # Initialize retry queue with all initial assignments
+        retry_queue = collections.deque(assignments)
+        responses: Dict[str, BedrockResponse] = {}
+
+        # Get retry configuration parameters with safe defaults
+        if retry_config is None:
+            enable_retry = self._config.enable_automatic_retry
+            max_retries = (
+                self._config.max_retries_per_request
+                if self._config.max_retries_per_request is not None
+                else 3
+            )
+            retry_delay = 1.0
+            backoff_multiplier = 2.0
+        else:
+            enable_retry = (
+                retry_config.enable_retry if hasattr(retry_config, "enable_retry") else True
+            )
+            max_retries = (
+                retry_config.max_retries
+                if hasattr(retry_config, "max_retries") and retry_config.max_retries is not None
+                else 3
+            )
+            retry_delay = (
+                retry_config.retry_delay
+                if hasattr(retry_config, "retry_delay") and retry_config.retry_delay is not None
+                else 1.0
+            )
+            backoff_multiplier = (
+                retry_config.backoff_multiplier
+                if hasattr(retry_config, "backoff_multiplier")
+                and retry_config.backoff_multiplier is not None
+                else 2.0
+            )
+
+        # Track assignments currently being processed
+        in_flight_assignments: Dict[str, Dict[str, Any]] = {}
 
         # Use ThreadPoolExecutor for parallel execution
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=self._config.max_concurrent_requests, thread_name_prefix="LLMParallel"
         ) as executor:
 
-            # Submit all tasks
-            future_to_request_id = self._submit_execution_tasks(
-                executor=executor,
-                assignments=assignments,
-                request_map=request_map,
-                execute_single_request_func=execute_single_request_func,
-            )
+            # Process retry queue until empty
+            while retry_queue or in_flight_assignments:
 
-            # Collect results as they complete
-            responses = self._collect_execution_results(
-                future_to_request_id=future_to_request_id, assignments=assignments
-            )
+                # Submit new tasks up to max_concurrent limit
+                while (
+                    retry_queue
+                    and len(in_flight_assignments) < self._config.max_concurrent_requests
+                ):
+                    assignment = retry_queue.popleft()
+                    request = request_map.get(assignment.request_id)
+
+                    if request is None:
+                        self._logger.warning(f"Request not found for ID: {assignment.request_id}")
+                        continue
+
+                    # Submit task for this request
+                    future = executor.submit(
+                        self._execute_single_request_with_context,
+                        request=request,
+                        assignment=assignment,
+                        execute_single_request_func=execute_single_request_func,
+                    )
+
+                    in_flight_assignments[assignment.request_id] = {
+                        "future": future,
+                        "assignment": assignment,
+                        "request": request,
+                    }
+
+                # Wait for at least one future to complete
+                if in_flight_assignments:
+                    # Get all in-flight futures
+                    future_to_request_id = {
+                        info["future"]: request_id
+                        for request_id, info in in_flight_assignments.items()
+                    }
+
+                    # Wait for first completion
+                    done, _ = concurrent.futures.wait(
+                        future_to_request_id.keys(),
+                        timeout=self._config.request_timeout_seconds + 10,
+                        return_when=concurrent.futures.FIRST_COMPLETED,
+                    )
+
+                    # Process completed futures
+                    for future in done:
+                        request_id = future_to_request_id[future]
+                        info = in_flight_assignments.pop(request_id)
+                        assignment = info["assignment"]
+                        request = info["request"]
+
+                        try:
+                            response = future.result(timeout=1.0)
+
+                            # Check if request failed and can be retried
+                            if not response.success and enable_retry:
+                                # Determine max_retries (request-specific or global)
+                                effective_max_retries = (
+                                    request.max_retries
+                                    if request.max_retries is not None
+                                    else max_retries
+                                )
+
+                                if request.can_retry(effective_max_retries):
+                                    # Extract error information from response
+                                    error_message = (
+                                        response.warnings[0]
+                                        if response.warnings
+                                        else "Unknown error"
+                                    )
+                                    exception = Exception(error_message)
+
+                                    # Get region from assignment
+                                    region = (
+                                        assignment.assigned_regions[0]
+                                        if assignment.assigned_regions
+                                        else None
+                                    )
+
+                                    # Record failure in request
+                                    request.record_failure(
+                                        exception=exception,
+                                        model=None,  # Model info not available in response
+                                        region=region,
+                                    )
+
+                                    # Apply exponential backoff
+                                    backoff_delay = retry_delay * (
+                                        backoff_multiplier**request.retry_count
+                                    )
+                                    self._logger.info(
+                                        f"Request {request_id} failed (attempt {request.retry_count}), "
+                                        f"retrying after {backoff_delay:.2f}s delay"
+                                    )
+                                    time.sleep(backoff_delay)
+
+                                    # Redistribute to new region if available
+                                    if available_regions:
+                                        new_assignment = self._redistribute_to_new_region(
+                                            request=request,
+                                            previous_assignment=assignment,
+                                            available_regions=available_regions,
+                                        )
+                                        self._logger.debug(
+                                            f"Redistributed request {request_id} to region: "
+                                            f"{new_assignment.assigned_regions}"
+                                        )
+                                    else:
+                                        # Reuse same assignment if no redistribution available
+                                        new_assignment = assignment
+
+                                    # Add back to retry queue
+                                    retry_queue.append(new_assignment)
+                                    continue  # Don't store response yet, will retry
+                                else:
+                                    self._logger.warning(
+                                        f"Request {request_id} exceeded max retries "
+                                        f"({effective_max_retries}), marking as failed"
+                                    )
+
+                            # Store final response (either successful or max retries exceeded)
+                            responses[request_id] = response
+
+                        except concurrent.futures.TimeoutError:
+                            self._logger.error(
+                                f"Timeout collecting result for request {request_id}"
+                            )
+                            responses[request_id] = self._create_timeout_response(
+                                request_id=request_id
+                            )
+
+                        except Exception as e:
+                            self._logger.error(
+                                f"Error collecting result for request {request_id}: {e}"
+                            )
+                            responses[request_id] = self._create_error_response(
+                                request_id=request_id, error=e
+                            )
+
+                    # If no futures completed (shouldn't happen but handle defensively)
+                    if not done and in_flight_assignments:
+                        self._logger.warning("No futures completed in wait cycle")
+                        time.sleep(0.1)  # Small delay to prevent busy loop
+
+        # Ensure all requests have responses
+        for assignment in assignments:
+            if assignment.request_id not in responses:
+                self._logger.warning(
+                    f"Missing response for request {assignment.request_id}, creating error response"
+                )
+                responses[assignment.request_id] = BedrockResponse(
+                    success=False, warnings=["Request execution did not complete"]
+                )
 
         return responses
 

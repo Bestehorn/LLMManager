@@ -16,6 +16,63 @@ from .bedrock_response import BedrockResponse
 from .parallel_constants import ParallelConfig, ParallelProcessingFields
 
 
+@dataclass
+class FailureEntry:
+    """
+    Encapsulates failure information for a request attempt.
+
+    Stores complete failure context including the actual exception instance,
+    timing information, and the model/region combination that failed.
+
+    Attributes:
+        attempt_number: Which retry attempt this was (1-based indexing)
+        timestamp: When the failure occurred (datetime object)
+        exception: The actual exception instance that was raised
+        exception_type: String name of the exception type for easy filtering
+        error_message: Human-readable error message from the exception
+        model: Model name that was being used when failure occurred
+        region: AWS region where the failure occurred
+    """
+
+    attempt_number: int
+    timestamp: datetime
+    exception: Exception
+    exception_type: str
+    error_message: str
+    model: Optional[str] = None
+    region: Optional[str] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert to dictionary for serialization (excludes exception instance).
+
+        Returns:
+            Dictionary representation without the exception object
+        """
+        return {
+            "attempt_number": self.attempt_number,
+            "timestamp": self.timestamp.isoformat(),
+            "exception_type": self.exception_type,
+            "error_message": self.error_message,
+            "model": self.model,
+            "region": self.region,
+        }
+
+    def __repr__(self) -> str:
+        """
+        String representation for logging.
+
+        Returns:
+            Formatted string with key failure details
+        """
+        return (
+            f"FailureEntry(attempt={self.attempt_number}, "
+            f"type={self.exception_type}, "
+            f"message='{self.error_message[:50]}...', "
+            f"model={self.model}, region={self.region})"
+        )
+
+
 class FailureHandlingStrategy(Enum):
     """Enumeration of failure handling strategies for parallel processing."""
 
@@ -51,6 +108,9 @@ class BedrockConverseRequest:
         request_metadata: Metadata for the request
         prompt_variables: Variables for prompt templates
         request_id: Unique identifier for the request (auto-generated if None)
+        retry_count: Number of times this request has been retried
+        failure_history: List of failure entries tracking all retry attempts
+        max_retries: Per-request override for max retries (if None, uses config default)
     """
 
     messages: List[Dict[str, Any]]
@@ -63,6 +123,9 @@ class BedrockConverseRequest:
     request_metadata: Optional[Dict[str, Any]] = None
     prompt_variables: Optional[Dict[str, Any]] = None
     request_id: Optional[str] = None
+    retry_count: int = field(default=0)
+    failure_history: List[FailureEntry] = field(default_factory=list)
+    max_retries: Optional[int] = None
 
     def __post_init__(self) -> None:
         """Generate request ID if not provided."""
@@ -203,6 +266,51 @@ class BedrockConverseRequest:
             request_id=data.get(ParallelProcessingFields.REQUEST_ID),
         )
 
+    def record_failure(
+        self, exception: Exception, model: Optional[str] = None, region: Optional[str] = None
+    ) -> None:
+        """
+        Record a failure attempt with full context.
+
+        Args:
+            exception: The exception that was raised
+            model: Model name being used when failure occurred
+            region: AWS region where failure occurred
+        """
+        self.retry_count += 1
+        failure_entry = FailureEntry(
+            attempt_number=self.retry_count,
+            timestamp=datetime.now(),
+            exception=exception,
+            exception_type=type(exception).__name__,
+            error_message=str(exception),
+            model=model,
+            region=region,
+        )
+        self.failure_history.append(failure_entry)
+
+    def can_retry(self, max_retries: int) -> bool:
+        """
+        Check if this request can be retried based on retry count.
+
+        Args:
+            max_retries: Maximum number of retries allowed
+
+        Returns:
+            True if retry count is less than max retries
+        """
+        effective_max_retries = self.max_retries if self.max_retries is not None else max_retries
+        return self.retry_count < effective_max_retries
+
+    def get_last_failure(self) -> Optional[FailureEntry]:
+        """
+        Get the most recent failure entry.
+
+        Returns:
+            Most recent FailureEntry, or None if no failures recorded
+        """
+        return self.failure_history[-1] if self.failure_history else None
+
     def __repr__(self) -> str:
         """Return string representation of the BedrockConverseRequest."""
         return (
@@ -225,6 +333,8 @@ class ParallelProcessingConfig:
         failure_handling_strategy: Strategy for handling failed requests
         load_balancing_strategy: Strategy for distributing requests across regions
         failure_threshold: Threshold for STOP_ON_THRESHOLD strategy (0.0-1.0)
+        enable_automatic_retry: Whether to automatically retry failed requests
+        max_retries_per_request: Max retries per request (None uses retry_config.max_retries)
     """
 
     max_concurrent_requests: int = ParallelConfig.DEFAULT_MAX_CONCURRENT_REQUESTS
@@ -233,6 +343,8 @@ class ParallelProcessingConfig:
     failure_handling_strategy: FailureHandlingStrategy = FailureHandlingStrategy.CONTINUE_ON_FAILURE
     load_balancing_strategy: LoadBalancingStrategy = LoadBalancingStrategy.ROUND_ROBIN
     failure_threshold: float = 0.5
+    enable_automatic_retry: bool = True
+    max_retries_per_request: Optional[int] = None
 
     def __post_init__(self) -> None:
         """Validate parallel processing configuration."""
@@ -318,6 +430,10 @@ class ParallelResponse:
         parallel_execution_stats: Statistics about the parallel execution
         warnings: List of warning messages encountered
         failed_requests: List of request IDs that failed completely
+        successful_request_ids: List of request IDs that succeeded
+        failed_request_ids: List of request IDs that failed (excluding timeouts)
+        timed_out_request_ids: List of request IDs that timed out
+        original_requests: Dictionary mapping request_id to original BedrockConverseRequest
     """
 
     success: bool
@@ -326,6 +442,10 @@ class ParallelResponse:
     parallel_execution_stats: Optional[ParallelExecutionStats] = None
     warnings: List[str] = field(default_factory=list)
     failed_requests: List[str] = field(default_factory=list)
+    successful_request_ids: List[str] = field(default_factory=list)
+    failed_request_ids: List[str] = field(default_factory=list)
+    timed_out_request_ids: List[str] = field(default_factory=list)
+    original_requests: Dict[str, BedrockConverseRequest] = field(default_factory=dict)
 
     def get_successful_responses(self) -> Dict[str, BedrockResponse]:
         """
@@ -419,6 +539,49 @@ class ParallelResponse:
                 latencies.append(metrics["api_latency_ms"])
 
         return sum(latencies) / len(latencies) if latencies else None
+
+    def get_failed_by_exception_type(self, exception_type: str) -> Dict[str, BedrockResponse]:
+        """
+        Get failed requests filtered by exception type name.
+
+        Args:
+            exception_type: Name of the exception type to filter by (e.g., 'ThrottlingException')
+
+        Returns:
+            Dictionary of request_id -> BedrockResponse for matching failures
+        """
+        return {
+            req_id: response
+            for req_id, response in self.get_failed_responses().items()
+            if response.get_last_error()
+            and type(response.get_last_error()).__name__ == exception_type
+        }
+
+    def filter_failed_requests(self, filter_func: Any) -> List[str]:
+        """
+        Filter failed request IDs using custom filter function.
+
+        Args:
+            filter_func: Function with signature (request_id, response) -> bool
+                        Returns True for requests to include in result
+
+        Returns:
+            List of request IDs that match the filter
+        """
+        return [
+            req_id
+            for req_id, response in self.get_failed_responses().items()
+            if filter_func(req_id, response)
+        ]
+
+    def get_retryable_request_ids(self) -> List[str]:
+        """
+        Get IDs of all requests that should be retried (failed + timed out).
+
+        Returns:
+            List of request IDs that can be retried
+        """
+        return self.failed_request_ids + self.timed_out_request_ids
 
     def to_dict(self) -> Dict[str, Any]:
         """
