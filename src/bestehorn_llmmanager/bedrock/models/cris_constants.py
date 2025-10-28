@@ -59,14 +59,16 @@ class CRISRegionPrefixes:
     US_PREFIX: Final[str] = "US "
     EU_PREFIX: Final[str] = "EU "
     APAC_PREFIX: Final[str] = "APAC "
+    GLOBAL_PREFIX: Final[str] = "Global "
 
     # Constants for region prefix identification
     US_IDENTIFIER: Final[str] = "US"
     EU_IDENTIFIER: Final[str] = "EU"
     APAC_IDENTIFIER: Final[str] = "APAC"
+    GLOBAL_IDENTIFIER: Final[str] = "GLOBAL"
 
     # Default primary region preference order
-    PRIMARY_PREFERENCE_ORDER: Final[List[str]] = [US_IDENTIFIER, EU_IDENTIFIER, APAC_IDENTIFIER]
+    PRIMARY_PREFERENCE_ORDER: Final[List[str]] = [US_IDENTIFIER, EU_IDENTIFIER, APAC_IDENTIFIER, GLOBAL_IDENTIFIER]
 
 
 class CRISInferenceProfileStructure:
@@ -140,10 +142,50 @@ class CRISErrorMessages:
     NO_REGIONAL_VARIANTS: Final[str] = "Model {model_name} has no regional variants"
 
 
+class CRISGlobalConstants:
+    """Constants for Global CRIS inference profiles."""
+
+    # Prefix for global inference profiles
+    GLOBAL_PROFILE_PREFIX: Final[str] = "global."
+
+    # Marker for global profiles in documentation
+    GLOBAL_DESTINATION_MARKER: Final[str] = "Commercial AWS Regions"
+
+    # Marker that should be preserved in destination lists (for future-proof region support)
+    COMMERCIAL_REGIONS_MARKER: Final[str] = "_COMMERCIAL_AWS_REGIONS_"
+
+    # Complete list of commercial AWS regions (as of 2025)
+    COMMERCIAL_AWS_REGIONS: Final[List[str]] = [
+        "us-east-1",
+        "us-east-2",
+        "us-west-1",
+        "us-west-2",
+        "ca-central-1",
+        "eu-west-1",
+        "eu-west-2",
+        "eu-west-3",
+        "eu-central-1",
+        "eu-north-1",
+        "eu-south-1",
+        "eu-south-2",
+        "ap-northeast-1",
+        "ap-northeast-2",
+        "ap-northeast-3",
+        "ap-southeast-1",
+        "ap-southeast-2",
+        "ap-southeast-3",
+        "ap-southeast-4",
+        "ap-south-1",
+        "sa-east-1",
+    ]
+
+
 class CRISValidationPatterns:
     """Regex patterns for CRIS data validation."""
 
     INFERENCE_PROFILE_PATTERN: Final[str] = r"^[a-z0-9\-\.]+([:-][a-z0-9\-]+)?$"
     AWS_REGION_PATTERN: Final[str] = r"^[a-z0-9\-]+$"
+    # Pattern that accepts either a normal AWS region or the commercial regions marker
+    AWS_REGION_OR_MARKER_PATTERN: Final[str] = r"^([a-z0-9\-]+|_COMMERCIAL_AWS_REGIONS_)$"
     MODEL_NAME_PATTERN: Final[str] = r"^[A-Za-z0-9\s\-\.]+$"
-    REGION_PREFIX_PATTERN: Final[str] = r"^(US|EU|APAC)$"
+    REGION_PREFIX_PATTERN: Final[str] = r"^(US|EU|APAC|GLOBAL)$"

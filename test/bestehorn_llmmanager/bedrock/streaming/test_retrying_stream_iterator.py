@@ -87,10 +87,9 @@ class TestRetryingStreamIterator:
     def mock_access_info(self):
         """Create a mock ModelAccessInfo."""
         return ModelAccessInfo(
-            access_method=ModelAccessMethod.DIRECT,
             region="us-east-1",
+            has_direct_access=True,
             model_id="claude-3-sonnet",
-            inference_profile_id="claude-profile",
         )
 
     @pytest.fixture
@@ -302,8 +301,8 @@ class TestRetryingStreamIterator:
     def test_prepare_streaming_args_direct_access(self, iterator, mock_access_info):
         """Test _prepare_streaming_args with direct access method."""
         mock_access_info = ModelAccessInfo(
-            access_method=ModelAccessMethod.DIRECT,
             region="us-east-1",
+            has_direct_access=True,
             model_id="claude-3-sonnet",
         )
 
@@ -318,9 +317,9 @@ class TestRetryingStreamIterator:
     def test_prepare_streaming_args_cris_access(self, iterator, mock_access_info):
         """Test _prepare_streaming_args with CRIS access method."""
         mock_access_info = ModelAccessInfo(
-            access_method=ModelAccessMethod.CRIS_ONLY,
             region="us-east-1",
-            inference_profile_id="claude-profile",
+            has_regional_cris=True,
+            regional_cris_profile_id="claude-profile",
         )
 
         args = iterator._prepare_streaming_args(

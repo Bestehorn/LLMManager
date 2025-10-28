@@ -43,6 +43,7 @@ from .CRISManager import CRISManager
 from .downloaders.base_downloader import FileSystemError, NetworkError
 from .ModelManager import ModelManager
 from .models.access_method import AccessRecommendation, ModelAccessInfo, ModelAccessMethod
+from .models.deprecation import DeprecatedAPIWarning, emit_deprecation_warning
 from .models.unified_constants import (
     AccessMethodPriority,
     CacheManagementConstants,
@@ -129,6 +130,9 @@ class UnifiedModelManager:
 
         # Cache for unified data
         self._cached_catalog: Optional[UnifiedModelCatalog] = None
+        
+        # Check for deprecated usage patterns on initialization
+        self._check_deprecated_usage()
 
     def refresh_unified_data(self, force_download: Optional[bool] = None) -> UnifiedModelCatalog:
         """
@@ -480,33 +484,39 @@ class UnifiedModelManager:
         if not access_info:
             return None
 
-        # Generate recommendation based on access method
-        if access_info.access_method == ModelAccessMethod.DIRECT:
+        # Generate recommendation based on orthogonal access flags
+        # Case 1: Direct access only
+        if access_info.has_direct_access and not access_info.has_any_cris_access():
             return AccessRecommendation(
                 recommended_access=access_info,
                 rationale=AccessMethodPriority.PRIORITY_RATIONALES["direct_preferred"],
                 alternatives=[],
             )
-        elif access_info.access_method == ModelAccessMethod.CRIS_ONLY:
+        
+        # Case 2: CRIS access only (regional or global, no direct)
+        elif access_info.has_any_cris_access() and not access_info.has_direct_access:
             return AccessRecommendation(
                 recommended_access=access_info,
                 rationale=AccessMethodPriority.PRIORITY_RATIONALES["cris_only"],
                 alternatives=[],
             )
-        elif access_info.access_method == ModelAccessMethod.BOTH:
-            # Recommend direct access, provide CRIS as alternative
+        
+        # Case 3: Both direct and CRIS access available
+        elif access_info.has_direct_access and access_info.has_any_cris_access():
+            # Recommend direct access as primary
             direct_access = ModelAccessInfo(
-                access_method=ModelAccessMethod.DIRECT,
                 region=region,
+                has_direct_access=True,
                 model_id=access_info.model_id,
-                inference_profile_id=access_info.inference_profile_id,
             )
 
+            # Provide CRIS as alternative
             cris_access = ModelAccessInfo(
-                access_method=ModelAccessMethod.CRIS_ONLY,
                 region=region,
-                model_id=None,
-                inference_profile_id=access_info.inference_profile_id,
+                has_regional_cris=access_info.has_regional_cris,
+                has_global_cris=access_info.has_global_cris,
+                regional_cris_profile_id=access_info.regional_cris_profile_id,
+                global_cris_profile_id=access_info.global_cris_profile_id,
             )
 
             return AccessRecommendation(
@@ -514,8 +524,9 @@ class UnifiedModelManager:
                 rationale=AccessMethodPriority.PRIORITY_RATIONALES["direct_preferred"],
                 alternatives=[cris_access],
             )
-
-        assert_never(access_info.access_method)
+        
+        # This should never happen due to ModelAccessInfo validation
+        return None
 
     def is_model_available_in_region(self, model_name: str, region: str) -> bool:
         """
@@ -749,6 +760,55 @@ class UnifiedModelManager:
             enabled: Whether to enable fuzzy matching
         """
         self._correlator.set_fuzzy_matching_enabled(enabled=enabled)
+
+    def _check_deprecated_usage(self) -> None:
+        """
+        Check for deprecated usage patterns in the current catalog.
+        
+        This method scans the cached catalog for models that use deprecated
+        access method patterns and emits informational warnings to help users
+        migrate to the new API.
+        
+        Note: This is a proactive check to help users identify areas that need
+        migration. The deprecated properties themselves also emit warnings when
+        accessed directly.
+        """
+        if not self._cached_catalog:
+            # No catalog loaded yet, nothing to check
+            return
+        
+        deprecated_patterns_found = False
+        
+        # Check each model for deprecated access patterns
+        for model_name, model_info in self._cached_catalog.unified_models.items():
+            # Check each region's access info
+            for region in model_info.all_access_info.keys():
+                access_info = model_info.get_access_info_for_region(region)
+                
+                if access_info:
+                    # Check for patterns that would map to deprecated enum values
+                    has_cris = access_info.has_regional_cris or access_info.has_global_cris
+                    
+                    # Pattern 1: Both direct and CRIS (would map to deprecated BOTH)
+                    if access_info.has_direct_access and has_cris:
+                        if not deprecated_patterns_found:
+                            emit_deprecation_warning(
+                                feature="Models with both direct and CRIS access",
+                                since="3.0.0",
+                                removal="4.0.0",
+                                alternative="orthogonal access flags (has_direct_access, has_regional_cris, has_global_cris)",
+                                category=DeprecatedAPIWarning,
+                                stacklevel=4,
+                            )
+                            deprecated_patterns_found = True
+                        break
+        
+        if deprecated_patterns_found:
+            self._logger.info(
+                "Deprecated access patterns detected. Please migrate to the new orthogonal "
+                "access flag API. See migration guide at: "
+                "https://github.com/Bestehorn/LLMManager/docs/migration_guide_v3.md"
+            )
 
     def _save_unified_catalog(self, catalog: UnifiedModelCatalog) -> None:
         """

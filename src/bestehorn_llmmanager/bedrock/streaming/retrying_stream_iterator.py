@@ -218,10 +218,15 @@ class RetryingStreamIterator:
         current_args = self._operation_args.copy()
 
         # Set model ID based on access method
-        if access_info.access_method.value in ["direct", "both"]:
+        if access_info.has_direct_access:
+            # Use direct model ID when available
             current_args["model_id"] = access_info.model_id
-        elif access_info.access_method.value == "cris_only":
-            current_args["model_id"] = access_info.inference_profile_id
+        elif access_info.has_regional_cris:
+            # Use regional CRIS profile
+            current_args["model_id"] = access_info.regional_cris_profile_id
+        elif access_info.has_global_cris:
+            # Use global CRIS profile
+            current_args["model_id"] = access_info.global_cris_profile_id
 
         # Add recovery context if we have partial content
         if partial_content:

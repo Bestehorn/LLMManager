@@ -7,6 +7,7 @@ import logging
 from typing import Dict, List, Optional, Set, Tuple
 
 from ..models.access_method import ModelAccessInfo, ModelAccessMethod
+from ..models.cris_constants import CRISGlobalConstants
 from ..models.cris_structures import CRISCatalog, CRISModelInfo
 from ..models.data_structures import BedrockModelInfo, ModelCatalog
 from ..models.unified_constants import (
@@ -87,6 +88,14 @@ class ModelCRISCorrelator:
             # Create model name mapping for correlation
             cris_to_standard_mapping = self._create_model_name_mapping(
                 cris_models=cris_catalog.cris_models
+            )
+
+            # CRITICAL FIX: Create synthetic base models for CRIS-only models
+            # This ensures models like Claude Haiku 4.5 have a base entry to correlate with
+            model_catalog = self._add_synthetic_base_models(
+                model_catalog=model_catalog,
+                cris_catalog=cris_catalog,
+                cris_to_standard_mapping=cris_to_standard_mapping,
             )
 
             # Track processed models to avoid duplicates
@@ -230,27 +239,40 @@ class ModelCRISCorrelator:
 
     def _normalize_model_name(self, model_name: str) -> str:
         """
-        Normalize a model name by removing common prefixes.
+        Normalize a model name by removing provider prefixes.
+        
+        Handles both naming conventions used in AWS Bedrock:
+        - Dot-separated lowercase (model IDs): "anthropic.claude-3-5-haiku..."
+        - Space-separated capitalized (CRIS names): "Anthropic Claude 3.5 Haiku"
+        
+        This normalization enables proper correlation between CRIS data and 
+        foundational model data despite different naming conventions.
+        
+        Examples:
+            Dot-separated (model IDs):
+            "anthropic.claude-3-5-haiku-20241022-v1:0" -> "claude-3-5-haiku-20241022-v1:0"
+            "twelvelabs.marengo-embed-2-7-v1:0" -> "marengo-embed-2-7-v1:0"
+            "cohere.embed-english-v3" -> "embed-english-v3"
+            
+            Space-separated (CRIS names):
+            "Anthropic Claude Haiku 4.5" -> "Claude Haiku 4.5"
+            "TwelveLabs Marengo Embed v2.7" -> "Marengo Embed v2.7"
+            "Meta Llama 3.3 70B Instruct" -> "Llama 3.3 70B Instruct"
 
         Args:
             model_name: The model name to normalize
 
         Returns:
-            Normalized model name
+            Normalized model name with provider prefix removed
         """
-        normalized = model_name
+        # Strip whitespace first to ensure prefix matching works correctly
+        normalized = model_name.strip()
 
-        # Remove common prefixes
-        prefixes = [
-            ModelCorrelationConstants.ANTHROPIC_PREFIX,
-            ModelCorrelationConstants.META_PREFIX,
-            ModelCorrelationConstants.AMAZON_PREFIX,
-            ModelCorrelationConstants.MISTRAL_PREFIX,
-        ]
-
-        for prefix in prefixes:
+        # Use comprehensive provider prefix list from constants
+        # Includes both dot-separated (model IDs) and space-separated (CRIS names)
+        for prefix in ModelCorrelationConstants.ALL_PROVIDER_PREFIXES:
             if normalized.startswith(prefix):
-                normalized = normalized[len(prefix) :]
+                normalized = normalized[len(prefix):]
                 break
 
         return normalized.strip()
@@ -260,6 +282,10 @@ class ModelCRISCorrelator:
     ) -> Tuple[Optional[CRISModelInfo], str]:
         """
         Find a matching CRIS model for a regular model.
+        
+        IMPORTANT: Prioritizes Global CRIS variants over regional variants to ensure
+        models like Claude Haiku 4.5 match with "Global Anthropic Claude Haiku 4.5"
+        instead of "Anthropic Claude Haiku 4.5".
 
         Args:
             model_name: Name of the regular model
@@ -270,15 +296,38 @@ class ModelCRISCorrelator:
             Tuple of (Matching CRISModelInfo if found, match type)
             Match type can be "exact", "fuzzy", or None if no match
         """
-        # Step 1: Direct match in explicit mappings
+        # Step 1: Check for Global variant first (PRIORITY FIX)
+        # Look for "Global [model_name]" pattern in CRIS models
+        for cris_name, standard_name in name_mapping.items():
+            if standard_name == model_name and cris_name.startswith("Global "):
+                self._logger.info(
+                    f"Matched model '{model_name}' with Global CRIS variant '{cris_name}'"
+                )
+                return cris_models[cris_name], "exact"
+        
+        # Step 2: Direct match in explicit mappings (regional variants)
         for cris_name, standard_name in name_mapping.items():
             if standard_name == model_name:
                 return cris_models[cris_name], "exact"
 
-        # Step 2: Fuzzy matching (only if enabled and all other options exhausted)
+        # Step 3: Fuzzy matching (only if enabled and all other options exhausted)
         if self._fuzzy_matching_enabled:
             normalized_target = self._normalize_model_name(model_name=model_name).lower()
 
+            # First try to match Global variants with fuzzy matching
+            for cris_name, cris_model in cris_models.items():
+                if cris_name.startswith("Global "):
+                    normalized_cris = self._normalize_model_name(model_name=cris_name).lower()
+                    if normalized_cris == normalized_target:
+                        # Log fuzzy match warning
+                        self._logger.warning(
+                            UnifiedLogMessages.FUZZY_MATCH_APPLIED.format(
+                                regular_model=model_name, cris_model=cris_name
+                            )
+                        )
+                        return cris_model, "fuzzy"
+            
+            # Then try regional variants
             for cris_name, cris_model in cris_models.items():
                 normalized_cris = self._normalize_model_name(model_name=cris_name).lower()
                 if normalized_cris == normalized_target:
@@ -387,12 +436,21 @@ class ModelCRISCorrelator:
                         )
                         continue
 
-                    region_access[region] = ModelAccessInfo(
-                        access_method=ModelAccessMethod.CRIS_ONLY,
-                        region=region,
-                        model_id=None,
-                        inference_profile_id=primary_profile,
-                    )
+                    # Determine if this is a global or regional profile
+                    is_global = primary_profile.startswith("global.")
+                    
+                    if is_global:
+                        region_access[region] = ModelAccessInfo(
+                            region=region,
+                            has_global_cris=True,
+                            global_cris_profile_id=primary_profile,
+                        )
+                    else:
+                        region_access[region] = ModelAccessInfo(
+                            region=region,
+                            has_regional_cris=True,
+                            regional_cris_profile_id=primary_profile,
+                        )
                 except Exception as e:
                     self._logger.warning(
                         f"Failed to create region access for CRIS model '{canonical_name}' in region '{region}': {str(e)}. Skipping region."
@@ -460,27 +518,37 @@ class ModelCRISCorrelator:
 
                     # Only create CRIS-only access if we have an inference profile
                     if inference_profile:
-                        region_access[clean_region] = ModelAccessInfo(
-                            access_method=ModelAccessMethod.CRIS_ONLY,
-                            region=clean_region,
-                            model_id=None,
-                            inference_profile_id=inference_profile,
-                        )
+                        # Determine if this is a global or regional profile
+                        is_global = inference_profile.startswith("global.")
+                        
+                        if is_global:
+                            region_access[clean_region] = ModelAccessInfo(
+                                region=clean_region,
+                                has_global_cris=True,
+                                global_cris_profile_id=inference_profile,
+                            )
+                        else:
+                            region_access[clean_region] = ModelAccessInfo(
+                                region=clean_region,
+                                has_regional_cris=True,
+                                regional_cris_profile_id=inference_profile,
+                            )
 
                         self._logger.debug(
                             f"CRIS-only region '{clean_region}' for model '{model_info.model_id}' "
                             f"using profile '{inference_profile}'"
                         )
                     else:
-                        # Log warning and skip this region instead of failing
-                        warning_msg = (
+                        # Log info about CRIS-only region without profile (expected behavior)
+                        info_msg = (
                             f"Model '{model_info.model_id}' has CRIS-only region '{clean_region}' "
-                            "but no CRIS inference profile found. Skipping region. "
+                            "but no CRIS inference profile found. This is expected for models "
+                            "with limited CRIS coverage. Skipping region. "
                             f"Has CRIS data: {cris_model_info is not None}"
                         )
                         if cris_model_info:
-                            warning_msg += f", CRIS model: {cris_model_info.model_name}"
-                        self._logger.warning(warning_msg)
+                            info_msg += f", CRIS model: {cris_model_info.model_name}"
+                        self._logger.info(info_msg)
                         skipped_regions.append(f"{clean_region} (CRIS-only, no profile)")
                 else:
                     # Check if CRIS is also available for this region
@@ -494,29 +562,43 @@ class ModelCRISCorrelator:
                         )
 
                         if inference_profile:
-                            region_access[region] = ModelAccessInfo(
-                                access_method=ModelAccessMethod.BOTH,
-                                region=region,
-                                model_id=model_info.model_id,
-                                inference_profile_id=inference_profile,
-                            )
+                            # Determine if this is a global or regional profile
+                            is_global = inference_profile.startswith("global.")
+                            
+                            if is_global:
+                                # Both direct and global CRIS
+                                region_access[region] = ModelAccessInfo(
+                                    region=region,
+                                    has_direct_access=True,
+                                    has_global_cris=True,
+                                    model_id=model_info.model_id,
+                                    global_cris_profile_id=inference_profile,
+                                )
+                            else:
+                                # Both direct and regional CRIS
+                                region_access[region] = ModelAccessInfo(
+                                    region=region,
+                                    has_direct_access=True,
+                                    has_regional_cris=True,
+                                    model_id=model_info.model_id,
+                                    regional_cris_profile_id=inference_profile,
+                                )
                         else:
-                            # Fallback to direct access if CRIS profile not available
+                            # Fallback to direct access only if CRIS profile not available
                             region_access[region] = ModelAccessInfo(
-                                access_method=ModelAccessMethod.DIRECT,
                                 region=region,
+                                has_direct_access=True,
                                 model_id=model_info.model_id,
-                                inference_profile_id=None,
                             )
                             self._logger.debug(
                                 f"CRIS available for region '{region}' but no profile found, using direct access for model '{model_info.model_id}'"
                             )
                     else:
+                        # Direct access only
                         region_access[region] = ModelAccessInfo(
-                            access_method=ModelAccessMethod.DIRECT,
                             region=region,
+                            has_direct_access=True,
                             model_id=model_info.model_id,
-                            inference_profile_id=None,
                         )
             except Exception as e:
                 error_context = (
@@ -539,16 +621,26 @@ class ModelCRISCorrelator:
                         )
 
                         if inference_profile:
-                            region_access[region] = ModelAccessInfo(
-                                access_method=ModelAccessMethod.CRIS_ONLY,
-                                region=region,
-                                model_id=None,
-                                inference_profile_id=inference_profile,
-                            )
+                            # Determine if this is a global or regional profile
+                            is_global = inference_profile.startswith("global.")
+                            
+                            if is_global:
+                                region_access[region] = ModelAccessInfo(
+                                    region=region,
+                                    has_global_cris=True,
+                                    global_cris_profile_id=inference_profile,
+                                )
+                            else:
+                                region_access[region] = ModelAccessInfo(
+                                    region=region,
+                                    has_regional_cris=True,
+                                    regional_cris_profile_id=inference_profile,
+                                )
                         else:
-                            self._logger.warning(
+                            self._logger.info(
                                 f"CRIS model '{cris_model_info.model_name}' has source region '{region}' "
-                                "but no inference profile found for region. Skipping region."
+                                "but no inference profile found for region. This is expected for models "
+                                "with limited CRIS coverage. Skipping region."
                             )
                             skipped_regions.append(f"{region} (CRIS additional, no profile)")
                     except Exception as e:
@@ -602,6 +694,38 @@ class ModelCRISCorrelator:
 
         return None
 
+    def _extract_clean_model_name_from_cris(self, cris_name: str) -> str:
+        """
+        Extract clean model name by removing regional prefixes.
+        
+        Args:
+            cris_name: CRIS model name that may have prefix
+            
+        Returns:
+            Clean model name without regional prefix
+        """
+        for prefix in ["Global ", "US ", "EU ", "APAC "]:
+            if cris_name.startswith(prefix):
+                return cris_name[len(prefix):]
+        return cris_name
+
+    def _extract_provider_from_profile_id(self, profile_id: str) -> str:
+        """
+        Extract provider name from inference profile ID.
+        
+        Args:
+            profile_id: Inference profile ID
+            
+        Returns:
+            Provider name
+        """
+        # Format: global.anthropic.model or us.amazon.model
+        parts = profile_id.split('.')
+        if len(parts) >= 2:
+            provider = parts[1]
+            return provider.capitalize()
+        return "Unknown"
+
     def _extract_provider_from_cris_model(self, cris_model_info: CRISModelInfo) -> str:
         """
         Extract provider name from CRIS model information.
@@ -640,6 +764,116 @@ class ModelCRISCorrelator:
             return "Writer"
 
         return "Unknown"
+
+    def _add_synthetic_base_models(
+        self,
+        model_catalog: ModelCatalog,
+        cris_catalog: CRISCatalog,
+        cris_to_standard_mapping: Dict[str, str],
+    ) -> ModelCatalog:
+        """
+        Add synthetic base model entries for CRIS-only models.
+        
+        This critical fix enables models like Claude Haiku 4.5 to load by creating
+        synthetic BedrockModelInfo entries for models that only exist in CRIS.
+        
+        Args:
+            model_catalog: Original model catalog
+            cris_catalog: CRIS catalog
+            cris_to_standard_mapping: Mapping from CRIS names to standard names
+            
+        Returns:
+            Updated model catalog with synthetic entries added
+        """
+        synthetic_models = {}
+        
+        for cris_name, cris_model_info in cris_catalog.cris_models.items():
+            standard_name = cris_to_standard_mapping.get(cris_name, cris_name)
+            
+            # Check if this model already exists in the catalog
+            if standard_name in model_catalog.models:
+                continue
+                
+            # This is a CRIS-only model - create synthetic base entry
+            try:
+                synthetic_model = self._create_synthetic_base_model(cris_model_info)
+                synthetic_models[standard_name] = synthetic_model
+                self._logger.info(
+                    f"Created synthetic base model for CRIS-only model '{standard_name}' "
+                    f"(CRIS name: '{cris_name}', Profile: {cris_model_info.inference_profile_id})"
+                )
+            except Exception as e:
+                self._logger.warning(
+                    f"Failed to create synthetic base model for '{cris_name}': {str(e)}"
+                )
+        
+        # Create new catalog with synthetic models added
+        if synthetic_models:
+            merged_models = {**model_catalog.models, **synthetic_models}
+            return ModelCatalog(
+                retrieval_timestamp=model_catalog.retrieval_timestamp,
+                models=merged_models
+            )
+        
+        return model_catalog
+
+    def _create_synthetic_base_model(self, cris_model_info: CRISModelInfo) -> BedrockModelInfo:
+        """
+        Create synthetic base model entry for CRIS-only models.
+        
+        Args:
+            cris_model_info: CRIS model info to create base entry from
+            
+        Returns:
+            Synthetic BedrockModelInfo
+        """
+        # Extract clean name (remove Global/US/EU/APAC prefix)
+        clean_name = self._extract_clean_model_name_from_cris(cris_model_info.model_name)
+        
+        # Use source regions as supported regions with * marker
+        source_regions = cris_model_info.get_source_regions()
+        regions_with_marker = [f"{region}*" for region in source_regions]
+        
+        # Extract provider from inference profile ID
+        profile_id = cris_model_info.inference_profile_id
+        provider = self._extract_provider_from_profile_id(profile_id)
+        
+        return BedrockModelInfo(
+            provider=provider,
+            model_id=profile_id,  # Use profile ID as model ID
+            regions_supported=regions_with_marker,
+            input_modalities=["Text"],  # Default assumption
+            output_modalities=["Text"],
+            streaming_supported=True,  # Default assumption
+            inference_parameters_link=None,
+            hyperparameters_link=None
+        )
+
+    def _expand_marker_in_region_mappings(
+        self, region_mappings: Dict[str, List[str]]
+    ) -> Dict[str, List[str]]:
+        """
+        Expand commercial regions marker in region mappings.
+        
+        This method replaces the COMMERCIAL_REGIONS_MARKER with the actual
+        list of commercial AWS regions at runtime.
+        
+        Args:
+            region_mappings: Region mappings that may contain markers
+            
+        Returns:
+            Region mappings with markers expanded
+        """
+        expanded = {}
+        for source, destinations in region_mappings.items():
+            expanded_dests = []
+            for dest in destinations:
+                if dest == CRISGlobalConstants.COMMERCIAL_REGIONS_MARKER:
+                    expanded_dests.extend(CRISGlobalConstants.COMMERCIAL_AWS_REGIONS)
+                else:
+                    expanded_dests.append(dest)
+            expanded[source] = list(set(expanded_dests))  # Remove duplicates
+        return expanded
 
     def _get_unmatched_regular_models(
         self, model_catalog: ModelCatalog, processed_models: Set[str]

@@ -8,7 +8,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 
-from .cris_constants import CRISErrorMessages, CRISJSONFields, CRISValidationPatterns
+from .cris_constants import (
+    CRISErrorMessages,
+    CRISGlobalConstants,
+    CRISJSONFields,
+    CRISValidationPatterns,
+)
 
 
 @dataclass(frozen=True)
@@ -23,10 +28,12 @@ class CRISInferenceProfile:
         inference_profile_id: The inference profile ID (e.g., 'us.amazon.nova-lite-v1:0')
         region_mappings: Dictionary mapping source regions to lists of destination regions
                         for this specific inference profile
+        is_global: Whether this is a global CRIS profile (prefixed with 'global.')
     """
 
     inference_profile_id: str
     region_mappings: Dict[str, List[str]]
+    is_global: bool = False
 
     def __post_init__(self) -> None:
         """Validate the inference profile information after initialization."""
@@ -51,6 +58,7 @@ class CRISInferenceProfile:
     def _validate_region_mappings(self) -> None:
         """
         Validate the region mappings structure and content.
+        Accepts the commercial regions marker as a valid destination.
 
         Raises:
             ValueError: If region mappings are invalid
@@ -70,7 +78,12 @@ class CRISInferenceProfile:
                 )
 
             for dest_region in destination_regions:
-                if not re.match(CRISValidationPatterns.AWS_REGION_PATTERN, dest_region):
+                # Skip validation for marker - it's a special placeholder
+                if dest_region == CRISGlobalConstants.COMMERCIAL_REGIONS_MARKER:
+                    continue
+                
+                # Use pattern that accepts marker or regular region
+                if not re.match(CRISValidationPatterns.AWS_REGION_OR_MARKER_PATTERN, dest_region):
                     raise ValueError(CRISErrorMessages.INVALID_REGION.format(region=dest_region))
 
     def to_dict(self) -> Dict[str, Dict[str, List[str]]]:
@@ -130,14 +143,55 @@ class CRISInferenceProfile:
     def get_destinations_for_source(self, source_region: str) -> List[str]:
         """
         Get destination regions available from a specific source region.
+        Returns unexpanded list that may contain the commercial regions marker.
 
         Args:
             source_region: The source region to query
 
         Returns:
-            List of destination regions, empty if source region not supported
+            List of destination regions (may include marker), empty if source region not supported
         """
         return self.region_mappings.get(source_region, [])
+
+    def expand_commercial_regions_marker(self, destinations: List[str]) -> List[str]:
+        """
+        Expand commercial regions marker to actual region list at runtime.
+        
+        This method replaces the COMMERCIAL_REGIONS_MARKER with the current list of
+        commercial AWS regions, providing future-proof region support.
+
+        Args:
+            destinations: List that may contain the marker
+
+        Returns:
+            Expanded list with marker replaced by commercial regions
+        """
+        if CRISGlobalConstants.COMMERCIAL_REGIONS_MARKER not in destinations:
+            return destinations
+        
+        expanded = []
+        for dest in destinations:
+            if dest == CRISGlobalConstants.COMMERCIAL_REGIONS_MARKER:
+                expanded.extend(CRISGlobalConstants.COMMERCIAL_AWS_REGIONS)
+            else:
+                expanded.append(dest)
+        return list(set(expanded))  # Remove duplicates
+
+    def get_expanded_destinations_for_source(self, source_region: str) -> List[str]:
+        """
+        Get destination regions with marker expanded at runtime.
+        
+        This method provides the actual list of accessible regions by expanding
+        the commercial regions marker if present.
+
+        Args:
+            source_region: Source region to query
+
+        Returns:
+            Expanded destination list with commercial regions marker replaced
+        """
+        destinations = self.get_destinations_for_source(source_region)
+        return self.expand_commercial_regions_marker(destinations)
 
 
 @dataclass(frozen=True)
@@ -383,6 +437,68 @@ class CRISModelInfo:
         matching_profiles = []
         for profile_id, profile_info in self.inference_profiles.items():
             if profile_info.can_route_to_destination(destination_region=destination_region):
+                matching_profiles.append(profile_id)
+        return matching_profiles
+
+    def get_regional_profiles(self) -> Dict[str, CRISInferenceProfile]:
+        """
+        Get all regional (non-global) inference profiles for this model.
+
+        Returns:
+            Dictionary of regional profile IDs to their profile data
+        """
+        return {
+            profile_id: profile_info
+            for profile_id, profile_info in self.inference_profiles.items()
+            if not profile_info.is_global
+        }
+
+    def get_global_profiles(self) -> Dict[str, CRISInferenceProfile]:
+        """
+        Get all global inference profiles for this model.
+
+        Returns:
+            Dictionary of global profile IDs to their profile data
+        """
+        return {
+            profile_id: profile_info
+            for profile_id, profile_info in self.inference_profiles.items()
+            if profile_info.is_global
+        }
+
+    def get_regional_profiles_for_source(self, source_region: str) -> List[str]:
+        """
+        Get regional inference profile IDs that can be called from a specific source region.
+
+        Args:
+            source_region: The source region to query
+
+        Returns:
+            List of regional inference profile IDs that support this source region
+        """
+        matching_profiles = []
+        for profile_id, profile_info in self.inference_profiles.items():
+            if not profile_info.is_global and profile_info.can_route_from_source(
+                source_region=source_region
+            ):
+                matching_profiles.append(profile_id)
+        return matching_profiles
+
+    def get_global_profiles_for_source(self, source_region: str) -> List[str]:
+        """
+        Get global inference profile IDs that can be called from a specific source region.
+
+        Args:
+            source_region: The source region to query
+
+        Returns:
+            List of global inference profile IDs that support this source region
+        """
+        matching_profiles = []
+        for profile_id, profile_info in self.inference_profiles.items():
+            if profile_info.is_global and profile_info.can_route_from_source(
+                source_region=source_region
+            ):
                 matching_profiles.append(profile_id)
         return matching_profiles
 

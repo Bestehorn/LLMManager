@@ -27,11 +27,15 @@ class AWSRegions:
     AP_SOUTH_2: Final[str] = "ap-south-2"  # Hyderabad
     AP_SOUTHEAST_1: Final[str] = "ap-southeast-1"  # Singapore
     AP_SOUTHEAST_2: Final[str] = "ap-southeast-2"  # Sydney
+    AP_SOUTHEAST_3: Final[str] = "ap-southeast-3"  # Jakarta
+    AP_SOUTHEAST_4: Final[str] = "ap-southeast-4"  # Melbourne
 
     # Europe Regions
     EU_CENTRAL_1: Final[str] = "eu-central-1"  # Frankfurt
     EU_CENTRAL_2: Final[str] = "eu-central-2"  # Zurich
     EU_NORTH_1: Final[str] = "eu-north-1"  # Stockholm
+    EU_SOUTH_1: Final[str] = "eu-south-1"  # Milan
+    EU_SOUTH_2: Final[str] = "eu-south-2"  # Spain
     EU_WEST_1: Final[str] = "eu-west-1"  # Ireland
     EU_WEST_2: Final[str] = "eu-west-2"  # London
     EU_WEST_3: Final[str] = "eu-west-3"  # Paris
@@ -96,9 +100,45 @@ def get_all_regions() -> List[str]:
         AWSRegions.AP_SOUTH_2,
         AWSRegions.AP_SOUTHEAST_1,
         AWSRegions.AP_SOUTHEAST_2,
+        AWSRegions.AP_SOUTHEAST_3,
+        AWSRegions.AP_SOUTHEAST_4,
         AWSRegions.EU_CENTRAL_1,
         AWSRegions.EU_CENTRAL_2,
         AWSRegions.EU_NORTH_1,
+        AWSRegions.EU_SOUTH_1,
+        AWSRegions.EU_SOUTH_2,
+        AWSRegions.EU_WEST_1,
+        AWSRegions.EU_WEST_2,
+        AWSRegions.EU_WEST_3,
+        AWSRegions.CA_CENTRAL_1,
+        AWSRegions.SA_EAST_1,
+    ]
+
+
+def get_commercial_regions() -> List[str]:
+    """
+    Get all commercial AWS region identifiers (excludes GovCloud).
+
+    Returns:
+        List of all commercial AWS region identifiers
+    """
+    return [
+        AWSRegions.US_EAST_1,
+        AWSRegions.US_EAST_2,
+        AWSRegions.US_WEST_1,
+        AWSRegions.US_WEST_2,
+        AWSRegions.AP_NORTHEAST_1,
+        AWSRegions.AP_NORTHEAST_2,
+        AWSRegions.AP_NORTHEAST_3,
+        AWSRegions.AP_SOUTH_1,
+        AWSRegions.AP_SOUTHEAST_1,
+        AWSRegions.AP_SOUTHEAST_2,
+        AWSRegions.AP_SOUTHEAST_3,
+        AWSRegions.AP_SOUTHEAST_4,
+        AWSRegions.EU_CENTRAL_1,
+        AWSRegions.EU_NORTH_1,
+        AWSRegions.EU_SOUTH_1,
+        AWSRegions.EU_SOUTH_2,
         AWSRegions.EU_WEST_1,
         AWSRegions.EU_WEST_2,
         AWSRegions.EU_WEST_3,

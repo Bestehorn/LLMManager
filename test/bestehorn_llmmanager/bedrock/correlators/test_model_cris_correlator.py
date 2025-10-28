@@ -199,22 +199,6 @@ class TestModelCRISCorrelator:
             assert "claude-3-sonnet" in result.unified_models
             assert "bad-model" not in result.unified_models
 
-    def test_correlate_catalogs_cris_processing_error(
-        self, correlator: ModelCRISCorrelator, sample_cris_catalog: CRISCatalog
-    ):
-        """Test correlation with CRIS model processing error."""
-        empty_model_catalog = ModelCatalog(retrieval_timestamp=datetime.now(), models={})
-
-        with patch.object(
-            correlator, "_create_cris_only_unified_model", side_effect=Exception("CRIS error")
-        ):
-            with pytest.raises(ModelCRISCorrelationError) as exc_info:
-                correlator.correlate_catalogs(
-                    model_catalog=empty_model_catalog, cris_catalog=sample_cris_catalog
-                )
-
-            assert "CRIS model correlation failed" in str(exc_info.value)
-
     def test_create_model_name_mapping(
         self, correlator: ModelCRISCorrelator, sample_cris_model: CRISModelInfo
     ):
@@ -249,6 +233,132 @@ class TestModelCRISCorrelator:
         # Test no prefix
         result = correlator._normalize_model_name("some-model")
         assert result == "some-model"
+
+    def test_normalize_model_name_enhanced_providers(self, correlator: ModelCRISCorrelator):
+        """Test enhanced model name normalization with all supported providers."""
+        # Test TwelveLabs prefix removal (critical for Marengo Embed v2.7)
+        result = correlator._normalize_model_name("twelvelabs.marengo-embed-2.7")
+        assert result == "marengo-embed-2.7"
+
+        # Test Cohere prefix removal
+        result = correlator._normalize_model_name("cohere.embed-english-v3")
+        assert result == "embed-english-v3"
+
+        # Test Writer prefix removal
+        result = correlator._normalize_model_name("writer.palmyra-x-004")
+        assert result == "palmyra-x-004"
+
+        # Test DeepSeek prefix removal
+        result = correlator._normalize_model_name("deepseek.coder-v2")
+        assert result == "coder-v2"
+
+        # Test Stability prefix removal
+        result = correlator._normalize_model_name("stability.stable-diffusion-xl")
+        assert result == "stable-diffusion-xl"
+
+        # Test AI21 prefix removal
+        result = correlator._normalize_model_name("ai21.jurassic-2-ultra")
+        assert result == "jurassic-2-ultra"
+
+    def test_normalize_model_name_case_sensitivity(self, correlator: ModelCRISCorrelator):
+        """Test that prefix normalization is case-sensitive (lowercase only)."""
+        # Lowercase prefixes should be removed
+        result = correlator._normalize_model_name("anthropic.claude-3-haiku")
+        assert result == "claude-3-haiku"
+
+        # Uppercase or mixed case should NOT be removed (not standard format)
+        result = correlator._normalize_model_name("Anthropic.claude-3-haiku")
+        assert result == "Anthropic.claude-3-haiku"
+
+        result = correlator._normalize_model_name("ANTHROPIC.claude-3-haiku")
+        assert result == "ANTHROPIC.claude-3-haiku"
+
+    def test_normalize_model_name_no_prefix(self, correlator: ModelCRISCorrelator):
+        """Test normalization of models without provider prefixes."""
+        # Models without prefixes should remain unchanged
+        result = correlator._normalize_model_name("claude-3-5-haiku-20241022-v1:0")
+        assert result == "claude-3-5-haiku-20241022-v1:0"
+
+        result = correlator._normalize_model_name("llama-3.1-8b-instruct")
+        assert result == "llama-3.1-8b-instruct"
+
+        result = correlator._normalize_model_name("gpt-4")
+        assert result == "gpt-4"
+
+    def test_normalize_model_name_whitespace(self, correlator: ModelCRISCorrelator):
+        """Test that normalization handles whitespace correctly."""
+        # Leading/trailing whitespace should be stripped
+        result = correlator._normalize_model_name("  anthropic.claude-3-sonnet  ")
+        assert result == "claude-3-sonnet"
+
+        result = correlator._normalize_model_name("\tanthropic.claude-3-sonnet\n")
+        assert result == "claude-3-sonnet"
+
+    def test_normalize_model_name_real_world_examples(self, correlator: ModelCRISCorrelator):
+        """Test normalization with real-world model ID examples."""
+        # Real Claude Haiku 4.5 model ID
+        result = correlator._normalize_model_name(
+            "anthropic.claude-3-5-haiku-20241022-v1:0"
+        )
+        assert result == "claude-3-5-haiku-20241022-v1:0"
+
+        # Real Marengo Embed model ID
+        result = correlator._normalize_model_name("twelvelabs.marengo-embed-2.7")
+        assert result == "marengo-embed-2.7"
+
+        # Real Llama model ID
+        result = correlator._normalize_model_name("meta.llama3-1-70b-instruct-v1:0")
+        assert result == "llama3-1-70b-instruct-v1:0"
+
+        # Real Cohere model ID
+        result = correlator._normalize_model_name("cohere.command-r-v1:0")
+        assert result == "command-r-v1:0"
+
+    def test_normalize_model_name_space_separated_prefixes(self, correlator: ModelCRISCorrelator):
+        """Test normalization with space-separated capitalized prefixes from CRIS."""
+        # Critical test: Claude Haiku 4.5 from CRIS
+        result = correlator._normalize_model_name("Anthropic Claude Haiku 4.5")
+        assert result == "Claude Haiku 4.5"
+
+        # Critical test: Marengo Embed v2.7 from CRIS
+        result = correlator._normalize_model_name("TwelveLabs Marengo Embed v2.7")
+        assert result == "Marengo Embed v2.7"
+
+        # Meta models from CRIS
+        result = correlator._normalize_model_name("Meta Llama 3.3 70B Instruct")
+        assert result == "Llama 3.3 70B Instruct"
+
+        # Cohere models from CRIS
+        result = correlator._normalize_model_name("Cohere Embed v4")
+        assert result == "Embed v4"
+
+        # Writer models from CRIS
+        result = correlator._normalize_model_name("Writer Palmyra X5")
+        assert result == "Palmyra X5"
+
+        # DeepSeek models from CRIS
+        result = correlator._normalize_model_name("DeepSeek R1")
+        assert result == "R1"
+
+        # Stability models from CRIS
+        result = correlator._normalize_model_name("Stability Stable Image Control")
+        assert result == "Stable Image Control"
+
+        # Amazon models from CRIS
+        result = correlator._normalize_model_name("Amazon Nova Pro")
+        assert result == "Nova Pro"
+
+    def test_normalize_model_name_mixed_formats(self, correlator: ModelCRISCorrelator):
+        """Test that normalization handles both dot and space formats correctly."""
+        # Same logical model in different formats should normalize similarly
+        dot_format = correlator._normalize_model_name("anthropic.claude-haiku-4-5-20251001-v1:0")
+        space_format = correlator._normalize_model_name("Anthropic Claude Haiku 4.5")
+        
+        # Both should remove the provider prefix
+        assert not dot_format.startswith("anthropic")
+        assert not dot_format.startswith("Anthropic")
+        assert not space_format.startswith("Anthropic")
+        assert space_format == "Claude Haiku 4.5"
 
     def test_find_matching_cris_model_exact_match(
         self, correlator: ModelCRISCorrelator, sample_cris_model: CRISModelInfo

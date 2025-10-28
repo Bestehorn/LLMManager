@@ -325,12 +325,11 @@ class TestUnifiedModelManager:
 
     def test_get_model_access_info_success(self, unified_manager):
         """Test successful retrieval of model access info."""
-        # Setup mock access info
+        # Setup mock access info using new orthogonal flags
         mock_access_info = ModelAccessInfo(
-            access_method=ModelAccessMethod.DIRECT,
             region="us-east-1",
+            has_direct_access=True,
             model_id="test-model-id",
-            inference_profile_id="test-profile-id",
         )
 
         model = unified_manager._cached_catalog.unified_models["Claude 3 Haiku"]
@@ -369,12 +368,11 @@ class TestUnifiedModelManager:
 
     def test_get_recommended_access_direct_only(self, unified_manager):
         """Test getting recommended access for direct-only model."""
-        # Setup mock access info
+        # Setup mock access info using new orthogonal flags
         mock_access_info = ModelAccessInfo(
-            access_method=ModelAccessMethod.DIRECT,
             region="us-east-1",
+            has_direct_access=True,
             model_id="test-model-id",
-            inference_profile_id=None,
         )
 
         model = unified_manager._cached_catalog.unified_models["Claude 3 Haiku"]
@@ -391,10 +389,9 @@ class TestUnifiedModelManager:
         """Test getting recommended access for CRIS-only model."""
         # Setup mock access info
         mock_access_info = ModelAccessInfo(
-            access_method=ModelAccessMethod.CRIS_ONLY,
             region="us-east-1",
-            model_id=None,
-            inference_profile_id="test-profile-id",
+            has_regional_cris=True,
+            regional_cris_profile_id="test-profile-id",
         )
 
         model = unified_manager._cached_catalog.unified_models["Claude 3 Haiku"]
@@ -409,12 +406,13 @@ class TestUnifiedModelManager:
 
     def test_get_recommended_access_both_methods(self, unified_manager):
         """Test getting recommended access for model with both access methods."""
-        # Setup mock access info with both methods
+        # Setup mock access info with both direct and regional CRIS
         mock_access_info = ModelAccessInfo(
-            access_method=ModelAccessMethod.BOTH,
             region="us-east-1",
+            has_direct_access=True,
+            has_regional_cris=True,
             model_id="test-model-id",
-            inference_profile_id="test-profile-id",
+            regional_cris_profile_id="test-profile-id",
         )
 
         model = unified_manager._cached_catalog.unified_models["Claude 3 Haiku"]
@@ -424,13 +422,13 @@ class TestUnifiedModelManager:
 
         assert isinstance(result, AccessRecommendation)
         # Should recommend direct access
-        assert result.recommended_access.access_method == ModelAccessMethod.DIRECT
+        assert result.recommended_access.has_direct_access is True
         assert result.recommended_access.model_id == "test-model-id"
         assert result.rationale == AccessMethodPriority.PRIORITY_RATIONALES["direct_preferred"]
         # Should have CRIS as alternative
         assert len(result.alternatives) == 1
-        assert result.alternatives[0].access_method == ModelAccessMethod.CRIS_ONLY
-        assert result.alternatives[0].inference_profile_id == "test-profile-id"
+        assert result.alternatives[0].has_regional_cris is True
+        assert result.alternatives[0].regional_cris_profile_id == "test-profile-id"
 
     def test_is_model_available_in_region_no_data(self):
         """Test checking model availability when no data is available."""

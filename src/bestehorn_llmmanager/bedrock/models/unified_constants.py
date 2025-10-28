@@ -38,11 +38,70 @@ class UnifiedJSONFields:
 class ModelCorrelationConstants:
     """Constants for model name correlation between systems."""
 
-    # Common prefixes to normalize
-    ANTHROPIC_PREFIX: Final[str] = "anthropic."
-    META_PREFIX: Final[str] = "meta."
-    AMAZON_PREFIX: Final[str] = "amazon."
-    MISTRAL_PREFIX: Final[str] = "mistral."
+    # Dot-separated lowercase prefixes (used in model IDs)
+    # Format: "anthropic.claude-3-5-haiku..."
+    ANTHROPIC_DOT_PREFIX: Final[str] = "anthropic."
+    META_DOT_PREFIX: Final[str] = "meta."
+    AMAZON_DOT_PREFIX: Final[str] = "amazon."
+    MISTRAL_DOT_PREFIX: Final[str] = "mistral."
+    TWELVELABS_DOT_PREFIX: Final[str] = "twelvelabs."
+    COHERE_DOT_PREFIX: Final[str] = "cohere."
+    WRITER_DOT_PREFIX: Final[str] = "writer."
+    DEEPSEEK_DOT_PREFIX: Final[str] = "deepseek."
+    STABILITY_DOT_PREFIX: Final[str] = "stability."
+    AI21_DOT_PREFIX: Final[str] = "ai21."
+    
+    # Space-separated capitalized prefixes (used in CRIS model names)
+    # Format: "Anthropic Claude 3.5 Haiku"
+    ANTHROPIC_SPACE_PREFIX: Final[str] = "Anthropic "
+    META_SPACE_PREFIX: Final[str] = "Meta "
+    AMAZON_SPACE_PREFIX: Final[str] = "Amazon "
+    MISTRAL_SPACE_PREFIX: Final[str] = "Mistral "
+    TWELVELABS_SPACE_PREFIX: Final[str] = "TwelveLabs "
+    COHERE_SPACE_PREFIX: Final[str] = "Cohere "
+    WRITER_SPACE_PREFIX: Final[str] = "Writer "
+    DEEPSEEK_SPACE_PREFIX: Final[str] = "DeepSeek "
+    STABILITY_SPACE_PREFIX: Final[str] = "Stability "
+    AI21_SPACE_PREFIX: Final[str] = "AI21 "
+    
+    # Backward compatibility aliases (deprecated)
+    ANTHROPIC_PREFIX: Final[str] = ANTHROPIC_DOT_PREFIX
+    META_PREFIX: Final[str] = META_DOT_PREFIX
+    AMAZON_PREFIX: Final[str] = AMAZON_DOT_PREFIX
+    MISTRAL_PREFIX: Final[str] = MISTRAL_DOT_PREFIX
+    TWELVELABS_PREFIX: Final[str] = TWELVELABS_DOT_PREFIX
+    COHERE_PREFIX: Final[str] = COHERE_DOT_PREFIX
+    WRITER_PREFIX: Final[str] = WRITER_DOT_PREFIX
+    DEEPSEEK_PREFIX: Final[str] = DEEPSEEK_DOT_PREFIX
+    STABILITY_PREFIX: Final[str] = STABILITY_DOT_PREFIX
+    AI21_PREFIX: Final[str] = AI21_DOT_PREFIX
+    
+    # Comprehensive list of all provider prefixes for normalization
+    # Includes both dot-separated (model IDs) and space-separated (CRIS names) formats
+    ALL_PROVIDER_PREFIXES: Final[tuple] = (
+        # Dot-separated prefixes (model IDs)
+        ANTHROPIC_DOT_PREFIX,
+        META_DOT_PREFIX,
+        AMAZON_DOT_PREFIX,
+        MISTRAL_DOT_PREFIX,
+        TWELVELABS_DOT_PREFIX,
+        COHERE_DOT_PREFIX,
+        WRITER_DOT_PREFIX,
+        DEEPSEEK_DOT_PREFIX,
+        STABILITY_DOT_PREFIX,
+        AI21_DOT_PREFIX,
+        # Space-separated prefixes (CRIS names)
+        ANTHROPIC_SPACE_PREFIX,
+        META_SPACE_PREFIX,
+        AMAZON_SPACE_PREFIX,
+        MISTRAL_SPACE_PREFIX,
+        TWELVELABS_SPACE_PREFIX,
+        COHERE_SPACE_PREFIX,
+        WRITER_SPACE_PREFIX,
+        DEEPSEEK_SPACE_PREFIX,
+        STABILITY_SPACE_PREFIX,
+        AI21_SPACE_PREFIX,
+    )
 
     # Model name mappings (CRIS name -> Standard name)
     MODEL_NAME_MAPPINGS: Final[Dict[str, str]] = {

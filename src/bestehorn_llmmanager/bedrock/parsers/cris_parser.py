@@ -14,6 +14,7 @@ from bs4 import BeautifulSoup, Tag
 
 from ..models.cris_constants import (
     CRISErrorMessages,
+    CRISGlobalConstants,
     CRISHTMLAttributes,
     CRISHTMLSelectors,
     CRISLogMessages,
@@ -92,7 +93,7 @@ class CRISRegionExtractor:
 
         Returns:
             Tuple of (region_prefix, clean_model_name)
-            - region_prefix: The regional identifier ('US', 'EU', 'APAC') or None
+            - region_prefix: The regional identifier ('US', 'EU', 'APAC', 'GLOBAL') or None
             - clean_model_name: The model name without regional prefix
         """
         if not header:
@@ -100,8 +101,9 @@ class CRISRegionExtractor:
 
         clean_header = header.strip()
 
-        # Check for each known region prefix
+        # Check for each known region prefix (including Global)
         for prefix_constant, identifier in [
+            (CRISRegionPrefixes.GLOBAL_PREFIX, CRISRegionPrefixes.GLOBAL_IDENTIFIER),
             (CRISRegionPrefixes.US_PREFIX, CRISRegionPrefixes.US_IDENTIFIER),
             (CRISRegionPrefixes.EU_PREFIX, CRISRegionPrefixes.EU_IDENTIFIER),
             (CRISRegionPrefixes.APAC_PREFIX, CRISRegionPrefixes.APAC_IDENTIFIER),
@@ -238,6 +240,9 @@ class CRISHTMLParser(BaseCRISParser):
         creating CRISModelInfo objects that overwrite each other, we collect all
         variants first and then merge them appropriately.
 
+        IMPORTANT: Uses clean model name (without regional prefixes like "Global ")
+        as the dictionary key to ensure proper correlation with foundational models.
+
         Args:
             expandable_sections: BeautifulSoup ResultSet of expandable section elements
 
@@ -253,6 +258,9 @@ class CRISHTMLParser(BaseCRISParser):
             try:
                 variant = self._parse_section_to_variant(section=section_element)
                 if variant:
+                    # CRITICAL FIX: Extract clean model name WITHOUT "Global " prefix
+                    # This ensures "Global Anthropic Claude Haiku 4.5" and 
+                    # "Anthropic Claude Haiku 4.5" both map to "Anthropic Claude Haiku 4.5"
                     model_name = self._extract_clean_model_name(section=section_element)
                     if model_name:
                         # Initialize model variants list if needed
@@ -391,12 +399,29 @@ class CRISHTMLParser(BaseCRISParser):
                 # Skip duplicate - first one wins
                 continue
 
+            # Detect if this is a global profile
+            is_global = self._is_global_profile(profile_id=profile_id)
+
             # Create CRISInferenceProfile from variant
             inference_profiles[profile_id] = CRISInferenceProfile(
-                inference_profile_id=profile_id, region_mappings=variant.region_mappings
+                inference_profile_id=profile_id,
+                region_mappings=variant.region_mappings,
+                is_global=is_global,
             )
 
         return inference_profiles
+
+    def _is_global_profile(self, profile_id: str) -> bool:
+        """
+        Determine if an inference profile ID represents a global CRIS profile.
+
+        Args:
+            profile_id: The inference profile ID to check
+
+        Returns:
+            True if this is a global profile (prefixed with 'global.')
+        """
+        return profile_id.startswith(CRISGlobalConstants.GLOBAL_PROFILE_PREFIX)
 
     def _extract_clean_model_name(self, section: Tag) -> Optional[str]:
         """
@@ -558,28 +583,47 @@ class CRISHTMLParser(BaseCRISParser):
     def _extract_destination_regions(self, cell: Tag) -> List[str]:
         """
         Extract destination regions from a table cell.
+        
+        Handles both specific region lists and the global "Commercial AWS Regions" marker.
+        IMPORTANT: Preserves the marker as a placeholder instead of expanding it immediately.
+        This allows for future-proof region support as AWS adds new regions.
 
         Args:
             cell: BeautifulSoup Tag representing a table cell
 
         Returns:
-            List of destination region names
+            List of destination region names, may include COMMERCIAL_REGIONS_MARKER
         """
         destinations = []
+        found_marker = False
 
         # Look for paragraph elements within the cell
         paragraphs = cell.find_all(CRISHTMLSelectors.PARAGRAPH)
 
         if paragraphs:
-            # Extract text from each paragraph
+            # Extract text from each paragraph - accumulate all regions
             for para in paragraphs:
                 if isinstance(para, Tag):
                     region = para.get_text(strip=True)
+                    
+                    # Check for global marker
+                    if region == CRISGlobalConstants.GLOBAL_DESTINATION_MARKER:
+                        # Store marker instead of expanding (future-proof)
+                        found_marker = True
+                        continue
+                    
                     if region and self._is_valid_region_name(region=region):
                         destinations.append(region)
         else:
             # Fallback: try to extract all text and split by common delimiters
             cell_text = cell.get_text(strip=True)
+            
+            # Check for global marker in cell text
+            if CRISGlobalConstants.GLOBAL_DESTINATION_MARKER in cell_text:
+                found_marker = True
+                # Still try to extract specific regions from the same cell
+                cell_text = cell_text.replace(CRISGlobalConstants.GLOBAL_DESTINATION_MARKER, "")
+            
             if cell_text:
                 # Split by common delimiters and clean up
                 potential_regions = re.split(r"[,;\n\r]+", cell_text)
@@ -587,6 +631,10 @@ class CRISHTMLParser(BaseCRISParser):
                     region = region.strip()
                     if region and self._is_valid_region_name(region=region):
                         destinations.append(region)
+
+        # Add marker at the end if found (after specific regions)
+        if found_marker:
+            destinations.append(CRISGlobalConstants.COMMERCIAL_REGIONS_MARKER)
 
         return destinations
 

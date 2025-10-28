@@ -1264,6 +1264,39 @@ except LLMManagerError as e:
 
 ## Model and Region Management
 
+### Enhanced Provider Support
+
+LLMManager now supports comprehensive provider prefix normalization for all AWS Bedrock providers, enabling seamless correlation between CRIS data and foundational model data. This enhancement ensures that models from all providers load correctly, including:
+
+**Supported Providers:**
+- **Anthropic** - Claude models (e.g., Claude 3 Haiku, Claude 3.5 Sonnet)
+- **Meta** - Llama models (e.g., Llama 3.1, Llama 3.2, Llama 3.3)
+- **Amazon** - Titan and Nova models
+- **Mistral AI** - Mistral and Pixtral models
+- **TwelveLabs** - Marengo models (e.g., Marengo Embed v2.7)
+- **Cohere** - Command and Embed models
+- **Writer** - Palmyra models
+- **DeepSeek** - DeepSeek models
+- **Stability AI** - Stable Diffusion models
+- **AI21 Labs** - Jurassic models
+
+The system automatically handles provider prefix normalization (e.g., `anthropic.claude-3-5-haiku-20241022-v1:0` → `claude-3-5-haiku-20241022-v1:0`) to ensure proper model correlation across different AWS Bedrock naming conventions.
+
+### CRIS Model Correlation
+
+The Cross-Region Inference Service (CRIS) correlation system has been enhanced to:
+
+1. **Global Variant Prioritization**: Automatically prioritizes Global CRIS variants over regional variants for better routing and availability
+2. **Comprehensive Provider Coverage**: Supports all AWS Bedrock providers through enhanced prefix normalization
+3. **Synthetic Model Creation**: Automatically creates synthetic base models for CRIS-only models (like Claude Haiku 4.5) to ensure proper loading
+4. **Expected Behavior Logging**: CRIS-only region messages are logged at INFO level rather than WARNING level, as this is expected behavior for models with limited CRIS coverage
+
+**CRIS-Only Regions:**
+Some models may only be available through CRIS in certain regions. These are automatically detected and handled:
+- Regions marked with `*` in model data indicate CRIS-only availability
+- The system automatically uses inference profiles for CRIS-only regions
+- INFO level logging confirms expected CRIS-only behavior (not errors)
+
 ### Model Names
 
 Common model names supported:
@@ -1274,6 +1307,7 @@ Common model names supported:
 - `"Nova Micro"` - Amazon's multimodal model
 - `"Nova Lite"` - Amazon's lightweight model
 - `"Nova Pro"` - Amazon's professional model
+- `"Marengo Embed v2.7"` - TwelveLabs embedding model
 
 ### AWS Regions
 
