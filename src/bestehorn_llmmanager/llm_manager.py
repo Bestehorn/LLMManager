@@ -80,6 +80,7 @@ class LLMManager:
         retry_config: Optional[RetryConfig] = None,
         cache_config: Optional[CacheConfig] = None,
         unified_model_manager: Optional[UnifiedModelManager] = None,
+        force_download: bool = False,
         default_inference_config: Optional[Dict[str, Any]] = None,
         timeout: int = LLMManagerConfig.DEFAULT_TIMEOUT,
         log_level: Union[int, str] = LLMManagerConfig.DEFAULT_LOG_LEVEL,
@@ -94,6 +95,9 @@ class LLMManager:
             retry_config: Retry behavior configuration. If None, uses defaults
             cache_config: Cache configuration for prompt caching. If None, caching is disabled
             unified_model_manager: Pre-configured UnifiedModelManager. If None, creates new one
+            force_download: If True, force download fresh model data during initialization,
+                bypassing any cached data. Defaults to False (uses cache when available).
+                Note: This parameter is ignored if unified_model_manager is provided.
             default_inference_config: Default inference parameters to apply
             timeout: Request timeout in seconds
             log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
@@ -129,6 +133,17 @@ class LLMManager:
             self._cache_point_manager = CachePointManager(self._cache_config)
             self._logger.info(f"Caching enabled with strategy: {self._cache_config.strategy.value}")
 
+        # Handle force_download conflict with unified_model_manager
+        effective_force_download = force_download
+        if unified_model_manager and force_download:
+            self._logger.warning(
+                "Both 'unified_model_manager' and 'force_download=True' were provided. "
+                "The 'force_download' parameter will be ignored since a pre-configured "
+                "UnifiedModelManager was supplied. To force download, configure the "
+                "UnifiedModelManager directly with force_download=True."
+            )
+            effective_force_download = False
+
         # Initialize or use provided UnifiedModelManager
         if unified_model_manager:
             self._unified_model_manager = unified_model_manager
@@ -136,7 +151,7 @@ class LLMManager:
             self._unified_model_manager = UnifiedModelManager()
 
         # Initialize model data with proper cache management
-        self._initialize_model_data()
+        self._initialize_model_data(force_download=effective_force_download)
 
         # Validate model/region combinations
         self._validate_model_region_combinations()
@@ -186,25 +201,31 @@ class LLMManager:
             if not isinstance(region, str) or not region.strip():
                 raise ConfigurationError(f"Invalid region name: {region}")
 
-    def _initialize_model_data(self) -> None:
+    def _initialize_model_data(self, force_download: bool = False) -> None:
         """
         Initialize model data for the UnifiedModelManager.
 
-        This method attempts to load cached model data first, and if unavailable,
-        refreshes the data by downloading from AWS documentation. Model data is
-        required for LLMManager to operate properly.
+        This method attempts to load cached model data first (unless force_download is True),
+        and if unavailable, refreshes the data by downloading from AWS documentation. Model
+        data is required for LLMManager to operate properly.
+
+        Args:
+            force_download: If True, skip cache and force download fresh data
 
         Raises:
             ConfigurationError: If model data cannot be loaded or refreshed
         """
         try:
-            # Try to load cached data first
-            cached_catalog = self._load_cached_model_data()
-            if cached_catalog is not None:
-                self._logger.info("Successfully loaded cached model data")
-                return
+            if not force_download:
+                # Try to load cached data first
+                cached_catalog = self._load_cached_model_data()
+                if cached_catalog is not None:
+                    self._logger.info("Successfully loaded cached model data")
+                    return
+            else:
+                self._logger.info("Force download requested - skipping cache check")
 
-            # No cached data available, refresh from AWS
+            # No cached data available or force_download=True, refresh from AWS
             self._refresh_model_data_from_aws()
             self._logger.info("Successfully refreshed model data from AWS documentation")
 

@@ -166,11 +166,21 @@ class UnifiedModelManager:
                 force_download=effective_force_download
             )
 
-            # Step 2: Refresh CRIS data
-            self._logger.info("Refreshing CRIS model data")
-            cris_catalog = self._cris_manager.refresh_cris_data(
-                force_download=effective_force_download
-            )
+            # Step 2: Refresh CRIS data (non-fatal if fails)
+            cris_catalog = None
+            try:
+                self._logger.info("Refreshing CRIS model data")
+                cris_catalog = self._cris_manager.refresh_cris_data(
+                    force_download=effective_force_download
+                )
+            except Exception as cris_error:
+                self._logger.warning(
+                    f"Failed to refresh CRIS data (cross-region inference profiles will not be available): {str(cris_error)}"
+                )
+                self._logger.info(
+                    "Continuing with direct model access only. Models will work normally but "
+                    "cross-region inference profiles will not be available."
+                )
 
             # Step 3: Correlate and merge data
             self._logger.info("Correlating model and CRIS data")

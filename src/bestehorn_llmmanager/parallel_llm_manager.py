@@ -76,6 +76,7 @@ class ParallelLLMManager:
         auth_config: Optional[AuthConfig] = None,
         retry_config: Optional[RetryConfig] = None,
         parallel_config: Optional[ParallelProcessingConfig] = None,
+        force_download: bool = False,
         default_inference_config: Optional[Dict] = None,
         timeout: int = ParallelConfig.DEFAULT_REQUEST_TIMEOUT_SECONDS,
         log_level: Union[int, str] = LLMManagerConfig.DEFAULT_LOG_LEVEL,
@@ -89,6 +90,8 @@ class ParallelLLMManager:
             auth_config: Authentication configuration. If None, uses auto-detection
             retry_config: Retry behavior configuration. If None, uses defaults
             parallel_config: Parallel processing configuration. If None, uses defaults
+            force_download: If True, force download fresh model data during initialization,
+                bypassing any cached data. Defaults to False (uses cache when available).
             default_inference_config: Default inference parameters to apply
             timeout: Request timeout in seconds (applies to individual requests)
             log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
@@ -113,6 +116,7 @@ class ParallelLLMManager:
             regions=regions,
             auth_config=auth_config,
             retry_config=retry_config,
+            force_download=force_download,
             default_inference_config=default_inference_config,
             timeout=timeout,
             log_level=log_level,

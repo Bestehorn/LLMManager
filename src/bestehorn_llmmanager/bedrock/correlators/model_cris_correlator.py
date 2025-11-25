@@ -64,14 +64,14 @@ class ModelCRISCorrelator:
         )
 
     def correlate_catalogs(
-        self, model_catalog: ModelCatalog, cris_catalog: CRISCatalog
+        self, model_catalog: ModelCatalog, cris_catalog: Optional[CRISCatalog]
     ) -> UnifiedModelCatalog:
         """
         Correlate and merge model and CRIS catalogs into a unified catalog.
 
         Args:
             model_catalog: Regular Bedrock model catalog
-            cris_catalog: CRIS model catalog
+            cris_catalog: CRIS model catalog (optional, can be None if CRIS data unavailable)
 
         Returns:
             UnifiedModelCatalog containing merged data
@@ -84,6 +84,15 @@ class ModelCRISCorrelator:
         try:
             # Reset correlation statistics
             self._reset_correlation_stats()
+
+            # Handle None cris_catalog - create empty catalog for graceful processing
+            if cris_catalog is None:
+                self._logger.warning(
+                    "CRIS catalog is None - proceeding with direct model access only"
+                )
+                cris_catalog = CRISCatalog(
+                    retrieval_timestamp=model_catalog.retrieval_timestamp, cris_models={}
+                )
 
             # Create model name mapping for correlation
             cris_to_standard_mapping = self._create_model_name_mapping(

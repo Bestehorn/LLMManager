@@ -297,29 +297,48 @@ class CRISHTMLParser(BaseCRISParser):
             ParsingError: If section is malformed
         """
         section_id = section.get(CRISHTMLAttributes.ID, "unknown")
+        
+        # DIAGNOSTIC: Log section attributes
+        self._logger.debug(f"[DIAGNOSTIC] Processing section: {section_id}")
+        self._logger.debug(f"[DIAGNOSTIC] Section attributes: {section.attrs}")
 
         # Extract header and determine regional prefix
         header_attr = section.get(CRISHTMLAttributes.HEADER)
         if not header_attr:
+            self._logger.error(f"[DIAGNOSTIC] Section {section_id}: No header attribute found. Available attrs: {list(section.attrs.keys())}")
             raise ParsingError(CRISErrorMessages.MALFORMED_SECTION.format(section_id=section_id))
+        
+        self._logger.debug(f"[DIAGNOSTIC] Section {section_id}: Header attribute type: {type(header_attr)}, value: {header_attr}")
 
         header_str = self._normalize_header_attribute(header_attr=header_attr)
+        self._logger.debug(f"[DIAGNOSTIC] Section {section_id}: Normalized header: '{header_str}'")
+        
         region_prefix, _ = CRISRegionExtractor.extract_region_and_model_name(header=header_str)
+        self._logger.debug(f"[DIAGNOSTIC] Section {section_id}: Region prefix: {region_prefix}")
 
         # Extract inference profile ID
         inference_profile_id = self._extract_inference_profile_id(section=section)
         if not inference_profile_id:
+            self._logger.warning(f"[DIAGNOSTIC] Section {section_id}: No inference profile ID found in code blocks")
             # Try fallback extraction from section ID
             inference_profile_id = self._extract_profile_from_section_id(section_id=section_id)
             if not inference_profile_id:
+                self._logger.error(f"[DIAGNOSTIC] Section {section_id}: Failed to extract profile ID from both code blocks and section ID")
                 raise ParsingError(
                     CRISErrorMessages.MISSING_INFERENCE_PROFILE.format(section_id=section_id)
                 )
+            else:
+                self._logger.debug(f"[DIAGNOSTIC] Section {section_id}: Used fallback profile ID: {inference_profile_id}")
+        else:
+            self._logger.debug(f"[DIAGNOSTIC] Section {section_id}: Profile ID from code block: {inference_profile_id}")
 
         # Parse region mapping table
         region_mappings = self._parse_region_mapping_table(section=section)
         if not region_mappings:
+            self._logger.error(f"[DIAGNOSTIC] Section {section_id}: No region mappings found in table")
             raise ParsingError(CRISErrorMessages.MISSING_REGION_TABLE.format(section_id=section_id))
+        
+        self._logger.debug(f"[DIAGNOSTIC] Section {section_id}: Found {len(region_mappings)} region mappings")
 
         return CRISRegionalVariant(
             region_prefix=region_prefix or "GLOBAL",  # Default for non-regional models
