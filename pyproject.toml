@@ -20,7 +20,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -36,7 +35,7 @@ classifiers = [
     "Typing :: Typed",
 ]
 keywords = ["aws", "bedrock", "llm", "ai", "machine-learning", "amazon", "claude", "anthropic"]
-requires-python = ">=3.8,<4.0"
+requires-python = ">=3.9,<4.0"
 dependencies = [
     "boto3>=1.28.0",
     "botocore>=1.31.0",
@@ -143,7 +142,7 @@ filterwarnings = [
 # Code formatting with Black
 [tool.black]
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
+target-version = ['py39', 'py310', 'py311', 'py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -187,7 +186,7 @@ exclude = [
 
 # Type checking with mypy
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
