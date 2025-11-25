@@ -65,14 +65,14 @@ def test_models(unified_model_manager, test_regions) -> List[str]:
         List of model names suitable for testing in the specified regions
     """
     all_models = unified_model_manager.get_model_names()
-    
+
     # Filter models that are available in at least one of the test regions
     available_models = []
     for model_name in all_models:
         # Skip CRIS-only models (those starting with regional prefixes)
         if model_name.startswith(("APAC ", "EMEA ", "US ")):
             continue
-            
+
         # Check if model is available in any test region
         for region in test_regions:
             try:

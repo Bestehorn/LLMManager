@@ -218,7 +218,9 @@ class TestUnifiedModelManager:
             ):
                 manager.refresh_unified_data()
 
-    def test_refresh_unified_data_parsing_error(self, mock_cris_manager, mock_model_manager, mock_correlator):
+    def test_refresh_unified_data_parsing_error(
+        self, mock_cris_manager, mock_model_manager, mock_correlator
+    ):
         """Test unified data refresh with CRIS parsing error (non-fatal)."""
         with (
             patch(
@@ -251,8 +253,8 @@ class TestUnifiedModelManager:
             mock_correlator.correlate_catalogs.assert_called_once()
             # Verify cris_catalog argument was None
             call_args = mock_correlator.correlate_catalogs.call_args
-            assert call_args.kwargs['cris_catalog'] is None
-            
+            assert call_args.kwargs["cris_catalog"] is None
+
             # Catalog should still be returned
             assert catalog is not None
 
