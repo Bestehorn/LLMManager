@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 from botocore.exceptions import ClientError
 
-from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo, ModelAccessMethod
+from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     RetryConfig,
     RetryStrategy,
@@ -34,10 +34,9 @@ class TestContentCompatibilityErrorHandling:
     def mock_access_info(self) -> ModelAccessInfo:
         """Create mock access info."""
         return ModelAccessInfo(
-            model_id="claude-3-sonnet",
             region="us-east-1",
-            access_method=ModelAccessMethod.DIRECT,
-            inference_profile_id=None,
+            has_direct_access=True,
+            model_id="claude-3-sonnet",
         )
 
     def test_is_content_compatibility_error_video(self, retry_manager: RetryManager) -> None:

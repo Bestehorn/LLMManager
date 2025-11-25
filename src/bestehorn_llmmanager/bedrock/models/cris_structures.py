@@ -81,7 +81,7 @@ class CRISInferenceProfile:
                 # Skip validation for marker - it's a special placeholder
                 if dest_region == CRISGlobalConstants.COMMERCIAL_REGIONS_MARKER:
                     continue
-                
+
                 # Use pattern that accepts marker or regular region
                 if not re.match(CRISValidationPatterns.AWS_REGION_OR_MARKER_PATTERN, dest_region):
                     raise ValueError(CRISErrorMessages.INVALID_REGION.format(region=dest_region))
@@ -156,7 +156,7 @@ class CRISInferenceProfile:
     def expand_commercial_regions_marker(self, destinations: List[str]) -> List[str]:
         """
         Expand commercial regions marker to actual region list at runtime.
-        
+
         This method replaces the COMMERCIAL_REGIONS_MARKER with the current list of
         commercial AWS regions, providing future-proof region support.
 
@@ -168,7 +168,7 @@ class CRISInferenceProfile:
         """
         if CRISGlobalConstants.COMMERCIAL_REGIONS_MARKER not in destinations:
             return destinations
-        
+
         expanded = []
         for dest in destinations:
             if dest == CRISGlobalConstants.COMMERCIAL_REGIONS_MARKER:
@@ -180,7 +180,7 @@ class CRISInferenceProfile:
     def get_expanded_destinations_for_source(self, source_region: str) -> List[str]:
         """
         Get destination regions with marker expanded at runtime.
-        
+
         This method provides the actual list of accessible regions by expanding
         the commercial regions marker if present.
 

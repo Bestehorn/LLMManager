@@ -36,13 +36,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from typing_extensions import assert_never
-
 from .correlators.model_cris_correlator import ModelCRISCorrelationError, ModelCRISCorrelator
 from .CRISManager import CRISManager
 from .downloaders.base_downloader import FileSystemError, NetworkError
 from .ModelManager import ModelManager
-from .models.access_method import AccessRecommendation, ModelAccessInfo, ModelAccessMethod
+from .models.access_method import AccessRecommendation, ModelAccessInfo
 from .models.deprecation import DeprecatedAPIWarning, emit_deprecation_warning
 from .models.unified_constants import (
     AccessMethodPriority,
@@ -130,7 +128,7 @@ class UnifiedModelManager:
 
         # Cache for unified data
         self._cached_catalog: Optional[UnifiedModelCatalog] = None
-        
+
         # Check for deprecated usage patterns on initialization
         self._check_deprecated_usage()
 
@@ -492,7 +490,7 @@ class UnifiedModelManager:
                 rationale=AccessMethodPriority.PRIORITY_RATIONALES["direct_preferred"],
                 alternatives=[],
             )
-        
+
         # Case 2: CRIS access only (regional or global, no direct)
         elif access_info.has_any_cris_access() and not access_info.has_direct_access:
             return AccessRecommendation(
@@ -500,7 +498,7 @@ class UnifiedModelManager:
                 rationale=AccessMethodPriority.PRIORITY_RATIONALES["cris_only"],
                 alternatives=[],
             )
-        
+
         # Case 3: Both direct and CRIS access available
         elif access_info.has_direct_access and access_info.has_any_cris_access():
             # Recommend direct access as primary
@@ -524,7 +522,7 @@ class UnifiedModelManager:
                 rationale=AccessMethodPriority.PRIORITY_RATIONALES["direct_preferred"],
                 alternatives=[cris_access],
             )
-        
+
         # This should never happen due to ModelAccessInfo validation
         return None
 
@@ -764,11 +762,11 @@ class UnifiedModelManager:
     def _check_deprecated_usage(self) -> None:
         """
         Check for deprecated usage patterns in the current catalog.
-        
+
         This method scans the cached catalog for models that use deprecated
         access method patterns and emits informational warnings to help users
         migrate to the new API.
-        
+
         Note: This is a proactive check to help users identify areas that need
         migration. The deprecated properties themselves also emit warnings when
         accessed directly.
@@ -776,19 +774,19 @@ class UnifiedModelManager:
         if not self._cached_catalog:
             # No catalog loaded yet, nothing to check
             return
-        
+
         deprecated_patterns_found = False
-        
+
         # Check each model for deprecated access patterns
         for model_name, model_info in self._cached_catalog.unified_models.items():
             # Check each region's access info
-            for region in model_info.all_access_info.keys():
+            for region in model_info.region_access.keys():
                 access_info = model_info.get_access_info_for_region(region)
-                
+
                 if access_info:
                     # Check for patterns that would map to deprecated enum values
                     has_cris = access_info.has_regional_cris or access_info.has_global_cris
-                    
+
                     # Pattern 1: Both direct and CRIS (would map to deprecated BOTH)
                     if access_info.has_direct_access and has_cris:
                         if not deprecated_patterns_found:
@@ -802,7 +800,7 @@ class UnifiedModelManager:
                             )
                             deprecated_patterns_found = True
                         break
-        
+
         if deprecated_patterns_found:
             self._logger.info(
                 "Deprecated access patterns detected. Please migrate to the new orthogonal "

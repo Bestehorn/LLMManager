@@ -259,7 +259,7 @@ class CRISHTMLParser(BaseCRISParser):
                 variant = self._parse_section_to_variant(section=section_element)
                 if variant:
                     # CRITICAL FIX: Extract clean model name WITHOUT "Global " prefix
-                    # This ensures "Global Anthropic Claude Haiku 4.5" and 
+                    # This ensures "Global Anthropic Claude Haiku 4.5" and
                     # "Anthropic Claude Haiku 4.5" both map to "Anthropic Claude Haiku 4.5"
                     model_name = self._extract_clean_model_name(section=section_element)
                     if model_name:
@@ -583,7 +583,7 @@ class CRISHTMLParser(BaseCRISParser):
     def _extract_destination_regions(self, cell: Tag) -> List[str]:
         """
         Extract destination regions from a table cell.
-        
+
         Handles both specific region lists and the global "Commercial AWS Regions" marker.
         IMPORTANT: Preserves the marker as a placeholder instead of expanding it immediately.
         This allows for future-proof region support as AWS adds new regions.
@@ -605,25 +605,25 @@ class CRISHTMLParser(BaseCRISParser):
             for para in paragraphs:
                 if isinstance(para, Tag):
                     region = para.get_text(strip=True)
-                    
+
                     # Check for global marker
                     if region == CRISGlobalConstants.GLOBAL_DESTINATION_MARKER:
                         # Store marker instead of expanding (future-proof)
                         found_marker = True
                         continue
-                    
+
                     if region and self._is_valid_region_name(region=region):
                         destinations.append(region)
         else:
             # Fallback: try to extract all text and split by common delimiters
             cell_text = cell.get_text(strip=True)
-            
+
             # Check for global marker in cell text
             if CRISGlobalConstants.GLOBAL_DESTINATION_MARKER in cell_text:
                 found_marker = True
                 # Still try to extract specific regions from the same cell
                 cell_text = cell_text.replace(CRISGlobalConstants.GLOBAL_DESTINATION_MARKER, "")
-            
+
             if cell_text:
                 # Split by common delimiters and clean up
                 potential_regions = re.split(r"[,;\n\r]+", cell_text)

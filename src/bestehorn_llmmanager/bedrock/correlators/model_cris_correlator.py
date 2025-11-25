@@ -6,7 +6,7 @@ Handles matching and merging data between regular model information and CRIS dat
 import logging
 from typing import Dict, List, Optional, Set, Tuple
 
-from ..models.access_method import ModelAccessInfo, ModelAccessMethod
+from ..models.access_method import ModelAccessInfo
 from ..models.cris_constants import CRISGlobalConstants
 from ..models.cris_structures import CRISCatalog, CRISModelInfo
 from ..models.data_structures import BedrockModelInfo, ModelCatalog
@@ -240,20 +240,20 @@ class ModelCRISCorrelator:
     def _normalize_model_name(self, model_name: str) -> str:
         """
         Normalize a model name by removing provider prefixes.
-        
+
         Handles both naming conventions used in AWS Bedrock:
         - Dot-separated lowercase (model IDs): "anthropic.claude-3-5-haiku..."
         - Space-separated capitalized (CRIS names): "Anthropic Claude 3.5 Haiku"
-        
-        This normalization enables proper correlation between CRIS data and 
+
+        This normalization enables proper correlation between CRIS data and
         foundational model data despite different naming conventions.
-        
+
         Examples:
             Dot-separated (model IDs):
             "anthropic.claude-3-5-haiku-20241022-v1:0" -> "claude-3-5-haiku-20241022-v1:0"
             "twelvelabs.marengo-embed-2-7-v1:0" -> "marengo-embed-2-7-v1:0"
             "cohere.embed-english-v3" -> "embed-english-v3"
-            
+
             Space-separated (CRIS names):
             "Anthropic Claude Haiku 4.5" -> "Claude Haiku 4.5"
             "TwelveLabs Marengo Embed v2.7" -> "Marengo Embed v2.7"
@@ -272,7 +272,7 @@ class ModelCRISCorrelator:
         # Includes both dot-separated (model IDs) and space-separated (CRIS names)
         for prefix in ModelCorrelationConstants.ALL_PROVIDER_PREFIXES:
             if normalized.startswith(prefix):
-                normalized = normalized[len(prefix):]
+                normalized = normalized[len(prefix) :]
                 break
 
         return normalized.strip()
@@ -282,7 +282,7 @@ class ModelCRISCorrelator:
     ) -> Tuple[Optional[CRISModelInfo], str]:
         """
         Find a matching CRIS model for a regular model.
-        
+
         IMPORTANT: Prioritizes Global CRIS variants over regional variants to ensure
         models like Claude Haiku 4.5 match with "Global Anthropic Claude Haiku 4.5"
         instead of "Anthropic Claude Haiku 4.5".
@@ -304,7 +304,7 @@ class ModelCRISCorrelator:
                     f"Matched model '{model_name}' with Global CRIS variant '{cris_name}'"
                 )
                 return cris_models[cris_name], "exact"
-        
+
         # Step 2: Direct match in explicit mappings (regional variants)
         for cris_name, standard_name in name_mapping.items():
             if standard_name == model_name:
@@ -326,7 +326,7 @@ class ModelCRISCorrelator:
                             )
                         )
                         return cris_model, "fuzzy"
-            
+
             # Then try regional variants
             for cris_name, cris_model in cris_models.items():
                 normalized_cris = self._normalize_model_name(model_name=cris_name).lower()
@@ -438,7 +438,7 @@ class ModelCRISCorrelator:
 
                     # Determine if this is a global or regional profile
                     is_global = primary_profile.startswith("global.")
-                    
+
                     if is_global:
                         region_access[region] = ModelAccessInfo(
                             region=region,
@@ -520,7 +520,7 @@ class ModelCRISCorrelator:
                     if inference_profile:
                         # Determine if this is a global or regional profile
                         is_global = inference_profile.startswith("global.")
-                        
+
                         if is_global:
                             region_access[clean_region] = ModelAccessInfo(
                                 region=clean_region,
@@ -564,7 +564,7 @@ class ModelCRISCorrelator:
                         if inference_profile:
                             # Determine if this is a global or regional profile
                             is_global = inference_profile.startswith("global.")
-                            
+
                             if is_global:
                                 # Both direct and global CRIS
                                 region_access[region] = ModelAccessInfo(
@@ -623,7 +623,7 @@ class ModelCRISCorrelator:
                         if inference_profile:
                             # Determine if this is a global or regional profile
                             is_global = inference_profile.startswith("global.")
-                            
+
                             if is_global:
                                 region_access[region] = ModelAccessInfo(
                                     region=region,
@@ -697,30 +697,30 @@ class ModelCRISCorrelator:
     def _extract_clean_model_name_from_cris(self, cris_name: str) -> str:
         """
         Extract clean model name by removing regional prefixes.
-        
+
         Args:
             cris_name: CRIS model name that may have prefix
-            
+
         Returns:
             Clean model name without regional prefix
         """
         for prefix in ["Global ", "US ", "EU ", "APAC "]:
             if cris_name.startswith(prefix):
-                return cris_name[len(prefix):]
+                return cris_name[len(prefix) :]
         return cris_name
 
     def _extract_provider_from_profile_id(self, profile_id: str) -> str:
         """
         Extract provider name from inference profile ID.
-        
+
         Args:
             profile_id: Inference profile ID
-            
+
         Returns:
             Provider name
         """
         # Format: global.anthropic.model or us.amazon.model
-        parts = profile_id.split('.')
+        parts = profile_id.split(".")
         if len(parts) >= 2:
             provider = parts[1]
             return provider.capitalize()
@@ -773,27 +773,27 @@ class ModelCRISCorrelator:
     ) -> ModelCatalog:
         """
         Add synthetic base model entries for CRIS-only models.
-        
+
         This critical fix enables models like Claude Haiku 4.5 to load by creating
         synthetic BedrockModelInfo entries for models that only exist in CRIS.
-        
+
         Args:
             model_catalog: Original model catalog
             cris_catalog: CRIS catalog
             cris_to_standard_mapping: Mapping from CRIS names to standard names
-            
+
         Returns:
             Updated model catalog with synthetic entries added
         """
         synthetic_models = {}
-        
+
         for cris_name, cris_model_info in cris_catalog.cris_models.items():
             standard_name = cris_to_standard_mapping.get(cris_name, cris_name)
-            
+
             # Check if this model already exists in the catalog
             if standard_name in model_catalog.models:
                 continue
-                
+
             # This is a CRIS-only model - create synthetic base entry
             try:
                 synthetic_model = self._create_synthetic_base_model(cris_model_info)
@@ -806,38 +806,34 @@ class ModelCRISCorrelator:
                 self._logger.warning(
                     f"Failed to create synthetic base model for '{cris_name}': {str(e)}"
                 )
-        
+
         # Create new catalog with synthetic models added
         if synthetic_models:
             merged_models = {**model_catalog.models, **synthetic_models}
             return ModelCatalog(
-                retrieval_timestamp=model_catalog.retrieval_timestamp,
-                models=merged_models
+                retrieval_timestamp=model_catalog.retrieval_timestamp, models=merged_models
             )
-        
+
         return model_catalog
 
     def _create_synthetic_base_model(self, cris_model_info: CRISModelInfo) -> BedrockModelInfo:
         """
         Create synthetic base model entry for CRIS-only models.
-        
+
         Args:
             cris_model_info: CRIS model info to create base entry from
-            
+
         Returns:
             Synthetic BedrockModelInfo
         """
-        # Extract clean name (remove Global/US/EU/APAC prefix)
-        clean_name = self._extract_clean_model_name_from_cris(cris_model_info.model_name)
-        
         # Use source regions as supported regions with * marker
         source_regions = cris_model_info.get_source_regions()
         regions_with_marker = [f"{region}*" for region in source_regions]
-        
+
         # Extract provider from inference profile ID
         profile_id = cris_model_info.inference_profile_id
         provider = self._extract_provider_from_profile_id(profile_id)
-        
+
         return BedrockModelInfo(
             provider=provider,
             model_id=profile_id,  # Use profile ID as model ID
@@ -846,7 +842,7 @@ class ModelCRISCorrelator:
             output_modalities=["Text"],
             streaming_supported=True,  # Default assumption
             inference_parameters_link=None,
-            hyperparameters_link=None
+            hyperparameters_link=None,
         )
 
     def _expand_marker_in_region_mappings(
@@ -854,13 +850,13 @@ class ModelCRISCorrelator:
     ) -> Dict[str, List[str]]:
         """
         Expand commercial regions marker in region mappings.
-        
+
         This method replaces the COMMERCIAL_REGIONS_MARKER with the actual
         list of commercial AWS regions at runtime.
-        
+
         Args:
             region_mappings: Region mappings that may contain markers
-            
+
         Returns:
             Region mappings with markers expanded
         """

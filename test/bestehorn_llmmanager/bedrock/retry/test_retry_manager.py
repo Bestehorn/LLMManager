@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RetryExhaustedError
-from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo, ModelAccessMethod
+from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     RetryConfig,
@@ -53,17 +53,15 @@ class TestRetryManagerContentFiltering:
 
         # Mock access info objects
         self.text_model_access = ModelAccessInfo(
-            model_id="ai21.jamba-text-1",
-            inference_profile_id=None,
             region="us-east-1",
-            access_method=ModelAccessMethod.DIRECT,
+            has_direct_access=True,
+            model_id="ai21.jamba-text-1",
         )
 
         self.multimodal_model_access = ModelAccessInfo(
-            model_id="anthropic.claude-3-5-sonnet",
-            inference_profile_id=None,
             region="us-east-1",
-            access_method=ModelAccessMethod.DIRECT,
+            has_direct_access=True,
+            model_id="anthropic.claude-3-5-sonnet",
         )
 
     def test_content_filter_initialization(self) -> None:
@@ -377,10 +375,9 @@ class TestRetryManagerBackwardCompatibility:
             return {"output": {"message": {"content": [{"text": "I'm doing well!"}]}}}
 
         access_info = ModelAccessInfo(
-            model_id="test-model",
-            inference_profile_id=None,
             region="us-east-1",
-            access_method=ModelAccessMethod.DIRECT,
+            has_direct_access=True,
+            model_id="test-model",
         )
 
         retry_targets = [("Test Model", "us-east-1", access_info)]
@@ -411,10 +408,9 @@ class TestRetryManagerBackwardCompatibility:
             return {"success": True}
 
         access_info = ModelAccessInfo(
-            model_id="test-model",
-            inference_profile_id=None,
             region="us-east-1",
-            access_method=ModelAccessMethod.DIRECT,
+            has_direct_access=True,
+            model_id="test-model",
         )
 
         retry_targets = [

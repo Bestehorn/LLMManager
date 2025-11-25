@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo, ModelAccessMethod
+from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from bestehorn_llmmanager.bedrock.streaming.retrying_stream_iterator import (
     MidStreamException,
     RetryingStreamIterator,

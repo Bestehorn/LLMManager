@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RetryExhaustedError
-from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo, ModelAccessMethod
+from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from bestehorn_llmmanager.bedrock.models.llm_manager_constants import (
     ConverseAPIFields,
 )
@@ -64,10 +64,9 @@ class TestResponseValidation:
 
         # Mock access info
         self.access_info = ModelAccessInfo(
-            model_id="anthropic.claude-3-5-sonnet",
-            inference_profile_id=None,
             region="us-east-1",
-            access_method=ModelAccessMethod.DIRECT,
+            has_direct_access=True,
+            model_id="anthropic.claude-3-5-sonnet",
         )
 
     def create_json_validation_function(self) -> Callable[[BedrockResponse], ValidationResult]:
@@ -238,10 +237,9 @@ class TestResponseValidation:
                 return self.success_response_data
 
         access_info_2 = ModelAccessInfo(
-            model_id="ai21.jamba-text",
-            inference_profile_id=None,
             region="us-east-1",
-            access_method=ModelAccessMethod.DIRECT,
+            has_direct_access=True,
+            model_id="ai21.jamba-text",
         )
 
         retry_targets = [
@@ -412,10 +410,9 @@ class TestResponseValidation:
                 return self.failed_response_data
 
         text_model_access = ModelAccessInfo(
-            model_id="ai21.jamba-text",
-            inference_profile_id=None,
             region="us-east-1",
-            access_method=ModelAccessMethod.DIRECT,
+            has_direct_access=True,
+            model_id="ai21.jamba-text",
         )
 
         retry_targets = [
@@ -452,10 +449,9 @@ class TestResponseValidation:
             return self.failed_response_data
 
         access_info_2 = ModelAccessInfo(
-            model_id="ai21.jamba-text",
-            inference_profile_id=None,
             region="us-east-1",
-            access_method=ModelAccessMethod.DIRECT,
+            has_direct_access=True,
+            model_id="ai21.jamba-text",
         )
 
         retry_targets = [

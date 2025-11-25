@@ -233,7 +233,6 @@ class TestBedrockConverseRequest:
                 assert sanitized.endswith(">")
             elif test_name in ["dict_with_bytes", "message_structure"]:
                 # For specific dict test cases with bytes values, check that bytes are replaced
-                from typing import Any, Dict, List, Union
 
                 def check_no_bytes(obj: Union[bytes, Dict[str, Any], List[Any], Any]) -> bool:
                     if isinstance(obj, bytes):

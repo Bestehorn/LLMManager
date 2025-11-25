@@ -68,7 +68,12 @@ class CRISRegionPrefixes:
     GLOBAL_IDENTIFIER: Final[str] = "GLOBAL"
 
     # Default primary region preference order
-    PRIMARY_PREFERENCE_ORDER: Final[List[str]] = [US_IDENTIFIER, EU_IDENTIFIER, APAC_IDENTIFIER, GLOBAL_IDENTIFIER]
+    PRIMARY_PREFERENCE_ORDER: Final[List[str]] = [
+        US_IDENTIFIER,
+        EU_IDENTIFIER,
+        APAC_IDENTIFIER,
+        GLOBAL_IDENTIFIER,
+    ]
 
 
 class CRISInferenceProfileStructure:

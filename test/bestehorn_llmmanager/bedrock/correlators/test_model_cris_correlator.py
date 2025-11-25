@@ -9,7 +9,6 @@ from unittest.mock import Mock, patch
 import pytest
 
 from bestehorn_llmmanager.bedrock.correlators.model_cris_correlator import (
-    ModelCRISCorrelationError,
     ModelCRISCorrelator,
 )
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo, ModelAccessMethod
@@ -297,9 +296,7 @@ class TestModelCRISCorrelator:
     def test_normalize_model_name_real_world_examples(self, correlator: ModelCRISCorrelator):
         """Test normalization with real-world model ID examples."""
         # Real Claude Haiku 4.5 model ID
-        result = correlator._normalize_model_name(
-            "anthropic.claude-3-5-haiku-20241022-v1:0"
-        )
+        result = correlator._normalize_model_name("anthropic.claude-3-5-haiku-20241022-v1:0")
         assert result == "claude-3-5-haiku-20241022-v1:0"
 
         # Real Marengo Embed model ID
@@ -353,7 +350,7 @@ class TestModelCRISCorrelator:
         # Same logical model in different formats should normalize similarly
         dot_format = correlator._normalize_model_name("anthropic.claude-haiku-4-5-20251001-v1:0")
         space_format = correlator._normalize_model_name("Anthropic Claude Haiku 4.5")
-        
+
         # Both should remove the provider prefix
         assert not dot_format.startswith("anthropic")
         assert not dot_format.startswith("Anthropic")

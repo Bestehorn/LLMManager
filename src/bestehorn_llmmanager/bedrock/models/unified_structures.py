@@ -150,10 +150,9 @@ class UnifiedModelInfo:
         # If both methods available, return direct access as recommended
         if access_info.access_method == ModelAccessMethod.BOTH:
             return ModelAccessInfo(
-                access_method=ModelAccessMethod.DIRECT,
                 region=region,
+                has_direct_access=True,
                 model_id=access_info.model_id,
-                inference_profile_id=access_info.inference_profile_id,
             )
 
         return access_info
@@ -227,7 +226,7 @@ class UnifiedModelInfo:
                     raise ValueError(f"Access data for region {region} must be a dictionary")
 
                 access_method = ModelAccessMethod(access_data[UnifiedJSONFields.ACCESS_METHOD])
-                region_access[region] = ModelAccessInfo(
+                region_access[region] = ModelAccessInfo.from_legacy(
                     access_method=access_method,
                     region=access_data[UnifiedJSONFields.REGION],
                     model_id=access_data.get(UnifiedJSONFields.MODEL_ID),

@@ -6,12 +6,12 @@ import warnings
 
 import pytest
 
-from src.bestehorn_llmmanager.bedrock.models.access_method import (
+from bestehorn_llmmanager.bedrock.models.access_method import (
     AccessRecommendation,
     ModelAccessInfo,
     ModelAccessMethod,
 )
-from src.bestehorn_llmmanager.bedrock.models.deprecation import DeprecatedEnumValueWarning
+from bestehorn_llmmanager.bedrock.models.deprecation import DeprecatedEnumValueWarning
 
 
 class TestModelAccessMethod:
@@ -196,9 +196,7 @@ class TestModelAccessInfoDeprecatedProperties:
 
     def test_access_method_property_direct(self):
         """Test deprecated access_method property for direct access."""
-        info = ModelAccessInfo(
-            region="us-east-1", has_direct_access=True, model_id="test-model"
-        )
+        info = ModelAccessInfo(region="us-east-1", has_direct_access=True, model_id="test-model")
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             method = info.access_method
@@ -263,7 +261,7 @@ class TestModelAccessInfoDeprecatedProperties:
             regional_cris_profile_id="us.test",
             global_cris_profile_id="global.test",
         )
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True):
             warnings.simplefilter("always")
             profile_id = info.inference_profile_id
             assert profile_id == "us.test"
@@ -288,7 +286,7 @@ class TestModelAccessInfoFromLegacy:
 
     def test_from_legacy_cris_only(self):
         """Test creating from legacy CRIS_ONLY enum."""
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True) as captured_warnings:
             warnings.simplefilter("always")
             info = ModelAccessInfo.from_legacy(
                 access_method=ModelAccessMethod.CRIS_ONLY,
@@ -300,7 +298,10 @@ class TestModelAccessInfoFromLegacy:
         assert info.has_global_cris is False
         assert info.regional_cris_profile_id == "us.test"
         # Should emit deprecation warning for CRIS_ONLY
-        assert any(issubclass(warning.category, DeprecatedEnumValueWarning) for warning in w)
+        assert any(
+            issubclass(warning.category, DeprecatedEnumValueWarning)
+            for warning in captured_warnings
+        )
 
     def test_from_legacy_regional_cris(self):
         """Test creating from REGIONAL_CRIS enum."""
@@ -324,7 +325,7 @@ class TestModelAccessInfoFromLegacy:
 
     def test_from_legacy_both(self):
         """Test creating from legacy BOTH enum."""
-        with warnings.catch_warnings(record=True) as w:
+        with warnings.catch_warnings(record=True) as captured_warnings:
             warnings.simplefilter("always")
             info = ModelAccessInfo.from_legacy(
                 access_method=ModelAccessMethod.BOTH,
@@ -338,7 +339,10 @@ class TestModelAccessInfoFromLegacy:
         assert info.model_id == "test-model"
         assert info.regional_cris_profile_id == "us.test"
         # Should emit deprecation warning for BOTH
-        assert any(issubclass(warning.category, DeprecatedEnumValueWarning) for warning in w)
+        assert any(
+            issubclass(warning.category, DeprecatedEnumValueWarning)
+            for warning in captured_warnings
+        )
 
 
 class TestModelAccessInfoMethods:
@@ -346,9 +350,7 @@ class TestModelAccessInfoMethods:
 
     def test_get_access_summary_direct_only(self):
         """Test access summary for direct-only access."""
-        info = ModelAccessInfo(
-            region="us-east-1", has_direct_access=True, model_id="test-model"
-        )
+        info = ModelAccessInfo(region="us-east-1", has_direct_access=True, model_id="test-model")
         assert info.get_access_summary() == "DIRECT"
 
     def test_get_access_summary_regional_cris_only(self):
@@ -390,16 +392,12 @@ class TestModelAccessInfoMethods:
 
     def test_has_any_cris_access_false(self):
         """Test has_any_cris_access returns False when no CRIS."""
-        info = ModelAccessInfo(
-            region="us-east-1", has_direct_access=True, model_id="test-model"
-        )
+        info = ModelAccessInfo(region="us-east-1", has_direct_access=True, model_id="test-model")
         assert info.has_any_cris_access() is False
 
     def test_get_cris_profile_ids_empty(self):
         """Test get_cris_profile_ids returns empty list when no CRIS."""
-        info = ModelAccessInfo(
-            region="us-east-1", has_direct_access=True, model_id="test-model"
-        )
+        info = ModelAccessInfo(region="us-east-1", has_direct_access=True, model_id="test-model")
         assert info.get_cris_profile_ids() == []
 
     def test_get_cris_profile_ids_regional_only(self):

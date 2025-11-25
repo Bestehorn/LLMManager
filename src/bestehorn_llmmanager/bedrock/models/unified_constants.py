@@ -50,7 +50,7 @@ class ModelCorrelationConstants:
     DEEPSEEK_DOT_PREFIX: Final[str] = "deepseek."
     STABILITY_DOT_PREFIX: Final[str] = "stability."
     AI21_DOT_PREFIX: Final[str] = "ai21."
-    
+
     # Space-separated capitalized prefixes (used in CRIS model names)
     # Format: "Anthropic Claude 3.5 Haiku"
     ANTHROPIC_SPACE_PREFIX: Final[str] = "Anthropic "
@@ -63,7 +63,7 @@ class ModelCorrelationConstants:
     DEEPSEEK_SPACE_PREFIX: Final[str] = "DeepSeek "
     STABILITY_SPACE_PREFIX: Final[str] = "Stability "
     AI21_SPACE_PREFIX: Final[str] = "AI21 "
-    
+
     # Backward compatibility aliases (deprecated)
     ANTHROPIC_PREFIX: Final[str] = ANTHROPIC_DOT_PREFIX
     META_PREFIX: Final[str] = META_DOT_PREFIX
@@ -75,7 +75,7 @@ class ModelCorrelationConstants:
     DEEPSEEK_PREFIX: Final[str] = DEEPSEEK_DOT_PREFIX
     STABILITY_PREFIX: Final[str] = STABILITY_DOT_PREFIX
     AI21_PREFIX: Final[str] = AI21_DOT_PREFIX
-    
+
     # Comprehensive list of all provider prefixes for normalization
     # Includes both dot-separated (model IDs) and space-separated (CRIS names) formats
     ALL_PROVIDER_PREFIXES: Final[tuple] = (

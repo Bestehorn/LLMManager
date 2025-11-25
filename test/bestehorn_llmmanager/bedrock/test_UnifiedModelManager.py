@@ -14,7 +14,6 @@ from bestehorn_llmmanager.bedrock.downloaders.base_downloader import FileSystemE
 from bestehorn_llmmanager.bedrock.models.access_method import (
     AccessRecommendation,
     ModelAccessInfo,
-    ModelAccessMethod,
 )
 from bestehorn_llmmanager.bedrock.models.cris_structures import CRISCatalog
 from bestehorn_llmmanager.bedrock.models.data_structures import ModelCatalog

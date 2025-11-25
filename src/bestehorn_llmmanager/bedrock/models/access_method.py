@@ -17,7 +17,7 @@ class ModelAccessMethod(Enum):
     DIRECT: Model is available directly with regular model ID
     REGIONAL_CRIS: Model is available through Regional Cross-Region Inference Service
     GLOBAL_CRIS: Model is available through Global Cross-Region Inference Service
-    
+
     Deprecated values (maintained for backward compatibility):
     CRIS_ONLY: Use REGIONAL_CRIS or GLOBAL_CRIS instead
     BOTH: Use orthogonal access flags in ModelAccessInfo instead
@@ -26,7 +26,7 @@ class ModelAccessMethod(Enum):
     DIRECT = "direct"
     REGIONAL_CRIS = "regional_cris"
     GLOBAL_CRIS = "global_cris"
-    
+
     # Deprecated enum values (maintained for backward compatibility)
     CRIS_ONLY = "cris_only"  # Deprecated in v3.0.0
     BOTH = "both"  # Deprecated in v3.0.0
@@ -58,7 +58,7 @@ class ModelAccessMethod(Enum):
 class ModelAccessInfo:
     """
     Information about how to access a model in a specific region using orthogonal access flags.
-    
+
     This class supports multiple simultaneous access methods through independent boolean flags.
     A model can have any combination of direct, regional CRIS, and global CRIS access.
 
@@ -70,7 +70,7 @@ class ModelAccessInfo:
         model_id: Direct model ID (required if has_direct_access is True)
         regional_cris_profile_id: Regional CRIS inference profile ID (required if has_regional_cris is True)
         global_cris_profile_id: Global CRIS inference profile ID (required if has_global_cris is True)
-        
+
     Deprecated attributes (maintained for backward compatibility):
         access_method: Use orthogonal flags instead
         inference_profile_id: Use regional_cris_profile_id or global_cris_profile_id instead
@@ -114,12 +114,12 @@ class ModelAccessInfo:
     def access_method(self) -> ModelAccessMethod:
         """
         Deprecated property that maps orthogonal flags to legacy enum values.
-        
+
         Returns:
             ModelAccessMethod enum value based on current flags
-            
+
         Deprecated:
-            Since v3.0.0. Use orthogonal access flags (has_direct_access, 
+            Since v3.0.0. Use orthogonal access flags (has_direct_access,
             has_regional_cris, has_global_cris) instead.
         """
         emit_deprecation_warning(
@@ -133,7 +133,7 @@ class ModelAccessInfo:
 
         # Map to legacy enum values based on flags
         has_cris = self.has_regional_cris or self.has_global_cris
-        
+
         if self.has_direct_access and has_cris:
             return ModelAccessMethod.BOTH
         elif has_cris:
@@ -146,10 +146,10 @@ class ModelAccessInfo:
         """
         Deprecated property that returns a CRIS profile ID.
         Prefers regional CRIS over global CRIS for backward compatibility.
-        
+
         Returns:
             Regional or global CRIS profile ID, or None if no CRIS access
-            
+
         Deprecated:
             Since v3.0.0. Use regional_cris_profile_id or global_cris_profile_id instead.
         """
@@ -177,19 +177,19 @@ class ModelAccessInfo:
     ) -> "ModelAccessInfo":
         """
         Create ModelAccessInfo from legacy enum-based parameters.
-        
+
         This factory method allows existing code using the old enum-based API
         to work with the new orthogonal flag system.
-        
+
         Args:
             access_method: Legacy access method enum value
             region: The target region for access
             model_id: Direct model ID (if applicable)
             inference_profile_id: CRIS inference profile ID (if applicable)
-            
+
         Returns:
             ModelAccessInfo with appropriate flags set
-            
+
         Raises:
             ValueError: If parameters are inconsistent
         """
@@ -228,7 +228,7 @@ class ModelAccessInfo:
     def get_access_summary(self) -> str:
         """
         Get a human-readable summary of available access methods.
-        
+
         Returns:
             String describing available access methods
         """
@@ -239,7 +239,7 @@ class ModelAccessInfo:
             methods.append("REGIONAL_CRIS")
         if self.has_global_cris:
             methods.append("GLOBAL_CRIS")
-        
+
         return " + ".join(methods)
 
     def has_any_cris_access(self) -> bool:
@@ -249,7 +249,7 @@ class ModelAccessInfo:
     def get_cris_profile_ids(self) -> List[str]:
         """
         Get all available CRIS profile IDs.
-        
+
         Returns:
             List of CRIS profile IDs (regional and/or global)
         """
