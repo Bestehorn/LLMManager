@@ -286,6 +286,37 @@ class AuthManager:
                 region=region,
             ) from e
 
+    def get_bedrock_control_client(self, region: str) -> Any:
+        """
+        Get a Bedrock control plane client for the specified region.
+
+        This is different from get_bedrock_client() which returns a bedrock-runtime
+        client. The control plane client is used for management operations like
+        ListInferenceProfiles, GetInferenceProfile, and other API operations.
+
+        Args:
+            region: AWS region for the client
+
+        Returns:
+            Bedrock control plane client
+
+        Raises:
+            AuthenticationError: If client creation fails
+        """
+        try:
+            session = self.get_session(region=region)
+            client = session.client("bedrock", region_name=region)
+            return client
+
+        except Exception as e:
+            if isinstance(e, AuthenticationError):
+                raise
+            raise AuthenticationError(
+                message=f"Failed to create Bedrock control plane client: {str(e)}",
+                auth_type=self._auth_config.auth_type.value,
+                region=region,
+            ) from e
+
     def _test_bedrock_access(self, client: Any, region: str) -> None:
         """
         Test Bedrock access by attempting a lightweight operation.

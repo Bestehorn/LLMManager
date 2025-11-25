@@ -35,8 +35,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from .auth.auth_manager import AuthManager
+from .discovery.region_discovery import BedrockRegionDiscovery, RegionDiscoveryError
 from .downloaders.base_downloader import FileSystemError, NetworkError
 from .downloaders.html_downloader import HTMLDocumentationDownloader
+from .fetchers.cris_api_fetcher import CRISAPIFetcher, CRISAPIFetcherError
 from .models.cris_constants import CRISErrorMessages, CRISFilePaths, CRISLogMessages, CRISURLs
 from .models.cris_structures import CRISCatalog, CRISModelInfo
 from .parsers.base_parser import ParsingError
@@ -75,6 +78,8 @@ class CRISManager:
         json_output_path: Optional[Path] = None,
         documentation_url: Optional[str] = None,
         download_timeout: int = 30,
+        use_api: bool = True,
+        auth_manager: Optional[AuthManager] = None,
     ) -> None:
         """
         Initialize the CRISManager with configuration options.
@@ -84,15 +89,28 @@ class CRISManager:
             json_output_path: Custom path for JSON output (defaults to docs/CRIS.json)
             documentation_url: Custom documentation URL (defaults to AWS Bedrock CRIS docs)
             download_timeout: Request timeout in seconds for downloads
+            use_api: If True, use AWS Bedrock API for CRIS data (recommended). If False, use HTML parsing.
+            auth_manager: Optional AuthManager for AWS authentication. If None and use_api=True, a default will be created.
         """
         self.html_output_path = html_output_path or Path(CRISFilePaths.DEFAULT_HTML_OUTPUT)
         self.json_output_path = json_output_path or Path(CRISFilePaths.DEFAULT_JSON_OUTPUT)
         self.documentation_url = documentation_url or CRISURLs.DOCUMENTATION
+        self._use_api = use_api
 
         # Initialize components with dependency injection
         self._downloader = HTMLDocumentationDownloader(timeout=download_timeout)
         self._parser = CRISHTMLParser()
         self._serializer = JSONModelSerializer()
+
+        # Initialize API components if using API method
+        if self._use_api:
+            self._auth_manager = auth_manager or AuthManager()
+            self._region_discovery = BedrockRegionDiscovery()
+            self._api_fetcher = CRISAPIFetcher(auth_manager=self._auth_manager)
+        else:
+            self._auth_manager = None
+            self._region_discovery = None
+            self._api_fetcher = None
 
         # Setup logging
         self._logger = logging.getLogger(__name__)
@@ -102,47 +120,110 @@ class CRISManager:
 
     def refresh_cris_data(self, force_download: bool = True) -> CRISCatalog:
         """
-        Refresh CRIS data by downloading and parsing the latest documentation.
+        Refresh CRIS data using API (preferred) or HTML parsing (fallback).
 
-        This method orchestrates the complete workflow:
-        1. Downloads the latest HTML documentation from AWS
-        2. Parses the HTML to extract CRIS model information
-        3. Creates a CRISCatalog with timestamp
-        4. Saves the data to JSON format
-        5. Returns the parsed catalog
+        This method uses the AWS Bedrock API by default for more reliable data fetching.
+        If API fetching fails, it automatically falls back to HTML parsing.
 
         Args:
-            force_download: If True, always download fresh data. If False, use existing
-                          HTML file if it exists and is recent (less than 1 hour old)
+            force_download: If True, always fetch fresh data. If False, use cached data if available.
 
         Returns:
             CRISCatalog containing all parsed CRIS model information
 
         Raises:
-            CRISManagerError: If any step in the process fails
+            CRISManagerError: If both API and HTML methods fail
         """
         try:
-            # Step 1: Download documentation if needed
-            if force_download or not self._is_html_file_recent():
-                self._download_documentation()
-
-            # Step 2: Parse the HTML documentation
-            models_dict = self._parse_documentation()
-
-            # Step 3: Create catalog with timestamp
-            catalog = CRISCatalog(retrieval_timestamp=datetime.now(), cris_models=models_dict)
-
-            # Step 4: Save to JSON
-            self._save_catalog_to_json(catalog=catalog)
-
-            # Step 5: Cache and return
-            self._cached_catalog = catalog
-            return catalog
-
-        except (NetworkError, FileSystemError, ParsingError) as e:
+            if self._use_api:
+                # Try API method first
+                try:
+                    return self._refresh_via_api()
+                except Exception as e:
+                    self._logger.warning(
+                        f"API fetch failed: {e}. Falling back to HTML parsing..."
+                    )
+                    # Fall through to HTML method
+            
+            # Use HTML method (either by choice or as fallback)
+            return self._refresh_via_html(force_download)
+            
+        except Exception as e:
             error_msg = f"Failed to refresh CRIS data: {str(e)}"
             self._logger.error(error_msg)
             raise CRISManagerError(error_msg) from e
+
+    def _refresh_via_api(self) -> CRISCatalog:
+        """
+        Refresh CRIS data using AWS Bedrock API.
+
+        Returns:
+            CRISCatalog containing all parsed CRIS model information
+
+        Raises:
+            Exception: If API fetch fails
+        """
+        self._logger.info("Refreshing CRIS data via AWS Bedrock API")
+        
+        # Step 1: Discover Bedrock-enabled regions
+        regions = self._region_discovery.get_bedrock_regions()
+        self._logger.info(f"Discovered {len(regions)} Bedrock-enabled regions")
+        
+        # Step 2: Fetch CRIS data from all regions in parallel
+        models_dict = self._api_fetcher.fetch_cris_data(regions)
+        
+        if not models_dict:
+            raise CRISAPIFetcherError("No CRIS models found via API")
+        
+        # Step 3: Create catalog with timestamp
+        catalog = CRISCatalog(
+            retrieval_timestamp=datetime.now(),
+            cris_models=models_dict
+        )
+        
+        # Step 4: Save to JSON
+        self._save_catalog_to_json(catalog=catalog)
+        
+        # Step 5: Cache and return
+        self._cached_catalog = catalog
+        self._logger.info(f"Successfully fetched {len(models_dict)} CRIS models via API")
+        return catalog
+
+    def _refresh_via_html(self, force_download: bool) -> CRISCatalog:
+        """
+        Refresh CRIS data using HTML parsing (legacy method).
+
+        Args:
+            force_download: If True, always download fresh HTML
+
+        Returns:
+            CRISCatalog containing all parsed CRIS model information
+
+        Raises:
+            Exception: If HTML fetch/parse fails
+        """
+        self._logger.info("Refreshing CRIS data via HTML parsing")
+        
+        # Step 1: Download documentation if needed
+        if force_download or not self._is_html_file_recent():
+            self._download_documentation()
+
+        # Step 2: Parse the HTML documentation
+        models_dict = self._parse_documentation()
+
+        # Step 3: Create catalog with timestamp
+        catalog = CRISCatalog(
+            retrieval_timestamp=datetime.now(),
+            cris_models=models_dict
+        )
+
+        # Step 4: Save to JSON
+        self._save_catalog_to_json(catalog=catalog)
+
+        # Step 5: Cache and return
+        self._cached_catalog = catalog
+        self._logger.info(f"Successfully parsed {len(models_dict)} CRIS models from HTML")
+        return catalog
 
     def load_cached_data(self) -> Optional[CRISCatalog]:
         """
