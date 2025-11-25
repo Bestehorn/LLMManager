@@ -1032,9 +1032,10 @@ class TestStreamingResponseIteratorProtocol:
         response = StreamingResponse(success=True)
 
         # Mock the event type determination
-        with patch.object(response, "_determine_event_type") as mock_determine, patch.object(
-            response, "_update_from_streaming_event"
-        ) as mock_update:
+        with (
+            patch.object(response, "_determine_event_type") as mock_determine,
+            patch.object(response, "_update_from_streaming_event") as mock_update,
+        ):
 
             mock_event_type = Mock()
             mock_event_type.value = "contentBlockDelta"

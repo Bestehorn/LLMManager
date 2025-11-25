@@ -247,12 +247,11 @@ class TestRetryingStreamIterator:
         )
 
         # This should recover and return the event
-        with patch.object(iterator, "_start_current_stream"), patch.object(
-            iterator, "_handle_mid_stream_error"
-        ), patch.object(
-            iterator, "_should_retry_with_next_target", return_value=True
-        ), patch.object(
-            iterator, "_switch_to_next_target", return_value=True
+        with (
+            patch.object(iterator, "_start_current_stream"),
+            patch.object(iterator, "_handle_mid_stream_error"),
+            patch.object(iterator, "_should_retry_with_next_target", return_value=True),
+            patch.object(iterator, "_switch_to_next_target", return_value=True),
         ):
 
             # The first call should trigger error handling and recovery

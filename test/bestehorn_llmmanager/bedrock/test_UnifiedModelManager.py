@@ -95,18 +95,23 @@ class TestUnifiedModelManager:
         mock_unified_catalog,
     ):
         """Create a UnifiedModelManager instance with mocked components."""
-        with patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
-            return_value=mock_model_manager,
-        ), patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
-            return_value=mock_cris_manager,
-        ), patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator",
-            return_value=mock_correlator,
-        ), patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer",
-            return_value=mock_serializer,
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
+                return_value=mock_model_manager,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
+                return_value=mock_cris_manager,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator",
+                return_value=mock_correlator,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer",
+                return_value=mock_serializer,
+            ),
         ):
             manager = UnifiedModelManager()
             # Pre-populate the cached catalog for tests that expect it
@@ -139,18 +144,23 @@ class TestUnifiedModelManager:
     ):
         """Test successful unified data refresh."""
         # Create a fresh manager without pre-populated cache
-        with patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
-            return_value=mock_model_manager,
-        ), patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
-            return_value=mock_cris_manager,
-        ), patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator",
-            return_value=mock_correlator,
-        ), patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer",
-            return_value=mock_serializer,
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
+                return_value=mock_model_manager,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
+                return_value=mock_cris_manager,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator",
+                return_value=mock_correlator,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer",
+                return_value=mock_serializer,
+            ),
         ):
 
             manager = UnifiedModelManager()
@@ -172,12 +182,15 @@ class TestUnifiedModelManager:
     ):
         """Test unified data refresh with force_download override."""
         # Create a fresh manager
-        with patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
-            return_value=mock_model_manager,
-        ), patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
-            return_value=mock_cris_manager,
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
+                return_value=mock_model_manager,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
+                return_value=mock_cris_manager,
+            ),
         ):
 
             manager = UnifiedModelManager()
@@ -207,12 +220,15 @@ class TestUnifiedModelManager:
 
     def test_refresh_unified_data_parsing_error(self, mock_cris_manager, mock_model_manager):
         """Test unified data refresh with parsing error."""
-        with patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
-            return_value=mock_model_manager,
-        ), patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
-            return_value=mock_cris_manager,
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
+                return_value=mock_model_manager,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
+                return_value=mock_cris_manager,
+            ),
         ):
 
             manager = UnifiedModelManager()
@@ -945,10 +961,11 @@ class TestUnifiedModelManagerCacheManagement:
         mock_catalog = Mock()
         mock_catalog.model_count = 5
 
-        with patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
-        ) as mock_serializer_class, patch.object(
-            UnifiedModelCatalog, "from_dict", return_value=mock_catalog
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
         ):
 
             mock_serializer = Mock()
@@ -984,10 +1001,11 @@ class TestUnifiedModelManagerCacheManagement:
         mock_catalog = Mock()
         mock_catalog.model_count = 0  # Empty catalog
 
-        with patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
-        ) as mock_serializer_class, patch.object(
-            UnifiedModelCatalog, "from_dict", return_value=mock_catalog
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
         ):
 
             mock_serializer = Mock()
@@ -1033,10 +1051,11 @@ class TestUnifiedModelManagerCacheManagement:
         mock_catalog = Mock()
         mock_catalog.model_count = 3
 
-        with patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
-        ) as mock_serializer_class, patch.object(
-            UnifiedModelCatalog, "from_dict", return_value=mock_catalog
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
         ):
 
             mock_serializer = Mock()
@@ -1073,13 +1092,16 @@ class TestUnifiedModelManagerCacheManagement:
         """Test ensure_data_available with missing cache that refreshes successfully."""
         mock_catalog = Mock()
 
-        with patch.object(
-            cache_manager,
-            "_validate_cache",
-            return_value=(CacheManagementConstants.CACHE_MISSING, "No cache file"),
-        ), patch.object(
-            cache_manager, "refresh_unified_data", return_value=mock_catalog
-        ) as mock_refresh:
+        with (
+            patch.object(
+                cache_manager,
+                "_validate_cache",
+                return_value=(CacheManagementConstants.CACHE_MISSING, "No cache file"),
+            ),
+            patch.object(
+                cache_manager, "refresh_unified_data", return_value=mock_catalog
+            ) as mock_refresh,
+        ):
 
             result = cache_manager.ensure_data_available()
 
@@ -1090,13 +1112,16 @@ class TestUnifiedModelManagerCacheManagement:
         """Test ensure_data_available with expired cache that refreshes successfully."""
         mock_catalog = Mock()
 
-        with patch.object(
-            cache_manager,
-            "_validate_cache",
-            return_value=(CacheManagementConstants.CACHE_EXPIRED, "Cache too old"),
-        ), patch.object(
-            cache_manager, "refresh_unified_data", return_value=mock_catalog
-        ) as mock_refresh:
+        with (
+            patch.object(
+                cache_manager,
+                "_validate_cache",
+                return_value=(CacheManagementConstants.CACHE_EXPIRED, "Cache too old"),
+            ),
+            patch.object(
+                cache_manager, "refresh_unified_data", return_value=mock_catalog
+            ) as mock_refresh,
+        ):
 
             result = cache_manager.ensure_data_available()
 
@@ -1107,13 +1132,16 @@ class TestUnifiedModelManagerCacheManagement:
         """Test ensure_data_available with corrupted cache that refreshes successfully."""
         mock_catalog = Mock()
 
-        with patch.object(
-            cache_manager,
-            "_validate_cache",
-            return_value=(CacheManagementConstants.CACHE_CORRUPTED, "Bad JSON"),
-        ), patch.object(
-            cache_manager, "refresh_unified_data", return_value=mock_catalog
-        ) as mock_refresh:
+        with (
+            patch.object(
+                cache_manager,
+                "_validate_cache",
+                return_value=(CacheManagementConstants.CACHE_CORRUPTED, "Bad JSON"),
+            ),
+            patch.object(
+                cache_manager, "refresh_unified_data", return_value=mock_catalog
+            ) as mock_refresh,
+        ):
 
             result = cache_manager.ensure_data_available()
 
@@ -1122,12 +1150,15 @@ class TestUnifiedModelManagerCacheManagement:
 
     def test_ensure_data_available_refresh_fails(self, cache_manager):
         """Test ensure_data_available when refresh fails."""
-        with patch.object(
-            cache_manager,
-            "_validate_cache",
-            return_value=(CacheManagementConstants.CACHE_MISSING, "No cache"),
-        ), patch.object(
-            cache_manager, "refresh_unified_data", side_effect=Exception("Network error")
+        with (
+            patch.object(
+                cache_manager,
+                "_validate_cache",
+                return_value=(CacheManagementConstants.CACHE_MISSING, "No cache"),
+            ),
+            patch.object(
+                cache_manager, "refresh_unified_data", side_effect=Exception("Network error")
+            ),
         ):
 
             with pytest.raises(
@@ -1150,11 +1181,14 @@ class TestUnifiedModelManagerCacheManagement:
         """Test that UnifiedModelManagerError is propagated correctly."""
         original_error = UnifiedModelManagerError("Original error")
 
-        with patch.object(
-            cache_manager,
-            "_validate_cache",
-            return_value=(CacheManagementConstants.CACHE_MISSING, "No cache"),
-        ), patch.object(cache_manager, "refresh_unified_data", side_effect=original_error):
+        with (
+            patch.object(
+                cache_manager,
+                "_validate_cache",
+                return_value=(CacheManagementConstants.CACHE_MISSING, "No cache"),
+            ),
+            patch.object(cache_manager, "refresh_unified_data", side_effect=original_error),
+        ):
 
             with pytest.raises(
                 UnifiedModelManagerError, match="Automatic cache refresh failed: Original error"

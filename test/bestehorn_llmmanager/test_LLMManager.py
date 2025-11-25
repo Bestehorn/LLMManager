@@ -438,15 +438,19 @@ class TestLLMManagerIntegration:
 
     def test_converse_success_flow(self, mock_components):
         """Test successful converse operation end-to-end."""
-        with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_components["unified_model_manager"],
-        ), patch(
-            "bestehorn_llmmanager.llm_manager.AuthManager",
-            return_value=mock_components["auth_manager"],
-        ), patch(
-            "bestehorn_llmmanager.llm_manager.RetryManager",
-            return_value=mock_components["retry_manager"],
+        with (
+            patch(
+                "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
+                return_value=mock_components["unified_model_manager"],
+            ),
+            patch(
+                "bestehorn_llmmanager.llm_manager.AuthManager",
+                return_value=mock_components["auth_manager"],
+            ),
+            patch(
+                "bestehorn_llmmanager.llm_manager.RetryManager",
+                return_value=mock_components["retry_manager"],
+            ),
         ):
 
             manager = LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
@@ -474,15 +478,19 @@ class TestLLMManagerIntegration:
             regions_tried=["us-east-1"],
         )
 
-        with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_components["unified_model_manager"],
-        ), patch(
-            "bestehorn_llmmanager.llm_manager.AuthManager",
-            return_value=mock_components["auth_manager"],
-        ), patch(
-            "bestehorn_llmmanager.llm_manager.RetryManager",
-            return_value=mock_components["retry_manager"],
+        with (
+            patch(
+                "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
+                return_value=mock_components["unified_model_manager"],
+            ),
+            patch(
+                "bestehorn_llmmanager.llm_manager.AuthManager",
+                return_value=mock_components["auth_manager"],
+            ),
+            patch(
+                "bestehorn_llmmanager.llm_manager.RetryManager",
+                return_value=mock_components["retry_manager"],
+            ),
         ):
 
             manager = LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
