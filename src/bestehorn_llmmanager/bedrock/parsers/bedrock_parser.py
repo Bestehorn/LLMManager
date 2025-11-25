@@ -220,7 +220,13 @@ class BedrockHTMLParser(BaseDocumentationParser):
             if td_cells and isinstance(td_cells[0], Tag):
                 first_cell_text = td_cells[0].get_text(strip=True)
                 # Skip if the first cell contains typical column header text
-                header_indicators = {"Provider", "Model", "Model name", "Model ID", "Regions supported"}
+                header_indicators = {
+                    "Provider",
+                    "Model",
+                    "Model name",
+                    "Model ID",
+                    "Regions supported",
+                }
                 if first_cell_text in header_indicators:
                     return False
             return True

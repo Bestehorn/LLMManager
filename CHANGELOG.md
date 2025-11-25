@@ -32,6 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CRIS data fetch failures due to AWS documentation structure changes (JavaScript dynamic content)
 - HTML parser now correctly extracts regions from both "Single-Region support" and "Cross-Region support" columns
 - Eliminated dependency on fragile HTML table parsing for CRIS data
+- Claude Haiku 4.5, Sonnet 4.5, and Opus 4.5 now correctly recognized as CRIS-only models (AWS documentation incorrectly lists them without CRIS markers)
+- Pattern-based detection automatically forces CRIS-only access for known models that require inference profiles
 
 ### Security
 - All AWS API calls use secure boto3 SDK with proper authentication

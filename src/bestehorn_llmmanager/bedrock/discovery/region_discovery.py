@@ -42,9 +42,7 @@ class BedrockRegionDiscovery:
         Found 15 Bedrock regions
     """
 
-    def __init__(
-        self, cache_dir: Optional[Path] = None, cache_ttl_hours: int = 24
-    ) -> None:
+    def __init__(self, cache_dir: Optional[Path] = None, cache_ttl_hours: int = 24) -> None:
         """
         Initialize the region discovery service.
 
@@ -89,9 +87,7 @@ class BedrockRegionDiscovery:
             if not force_refresh:
                 cached_regions = self._load_cached_regions()
                 if cached_regions is not None:
-                    self._logger.debug(
-                        f"Loaded {len(cached_regions)} regions from cache"
-                    )
+                    self._logger.debug(f"Loaded {len(cached_regions)} regions from cache")
                     return cached_regions
 
             # Fetch fresh data from AWS
@@ -135,13 +131,9 @@ class BedrockRegionDiscovery:
             return sorted(regions)
 
         except (BotoCoreError, ClientError) as e:
-            raise RegionDiscoveryError(
-                f"AWS API error during region discovery: {str(e)}"
-            ) from e
+            raise RegionDiscoveryError(f"AWS API error during region discovery: {str(e)}") from e
         except Exception as e:
-            raise RegionDiscoveryError(
-                f"Unexpected error during region discovery: {str(e)}"
-            ) from e
+            raise RegionDiscoveryError(f"Unexpected error during region discovery: {str(e)}") from e
 
     def _load_cached_regions(self) -> Optional[List[str]]:
         """

@@ -1262,6 +1262,90 @@ except LLMManagerError as e:
     print(f"LLM Manager error: {e}")
 ```
 
+## CRIS (Cross-Region Inference Service) Management
+
+### Version 0.3.0 Enhancements
+
+#### AWS Bedrock API-Based CRIS Fetching
+
+Starting in v0.3.0, the system uses AWS Bedrock API for CRIS data retrieval instead of HTML parsing:
+
+**New Components:**
+- **BedrockRegionDiscovery**: Dynamic discovery of Bedrock-enabled regions using `boto3.Session().get_available_regions('bedrock')`
+- **CRISAPIFetcher**: Parallel API calls across regions using ThreadPoolExecutor
+- **AuthManager.get_bedrock_control_client()**: Creates Bedrock control plane clients for API operations
+
+**Benefits:**
+- More reliable than HTML parsing (no breakage when AWS changes documentation)
+- Faster through parallel execution (10-20 regions simultaneously)
+- Future-proof with automatic region discovery
+- Automatic fallback to HTML parsing if API fails
+
+**Usage:**
+```python
+from bestehorn_llmmanager.bedrock import CRISManager
+
+# Default: Use AWS Bedrock API (recommended)
+manager = CRISManager()
+catalog = manager.refresh_cris_data()
+print(f"Found {catalog.model_count} CRIS models")
+
+# Explicit API usage
+manager = CRISManager(use_api=True)
+catalog = manager.refresh_cris_data()
+
+# Force HTML fallback (legacy)
+manager = CRISManager(use_api=False)
+catalog = manager.refresh_cris_data()
+```
+
+**Region Caching:**
+- Bedrock-enabled regions are cached for 24 hours in `docs/bedrock_regions.json`
+- Cache reduces API calls and improves performance
+- Use `force_refresh=True` to bypass cache
+
+**Required IAM Permissions:**
+```json
+{
+  "Effect": "Allow",
+  "Action": ["bedrock:ListInferenceProfiles"],
+  "Resource": "*"
+}
+```
+
+#### CRIS-Only Model Detection
+
+v0.3.0 includes automatic detection of models that only support CRIS access:
+
+**Known CRIS-Only Models (Pattern-Based Detection):**
+- Claude Haiku 4.5 (`anthropic.claude-haiku-4-5-*`)
+- Claude Sonnet 4.5 (`anthropic.claude-sonnet-4-5-*`)
+- Claude Opus 4.5 (`anthropic.claude-opus-4-5-*`)
+
+These models are incorrectly listed in AWS documentation without CRIS markers (`*`), but actually require inference profiles for all access. The system now automatically detects these patterns and forces CRIS-only access.
+
+**What This Fixes:**
+```python
+# BEFORE v0.3.0: Would fail with ValidationException
+# "Invocation of model ID anthropic.claude-haiku-4-5-20251001-v1:0 
+#  with on-demand throughput isn't supported."
+
+# AFTER v0.3.0: Automatically uses correct inference profile
+message = create_user_message().add_text("Hello").build()
+manager = LLMManager(
+    models=["Claude Haiku 4.5"],  # System detects this is CRIS-only
+    regions=["us-east-1"]
+)
+response = manager.converse(messages=[message])
+# Uses inference profile: global.anthropic.claude-haiku-4-5-20251001-v1:0 ✓
+```
+
+**Technical Details:**
+- Pattern matching in `ModelCorrelationConfig.CRIS_ONLY_MODEL_PATTERNS`
+- Automatic CRIS-only access forced for matching models
+- Regions without CRIS profiles are automatically skipped
+- Detailed logging at INFO level for troubleshooting
+
 ## Model and Region Management
 
 ### Enhanced Provider Support

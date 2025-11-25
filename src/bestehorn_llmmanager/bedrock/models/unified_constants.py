@@ -3,7 +3,7 @@ Constants for unified model management system.
 Contains string constants for the integrated model and CRIS data.
 """
 
-from typing import Dict, Final
+from typing import Dict, Final, List
 
 
 class UnifiedJSONFields:
@@ -125,10 +125,19 @@ class ModelCorrelationConstants:
 
 
 class ModelCorrelationConfig:
-    """Configuration constants for model correlation behavior."""
+    """Configuration constants for model-CRIS correlation."""
 
-    # Fuzzy matching configuration
+    # Default fuzzy matching behavior
     ENABLE_FUZZY_MATCHING_DEFAULT: Final[bool] = True
+
+    # Known CRIS-only model ID patterns
+    # These models are incorrectly listed in AWS documentation as supporting direct access,
+    # but actually require inference profiles for all access
+    CRIS_ONLY_MODEL_PATTERNS: Final[List[str]] = [
+        "claude-haiku-4-5",
+        "claude-sonnet-4-5",
+        "claude-opus-4-5",
+    ]
     FUZZY_MATCHING_ENABLED_KEY: Final[str] = "fuzzy_matching_enabled"
 
     # Correlation matching strategy order

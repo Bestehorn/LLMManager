@@ -8,7 +8,7 @@ data from AWS Bedrock APIs across multiple regions in parallel.
 import logging
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Dict, List, Optional
+from typing import Any, Dict, List
 
 from botocore.exceptions import BotoCoreError, ClientError
 
@@ -84,8 +84,7 @@ class CRISAPIFetcher:
         with ThreadPoolExecutor(max_workers=self._max_workers) as executor:
             # Submit tasks for each region
             future_to_region = {
-                executor.submit(self._fetch_region_profiles, region): region
-                for region in regions
+                executor.submit(self._fetch_region_profiles, region): region for region in regions
             }
 
             # Collect results as they complete
@@ -95,9 +94,7 @@ class CRISAPIFetcher:
                     profiles = future.result()
                     if profiles:
                         all_profiles.extend(profiles)
-                        self._logger.debug(
-                            f"Retrieved {len(profiles)} profiles from {region}"
-                        )
+                        self._logger.debug(f"Retrieved {len(profiles)} profiles from {region}")
                     else:
                         self._logger.debug(f"No profiles found in {region}")
                 except Exception as e:
@@ -131,7 +128,7 @@ class CRISAPIFetcher:
                 f"Failed to transform API data to model structures: {str(e)}"
             ) from e
 
-    def _fetch_region_profiles(self, region: str) -> List[Dict]:
+    def _fetch_region_profiles(self, region: str) -> List[Dict[str, Any]]:
         """
         Fetch inference profiles from a single region.
 
@@ -158,7 +155,7 @@ class CRISAPIFetcher:
             for profile in profiles:
                 profile["_source_region"] = region
 
-            return profiles
+            return profiles  # type: ignore[no-any-return]
 
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "Unknown")
@@ -173,9 +170,7 @@ class CRISAPIFetcher:
         except Exception as e:
             raise Exception(f"Unexpected error in {region}: {str(e)}") from e
 
-    def _parse_profiles_to_models(
-        self, profiles: List[Dict]
-    ) -> Dict[str, CRISModelInfo]:
+    def _parse_profiles_to_models(self, profiles: List[Dict]) -> Dict[str, CRISModelInfo]:
         """
         Transform API profile data into CRISModelInfo structures.
 
@@ -200,9 +195,7 @@ class CRISAPIFetcher:
                 source_region = profile.get("_source_region", "unknown")
 
                 if not profile_id or not models:
-                    self._logger.debug(
-                        f"Skipping profile with missing data: {profile_id}"
-                    )
+                    self._logger.debug(f"Skipping profile with missing data: {profile_id}")
                     continue
 
                 # Extract model name (use profile name as base)
@@ -212,9 +205,7 @@ class CRISAPIFetcher:
                 destination_regions = self._extract_regions_from_models(models)
 
                 if not destination_regions:
-                    self._logger.debug(
-                        f"No destination regions found for profile {profile_id}"
-                    )
+                    self._logger.debug(f"No destination regions found for profile {profile_id}")
                     continue
 
                 # Build region mapping for this profile
@@ -248,9 +239,7 @@ class CRISAPIFetcher:
         models_dict = {}
         for model_name, profiles_map in model_profiles.items():
             try:
-                model_info = CRISModelInfo(
-                    model_name=model_name, inference_profiles=profiles_map
-                )
+                model_info = CRISModelInfo(model_name=model_name, inference_profiles=profiles_map)
                 models_dict[model_name] = model_info
             except Exception as e:
                 self._logger.warning(f"Error creating CRISModelInfo for {model_name}: {e}")

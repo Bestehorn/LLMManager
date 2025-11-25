@@ -48,6 +48,7 @@ class ModelCRISCorrelator:
             "unmatched_cris_models": 0,
             "cris_only_models": 0,
             "fuzzy_matched_models": 0,
+            "corrected_cris_only_models": 0,
         }
 
         # Configure fuzzy matching
@@ -494,6 +495,28 @@ class ModelCRISCorrelator:
             )
             raise ModelCRISCorrelationError(f"{error_context}. Error details: {str(e)}") from e
 
+    def _is_cris_only_model(self, model_id: str) -> bool:
+        """
+        Check if a model ID matches known CRIS-only patterns.
+
+        These models are incorrectly listed in AWS documentation without CRIS markers,
+        but actually require inference profiles for all access.
+
+        Args:
+            model_id: The model ID to check
+
+        Returns:
+            True if model is known to be CRIS-only
+        """
+        if not model_id:
+            return False
+
+        model_id_lower = model_id.lower()
+        for pattern in ModelCorrelationConfig.CRIS_ONLY_MODEL_PATTERNS:
+            if pattern in model_id_lower:
+                return True
+        return False
+
     def _build_region_access_info(
         self, model_info: BedrockModelInfo, cris_model_info: Optional[CRISModelInfo]
     ) -> Dict[str, ModelAccessInfo]:
@@ -509,6 +532,16 @@ class ModelCRISCorrelator:
         """
         region_access: Dict[str, ModelAccessInfo] = {}
         skipped_regions = []
+
+        # Check if this is a known CRIS-only model (e.g., Claude Haiku 4.5, Sonnet 4.5)
+        is_known_cris_only = self._is_cris_only_model(model_info.model_id)
+
+        if is_known_cris_only:
+            self._logger.info(
+                f"Model '{model_info.model_id}' detected as CRIS-only based on pattern matching. "
+                "Forcing CRIS-only access for all regions."
+            )
+            self._correlation_stats["corrected_cris_only_models"] += 1
 
         # Process regions from regular model
         for region in model_info.regions_supported:
@@ -560,6 +593,45 @@ class ModelCRISCorrelator:
                         self._logger.info(info_msg)
                         skipped_regions.append(f"{clean_region} (CRIS-only, no profile)")
                 else:
+                    # CRITICAL FIX: Force CRIS-only for known patterns
+                    if is_known_cris_only:
+                        # This model is known to be CRIS-only despite missing * marker
+                        inference_profile = (
+                            self._get_inference_profile_for_region(
+                                cris_model_info=cris_model_info, region=region
+                            )
+                            if cris_model_info
+                            else None
+                        )
+
+                        if inference_profile:
+                            is_global = inference_profile.startswith("global.")
+
+                            if is_global:
+                                region_access[region] = ModelAccessInfo(
+                                    region=region,
+                                    has_global_cris=True,
+                                    global_cris_profile_id=inference_profile,
+                                )
+                            else:
+                                region_access[region] = ModelAccessInfo(
+                                    region=region,
+                                    has_regional_cris=True,
+                                    regional_cris_profile_id=inference_profile,
+                                )
+
+                            self._logger.debug(
+                                f"Corrected region '{region}' for CRIS-only model '{model_info.model_id}' "
+                                f"using profile '{inference_profile}'"
+                            )
+                        else:
+                            self._logger.warning(
+                                f"Known CRIS-only model '{model_info.model_id}' has no CRIS profile for region '{region}'. "
+                                "Skipping region."
+                            )
+                            skipped_regions.append(f"{region} (CRIS-only, no profile)")
+                        continue
+
                     # Check if CRIS is also available for this region
                     cris_available = cris_model_info and cris_model_info.can_route_from_source(
                         source_region=region
@@ -945,6 +1017,7 @@ class ModelCRISCorrelator:
             "unmatched_cris_models": 0,
             "cris_only_models": 0,
             "fuzzy_matched_models": 0,
+            "corrected_cris_only_models": 0,
         }
 
     def get_correlation_stats(self) -> Dict[str, int]:
