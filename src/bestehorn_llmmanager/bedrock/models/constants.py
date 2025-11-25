@@ -25,9 +25,11 @@ class HTMLTableColumns:
     """HTML table column name constants for parsing."""
 
     PROVIDER: Final[str] = "Provider"
-    MODEL_NAME: Final[str] = "Model name"
+    MODEL_NAME: Final[str] = "Model"
     MODEL_ID: Final[str] = "Model ID"
     REGIONS_SUPPORTED: Final[str] = "Regions supported"
+    SINGLE_REGION_SUPPORT: Final[str] = "Single-region model support"
+    CROSS_REGION_SUPPORT: Final[str] = "Cross-region inference profile support"
     INPUT_MODALITIES: Final[str] = "Input modalities"
     OUTPUT_MODALITIES: Final[str] = "Output modalities"
     STREAMING_SUPPORTED: Final[str] = "Streaming supported"

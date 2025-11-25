@@ -91,9 +91,11 @@ class TestHTMLTableColumns:
     def test_column_values(self) -> None:
         """Test that HTMLTableColumns constants have expected values."""
         assert HTMLTableColumns.PROVIDER == "Provider"
-        assert HTMLTableColumns.MODEL_NAME == "Model name"
+        assert HTMLTableColumns.MODEL_NAME == "Model"
         assert HTMLTableColumns.MODEL_ID == "Model ID"
         assert HTMLTableColumns.REGIONS_SUPPORTED == "Regions supported"
+        assert HTMLTableColumns.SINGLE_REGION_SUPPORT == "Single-region model support"
+        assert HTMLTableColumns.CROSS_REGION_SUPPORT == "Cross-region inference profile support"
         assert HTMLTableColumns.INPUT_MODALITIES == "Input modalities"
         assert HTMLTableColumns.OUTPUT_MODALITIES == "Output modalities"
         assert HTMLTableColumns.STREAMING_SUPPORTED == "Streaming supported"

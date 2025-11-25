@@ -220,7 +220,7 @@ class BedrockHTMLParser(BaseDocumentationParser):
             if td_cells and isinstance(td_cells[0], Tag):
                 first_cell_text = td_cells[0].get_text(strip=True)
                 # Skip if the first cell contains typical column header text
-                header_indicators = {"Provider", "Model name", "Model ID", "Regions supported"}
+                header_indicators = {"Provider", "Model", "Model name", "Model ID", "Regions supported"}
                 if first_cell_text in header_indicators:
                     return False
             return True
@@ -255,9 +255,8 @@ class BedrockHTMLParser(BaseDocumentationParser):
 
             model_id = self._extract_text_from_cell(cells=cells, column=HTMLTableColumns.MODEL_ID)
 
-            regions = self._extract_regions_from_cell(
-                cells=cells, column=HTMLTableColumns.REGIONS_SUPPORTED
-            )
+            # Extract regions from both single-region and cross-region columns
+            regions = self._extract_all_regions_from_row(cells=cells)
 
             input_modalities = self._extract_modalities_from_cell(
                 cells=cells, column=HTMLTableColumns.INPUT_MODALITIES
@@ -316,6 +315,41 @@ class BedrockHTMLParser(BaseDocumentationParser):
 
         cell = cells[cell_index]
         return self._clean_text(cell.get_text(strip=True))
+
+    def _extract_all_regions_from_row(self, cells: List[Tag]) -> List[str]:
+        """
+        Extract regions from both single-region and cross-region columns.
+        Falls back to the old "Regions supported" column if new columns don't exist.
+
+        Args:
+            cells: List of cell elements
+
+        Returns:
+            List of normalized region names
+        """
+        regions = []
+
+        # Try new column structure first (single-region + cross-region)
+        if HTMLTableColumns.SINGLE_REGION_SUPPORT in self._column_indices:
+            single_regions = self._extract_regions_from_cell(
+                cells=cells, column=HTMLTableColumns.SINGLE_REGION_SUPPORT
+            )
+            regions.extend(single_regions)
+
+        if HTMLTableColumns.CROSS_REGION_SUPPORT in self._column_indices:
+            cross_regions = self._extract_regions_from_cell(
+                cells=cells, column=HTMLTableColumns.CROSS_REGION_SUPPORT
+            )
+            regions.extend(cross_regions)
+
+        # If no regions found, try old column structure for backward compatibility
+        if not regions and HTMLTableColumns.REGIONS_SUPPORTED in self._column_indices:
+            regions = self._extract_regions_from_cell(
+                cells=cells, column=HTMLTableColumns.REGIONS_SUPPORTED
+            )
+
+        # Remove duplicates while preserving order
+        return list(dict.fromkeys(regions))
 
     def _extract_regions_from_cell(self, cells: List[Tag], column: str) -> List[str]:
         """
@@ -414,7 +448,7 @@ class BedrockHTMLParser(BaseDocumentationParser):
         link = cell.find("a")
 
         if isinstance(link, Tag):
-            href_attr = link.get("hre")
+            href_attr = link.get("href")
             if href_attr and isinstance(href_attr, str):
                 # Handle relative URLs by checking if they need base URL
                 if href_attr.startswith("./"):
