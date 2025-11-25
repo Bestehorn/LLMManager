@@ -108,7 +108,9 @@ class CRISManager:
             BedrockRegionDiscovery() if self._use_api else None
         )
         self._api_fetcher: Optional[CRISAPIFetcher] = (
-            CRISAPIFetcher(auth_manager=self._auth_manager) if self._use_api and self._auth_manager else None
+            CRISAPIFetcher(auth_manager=self._auth_manager)
+            if self._use_api and self._auth_manager
+            else None
         )
 
         # Setup logging
@@ -161,8 +163,10 @@ class CRISManager:
             Exception: If API fetch fails
         """
         if not self._region_discovery or not self._api_fetcher:
-            raise CRISManagerError("API components not initialized. Set use_api=True during initialization.")
-        
+            raise CRISManagerError(
+                "API components not initialized. Set use_api=True during initialization."
+            )
+
         self._logger.info("Refreshing CRIS data via AWS Bedrock API")
 
         # Step 1: Discover Bedrock-enabled regions

@@ -12,7 +12,7 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.9+
 - AWS credentials configured (AWS CLI, environment variables, or IAM roles)
 
 ### Installation & Basic Usage
@@ -577,7 +577,7 @@ manager = LLMManager(
 
 ## Requirements
 
-- Python 3.8+
+- Python 3.9+
 - AWS credentials configured (AWS CLI, environment variables, or IAM roles)
 - Internet access for initial model data download
 
