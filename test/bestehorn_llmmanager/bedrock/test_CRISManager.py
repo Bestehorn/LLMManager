@@ -83,7 +83,9 @@ class TestCRISManagerRefreshData:
         # No need to mock datetime - use real time
 
         manager = CRISManager(
-            html_output_path=temp_dir / "cris.html", json_output_path=temp_dir / "cris.json"
+            html_output_path=temp_dir / "cris.html",
+            json_output_path=temp_dir / "cris.json",
+            use_api=False,  # Use HTML parsing path for this test
         )
 
         # Mock components
@@ -115,7 +117,9 @@ class TestCRISManagerRefreshData:
     def test_refresh_cris_data_no_force_download_recent_file(self, temp_dir: Any) -> None:
         """Test refresh without force download when HTML file is recent."""
         manager = CRISManager(
-            html_output_path=temp_dir / "cris.html", json_output_path=temp_dir / "cris.json"
+            html_output_path=temp_dir / "cris.html",
+            json_output_path=temp_dir / "cris.json",
+            use_api=False,  # Use HTML parsing path for this test
         )
 
         # Create a recent HTML file
@@ -145,7 +149,7 @@ class TestCRISManagerRefreshData:
 
     def test_refresh_cris_data_network_error(self) -> None:
         """Test refresh handling of network errors."""
-        manager = CRISManager()
+        manager = CRISManager(use_api=False)  # Use HTML parsing path for this test
         manager._downloader = Mock()
         manager._logger = Mock()
 
@@ -161,7 +165,9 @@ class TestCRISManagerRefreshData:
 
     def test_refresh_cris_data_parsing_error(self, temp_dir: Any) -> None:
         """Test refresh handling of parsing errors."""
-        manager = CRISManager(html_output_path=temp_dir / "cris.html")
+        manager = CRISManager(
+            html_output_path=temp_dir / "cris.html", use_api=False  # Use HTML parsing path
+        )
 
         # Create HTML file
         html_file = temp_dir / "cris.html"
@@ -183,7 +189,7 @@ class TestCRISManagerRefreshData:
 
     def test_refresh_cris_data_file_system_error(self) -> None:
         """Test refresh handling of file system errors."""
-        manager = CRISManager()
+        manager = CRISManager(use_api=False)  # Use HTML parsing path for this test
         manager._downloader = Mock()
         manager._logger = Mock()
 
@@ -568,7 +574,9 @@ class TestCRISManagerIntegration:
     def test_full_workflow_integration(self, temp_dir: Any) -> None:
         """Test the complete workflow from refresh to queries."""
         manager = CRISManager(
-            html_output_path=temp_dir / "cris.html", json_output_path=temp_dir / "cris.json"
+            html_output_path=temp_dir / "cris.html",
+            json_output_path=temp_dir / "cris.json",
+            use_api=False,  # Use HTML parsing path for this test
         )
 
         # Mock all components for integration test

@@ -53,28 +53,46 @@ def unified_model_manager(tmp_path) -> UnifiedModelManager:
 
 
 @pytest.fixture
-def test_models(unified_model_manager) -> List[str]:
+def test_models(unified_model_manager, test_regions) -> List[str]:
     """
     Get available test models for integration tests.
 
     Args:
         unified_model_manager: Configured UnifiedModelManager
+        test_regions: Test regions to check model availability
 
     Returns:
-        List of model names suitable for testing
+        List of model names suitable for testing in the specified regions
     """
     all_models = unified_model_manager.get_model_names()
+    
+    # Filter models that are available in at least one of the test regions
+    available_models = []
+    for model_name in all_models:
+        # Skip CRIS-only models (those starting with regional prefixes)
+        if model_name.startswith(("APAC ", "EMEA ", "US ")):
+            continue
+            
+        # Check if model is available in any test region
+        for region in test_regions:
+            try:
+                model_info = unified_model_manager.get_model_info(model_name, region)
+                if model_info:
+                    available_models.append(model_name)
+                    break
+            except Exception:
+                continue
 
     # Prefer Claude models for testing as they're reliable
-    claude_models = [m for m in all_models if "Claude" in m]
+    claude_models = [m for m in available_models if "Claude" in m]
     if claude_models:
         return claude_models[:2]  # Use first 2 Claude models
 
     # Fallback to any available models
-    if all_models:
-        return all_models[:2]
+    if available_models:
+        return available_models[:2]
 
-    pytest.skip("No suitable test models found")
+    pytest.skip("No suitable test models found in specified regions")
 
 
 @pytest.fixture

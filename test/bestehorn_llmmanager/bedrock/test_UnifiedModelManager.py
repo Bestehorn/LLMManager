@@ -218,8 +218,8 @@ class TestUnifiedModelManager:
             ):
                 manager.refresh_unified_data()
 
-    def test_refresh_unified_data_parsing_error(self, mock_cris_manager, mock_model_manager):
-        """Test unified data refresh with parsing error."""
+    def test_refresh_unified_data_parsing_error(self, mock_cris_manager, mock_model_manager, mock_correlator):
+        """Test unified data refresh with CRIS parsing error (non-fatal)."""
         with (
             patch(
                 "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
@@ -229,18 +229,32 @@ class TestUnifiedModelManager:
                 "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
                 return_value=mock_cris_manager,
             ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator",
+                return_value=mock_correlator,
+            ),
         ):
 
             manager = UnifiedModelManager()
 
-            # Model manager succeeds but CRIS manager fails
+            # Model manager succeeds but CRIS manager fails (should be non-fatal)
             mock_cris_manager.refresh_cris_data.side_effect = ParsingError("Invalid CRIS data")
 
-            with pytest.raises(
-                UnifiedModelManagerError,
-                match="Failed to refresh unified model data: Invalid CRIS data",
-            ):
-                manager.refresh_unified_data()
+            # Should succeed without CRIS data (CRIS failures are non-fatal)
+            catalog = manager.refresh_unified_data()
+
+            # Verify workflow continued with model data only
+            mock_model_manager.refresh_model_data.assert_called_once()
+            # CRIS manager was called but failed
+            mock_cris_manager.refresh_cris_data.assert_called_once()
+            # Correlator was called with None for CRIS catalog
+            mock_correlator.correlate_catalogs.assert_called_once()
+            # Verify cris_catalog argument was None
+            call_args = mock_correlator.correlate_catalogs.call_args
+            assert call_args.kwargs['cris_catalog'] is None
+            
+            # Catalog should still be returned
+            assert catalog is not None
 
     def test_refresh_unified_data_correlation_error(self, mock_correlator):
         """Test unified data refresh with correlation error."""
