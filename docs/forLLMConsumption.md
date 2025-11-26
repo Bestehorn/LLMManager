@@ -451,12 +451,23 @@ LLMManager(
     regions: List[str],                                   # Required: List of AWS regions
     auth_config: Optional[AuthConfig] = None,             # Optional: Authentication configuration
     retry_config: Optional[RetryConfig] = None,           # Optional: Retry behavior configuration
+    cache_config: Optional[CacheConfig] = None,           # Optional: Prompt caching configuration
     unified_model_manager: Optional[UnifiedModelManager] = None,  # Optional: Pre-configured model manager
+    force_download: bool = False,                         # Optional: Force download fresh model data
+    strict_cache_mode: bool = False,                      # Optional: Fail on stale cache (default: permissive)
+    ignore_cache_age: bool = False,                       # Optional: Bypass cache age validation
     default_inference_config: Optional[Dict[str, Any]] = None,    # Optional: Default inference parameters
     timeout: int = 300,                                   # Optional: Request timeout in seconds
     log_level: Union[int, str] = logging.WARNING         # Optional: Logging level (default: WARNING)
 )
 ```
+
+**Model Profile Cache Parameters:**
+- `force_download`: If True, always download fresh model profile data, bypassing cache
+- `strict_cache_mode`: If True, fail when expired cache cannot be refreshed. If False (default), use stale cache with warning
+- `ignore_cache_age`: If True, bypass cache age validation entirely. If False (default), respect max_cache_age_hours
+
+**Note**: `cache_config` is for Bedrock prompt caching, while `strict_cache_mode` and `ignore_cache_age` control model profile data caching.
 
 #### Core Methods
 

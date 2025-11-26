@@ -1210,3 +1210,550 @@ class TestUnifiedModelManagerCacheManagement:
                 UnifiedModelManagerError, match="Automatic cache refresh failed: Original error"
             ):
                 cache_manager.ensure_data_available()
+
+
+class TestUnifiedModelManagerStaleCacheHandling:
+    """Test cases for stale cache handling and age control features."""
+
+    @pytest.fixture
+    def cache_manager_permissive(self):
+        """Create UnifiedModelManager with permissive cache mode (default)."""
+        return UnifiedModelManager(
+            strict_cache_mode=False,  # Permissive (default)
+            ignore_cache_age=False,  # Respect expiration (default)
+            max_cache_age_hours=24.0,
+        )
+
+    @pytest.fixture
+    def cache_manager_strict(self):
+        """Create UnifiedModelManager with strict cache mode."""
+        return UnifiedModelManager(
+            strict_cache_mode=True,  # Strict mode
+            ignore_cache_age=False,  # Respect expiration (default)
+            max_cache_age_hours=24.0,
+        )
+
+    @pytest.fixture
+    def cache_manager_ignore_age(self):
+        """Create UnifiedModelManager that ignores cache age."""
+        return UnifiedModelManager(
+            strict_cache_mode=False,  # Permissive (default)
+            ignore_cache_age=True,  # Ignore age
+            max_cache_age_hours=24.0,
+        )
+
+    def test_strict_cache_mode_default_permissive(self, cache_manager_permissive):
+        """Test that default strict_cache_mode is permissive (False)."""
+        assert cache_manager_permissive.strict_cache_mode is False
+
+    def test_ignore_cache_age_default_respects_expiration(self, cache_manager_permissive):
+        """Test that default ignore_cache_age respects expiration (False)."""
+        assert cache_manager_permissive.ignore_cache_age is False
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_strict_cache_mode_false_uses_stale_cache(
+        self, mock_datetime, cache_manager_permissive, tmp_path
+    ):
+        """Test permissive mode uses stale cache when refresh fails."""
+        from datetime import timezone
+
+        # Mock current time (26 hours later than cache)
+        current_time = datetime(2023, 1, 2, 14, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create expired cache file
+        json_file = tmp_path / "expired.json"
+        json_file.write_text("{}")
+        cache_manager_permissive.json_output_path = json_file
+
+        # Mock serializer and catalog
+        mock_catalog = Mock()
+        mock_catalog.model_count = 3
+
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
+            patch.object(
+                cache_manager_permissive,
+                "refresh_unified_data",
+                side_effect=Exception("Network error"),
+            ),
+        ):
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 26 hours ago
+                "unified_models": {"Test": {}},
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager_permissive._serializer = mock_serializer
+
+            # Should use stale cache with warning (not raise exception)
+            result = cache_manager_permissive.ensure_data_available()
+
+        assert result == mock_catalog
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_strict_cache_mode_true_fails_on_expired(
+        self, mock_datetime, cache_manager_strict, tmp_path
+    ):
+        """Test strict mode fails when expired cache cannot be refreshed."""
+        from datetime import timezone
+
+        # Mock current time (26 hours later than cache)
+        current_time = datetime(2023, 1, 2, 14, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create expired cache file
+        json_file = tmp_path / "expired.json"
+        json_file.write_text("{}")
+        cache_manager_strict.json_output_path = json_file
+
+        # Mock serializer
+        mock_catalog = Mock()
+        mock_catalog.model_count = 3
+
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
+            patch.object(
+                cache_manager_strict, "refresh_unified_data", side_effect=Exception("Network error")
+            ),
+        ):
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 26 hours ago
+                "unified_models": {"Test": {}},
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager_strict._serializer = mock_serializer
+
+            # Should raise error in strict mode
+            with pytest.raises(
+                UnifiedModelManagerError,
+                match="Strict cache mode enabled.*Cannot use expired cache",
+            ):
+                cache_manager_strict.ensure_data_available()
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_ignore_cache_age_true_skips_validation(
+        self, mock_datetime, cache_manager_ignore_age, tmp_path
+    ):
+        """Test that ignore_cache_age bypasses age validation."""
+        from datetime import timezone
+
+        # Mock current time (100 hours later than cache - way past expiration)
+        current_time = datetime(2023, 1, 5, 16, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create very old cache file
+        json_file = tmp_path / "old.json"
+        json_file.write_text("{}")
+        cache_manager_ignore_age.json_output_path = json_file
+
+        # Mock serializer and catalog
+        mock_catalog = Mock()
+        mock_catalog.model_count = 5
+
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
+        ):
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 100 hours ago
+                "unified_models": {"Test": {}},
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager_ignore_age._serializer = mock_serializer
+
+            # Should validate as VALID despite being very old
+            status, reason = cache_manager_ignore_age._validate_cache()
+
+        assert status == CacheManagementConstants.CACHE_VALID
+        assert "valid" in reason.lower()
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_stale_cache_warning_message_content(
+        self, mock_datetime, cache_manager_permissive, tmp_path, caplog
+    ):
+        """Test that stale cache usage emits proper warning message."""
+        import logging
+        from datetime import timezone
+
+        caplog.set_level(logging.WARNING)
+
+        # Mock current time (48 hours later than cache)
+        current_time = datetime(2023, 1, 3, 12, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create expired cache file
+        json_file = tmp_path / "expired.json"
+        json_file.write_text("{}")
+        cache_manager_permissive.json_output_path = json_file
+
+        # Mock serializer and catalog
+        mock_catalog = Mock()
+        mock_catalog.model_count = 3
+
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
+            patch.object(
+                cache_manager_permissive,
+                "refresh_unified_data",
+                side_effect=Exception("Network error"),
+            ),
+        ):
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 48 hours ago
+                "unified_models": {"Test": {}},
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager_permissive._serializer = mock_serializer
+
+            result = cache_manager_permissive.ensure_data_available()
+
+        # Check warning was logged
+        assert any("Using outdated model data cache" in record.message for record in caplog.records)
+        assert any("48.0 hours" in record.message for record in caplog.records)
+        assert any("24.0 hours" in record.message for record in caplog.records)
+
+        # Verify result is the stale catalog
+        assert result == mock_catalog
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_stale_cache_fallback_when_unloadable(
+        self, mock_datetime, cache_manager_permissive, tmp_path
+    ):
+        """Test that we fail if stale cache cannot be loaded."""
+        from datetime import timezone
+
+        # Mock current time (26 hours later)
+        current_time = datetime(2023, 1, 2, 14, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create expired cache file
+        json_file = tmp_path / "expired.json"
+        json_file.write_text("{}")
+        cache_manager_permissive.json_output_path = json_file
+
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(
+                cache_manager_permissive,
+                "refresh_unified_data",
+                side_effect=Exception("Network error"),
+            ),
+            patch.object(cache_manager_permissive, "load_cached_data", return_value=None),
+        ):
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",
+                "unified_models": {"Test": {}},
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager_permissive._serializer = mock_serializer
+
+            # Should fail because stale cache cannot be loaded
+            with pytest.raises(
+                UnifiedModelManagerError, match="Cannot load stale cache after refresh failure"
+            ):
+                cache_manager_permissive.ensure_data_available()
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_force_download_overrides_ignore_cache_age(self, mock_datetime, tmp_path):
+        """Test that force_download=True with refresh_unified_data() bypasses cache."""
+        from datetime import timezone
+
+        # Create manager with ignore_cache_age and force_download
+        manager = UnifiedModelManager(
+            force_download=True, ignore_cache_age=True, max_cache_age_hours=24.0
+        )
+
+        # Mock current time
+        current_time = datetime(2023, 1, 5, 12, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create very old cache file
+        json_file = tmp_path / "old.json"
+        json_file.write_text("{}")
+        manager.json_output_path = json_file
+
+        mock_catalog = Mock()
+        mock_catalog.model_count = 5
+
+        # Create mock managers
+        mock_model_manager = Mock()
+        mock_cris_manager = Mock()
+        mock_model_manager.refresh_model_data = Mock(return_value=Mock())
+        mock_cris_manager.refresh_cris_data = Mock(return_value=Mock())
+
+        # Replace managers
+        manager._model_manager = mock_model_manager
+        manager._cris_manager = mock_cris_manager
+
+        # Mock the underlying managers
+        with (
+            patch.object(manager._correlator, "correlate_catalogs", return_value=mock_catalog),
+            patch.object(manager, "_save_unified_catalog"),
+        ):
+            # Call refresh_unified_data directly (as LLMManager does with force_download)
+            # This should use force_download=True (from __init__)
+            result = manager.refresh_unified_data()
+
+        # Verify force_download was used (models are refreshed with force_download)
+        mock_model_manager.refresh_model_data.assert_called_once_with(force_download=True)
+        assert result == mock_catalog
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_decision_matrix_scenario_workshop(self, mock_datetime, tmp_path):
+        """Test workshop scenario: ignore_cache_age=True, use any cache."""
+        from datetime import timezone
+
+        # Create manager for workshop scenario
+        manager = UnifiedModelManager(
+            force_download=False,
+            ignore_cache_age=True,  # Use cache regardless of age
+            strict_cache_mode=False,  # Permissive (default)
+            max_cache_age_hours=24.0,
+        )
+
+        # Mock current time (200 hours later - way past expiration)
+        current_time = datetime(2023, 1, 10, 8, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create very old cache file
+        json_file = tmp_path / "workshop.json"
+        json_file.write_text("{}")
+        manager.json_output_path = json_file
+
+        mock_catalog = Mock()
+        mock_catalog.model_count = 5
+
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
+        ):
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 200 hours ago!
+                "unified_models": {"Test": {}},
+            }
+            mock_serializer_class.return_value = mock_serializer
+            manager._serializer = mock_serializer
+
+            result = manager.ensure_data_available()
+
+        # Should use old cache without trying to refresh
+        assert result == mock_catalog
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_decision_matrix_scenario_production_strict(
+        self, mock_datetime, cache_manager_strict, tmp_path
+    ):
+        """Test production strict scenario: fail if can't refresh expired cache."""
+        from datetime import timezone
+
+        # Mock current time (26 hours later)
+        current_time = datetime(2023, 1, 2, 14, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create expired cache file
+        json_file = tmp_path / "strict.json"
+        json_file.write_text("{}")
+        cache_manager_strict.json_output_path = json_file
+
+        mock_catalog = Mock()
+        mock_catalog.model_count = 3
+
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
+            patch.object(
+                cache_manager_strict, "refresh_unified_data", side_effect=Exception("Network error")
+            ),
+        ):
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 26 hours ago
+                "unified_models": {"Test": {}},
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager_strict._serializer = mock_serializer
+
+            # Should fail in strict mode
+            with pytest.raises(
+                UnifiedModelManagerError,
+                match="Strict cache mode enabled.*Cannot use expired cache",
+            ):
+                cache_manager_strict.ensure_data_available()
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_decision_matrix_scenario_hybrid(
+        self, mock_datetime, cache_manager_permissive, tmp_path
+    ):
+        """Test hybrid scenario: try refresh, fallback to stale on failure."""
+        from datetime import timezone
+
+        # Mock current time (26 hours later)
+        current_time = datetime(2023, 1, 2, 14, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create expired cache file
+        json_file = tmp_path / "hybrid.json"
+        json_file.write_text("{}")
+        cache_manager_permissive.json_output_path = json_file
+
+        mock_catalog = Mock()
+        mock_catalog.model_count = 3
+
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
+            patch.object(
+                cache_manager_permissive,
+                "refresh_unified_data",
+                side_effect=Exception("Network error"),
+            ) as mock_refresh,
+        ):
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 26 hours ago
+                "unified_models": {"Test": {}},
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager_permissive._serializer = mock_serializer
+
+            result = cache_manager_permissive.ensure_data_available()
+
+        # Should try refresh first, then fall back to stale
+        mock_refresh.assert_called_once()
+        assert result == mock_catalog
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_decision_matrix_cache_valid_and_fresh(
+        self, mock_datetime, cache_manager_permissive, tmp_path
+    ):
+        """Test happy path: cache valid and fresh."""
+        from datetime import timezone
+
+        # Mock current time (1 hour later)
+        current_time = datetime(2023, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create fresh cache file
+        json_file = tmp_path / "fresh.json"
+        json_file.write_text("{}")
+        cache_manager_permissive.json_output_path = json_file
+
+        mock_catalog = Mock()
+        mock_catalog.model_count = 5
+
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
+            patch.object(cache_manager_permissive, "refresh_unified_data") as mock_refresh,
+        ):
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 1 hour ago
+                "unified_models": {"Test": {}},
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager_permissive._serializer = mock_serializer
+
+            result = cache_manager_permissive.ensure_data_available()
+
+        # Should use cache without refresh
+        mock_refresh.assert_not_called()
+        assert result == mock_catalog
+
+    @patch("bestehorn_llmmanager.bedrock.UnifiedModelManager.datetime")
+    def test_decision_matrix_expired_refresh_succeeds(
+        self, mock_datetime, cache_manager_permissive, tmp_path
+    ):
+        """Test that successful refresh is used when cache is expired."""
+        from datetime import timezone
+
+        # Mock current time (26 hours later)
+        current_time = datetime(2023, 1, 2, 14, 0, 0, tzinfo=timezone.utc)
+        mock_datetime.now.return_value = current_time
+        mock_datetime.strptime = datetime.strptime
+
+        # Create expired cache file
+        json_file = tmp_path / "expired.json"
+        json_file.write_text("{}")
+        cache_manager_permissive.json_output_path = json_file
+
+        old_catalog = Mock()
+        old_catalog.model_count = 3
+        new_catalog = Mock()
+        new_catalog.model_count = 10
+
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer"
+            ) as mock_serializer_class,
+            patch.object(UnifiedModelCatalog, "from_dict", return_value=old_catalog),
+            patch.object(
+                cache_manager_permissive, "refresh_unified_data", return_value=new_catalog
+            ) as mock_refresh,
+        ):
+            mock_serializer = Mock()
+            mock_serializer.load_from_file.return_value = {
+                "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 26 hours ago
+                "unified_models": {"Test": {}},
+            }
+            mock_serializer_class.return_value = mock_serializer
+            cache_manager_permissive._serializer = mock_serializer
+
+            result = cache_manager_permissive.ensure_data_available()
+
+        # Should use fresh data from refresh
+        mock_refresh.assert_called_once()
+        assert result == new_catalog
+
+    def test_decision_matrix_cache_missing_try_refresh(self, cache_manager_permissive, tmp_path):
+        """Test that missing cache tries to refresh."""
+        # Point to non-existent file
+        cache_manager_permissive.json_output_path = tmp_path / "missing.json"
+
+        mock_catalog = Mock()
+
+        with patch.object(
+            cache_manager_permissive, "refresh_unified_data", return_value=mock_catalog
+        ) as mock_refresh:
+            result = cache_manager_permissive.ensure_data_available()
+
+        # Should try to refresh
+        mock_refresh.assert_called_once_with(force_download=True)
+        assert result == mock_catalog

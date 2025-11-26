@@ -81,6 +81,8 @@ class LLMManager:
         cache_config: Optional[CacheConfig] = None,
         unified_model_manager: Optional[UnifiedModelManager] = None,
         force_download: bool = False,
+        strict_cache_mode: bool = False,
+        ignore_cache_age: bool = False,
         default_inference_config: Optional[Dict[str, Any]] = None,
         timeout: int = LLMManagerConfig.DEFAULT_TIMEOUT,
         log_level: Union[int, str] = LLMManagerConfig.DEFAULT_LOG_LEVEL,
@@ -98,6 +100,12 @@ class LLMManager:
             force_download: If True, force download fresh model data during initialization,
                 bypassing any cached data. Defaults to False (uses cache when available).
                 Note: This parameter is ignored if unified_model_manager is provided.
+            strict_cache_mode: If True, fail when expired model profile cache cannot be refreshed.
+                             If False (default), use stale cache with warning when refresh fails.
+                             Applies to model profile data caching, not prompt caching.
+            ignore_cache_age: If True, bypass model profile cache age validation entirely.
+                            If False (default), respect max_cache_age_hours setting.
+                            Applies to model profile data caching, not prompt caching.
             default_inference_config: Default inference parameters to apply
             timeout: Request timeout in seconds
             log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
@@ -148,7 +156,10 @@ class LLMManager:
         if unified_model_manager:
             self._unified_model_manager = unified_model_manager
         else:
-            self._unified_model_manager = UnifiedModelManager()
+            self._unified_model_manager = UnifiedModelManager(
+                strict_cache_mode=strict_cache_mode,
+                ignore_cache_age=ignore_cache_age,
+            )
 
         # Initialize model data with proper cache management
         self._initialize_model_data(force_download=effective_force_download)

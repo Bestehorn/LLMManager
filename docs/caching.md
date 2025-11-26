@@ -456,8 +456,219 @@ While not covered in this initial implementation, planned enhancements include:
 4. **Cache Analytics Dashboard**: Detailed performance tracking
 5. **Cache Invalidation API**: Manual cache management
 
+## Model Profile Data Caching
+
+The LLM Manager also implements caching for **model profile data** (separate from Bedrock's prompt caching). This caching system stores information about model availability, access methods, and regional configurations retrieved from AWS APIs and documentation.
+
+### Overview
+
+Model profile data is automatically cached to:
+- **Reduce initialization time**: Avoid downloading model data on every run
+- **Support offline scenarios**: Work without internet connectivity
+- **Enable workshop scenarios**: Bundle pre-downloaded model data with code
+
+### Default Behavior
+
+- **Cache location**: `src/docs/UnifiedModels.json` (configurable)
+- **Cache expiration**: 24 hours (configurable: 0.1 to 168 hours)
+- **Automatic refresh**: Cache is refreshed when expired or missing
+- **Graceful degradation**: Uses stale cache if refresh fails (permissive by default)
+
+### Configuration Parameters
+
+Model profile caching is configured through the `UnifiedModelManager` constructor:
+
+```python
+from bestehorn_llmmanager.bedrock import UnifiedModelManager
+
+manager = UnifiedModelManager(
+    max_cache_age_hours=24.0,      # Cache expiration period (default: 24 hours)
+    strict_cache_mode=False,        # Cache strictness (default: permissive)
+    ignore_cache_age=False,         # Whether to bypass age checks (default: respect age)
+    force_download=False            # Always download fresh data (default: use cache)
+)
+```
+
+These parameters can also be passed through `LLMManager` and `ParallelLLMManager`:
+
+```python
+from bestehorn_llmmanager import LLMManager
+
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"],
+    strict_cache_mode=False,        # Permissive cache handling
+    ignore_cache_age=False,         # Respect expiration
+    force_download=False            # Use cache when available
+)
+```
+
+### Cache Mode Decision Matrix
+
+The interaction between cache parameters follows this decision matrix:
+
+| force_download | ignore_cache_age | strict_cache_mode | Cache State | Behavior |
+|----------------|------------------|-------------------|-------------|----------|
+| **True** | any | any | any | **Download fresh data** (force_download always wins) |
+| False | **True** | any | valid structure | **Use cache** (ignore age completely) |
+| False | False | any | valid & fresh | **Use cache** (happy path) |
+| False | False | **False** | expired, refresh fails | **Use stale cache + WARNING** (permissive) |
+| False | False | **True** | expired, refresh fails | **FAIL with error** (strict) |
+| False | False | any | expired, refresh succeeds | **Use fresh data** |
+| False | False | any | missing/corrupted | **Try refresh, fail if can't** |
+
+### Use Case: Workshop Scenarios
+
+For workshops, tutorials, or air-gapped environments where you want to bundle model data with your code:
+
+```python
+from bestehorn_llmmanager import LLMManager
+
+# Workshop configuration: use bundled cache, never download
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"],
+    force_download=False,           # Don't force download
+    ignore_cache_age=True,           # Use cache no matter how old
+    strict_cache_mode=False          # Gracefully handle any issues (default)
+)
+```
+
+**Benefits:**
+- Works completely offline
+- Predictable behavior for all participants
+- No network delays or failures
+- Bundled cache distributed with workshop materials
+
+### Use Case: Production with Fresh Data
+
+For production environments requiring up-to-date model information:
+
+```python
+from bestehorn_llmmanager import LLMManager
+
+# Production strict configuration: ensure fresh data or fail
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"],
+    force_download=False,            # Use cache if valid
+    ignore_cache_age=False,          # Respect 24h expiration (default)
+    strict_cache_mode=True           # Fail if can't refresh expired cache
+)
+```
+
+**Benefits:**
+- Ensures model data is current
+- Prevents using outdated availability information
+- Fails fast if network unavailable
+
+### Use Case: Hybrid Approach (Default)
+
+The default configuration balances freshness with resilience:
+
+```python
+from bestehorn_llmmanager import LLMManager
+
+# Hybrid configuration (all defaults): prefer fresh, tolerate stale
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"],
+    force_download=False,            # Use cache when valid (default)
+    ignore_cache_age=False,          # Respect expiration (default)
+    strict_cache_mode=False          # Allow stale cache if refresh fails (default)
+)
+```
+
+**Benefits:**
+- Tries to get fresh data when cache expires
+- Falls back to stale cache if network unavailable
+- Provides warning when using stale data
+- Balances reliability and freshness
+
+### Cache Warnings
+
+When stale cache is used due to refresh failure, a WARNING is logged:
+
+```
+WARNING: Using outdated model data cache (age: 48.3 hours, max allowed: 24.0 hours). 
+This may result in missing newer models or outdated region availability information.
+```
+
+### Bundling Cache Data for Distribution
+
+To bundle model profile data with your code (e.g., for workshops):
+
+```bash
+# 1. Download fresh model data once
+python -c "from bestehorn_llmmanager import LLMManager; LLMManager(models=['Claude 3 Haiku'], regions=['us-east-1'], force_download=True)"
+
+# 2. Include src/docs/UnifiedModels.json in your distribution
+
+# 3. Configure application to use bundled cache
+# (Use ignore_cache_age=True in your workshop code)
+```
+
+### Checking Cache Status
+
+You can check the current cache status programmatically:
+
+```python
+from bestehorn_llmmanager.bedrock import UnifiedModelManager
+
+manager = UnifiedModelManager()
+status = manager.get_cache_status()
+
+print(f"Cache status: {status['status']}")
+print(f"Cache age: {status.get('age_hours', 'N/A')} hours")
+print(f"Max age: {status['max_age_hours']} hours")
+print(f"Cache path: {status['path']}")
+```
+
+### Troubleshooting
+
+**Problem**: Workshop participants get cache refresh errors
+
+**Solution**: Use `ignore_cache_age=True` to bypass expiration checks
+
+```python
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"],
+    ignore_cache_age=True  # Use bundled cache regardless of age
+)
+```
+
+**Problem**: Production system using outdated model data
+
+**Solution**: Use `strict_cache_mode=True` to enforce fresh data
+
+```python
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"],
+    strict_cache_mode=True  # Fail if can't get fresh data
+)
+```
+
+**Problem**: Need to force refresh cache immediately
+
+**Solution**: Use `force_download=True` parameter
+
+```python
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"],
+    force_download=True  # Always download fresh data
+)
+```
+
 ## Conclusion
 
-LLM Manager's caching support transforms Bedrock's basic caching mechanism into an intelligent, automated system that dramatically reduces costs and latency. Whether using manual message construction or the enhanced MessageBuilder, developers can easily implement efficient caching strategies tailored to their specific use cases.
+LLM Manager's caching support provides two complementary caching systems:
 
-The combination of automatic optimization, flexible strategies, and comprehensive analytics makes it simple to achieve 80-90% cost reduction and 2-5x performance improvements for repetitive prompt patterns.
+1. **Bedrock Prompt Caching**: Reduces token costs and latency for repeated prompt content (80-90% cost reduction for shared content)
+2. **Model Profile Caching**: Reduces initialization time and enables offline operation for model availability data
+
+Whether using manual message construction or the enhanced MessageBuilder, developers can easily implement efficient caching strategies tailored to their specific use cases - from workshop scenarios requiring bundled data to production systems requiring fresh model information.
+
+The combination of automatic optimization, flexible strategies, and comprehensive analytics makes it simple to achieve significant cost reductions and performance improvements across different deployment scenarios.

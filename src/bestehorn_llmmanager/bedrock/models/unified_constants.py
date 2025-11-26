@@ -206,6 +206,10 @@ class CacheManagementConstants:
     MIN_CACHE_AGE_HOURS: Final[float] = 0.1
     MAX_CACHE_AGE_HOURS: Final[float] = 168.0  # 1 week
 
+    # Default cache mode settings
+    DEFAULT_STRICT_CACHE_MODE: Final[bool] = False  # Permissive by default
+    DEFAULT_IGNORE_CACHE_AGE: Final[bool] = False  # Respect expiration by default
+
     # Cache validation status
     CACHE_VALID: Final[str] = "valid"
     CACHE_MISSING: Final[str] = "missing"

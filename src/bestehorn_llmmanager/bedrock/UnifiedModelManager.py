@@ -87,6 +87,8 @@ class UnifiedModelManager:
         download_timeout: int = 30,
         enable_fuzzy_matching: Optional[bool] = None,
         max_cache_age_hours: float = CacheManagementConstants.DEFAULT_MAX_CACHE_AGE_HOURS,
+        strict_cache_mode: bool = CacheManagementConstants.DEFAULT_STRICT_CACHE_MODE,
+        ignore_cache_age: bool = CacheManagementConstants.DEFAULT_IGNORE_CACHE_AGE,
     ) -> None:
         """
         Initialize the UnifiedModelManager with configuration options.
@@ -99,11 +101,17 @@ class UnifiedModelManager:
                                  If None, uses default (True). Fuzzy matching is used
                                  as a last resort when exact mappings fail.
             max_cache_age_hours: Maximum age of cache data in hours before refresh (default: 24.0)
+            strict_cache_mode: If True, fail when expired cache cannot be refreshed.
+                             If False (default), use stale cache with warning when refresh fails.
+            ignore_cache_age: If True, bypass cache age validation entirely.
+                            If False (default), respect max_cache_age_hours setting.
         """
         self.json_output_path = json_output_path or Path(
             UnifiedFilePaths.DEFAULT_UNIFIED_JSON_OUTPUT
         )
         self.force_download = force_download
+        self.strict_cache_mode = strict_cache_mode
+        self.ignore_cache_age = ignore_cache_age
 
         # Validate cache age parameter
         if not (
@@ -242,11 +250,52 @@ class UnifiedModelManager:
                 return catalog
 
             except Exception as refresh_error:
-                error_msg = UnifiedErrorMessages.AUTO_REFRESH_FAILED.format(
-                    error=str(refresh_error)
-                )
-                self._logger.error(error_msg)
-                raise UnifiedModelManagerError(error_msg) from refresh_error
+                # Refresh failed - check if we can use stale cache
+                if cache_status == CacheManagementConstants.CACHE_EXPIRED:
+                    if not self.strict_cache_mode:
+                        # Permissive mode: try to use stale cache with warning
+                        self._logger.info(
+                            f"Cache refresh failed in permissive mode (strict_cache_mode=False). "
+                            f"Attempting to use stale cache. Error: {str(refresh_error)}"
+                        )
+
+                        # Get cache age for warning message
+                        try:
+                            data = self._serializer.load_from_file(input_path=self.json_output_path)
+                            if UnifiedJSONFields.RETRIEVAL_TIMESTAMP in data:
+                                cache_age_hours = self._get_cache_age_hours(
+                                    data[UnifiedJSONFields.RETRIEVAL_TIMESTAMP]
+                                )
+                                stale_catalog = self._load_stale_cache_with_warning(cache_age_hours)
+                                if stale_catalog:
+                                    return stale_catalog
+                        except Exception as stale_load_error:
+                            self._logger.error(
+                                f"Failed to load stale cache: {str(stale_load_error)}"
+                            )
+
+                        # Stale cache couldn't be loaded, must fail
+                        error_msg = (
+                            f"Cannot load stale cache after refresh failure. "
+                            f"Refresh error: {str(refresh_error)}"
+                        )
+                        self._logger.error(error_msg)
+                        raise UnifiedModelManagerError(error_msg) from refresh_error
+                    else:
+                        # Strict mode: fail on refresh error with expired cache
+                        error_msg = (
+                            f"Strict cache mode enabled (strict_cache_mode=True): "
+                            f"Cannot use expired cache. Refresh failed: {str(refresh_error)}"
+                        )
+                        self._logger.error(error_msg)
+                        raise UnifiedModelManagerError(error_msg) from refresh_error
+                else:
+                    # Cache is missing or corrupted, not just expired
+                    error_msg = UnifiedErrorMessages.AUTO_REFRESH_FAILED.format(
+                        error=str(refresh_error)
+                    )
+                    self._logger.error(error_msg)
+                    raise UnifiedModelManagerError(error_msg) from refresh_error
 
         except UnifiedModelManagerError:
             # Re-raise UnifiedModelManagerError as-is
@@ -310,14 +359,22 @@ class UnifiedModelManager:
             timestamp_str = data[UnifiedJSONFields.RETRIEVAL_TIMESTAMP]
             cache_age_hours = self._get_cache_age_hours(timestamp_str=timestamp_str)
 
-            # Check if cache is expired
-            if cache_age_hours > self.max_cache_age_hours:
-                return (
-                    CacheManagementConstants.CACHE_EXPIRED,
-                    UnifiedErrorMessages.CACHE_EXPIRED.format(
-                        age_hours=cache_age_hours, max_age_hours=self.max_cache_age_hours
-                    ),
+            # Check if we should ignore cache age
+            if self.ignore_cache_age:
+                self._logger.info(
+                    f"Ignoring cache age validation (age: {cache_age_hours:.1f} hours, "
+                    f"ignore_cache_age=True)"
                 )
+                # Skip age validation, proceed to structure validation
+            else:
+                # Check if cache is expired
+                if cache_age_hours > self.max_cache_age_hours:
+                    return (
+                        CacheManagementConstants.CACHE_EXPIRED,
+                        UnifiedErrorMessages.CACHE_EXPIRED.format(
+                            age_hours=cache_age_hours, max_age_hours=self.max_cache_age_hours
+                        ),
+                    )
 
             # Validate catalog structure
             try:
@@ -817,6 +874,30 @@ class UnifiedModelManager:
                 "access flag API. See migration guide at: "
                 "https://github.com/Bestehorn/LLMManager/docs/migration_guide_v3.md"
             )
+
+    def _load_stale_cache_with_warning(
+        self, cache_age_hours: float
+    ) -> Optional[UnifiedModelCatalog]:
+        """
+        Load stale cache data and emit appropriate warning.
+
+        Args:
+            cache_age_hours: Age of the cache in hours
+
+        Returns:
+            UnifiedModelCatalog if stale cache can be loaded, None otherwise
+
+        Logs:
+            WARNING level message with cache age and potential implications
+        """
+        self._logger.warning(
+            f"Using outdated model data cache (age: {cache_age_hours:.1f} hours, "
+            f"max allowed: {self.max_cache_age_hours:.1f} hours). "
+            f"This may result in missing newer models or outdated region availability information."
+        )
+
+        # Attempt to load the stale cache
+        return self.load_cached_data()
 
     def _save_unified_catalog(self, catalog: UnifiedModelCatalog) -> None:
         """

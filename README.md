@@ -579,13 +579,17 @@ manager = LLMManager(
 
 - Python 3.9+
 - AWS credentials configured (AWS CLI, environment variables, or IAM roles)
-- Internet access for initial model data download
+- Internet access for initial model data download (or use bundled cache for offline scenarios)
 
 ### Dependencies
 
 - `boto3>=1.28.0` - AWS SDK
 - `beautifulsoup4>=4.12.0` - HTML parsing
 - `requests>=2.31.0` - HTTP requests
+
+### Workshop and Offline Scenarios
+
+For workshops, tutorials, or air-gapped environments, you can bundle pre-downloaded model profile data with your code to enable completely offline operation. The LLM Manager supports configurable cache handling to use bundled data regardless of age. See the [caching documentation](docs/caching.md#model-profile-data-caching) for details on workshop configuration.
 
 ## Configuration
 
