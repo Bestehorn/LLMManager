@@ -625,7 +625,7 @@ class ModelCRISCorrelator:
                                 f"using profile '{inference_profile}'"
                             )
                         else:
-                            self._logger.warning(
+                            self._logger.debug(
                                 f"Known CRIS-only model '{model_info.model_id}' has no CRIS profile for region '{region}'. "
                                 "Skipping region."
                             )

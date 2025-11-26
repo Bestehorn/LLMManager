@@ -99,14 +99,38 @@ class CRISAPIFetcher:
                         self._logger.debug(f"No profiles found in {region}")
                 except Exception as e:
                     failed_regions.append(region)
-                    self._logger.warning(f"Failed to fetch from {region}: {str(e)}")
+                    self._logger.debug(f"Failed to fetch from {region}: {str(e)}")
 
-        # Log summary
+        # Log summary with accessible/inaccessible regions
         success_count = len(regions) - len(failed_regions)
-        self._logger.info(
-            f"Successfully queried {success_count}/{len(regions)} regions, "
-            f"found {len(all_profiles)} total profiles"
-        )
+        
+        if failed_regions:
+            self._logger.info(
+                f"Bedrock CRIS API access: {success_count}/{len(regions)} regions accessible. "
+                f"Inaccessible opt-in or unavailable regions: {', '.join(sorted(failed_regions))}"
+            )
+        else:
+            self._logger.info(
+                f"Successfully queried all {len(regions)} regions, "
+                f"found {len(all_profiles)} total profiles"
+            )
+
+        # Log profile discovery details at DEBUG level
+        if all_profiles:
+            unique_ids = set(p.get("inferenceProfileId", "unknown") for p in all_profiles)
+            claude_ids = [pid for pid in unique_ids if "claude" in pid.lower()]
+            self._logger.debug(f"Found {len(claude_ids)} Claude profile IDs across all regions")
+            
+            # Log Claude profile names for troubleshooting
+            claude_profile_names = set()
+            for profile in all_profiles:
+                prof_id = profile.get("inferenceProfileId", "")
+                prof_name = profile.get("inferenceProfileName", "")
+                if "claude" in prof_id.lower() or "claude" in prof_name.lower():
+                    claude_profile_names.add(f"{prof_name} (ID: {prof_id})")
+            
+            if claude_profile_names:
+                self._logger.debug(f"Claude profiles: {sorted(claude_profile_names)}")
 
         if not all_profiles:
             if failed_regions:
@@ -194,12 +218,25 @@ class CRISAPIFetcher:
                 models = profile.get("models", [])
                 source_region = profile.get("_source_region", "unknown")
 
+                # DEBUG LOGGING: Log raw profile data for Anthropic models
+                if profile_id and ("claude" in profile_id.lower() or "anthropic" in profile_id.lower()):
+                    self._logger.info(
+                        f"DEBUG: Raw Anthropic profile - ID='{profile_id}', Name='{profile_name}', "
+                        f"Source Region={source_region}, Models count={len(models)}"
+                    )
+
                 if not profile_id or not models:
                     self._logger.debug(f"Skipping profile with missing data: {profile_id}")
                     continue
 
                 # Extract model name (use profile name as base)
                 model_name = self._extract_model_name(profile_name, profile_id)
+
+                # DEBUG LOGGING: Log extracted model name for Anthropic models
+                if profile_id and ("claude" in profile_id.lower() or "anthropic" in profile_id.lower()):
+                    self._logger.info(
+                        f"DEBUG: Extracted model name for '{profile_id}' -> '{model_name}'"
+                    )
 
                 # Extract destination regions from model ARNs
                 destination_regions = self._extract_regions_from_models(models)

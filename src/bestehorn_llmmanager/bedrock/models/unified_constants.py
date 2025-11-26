@@ -121,6 +121,10 @@ class ModelCorrelationConstants:
         "Meta Llama 3.2 90B Instruct": "Llama 3.2 90B Instruct",
         "Meta Llama 3.3 70B Instruct": "Llama 3.3 70B Instruct",
         "Mistral Pixtral Large 25.02": "Pixtral Large (25.02)",
+        # Claude 4.5 model mappings (as returned by AWS API)
+        "Global Anthropic Claude Haiku 4.5": "Claude Haiku 4.5",
+        "GLOBAL Anthropic Claude Opus 4.5": "Claude Opus 4.5",
+        "Global Claude Sonnet 4.5": "Claude Sonnet 4.5",
     }
 
 
