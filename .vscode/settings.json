@@ -1,0 +1,33 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/Scripts/python.exe",
+  "python.terminal.activateEnvironment": true,
+  "terminal.integrated.env.windows": {
+    "PATH": "${workspaceFolder}/venv/Scripts;${env:PATH}"
+  },
+  "python.testing.pytestEnabled": true,
+  "python.testing.pytestArgs": [
+    "test/"
+  ],
+  "editor.formatOnSave": true,
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": [
+    "--line-length",
+    "100",
+    "--extend-exclude",
+    "src/bestehorn_llmmanager/_version.py"
+  ],
+  "python.sortImports.args": [
+    "--profile",
+    "black",
+    "--line-length",
+    "100",
+    "--skip",
+    "src/bestehorn_llmmanager/_version.py"
+  ],
+  "[python]": {
+    "editor.rulers": [
+      100
+    ],
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  }
+}

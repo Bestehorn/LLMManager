@@ -68,6 +68,9 @@ dev = [
     "flake8>=6.0.0",
     "mypy>=1.5.0",
     "pre-commit>=3.3.0",
+    "hypothesis>=6.82.0",
+    "bandit>=1.7.5",
+    "boto3-stubs[bedrock-runtime]>=1.28.0",
 ]
 docs = [
     "sphinx>=7.0.0",

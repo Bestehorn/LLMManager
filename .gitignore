@@ -140,3 +140,13 @@ bestehorn_llmmanager_v1.0.0.zip
 flake8_output.txt
 mypy_output.txt
 src/bestehorn_llmmanager/_version.py
+
+# Temporary files
+tmp/
+
+# Security
+bandit-report.json
+bandit_results.json
+
+# Environment
+.env.local

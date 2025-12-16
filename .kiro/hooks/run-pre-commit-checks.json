@@ -1,0 +1,11 @@
+{
+  "name": "Run Pre-Commit Checks",
+  "description": "Manually trigger pre-commit checks workflow (migrated from .clinerules/workflows/pre-commit-checks.md)",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Execute pre-commit checks workflow: 1) Install dependencies (pip install black flake8 isort mypy) 2) Run black --check (exclude _version.py) 3) Run isort --check-only (skip _version.py) 4) Run flake8 (exclude _version.py) 5) Run mypy (exclude _version) 6) Fix any issues found. Line length is 100 characters."
+  }
+}

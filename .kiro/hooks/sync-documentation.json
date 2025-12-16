@@ -1,0 +1,11 @@
+{
+  "name": "Sync Documentation",
+  "description": "Manually trigger documentation sync",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Sync documentation: 1) Read all docs/ files 2) Compare with src/bestehorn_llmmanager/ implementation 3) Identify conflicts and deviations 4) Update docs to match implementation 5) Update docs/forLLMConsumption.md with consolidated info."
+  }
+}

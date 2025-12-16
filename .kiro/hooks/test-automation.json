@@ -1,0 +1,11 @@
+{
+  "name": "Test Automation Workflow",
+  "description": "Comprehensive test automation workflow (migrated from .clinerules/workflows/test_automation.md)",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Execute test automation workflow: 1) Generate coverage report (pytest --cov=bestehorn_llmmanager --cov-fail-under=80) 2) Analyze gaps and implement missing tests 3) Run full test suite 4) Fix failures 5) Run quality checks (black/isort/flake8/mypy) 6) Update documentation. Target: 80% coverage minimum. Always exclude _version.py from checks."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Check Test Coverage",
+  "description": "Manually trigger test coverage analysis",
+  "trigger": {
+    "type": "manual"
+  },
+  "action": {
+    "type": "sendMessage",
+    "message": "Analyze test coverage: 1) Run pytest with coverage (--cov=bestehorn_llmmanager --cov-report=term-missing --cov-fail-under=80) 2) If below 80%, identify uncovered code 3) Generate tests for uncovered critical paths 4) Repeat until coverage target met. Focus on src/bestehorn_llmmanager/ excluding _version.py."
+  }
+}
