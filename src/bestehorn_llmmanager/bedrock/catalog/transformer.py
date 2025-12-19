@@ -508,8 +508,9 @@ class CatalogTransformer:
                         region_mappings[source_region].append(model_region)
 
         # If we found mappings, sort them for consistency
-        for source in region_mappings:
-            region_mappings[source] = sorted(region_mappings[source])
+        if region_mappings:
+            for source in region_mappings:
+                region_mappings[source] = sorted(region_mappings[source])
 
         return region_mappings
 

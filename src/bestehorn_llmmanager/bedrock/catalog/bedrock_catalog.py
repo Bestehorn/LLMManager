@@ -163,14 +163,13 @@ class BedrockModelCatalog:
             raise ValueError(CatalogErrorMessages.INVALID_CACHE_MODE.format(mode=cache_mode))
 
         # Validate cache_directory if provided
-        if cache_directory is not None:
-            if not isinstance(cache_directory, Path):
-                try:
-                    cache_directory = Path(cache_directory)
-                except Exception as e:
-                    raise ValueError(
-                        CatalogErrorMessages.INVALID_CACHE_DIRECTORY.format(path=cache_directory)
-                    ) from e
+        if cache_directory is not None and not isinstance(cache_directory, Path):
+            try:
+                cache_directory = Path(cache_directory)
+            except Exception as e:
+                raise ValueError(
+                    CatalogErrorMessages.INVALID_CACHE_DIRECTORY.format(path=cache_directory)
+                ) from e
 
         # Validate cache_max_age_hours
         if cache_max_age_hours <= 0:

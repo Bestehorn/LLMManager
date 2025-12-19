@@ -232,6 +232,18 @@ module = "bestehorn_llmmanager.bedrock.parsers.cris_parser"
 warn_unreachable = false
 
 [[tool.mypy.overrides]]
+module = "bestehorn_llmmanager.bedrock.catalog.transformer"
+# Suppress unreachable code warnings for defensive programming
+# Loop iteration patterns trigger false positives in mypy's reachability analysis
+warn_unreachable = false
+
+[[tool.mypy.overrides]]
+module = "bestehorn_llmmanager.bedrock.catalog.bedrock_catalog"
+# Suppress unreachable code warnings for defensive programming
+# Exception handling patterns trigger false positives in mypy's reachability analysis
+warn_unreachable = false
+
+[[tool.mypy.overrides]]
 module = "bestehorn_llmmanager._version"
 # Ignore generated version file
 ignore_errors = true
