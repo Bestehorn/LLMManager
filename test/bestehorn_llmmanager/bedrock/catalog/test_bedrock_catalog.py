@@ -12,7 +12,7 @@ This module tests the main BedrockModelCatalog functionality including:
 import tempfile
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -42,10 +42,7 @@ def temp_cache_dir():
 @pytest.fixture
 def sample_catalog():
     """Create a sample UnifiedCatalog for testing."""
-    from bestehorn_llmmanager.bedrock.models.access_method import (
-        ModelAccessInfo,
-        ModelAccessMethod,
-    )
+    from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 
     metadata = CatalogMetadata(
         source=CatalogSource.API,
@@ -541,9 +538,7 @@ class TestBedrockModelCatalogQueryMethods:
 
     @patch("bestehorn_llmmanager.bedrock.catalog.bedrock_catalog.CacheManager")
     @patch("bestehorn_llmmanager.bedrock.catalog.bedrock_catalog.AuthManager")
-    def test_is_model_available_returns_true(
-        self, mock_auth_cls, mock_cache_cls, sample_catalog
-    ):
+    def test_is_model_available_returns_true(self, mock_auth_cls, mock_cache_cls, sample_catalog):
         """Test is_model_available returns True for available model."""
         # Setup mock cache manager
         mock_cache = Mock()
@@ -561,9 +556,7 @@ class TestBedrockModelCatalogQueryMethods:
 
     @patch("bestehorn_llmmanager.bedrock.catalog.bedrock_catalog.CacheManager")
     @patch("bestehorn_llmmanager.bedrock.catalog.bedrock_catalog.AuthManager")
-    def test_is_model_available_returns_false(
-        self, mock_auth_cls, mock_cache_cls, sample_catalog
-    ):
+    def test_is_model_available_returns_false(self, mock_auth_cls, mock_cache_cls, sample_catalog):
         """Test is_model_available returns False for unavailable model."""
         # Setup mock cache manager
         mock_cache = Mock()
@@ -635,9 +628,7 @@ class TestBedrockModelCatalogQueryMethods:
 
     @patch("bestehorn_llmmanager.bedrock.catalog.bedrock_catalog.CacheManager")
     @patch("bestehorn_llmmanager.bedrock.catalog.bedrock_catalog.AuthManager")
-    def test_list_models_with_streaming_filter(
-        self, mock_auth_cls, mock_cache_cls, sample_catalog
-    ):
+    def test_list_models_with_streaming_filter(self, mock_auth_cls, mock_cache_cls, sample_catalog):
         """Test list_models with streaming_only filter."""
         # Setup mock cache manager
         mock_cache = Mock()

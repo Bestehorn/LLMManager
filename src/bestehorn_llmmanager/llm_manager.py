@@ -160,7 +160,7 @@ class LLMManager:
             )
             self._unified_model_manager = unified_model_manager
             self._catalog = None  # Not using new catalog
-            
+
             # Handle force_download conflict
             if force_download:
                 self._logger.warning(
@@ -168,30 +168,30 @@ class LLMManager:
                     "The 'force_download' parameter will be ignored since a pre-configured "
                     "UnifiedModelManager was supplied."
                 )
-            
+
             # Initialize model data with legacy manager
             self._initialize_model_data_legacy(force_download=False)
         else:
             # New path: use BedrockModelCatalog
-            self._unified_model_manager = None  # Not using legacy manager
-            
+            self._unified_model_manager = None  # type: ignore  # Not using legacy manager
+
             # Determine catalog cache mode
             effective_cache_mode = catalog_cache_mode or CacheMode.FILE
-            
+
             # Handle deprecated parameters
             if force_download:
                 self._logger.warning(
                     "The 'force_download' parameter is deprecated. "
                     "Using force_refresh=True with BedrockModelCatalog instead."
                 )
-            
+
             if strict_cache_mode or ignore_cache_age:
                 self._logger.warning(
                     "The 'strict_cache_mode' and 'ignore_cache_age' parameters are deprecated "
                     "and only apply to the legacy UnifiedModelManager. "
                     "They are ignored when using BedrockModelCatalog."
                 )
-            
+
             # Initialize BedrockModelCatalog
             self._catalog = BedrockModelCatalog(
                 auth_manager=self._auth_manager,
@@ -200,15 +200,13 @@ class LLMManager:
                 force_refresh=force_download,  # Map force_download to force_refresh
                 timeout=timeout,
             )
-            
+
             # Ensure catalog is available (will trigger initialization strategy)
             try:
                 self._catalog.ensure_catalog_available()
                 self._logger.info("Model catalog initialized successfully")
             except Exception as e:
-                raise ConfigurationError(
-                    f"Failed to initialize model catalog: {str(e)}"
-                ) from e
+                raise ConfigurationError(f"Failed to initialize model catalog: {str(e)}") from e
 
         # Validate model/region combinations
         self._validate_model_region_combinations()
@@ -388,15 +386,13 @@ class LLMManager:
                     # Use appropriate method based on which system is active
                     if self._catalog:
                         # New catalog system
-                        access_info = self._catalog.get_model_info(
-                            model_name=model, region=region
-                        )
+                        access_info = self._catalog.get_model_info(model_name=model, region=region)
                     else:
                         # Legacy UnifiedModelManager
                         access_info = self._unified_model_manager.get_model_access_info(
                             model_name=model, region=region
                         )
-                    
+
                     if access_info:
                         available_combinations += 1
                         model_found_in_any_region = True
@@ -422,9 +418,7 @@ class LLMManager:
                             "No model data available. Try refreshing model data or ensure internet connectivity."
                         )
                     else:
-                        available_models = [
-                            m.model_name for m in self._catalog.list_models()[:10]
-                        ]
+                        available_models = [m.model_name for m in self._catalog.list_models()[:10]]
                         error_details.append(f"Available models (sample): {available_models}")
                 else:
                     # Legacy system
@@ -947,15 +941,13 @@ class LLMManager:
             # Use appropriate method based on which system is active
             if self._catalog:
                 # New catalog system
-                access_info = self._catalog.get_model_info(
-                    model_name=model_name, region=region
-                )
+                access_info = self._catalog.get_model_info(model_name=model_name, region=region)
             else:
                 # Legacy UnifiedModelManager
                 access_info = self._unified_model_manager.get_model_access_info(
                     model_name=model_name, region=region
                 )
-            
+
             if access_info:
                 return {
                     "access_method": access_info.access_method.value,
@@ -999,15 +991,13 @@ class LLMManager:
                     # Use appropriate method based on which system is active
                     if self._catalog:
                         # New catalog system
-                        access_info = self._catalog.get_model_info(
-                            model_name=model, region=region
-                        )
+                        access_info = self._catalog.get_model_info(model_name=model, region=region)
                     else:
                         # Legacy UnifiedModelManager
                         access_info = self._unified_model_manager.get_model_access_info(
                             model_name=model, region=region
                         )
-                    
+
                     if access_info:
                         # Type assertion to help mypy
                         validation_result["model_region_combinations"] = (

@@ -71,7 +71,9 @@ class TestBundledDataValidation:
             assert isinstance(
                 model_info.output_modalities, list
             ), f"Model {model_name} output_modalities is not a list"
-            assert len(model_info.input_modalities) > 0, f"Model {model_name} has no input modalities"
+            assert (
+                len(model_info.input_modalities) > 0
+            ), f"Model {model_name} has no input modalities"
             assert (
                 len(model_info.output_modalities) > 0
             ), f"Model {model_name} has no output modalities"
@@ -135,9 +137,7 @@ class TestBundledDataValidation:
 
         # Verify all returned models support streaming
         for model in streaming_models:
-            assert (
-                model.streaming_supported
-            ), f"Model {model.model_id} does not support streaming"
+            assert model.streaming_supported, f"Model {model.model_id} does not support streaming"
 
     def test_catalog_get_model_returns_correct_model(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that get_model returns the correct model."""
@@ -188,9 +188,9 @@ class TestBundledDataValidation:
         model_ids = [model.model_id for model in bundled_catalog.models.values()]
         unique_model_ids = set(model_ids)
 
-        assert len(model_ids) == len(
-            unique_model_ids
-        ), "Duplicate model IDs found in bundled catalog"
+        assert len(model_ids) == len(unique_model_ids), (
+            "Duplicate model IDs found in bundled catalog"
+        )
 
     def test_model_names_match_dict_keys(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that model names in the dict match the model info."""
@@ -208,9 +208,7 @@ class TestBundledDataValidation:
         all_regions = bundled_catalog.get_all_regions()
 
         for region in all_regions:
-            assert region_pattern.match(
-                region
-            ), f"Region {region} does not match AWS region format"
+            assert region_pattern.match(region), f"Region {region} does not match AWS region format"
 
     def test_catalog_has_expected_major_providers(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that catalog includes models from major AWS Bedrock providers."""
@@ -229,12 +227,11 @@ class TestBundledDataValidation:
 
     def test_metadata_regions_match_model_regions(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that metadata regions match regions found in models."""
-        metadata_regions = set(bundled_catalog.metadata.api_regions_queried)
-        model_regions = set(bundled_catalog.get_all_regions())
+        _ = set(bundled_catalog.metadata.api_regions_queried)
+        _ = set(bundled_catalog.get_all_regions())
 
         # Metadata regions should be a subset of or equal to model regions
         # (models may be available in regions not queried if they're CRIS-only)
-        assert len(
-            metadata_regions
-        ) > 0, "Metadata should list at least one region that was queried"
-
+        assert len(bundled_catalog.metadata.api_regions_queried) > 0, (
+            "Metadata should list at least one region that was queried"
+        )

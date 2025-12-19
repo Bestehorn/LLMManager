@@ -26,6 +26,7 @@ from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
 )
 from bestehorn_llmmanager.llm_manager import LLMManager
 
+
 class TestLLMManager:
     """Test cases for LLMManager class."""
 
@@ -61,10 +62,14 @@ class TestLLMManager:
             return_value=mock_bedrock_catalog,
         ):
             manager = LLMManager(
-                models=["Claude Haiku 4 5 20251001", "Claude Sonnet 4 20250514"], regions=["us-east-1", "us-west-2"]
+                models=["Claude Haiku 4 5 20251001", "Claude Sonnet 4 20250514"],
+                regions=["us-east-1", "us-west-2"],
             )
 
-            assert manager.get_available_models() == ["Claude Haiku 4 5 20251001", "Claude Sonnet 4 20250514"]
+            assert manager.get_available_models() == [
+                "Claude Haiku 4 5 20251001",
+                "Claude Sonnet 4 20250514",
+            ]
             assert manager.get_available_regions() == ["us-east-1", "us-west-2"]
 
     def test_init_with_auth_config(self, mock_bedrock_catalog) -> None:
@@ -90,7 +95,9 @@ class TestLLMManager:
             return_value=mock_bedrock_catalog,
         ):
             manager = LLMManager(
-                models=["Claude Haiku 4 5 20251001"], regions=["us-east-1"], retry_config=retry_config
+                models=["Claude Haiku 4 5 20251001"],
+                regions=["us-east-1"],
+                retry_config=retry_config,
             )
 
             stats = manager.get_retry_stats()
@@ -236,9 +243,7 @@ class TestLLMManager:
         assert request_args[ConverseAPIFields.INFERENCE_CONFIG]["temperature"] == 0.7
         assert request_args[ConverseAPIFields.INFERENCE_CONFIG]["maxTokens"] == 1000
 
-    def test_build_converse_request_merges_default_inference_config(
-        self, mock_bedrock_catalog
-    ):
+    def test_build_converse_request_merges_default_inference_config(self, mock_bedrock_catalog):
         """Test that default and provided inference configs are merged properly."""
         default_config = {"temperature": 0.5, "maxTokens": 2000}
 
@@ -357,6 +362,7 @@ class TestLLMManager:
             ):
                 basic_llm_manager.converse_stream(messages=messages)
 
+
 class TestLLMManagerIntegration:
     """Integration tests for LLMManager that test component interactions."""
 
@@ -462,6 +468,7 @@ class TestLLMManagerIntegration:
 
             with pytest.raises(RetryExhaustedError):
                 manager.converse(messages=messages)
+
 
 class TestLLMManagerUncoveredCases:
     """Test cases for uncovered lines in LLMManager."""

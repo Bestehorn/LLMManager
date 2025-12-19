@@ -19,7 +19,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -35,7 +34,6 @@ from bestehorn_llmmanager.bedrock.models.unified_structures import (
     ModelAccessInfo,
     UnifiedModelInfo,
 )
-
 
 # ============================================================================
 # Hypothesis Strategies
@@ -330,7 +328,7 @@ class TestProperty3APIDataFreshness:
         )
 
         # Fetch catalog
-        before_fetch = datetime.now()
+        _ = datetime.now()
         result = catalog.ensure_catalog_available()
         after_fetch = datetime.now()
 
@@ -480,9 +478,7 @@ class TestProperty5CacheRoundTripConsistency:
             for model_name, original_model in fresh_catalog.models.items():
                 loaded_model = loaded_catalog.models[model_name]
 
-                assert (
-                    loaded_model.model_name == original_model.model_name
-                ), "Model name changed"
+                assert loaded_model.model_name == original_model.model_name, "Model name changed"
                 assert loaded_model.provider == original_model.provider, "Provider changed"
                 assert (
                     loaded_model.streaming_supported == original_model.streaming_supported

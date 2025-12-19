@@ -223,11 +223,16 @@ class TestBedrockAPIFetcherIntegration:
         assert invalid_region in raw_data.failed_regions
         assert isinstance(raw_data.failed_regions[invalid_region], str)
 
-    def test_fetch_all_data_all_invalid_regions(self) -> None:
+    def test_fetch_all_data_all_invalid_regions(
+        self, auth_manager_with_profile: Any
+    ) -> None:
         """
         Test error handling when all regions fail.
 
         Should raise APIFetchError when no data can be retrieved.
+
+        Args:
+            auth_manager_with_profile: AuthManager configured with test profile
         """
         # Create API fetcher with profile-configured AuthManager
         fetcher = BedrockAPIFetcher(
@@ -387,12 +392,15 @@ class TestCatalogTransformerIntegration:
 class TestAPIFetcherPerformance:
     """Integration tests for API fetcher performance characteristics."""
 
-    def test_parallel_fetching_performance(self, integration_config: Any, caplog: Any) -> None:
+    def test_parallel_fetching_performance(
+        self, integration_config: Any, auth_manager_with_profile: Any, caplog: Any
+    ) -> None:
         """
         Test that parallel fetching is faster than sequential.
 
         Args:
             integration_config: Integration test configuration
+            auth_manager_with_profile: AuthManager configured with test profile
             caplog: Pytest log capture fixture
         """
         import time
