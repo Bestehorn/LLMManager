@@ -30,6 +30,8 @@ response = manager.converse(messages=[message])
 print(response.get_content())
 ```
 
+**Note:** The LLMManager automatically uses the new `BedrockModelCatalog` system for model management. See the [BedrockModelCatalog section](#-bedrockmodelcatalog-simplified-model-management) for advanced configuration options.
+
 ## 🎯 Key Simplifications Over Native AWS Bedrock Converse API
 
 This library was built to simplify the [standard AWS Bedrock Converse API](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/bedrock-runtime/client/converse.html). 
@@ -574,6 +576,245 @@ manager = LLMManager(
     auth_config=auth_config
 )
 ```
+
+## 📚 BedrockModelCatalog: Simplified Model Management
+
+The `BedrockModelCatalog` is a new unified system for managing AWS Bedrock model availability data. It replaces the older `ModelManager`, `CRISManager`, and `UnifiedModelManager` classes with a simpler, more reliable approach.
+
+### Why BedrockModelCatalog?
+
+**❌ Old System Issues:**
+- Required HTML parsing from AWS documentation
+- Multiple manager classes to coordinate
+- File system dependencies
+- Complex cache management
+- Difficult to use in Lambda
+
+**✅ New System Benefits:**
+- API-only data retrieval (no HTML parsing)
+- Single unified class
+- Flexible cache modes (FILE, MEMORY, NONE)
+- Lambda-friendly design
+- Bundled fallback data for offline scenarios
+
+### Quick Start with BedrockModelCatalog
+
+```python
+from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog
+
+# Initialize with defaults (uses file cache)
+catalog = BedrockModelCatalog()
+
+# Check if a model is available in a region
+is_available = catalog.is_model_available(
+    model_name="Claude 3 Haiku",
+    region="us-east-1"
+)
+
+# Get detailed model information
+model_info = catalog.get_model_info(
+    model_name="Claude 3 Haiku",
+    region="us-east-1"
+)
+
+if model_info:
+    print(f"Model ID: {model_info.model_id}")
+    print(f"Inference Profile: {model_info.inference_profile_id}")
+    print(f"Supports Streaming: {model_info.supports_streaming}")
+
+# List all available models
+all_models = catalog.list_models()
+print(f"Total models: {len(all_models)}")
+
+# Filter models by region and provider
+anthropic_models = catalog.list_models(
+    region="us-east-1",
+    provider="Anthropic"
+)
+```
+
+### Cache Modes Explained
+
+The catalog supports three cache modes to fit different deployment scenarios:
+
+#### 1. FILE Mode (Default - Recommended for Production)
+
+```python
+from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+from pathlib import Path
+
+catalog = BedrockModelCatalog(
+    cache_mode=CacheMode.FILE,
+    cache_directory=Path("/tmp/bedrock_cache"),  # Custom location
+    cache_max_age_hours=24.0  # Refresh after 24 hours
+)
+```
+
+**Best for:** Production environments, Lambda with /tmp access  
+**Pros:** Fast warm starts, persistent across process restarts  
+**Cons:** Requires file system write access
+
+#### 2. MEMORY Mode (Read-Only Environments)
+
+```python
+catalog = BedrockModelCatalog(
+    cache_mode=CacheMode.MEMORY
+)
+```
+
+**Best for:** Read-only environments, Lambda without /tmp  
+**Pros:** No file I/O, works in restricted environments  
+**Cons:** Cache lost on process restart
+
+#### 3. NONE Mode (Always Fresh)
+
+```python
+catalog = BedrockModelCatalog(
+    cache_mode=CacheMode.NONE,
+    fallback_to_bundled=True  # Use bundled data if API fails
+)
+```
+
+**Best for:** Security-critical environments, always need latest data  
+**Pros:** Always fresh data, no stale cache issues  
+**Cons:** Higher latency, more API calls
+
+### Lambda Deployment Examples
+
+#### Lambda with /tmp Access (Recommended)
+
+```python
+from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+from pathlib import Path
+
+def lambda_handler(event, context):
+    # Initialize with file cache in /tmp
+    catalog = BedrockModelCatalog(
+        cache_mode=CacheMode.FILE,
+        cache_directory=Path("/tmp/bedrock_cache")
+    )
+    
+    # Use catalog for model queries
+    model_info = catalog.get_model_info("Claude 3 Haiku", "us-east-1")
+    
+    return {
+        "statusCode": 200,
+        "body": f"Model available: {model_info is not None}"
+    }
+```
+
+#### Lambda Read-Only Environment
+
+```python
+def lambda_handler(event, context):
+    # Use memory cache (no file system access needed)
+    catalog = BedrockModelCatalog(cache_mode=CacheMode.MEMORY)
+    
+    # Catalog data cached in memory during warm starts
+    is_available = catalog.is_model_available("Claude 3 Haiku", "us-east-1")
+    
+    return {"statusCode": 200, "body": f"Available: {is_available}"}
+```
+
+### Integration with LLMManager
+
+The `LLMManager` automatically uses `BedrockModelCatalog` internally. You can configure the catalog behavior through LLMManager parameters:
+
+```python
+from bestehorn_llmmanager import LLMManager, create_user_message
+from bestehorn_llmmanager.bedrock.catalog import CacheMode
+from pathlib import Path
+
+# Configure catalog behavior through LLMManager
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"],
+    catalog_cache_mode=CacheMode.FILE,
+    catalog_cache_directory=Path("/tmp/my_cache")
+)
+
+# LLMManager uses the catalog transparently
+message = create_user_message().add_text("Hello!").build()
+response = manager.converse(messages=[message])
+```
+
+### Advanced Configuration
+
+```python
+from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+from pathlib import Path
+
+catalog = BedrockModelCatalog(
+    cache_mode=CacheMode.FILE,
+    cache_directory=Path("./my_cache"),
+    cache_max_age_hours=12.0,      # Refresh after 12 hours
+    force_refresh=False,            # Set True to bypass cache
+    timeout=30,                     # API timeout in seconds
+    max_workers=10,                 # Parallel workers for API calls
+    fallback_to_bundled=True        # Use bundled data if API fails
+)
+
+# Get catalog metadata
+metadata = catalog.get_catalog_metadata()
+print(f"Source: {metadata.source.value}")  # API, CACHE, or BUNDLED
+print(f"Retrieved: {metadata.retrieval_timestamp}")
+print(f"Regions: {metadata.api_regions_queried}")
+```
+
+### Bundled Fallback Data
+
+The package includes pre-generated model data for offline scenarios:
+
+- **Automatic Fallback:** If API calls fail, the catalog automatically uses bundled data
+- **Offline Operation:** Works without AWS credentials or internet access
+- **Version Tracking:** Bundled data includes generation timestamp and version
+- **Fresh Data:** Updated with each package release
+
+```python
+# Catalog will try: Cache → API → Bundled Data
+catalog = BedrockModelCatalog(fallback_to_bundled=True)
+
+metadata = catalog.get_catalog_metadata()
+if metadata.source.value == "BUNDLED":
+    print(f"Using bundled data (version: {metadata.bundled_data_version})")
+    print("Consider refreshing for latest model availability")
+```
+
+### Migration from Old Managers
+
+If you're using the old `UnifiedModelManager`, `ModelManager`, or `CRISManager`, migration is straightforward:
+
+**Old Code:**
+```python
+from bestehorn_llmmanager.bedrock import UnifiedModelManager
+
+manager = UnifiedModelManager()
+model_info = manager.get_model_info("Claude 3 Haiku", "us-east-1")
+```
+
+**New Code:**
+```python
+from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog
+
+catalog = BedrockModelCatalog()
+model_info = catalog.get_model_info("Claude 3 Haiku", "us-east-1")
+```
+
+**Note:** The old managers are deprecated and will be removed in a future version. See the [Migration Guide](docs/MIGRATION_GUIDE.md) for detailed migration instructions.
+
+### Performance Characteristics
+
+- **Cold start (no cache):** 2-5 seconds (parallel API calls across regions)
+- **Warm start (valid cache):** < 100ms (file load)
+- **Memory usage:** ~5-10 MB for full catalog
+- **Cache file size:** ~500 KB - 1 MB
+
+### Examples
+
+For more detailed examples, see:
+- `examples/catalog_basic_usage.py` - Basic operations and queries
+- `examples/catalog_cache_modes.py` - Cache mode demonstrations
+- `examples/catalog_lambda_usage.py` - Lambda deployment patterns
 
 ## Requirements
 

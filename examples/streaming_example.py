@@ -19,24 +19,13 @@ def basic_streaming_example():
     models = ["Claude 3.5 Sonnet v2", "Claude 3 Haiku", "Claude 3 Sonnet"]
     regions = ["us-east-1", "us-west-2", "eu-west-1"]
     
-    try:
-        manager = LLMManager(
-            models=models,
-            regions=regions,
-            log_level=logging.INFO
-        )
-    except Exception as e:
-        # If models not found, refresh and try again
-        print("Model data not available, refreshing...")
-        from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager
-        umm = UnifiedModelManager()
-        umm.refresh_unified_data()
-        
-        manager = LLMManager(
-            models=models,
-            regions=regions,
-            log_level=logging.INFO
-        )
+    # Initialize manager
+    # The new BedrockModelCatalog handles data fetching automatically
+    manager = LLMManager(
+        models=models,
+        regions=regions,
+        log_level=logging.INFO
+    )
     
     # Prepare messages
     messages = [
@@ -98,23 +87,13 @@ def streaming_with_iterator_example():
     models = ["Claude 3.5 Sonnet v2", "Claude 3 Haiku"]
     regions = ["us-east-1", "us-west-2", "eu-west-1"]
     
-    try:
-        manager = LLMManager(
-            models=models,
-            regions=regions,
-            log_level=logging.WARNING
-        )
-    except Exception as e:
-        print("Model data not available, refreshing...")
-        from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager
-        umm = UnifiedModelManager()
-        umm.refresh_unified_data()
-        
-        manager = LLMManager(
-            models=models,
-            regions=regions,
-            log_level=logging.WARNING
-        )
+    # Initialize manager
+    # The new BedrockModelCatalog handles data fetching automatically
+    manager = LLMManager(
+        models=models,
+        regions=regions,
+        log_level=logging.WARNING
+    )
     
     messages = [
         {

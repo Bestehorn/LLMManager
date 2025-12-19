@@ -75,8 +75,37 @@ def simple_inference_config() -> Dict[str, object]:
 
 
 # Pytest configuration hooks
+def pytest_addoption(parser: Any) -> None:
+    """Add custom command-line options to pytest."""
+    parser.addoption(
+        "--profile",
+        action="store",
+        default=None,
+        help="AWS profile to use for integration tests (overrides AWS_INTEGRATION_TEST_PROFILE env var)",
+    )
+    parser.addoption(
+        "--aws-region",
+        action="store",
+        default=None,
+        help="Primary AWS region for integration tests (overrides AWS_INTEGRATION_TEST_REGIONS env var)",
+    )
+
+
 def pytest_configure(config: Any) -> None:
     """Configure pytest with custom markers and settings."""
+    # Handle --profile option by setting environment variable
+    # This must happen before any fixtures are created
+    profile = config.getoption("--profile")
+    if profile:
+        os.environ["AWS_INTEGRATION_TEST_PROFILE"] = profile
+        print(f"Using AWS profile from --profile option: {profile}")
+
+    # Handle --aws-region option
+    aws_region = config.getoption("--aws-region")
+    if aws_region:
+        os.environ["AWS_INTEGRATION_TEST_REGIONS"] = aws_region
+        print(f"Using AWS region from --aws-region option: {aws_region}")
+
     # These markers are already defined in pytest.ini, but we'll add them here too for completeness
     config.addinivalue_line("markers", "unit: Unit tests")
     config.addinivalue_line("markers", "integration: Integration tests")

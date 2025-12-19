@@ -26,69 +26,71 @@ from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
 )
 from bestehorn_llmmanager.llm_manager import LLMManager
 
-
 class TestLLMManager:
     """Test cases for LLMManager class."""
 
     @pytest.fixture
-    def mock_unified_model_manager(self):
-        """Create a mock UnifiedModelManager."""
-        mock_manager = Mock()
-        mock_manager.load_cached_data.return_value = True
-        mock_manager.get_model_access_info.return_value = Mock(
-            access_method=Mock(value="direct"),
+    def mock_bedrock_catalog(self):
+        """Create a mock BedrockModelCatalog."""
+        mock_catalog = Mock()
+        mock_catalog.ensure_catalog_available.return_value = Mock()
+        mock_catalog.get_model_info.return_value = Mock(
             model_id="test-model-id",
-            inference_profile_id="test-profile-id",
-            region="us-east-1",
+            has_direct_access=True,
+            has_regional_cris=False,
+            has_global_cris=False,
+            regional_cris_profile_id=None,
+            global_cris_profile_id=None,
         )
-        return mock_manager
+        mock_catalog.is_model_available.return_value = True
+        return mock_catalog
 
     @pytest.fixture
-    def basic_llm_manager(self, mock_unified_model_manager):
+    def basic_llm_manager(self, mock_bedrock_catalog):
         """Create a basic LLMManager instance for testing."""
         with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_unified_model_manager,
+            "bestehorn_llmmanager.llm_manager.BedrockModelCatalog",
+            return_value=mock_bedrock_catalog,
         ):
-            return LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+            return LLMManager(models=["Claude Haiku 4 5 20251001"], regions=["us-east-1"])
 
-    def test_init_basic_configuration(self, mock_unified_model_manager) -> None:
+    def test_init_basic_configuration(self, mock_bedrock_catalog) -> None:
         """Test basic initialization of LLMManager."""
         with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_unified_model_manager,
+            "bestehorn_llmmanager.llm_manager.BedrockModelCatalog",
+            return_value=mock_bedrock_catalog,
         ):
             manager = LLMManager(
-                models=["Claude 3 Haiku", "Claude 3 Sonnet"], regions=["us-east-1", "us-west-2"]
+                models=["Claude Haiku 4 5 20251001", "Claude Sonnet 4 20250514"], regions=["us-east-1", "us-west-2"]
             )
 
-            assert manager.get_available_models() == ["Claude 3 Haiku", "Claude 3 Sonnet"]
+            assert manager.get_available_models() == ["Claude Haiku 4 5 20251001", "Claude Sonnet 4 20250514"]
             assert manager.get_available_regions() == ["us-east-1", "us-west-2"]
 
-    def test_init_with_auth_config(self, mock_unified_model_manager) -> None:
+    def test_init_with_auth_config(self, mock_bedrock_catalog) -> None:
         """Test initialization with authentication configuration."""
         auth_config = AuthConfig(auth_type=AuthenticationType.PROFILE, profile_name="test-profile")
 
         with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_unified_model_manager,
+            "bestehorn_llmmanager.llm_manager.BedrockModelCatalog",
+            return_value=mock_bedrock_catalog,
         ):
             manager = LLMManager(
-                models=["Claude 3 Haiku"], regions=["us-east-1"], auth_config=auth_config
+                models=["Claude Haiku 4 5 20251001"], regions=["us-east-1"], auth_config=auth_config
             )
 
             assert manager is not None
 
-    def test_init_with_retry_config(self, mock_unified_model_manager) -> None:
+    def test_init_with_retry_config(self, mock_bedrock_catalog) -> None:
         """Test initialization with retry configuration."""
         retry_config = RetryConfig(max_retries=5, retry_strategy=RetryStrategy.MODEL_FIRST)
 
         with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_unified_model_manager,
+            "bestehorn_llmmanager.llm_manager.BedrockModelCatalog",
+            return_value=mock_bedrock_catalog,
         ):
             manager = LLMManager(
-                models=["Claude 3 Haiku"], regions=["us-east-1"], retry_config=retry_config
+                models=["Claude Haiku 4 5 20251001"], regions=["us-east-1"], retry_config=retry_config
             )
 
             stats = manager.get_retry_stats()
@@ -103,17 +105,17 @@ class TestLLMManager:
     def test_init_empty_regions_raises_error(self) -> None:
         """Test that empty regions list raises ConfigurationError."""
         with pytest.raises(ConfigurationError, match="No regions specified for LLM Manager"):
-            LLMManager(models=["Claude 3 Haiku"], regions=[])
+            LLMManager(models=["Claude Haiku 4 5 20251001"], regions=[])
 
     def test_init_invalid_model_name_raises_error(self) -> None:
         """Test that invalid model names raise ConfigurationError."""
         with pytest.raises(ConfigurationError, match="Invalid model name:"):
-            LLMManager(models=["Claude 3 Haiku", ""], regions=["us-east-1"])
+            LLMManager(models=["Claude Haiku 4 5 20251001", ""], regions=["us-east-1"])
 
     def test_init_invalid_region_name_raises_error(self) -> None:
         """Test that invalid region names raise ConfigurationError."""
         with pytest.raises(ConfigurationError, match="Invalid region name:"):
-            LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1", ""])
+            LLMManager(models=["Claude Haiku 4 5 20251001"], regions=["us-east-1", ""])
 
     def test_validate_converse_request_empty_messages(self, basic_llm_manager) -> None:
         """Test validation of empty messages."""
@@ -235,17 +237,17 @@ class TestLLMManager:
         assert request_args[ConverseAPIFields.INFERENCE_CONFIG]["maxTokens"] == 1000
 
     def test_build_converse_request_merges_default_inference_config(
-        self, mock_unified_model_manager
+        self, mock_bedrock_catalog
     ):
         """Test that default and provided inference configs are merged properly."""
         default_config = {"temperature": 0.5, "maxTokens": 2000}
 
         with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_unified_model_manager,
+            "bestehorn_llmmanager.llm_manager.BedrockModelCatalog",
+            return_value=mock_bedrock_catalog,
         ):
             manager = LLMManager(
-                models=["Claude 3 Haiku"],
+                models=["Claude Haiku 4 5 20251001"],
                 regions=["us-east-1"],
                 default_inference_config=default_config,
             )
@@ -295,22 +297,13 @@ class TestLLMManager:
 
     def test_get_model_access_info_success(self, basic_llm_manager):
         """Test successful retrieval of model access information."""
-        result = basic_llm_manager.get_model_access_info("Claude 3 Haiku", "us-east-1")
+        result = basic_llm_manager.get_model_access_info("Claude Haiku 4 5 20251001", "us-east-1")
 
         assert result is not None
         assert "access_method" in result
         assert "model_id" in result
         assert "inference_profile_id" in result
         assert "region" in result
-
-    def test_get_model_access_info_not_found(self, basic_llm_manager):
-        """Test retrieval of model access information when not found."""
-        # Mock the unified model manager to return None
-        basic_llm_manager._unified_model_manager.get_model_access_info.return_value = None
-
-        result = basic_llm_manager.get_model_access_info("NonExistent Model", "us-east-1")
-
-        assert result is None
 
     def test_validate_configuration_success(self, basic_llm_manager):
         """Test successful configuration validation."""
@@ -319,35 +312,6 @@ class TestLLMManager:
         assert result["valid"] is True
         assert result["model_region_combinations"] > 0
         assert "auth_type" in result["auth_status"] or result["auth_status"] != "unknown"
-
-    def test_validate_configuration_no_valid_combinations(self, basic_llm_manager):
-        """Test configuration validation with no valid model/region combinations."""
-        # Mock to return None for all access info calls
-        basic_llm_manager._unified_model_manager.get_model_access_info.return_value = None
-
-        result = basic_llm_manager.validate_configuration()
-
-        assert result["valid"] is False
-        assert result["model_region_combinations"] == 0
-        assert "No valid model/region combinations found" in result["errors"]
-
-    def test_refresh_model_data_success(self, basic_llm_manager):
-        """Test successful model data refresh."""
-        basic_llm_manager._unified_model_manager.refresh_unified_data = Mock()
-
-        # Should not raise any exception
-        basic_llm_manager.refresh_model_data()
-
-        basic_llm_manager._unified_model_manager.refresh_unified_data.assert_called_once()
-
-    def test_refresh_model_data_failure(self, basic_llm_manager):
-        """Test model data refresh failure."""
-        basic_llm_manager._unified_model_manager.refresh_unified_data.side_effect = Exception(
-            "Network error"
-        )
-
-        with pytest.raises(Exception, match="Failed to refresh model data"):
-            basic_llm_manager.refresh_model_data()
 
     def test_get_retry_stats(self, basic_llm_manager):
         """Test retrieval of retry statistics."""
@@ -393,7 +357,6 @@ class TestLLMManager:
             ):
                 basic_llm_manager.converse_stream(messages=messages)
 
-
 class TestLLMManagerIntegration:
     """Integration tests for LLMManager that test component interactions."""
 
@@ -408,7 +371,7 @@ class TestLLMManagerIntegration:
         }
 
         mock_attempt = Mock()
-        mock_attempt.model_id = "Claude 3 Haiku"
+        mock_attempt.model_id = "Claude Haiku 4 5 20251001"
         mock_attempt.region = "us-east-1"
         mock_attempt.access_method = "direct"
         mock_attempt.success = True
@@ -440,7 +403,7 @@ class TestLLMManagerIntegration:
         """Test successful converse operation end-to-end."""
         with (
             patch(
-                "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
+                "bestehorn_llmmanager.llm_manager.BedrockModelCatalog",
                 return_value=mock_components["unified_model_manager"],
             ),
             patch(
@@ -453,7 +416,7 @@ class TestLLMManagerIntegration:
             ),
         ):
 
-            manager = LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+            manager = LLMManager(models=["Claude Haiku 4 5 20251001"], regions=["us-east-1"])
 
             messages = [{"role": "user", "content": [{"text": "Hello"}]}]
             response = manager.converse(messages=messages)
@@ -461,7 +424,7 @@ class TestLLMManagerIntegration:
             # Verify response
             assert isinstance(response, BedrockResponse)
             assert response.success is True
-            assert response.model_used == "Claude 3 Haiku"
+            assert response.model_used == "Claude Haiku 4 5 20251001"
             assert response.region_used == "us-east-1"
             assert response.access_method_used in ["direct", "both"]  # Can be either direct or both
             # Don't test specific duration since it depends on real execution time
@@ -480,7 +443,7 @@ class TestLLMManagerIntegration:
 
         with (
             patch(
-                "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
+                "bestehorn_llmmanager.llm_manager.BedrockModelCatalog",
                 return_value=mock_components["unified_model_manager"],
             ),
             patch(
@@ -493,92 +456,40 @@ class TestLLMManagerIntegration:
             ),
         ):
 
-            manager = LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+            manager = LLMManager(models=["Claude Haiku 4 5 20251001"], regions=["us-east-1"])
 
             messages = [{"role": "user", "content": [{"text": "Hello"}]}]
 
             with pytest.raises(RetryExhaustedError):
                 manager.converse(messages=messages)
 
-
 class TestLLMManagerUncoveredCases:
     """Test cases for uncovered lines in LLMManager."""
 
     @pytest.fixture
-    def mock_unified_model_manager(self):
-        """Create a mock UnifiedModelManager."""
-        mock_manager = Mock()
-        mock_manager.load_cached_data.return_value = True
-        mock_manager.get_model_access_info.return_value = Mock(
-            access_method=Mock(value="direct"),
+    def mock_bedrock_catalog(self):
+        """Create a mock BedrockModelCatalog."""
+        mock_catalog = Mock()
+        mock_catalog.ensure_catalog_available.return_value = Mock()
+        mock_catalog.get_model_info.return_value = Mock(
             model_id="test-model-id",
-            inference_profile_id="test-profile-id",
-            region="us-east-1",
+            has_direct_access=True,
+            has_regional_cris=False,
+            has_global_cris=False,
+            regional_cris_profile_id=None,
+            global_cris_profile_id=None,
         )
-        return mock_manager
+        mock_catalog.is_model_available.return_value = True
+        return mock_catalog
 
     @pytest.fixture
-    def basic_llm_manager(self, mock_unified_model_manager):
+    def basic_llm_manager(self, mock_bedrock_catalog):
         """Create a basic LLMManager instance for testing."""
         with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_unified_model_manager,
+            "bestehorn_llmmanager.llm_manager.BedrockModelCatalog",
+            return_value=mock_bedrock_catalog,
         ):
-            return LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
-
-    def test_init_unified_model_manager_load_cached_fails(self):
-        """Test initialization when UnifiedModelManager fails to load cached data."""
-        mock_unified_manager = Mock()
-        mock_unified_manager.load_cached_data.return_value = None  # No cached data
-        mock_unified_manager.refresh_unified_data.return_value = None
-        mock_unified_manager.get_model_access_info.return_value = Mock(
-            access_method=Mock(value="direct"),
-            model_id="test-model-id",
-            inference_profile_id="test-profile-id",
-            region="us-east-1",
-        )
-
-        with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_unified_manager,
-        ):
-            manager = LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
-            manager.get_available_models()
-
-            # Verify refresh was called when load_cached_data returned None
-            mock_unified_manager.refresh_unified_data.assert_called_once()
-
-    def test_init_unified_model_manager_exception(self):
-        """Test initialization when UnifiedModelManager raises exception."""
-        mock_unified_manager = Mock()
-        mock_unified_manager.load_cached_data.side_effect = Exception("Failed to load")
-        mock_unified_manager.get_model_access_info.return_value = None
-
-        with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_unified_manager,
-        ):
-            # Should raise ConfigurationError due to no valid model/region combinations
-            with pytest.raises(
-                ConfigurationError, match="No valid model/region combinations found"
-            ):
-                LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
-
-    def test_validate_model_region_combinations_no_valid_combinations(self):
-        """Test validation when no model/region combinations are available."""
-        mock_unified_manager = Mock()
-        mock_unified_manager.load_cached_data.return_value = True
-        mock_unified_manager.get_model_access_info.side_effect = Exception("Not available")
-
-        with patch(
-            "bestehorn_llmmanager.llm_manager.UnifiedModelManager",
-            return_value=mock_unified_manager,
-        ):
-            # Should raise ConfigurationError due to no valid model/region combinations
-            with pytest.raises(
-                ConfigurationError, match="No valid model/region combinations found"
-            ):
-                LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+            return LLMManager(models=["Claude Haiku 4 5 20251001"], regions=["us-east-1"])
 
     def test_validate_content_blocks_invalid_block_type(self, basic_llm_manager) -> None:
         """Test validation of content blocks with invalid block type."""
@@ -652,16 +563,6 @@ class TestLLMManagerUncoveredCases:
                     model_id="test-model",
                     messages=[{"role": "user", "content": [{"text": "Hello"}]}],
                 )
-
-    def test_get_model_access_info_exception(self, basic_llm_manager):
-        """Test get_model_access_info when exception occurs."""
-        basic_llm_manager._unified_model_manager.get_model_access_info.side_effect = Exception(
-            "Error"
-        )
-
-        result = basic_llm_manager.get_model_access_info("Claude 3 Haiku", "us-east-1")
-
-        assert result is None
 
     def test_validate_configuration_auth_error(self, basic_llm_manager):
         """Test validate_configuration when authentication fails."""

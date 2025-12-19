@@ -1,6 +1,26 @@
 """
 Unified Amazon Bedrock Model Manager.
 
+.. deprecated:: 3.1.0
+    UnifiedModelManager is deprecated and will be removed in version 4.0.0.
+    Use :class:`~bestehorn_llmmanager.bedrock.catalog.BedrockModelCatalog` instead.
+
+    Migration guide:
+
+    Old code::
+
+        from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager
+        manager = UnifiedModelManager()
+        catalog = manager.ensure_data_available()
+        access_info = manager.get_model_access_info("Claude 3 Haiku", "us-east-1")
+
+    New code::
+
+        from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+        catalog = BedrockModelCatalog(cache_mode=CacheMode.FILE)
+        unified_catalog = catalog.ensure_catalog_available()
+        model_info = catalog.get_model_info("Claude 3 Haiku", "us-east-1")
+
 This module provides the UnifiedModelManager class that serves as the single source
 of truth for Amazon Bedrock model information by integrating regular model data
 with CRIS (Cross-Region Inference Service) data.
@@ -32,6 +52,7 @@ License: MIT
 """
 
 import logging
+import warnings
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -64,6 +85,18 @@ class UnifiedModelManager:
     """
     Unified Amazon Bedrock Model Manager.
 
+    .. deprecated:: 3.1.0
+        UnifiedModelManager is deprecated and will be removed in version 4.0.0.
+        Use :class:`~bestehorn_llmmanager.bedrock.catalog.BedrockModelCatalog` instead.
+
+        The new BedrockModelCatalog provides:
+        - API-only data retrieval (no HTML parsing)
+        - Configurable cache modes (FILE, MEMORY, NONE)
+        - Bundled fallback data for offline scenarios
+        - Unified model and CRIS data in a single catalog
+        - Lambda-friendly design with no file system dependencies in NONE mode
+        - Simplified API with consistent method naming
+
     Serves as the single source of truth for Amazon Bedrock model information by
     integrating regular model data with CRIS data. Provides comprehensive methods
     for querying model availability and access methods across all AWS regions.
@@ -93,6 +126,26 @@ class UnifiedModelManager:
         """
         Initialize the UnifiedModelManager with configuration options.
 
+        .. deprecated:: 3.1.0
+            UnifiedModelManager is deprecated. Use BedrockModelCatalog instead.
+
+            Migration example::
+
+                # Old code
+                from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager
+                manager = UnifiedModelManager(max_cache_age_hours=24.0)
+                catalog = manager.ensure_data_available()
+                access_info = manager.get_model_access_info("Claude 3 Haiku", "us-east-1")
+
+                # New code
+                from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+                catalog = BedrockModelCatalog(
+                    cache_mode=CacheMode.FILE,
+                    cache_max_age_hours=24.0
+                )
+                unified_catalog = catalog.ensure_catalog_available()
+                model_info = catalog.get_model_info("Claude 3 Haiku", "us-east-1")
+
         Args:
             json_output_path: Custom path for unified JSON output
             force_download: Whether to always download fresh data (default: False for auto-management)
@@ -106,6 +159,15 @@ class UnifiedModelManager:
             ignore_cache_age: If True, bypass cache age validation entirely.
                             If False (default), respect max_cache_age_hours setting.
         """
+        warnings.warn(
+            "UnifiedModelManager is deprecated and will be removed in version 4.0.0. "
+            "Please migrate to BedrockModelCatalog for API-based data retrieval, "
+            "configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, "
+            "and improved Lambda support. "
+            "See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.json_output_path = json_output_path or Path(
             UnifiedFilePaths.DEFAULT_UNIFIED_JSON_OUTPUT
         )

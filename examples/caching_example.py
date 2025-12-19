@@ -1,8 +1,12 @@
 """
-Example demonstrating Bedrock caching support in LLM Manager.
+Example demonstrating Bedrock prompt caching support in LLM Manager.
 
-This example shows how to use caching to optimize costs and performance
-when making multiple requests with shared content.
+This example shows how to use Bedrock's prompt caching feature to optimize
+costs and performance when making multiple requests with shared content.
+
+Note: This is about Bedrock prompt caching (CacheConfig), not model catalog
+caching (BedrockModelCatalog cache modes). For catalog caching examples,
+see catalog_cache_modes.py.
 """
 
 from bestehorn_llmmanager import LLMManager, create_user_message

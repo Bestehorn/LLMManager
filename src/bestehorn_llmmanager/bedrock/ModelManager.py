@@ -1,6 +1,24 @@
 """
 Amazon Bedrock Model Manager.
 
+.. deprecated:: 3.1.0
+    ModelManager is deprecated and will be removed in version 4.0.0.
+    Use :class:`~bestehorn_llmmanager.bedrock.catalog.BedrockModelCatalog` instead.
+
+    Migration guide:
+
+    Old code::
+
+        from bestehorn_llmmanager.bedrock.ModelManager import ModelManager
+        manager = ModelManager()
+        catalog = manager.refresh_model_data()
+
+    New code::
+
+        from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+        catalog = BedrockModelCatalog(cache_mode=CacheMode.FILE)
+        unified_catalog = catalog.ensure_catalog_available()
+
 This module provides the ModelManager class for downloading, parsing, and managing
 Amazon Bedrock foundational model information from AWS documentation.
 
@@ -31,6 +49,7 @@ License: MIT
 """
 
 import logging
+import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Optional
@@ -53,6 +72,17 @@ class ModelManagerError(Exception):
 class ModelManager:
     """
     Amazon Bedrock Model Manager.
+
+    .. deprecated:: 3.1.0
+        ModelManager is deprecated and will be removed in version 4.0.0.
+        Use :class:`~bestehorn_llmmanager.bedrock.catalog.BedrockModelCatalog` instead.
+
+        The new BedrockModelCatalog provides:
+        - API-only data retrieval (no HTML parsing)
+        - Configurable cache modes (FILE, MEMORY, NONE)
+        - Bundled fallback data for offline scenarios
+        - Unified model and CRIS data in a single catalog
+        - Lambda-friendly design with no file system dependencies in NONE mode
 
     Orchestrates the download, parsing, and serialization of Amazon Bedrock
     foundational model information from AWS documentation.
@@ -79,12 +109,35 @@ class ModelManager:
         """
         Initialize the ModelManager with configuration options.
 
+        .. deprecated:: 3.1.0
+            ModelManager is deprecated. Use BedrockModelCatalog instead.
+
+            Migration example::
+
+                # Old code
+                from bestehorn_llmmanager.bedrock.ModelManager import ModelManager
+                manager = ModelManager()
+                catalog = manager.refresh_model_data()
+
+                # New code
+                from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+                catalog = BedrockModelCatalog(cache_mode=CacheMode.FILE)
+                unified_catalog = catalog.ensure_catalog_available()
+
         Args:
             html_output_path: Custom path for HTML output (defaults to docs/FoundationalModels.htm)
             json_output_path: Custom path for JSON output (defaults to docs/FoundationalModels.json)
             documentation_url: Custom documentation URL (defaults to AWS Bedrock docs)
             download_timeout: Request timeout in seconds for downloads
         """
+        warnings.warn(
+            "ModelManager is deprecated and will be removed in version 4.0.0. "
+            "Please migrate to BedrockModelCatalog for API-based data retrieval, "
+            "configurable caching, and improved Lambda support. "
+            "See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.html_output_path = html_output_path or Path(FilePaths.DEFAULT_HTML_OUTPUT)
         self.json_output_path = json_output_path or Path(FilePaths.DEFAULT_JSON_OUTPUT)
         self.documentation_url = documentation_url or URLs.BEDROCK_MODELS_DOCUMENTATION

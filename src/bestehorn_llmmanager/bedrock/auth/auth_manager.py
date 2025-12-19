@@ -128,7 +128,7 @@ class AuthManager:
             # Test the credentials
             self._test_credentials(session=session, region=region)
 
-            self._logger.info(
+            self._logger.debug(
                 LLMManagerLogMessages.AUTH_CONFIGURED.format(
                     auth_type=f"profile ({self._auth_config.profile_name})"
                 )

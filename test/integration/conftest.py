@@ -9,6 +9,11 @@ from typing import Any
 
 import pytest
 
+from bestehorn_llmmanager.bedrock.auth.auth_manager import AuthManager
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
+    AuthConfig,
+    AuthenticationType,
+)
 from bestehorn_llmmanager.bedrock.testing.aws_test_client import AWSTestClient
 from bestehorn_llmmanager.bedrock.testing.integration_config import (
     IntegrationTestConfig,
@@ -39,6 +44,12 @@ def integration_config() -> IntegrationTestConfig:
             pytest.skip(
                 "Integration tests are not enabled. Set AWS_INTEGRATION_TESTS_ENABLED=true to enable."
             )
+
+        # Log profile being used
+        if config.aws_profile:
+            print(f"\n✓ Using AWS profile for integration tests: {config.aws_profile}")
+        else:
+            print("\n✓ Using default AWS credentials for integration tests")
 
         return config
 
@@ -101,6 +112,31 @@ def check_integration_test_marker(request: Any, integration_config: IntegrationT
     # Skip slow tests if configured to skip them
     if "aws_slow" in markers and integration_config.should_skip_slow_test():
         pytest.skip("Slow integration tests are disabled")
+
+
+@pytest.fixture(scope="session")
+def auth_manager_with_profile(integration_config: IntegrationTestConfig) -> AuthManager:
+    """
+    Provide AuthManager configured with the integration test profile.
+
+    This fixture creates an AuthManager that uses the AWS profile specified
+    via --profile option or AWS_INTEGRATION_TEST_PROFILE environment variable.
+
+    Args:
+        integration_config: Integration test configuration
+
+    Returns:
+        Configured AuthManager instance
+    """
+    if integration_config.aws_profile:
+        # Use specified profile
+        auth_config = AuthConfig(
+            auth_type=AuthenticationType.PROFILE, profile_name=integration_config.aws_profile
+        )
+        return AuthManager(auth_config=auth_config)
+    else:
+        # Use auto-detection (default credentials)
+        return AuthManager()
 
 
 @pytest.fixture(scope="function")

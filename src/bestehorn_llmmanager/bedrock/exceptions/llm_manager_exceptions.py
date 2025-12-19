@@ -430,3 +430,85 @@ class ContentError(LLMManagerError):
                 details[ExceptionDetailFields.MAX_ALLOWED_SIZE] = max_allowed_size
             return details
         return None
+
+
+class APIFetchError(LLMManagerError):
+    """Raised when AWS API fetching fails."""
+
+    region: Optional[str]
+
+    def __init__(self, message: str, region: Optional[str] = None) -> None:
+        """
+        Initialize API fetch error.
+
+        Args:
+            message: Error message
+            region: AWS region where the API fetch failed
+        """
+        details = self._build_api_fetch_details(region=region)
+        super().__init__(message=message, details=details)
+        self.region = region
+
+    def _build_api_fetch_details(self, region: Optional[str]) -> Optional[Dict[str, Any]]:
+        """
+        Build details dictionary for API fetch errors.
+
+        Args:
+            region: AWS region where the API fetch failed
+
+        Returns:
+            Details dictionary if meaningful data available, None otherwise
+        """
+        if region:
+            return {ExceptionDetailFields.REGION: region}
+        return None
+
+
+class CatalogError(LLMManagerError):
+    """Base exception for catalog operations."""
+
+    pass
+
+
+class CatalogUnavailableError(CatalogError):
+    """Raised when catalog cannot be obtained from any source."""
+
+    pass
+
+
+class CacheError(CatalogError):
+    """Raised when cache operations fail."""
+
+    cache_path: Optional[str]
+
+    def __init__(self, message: str, cache_path: Optional[str] = None) -> None:
+        """
+        Initialize cache error.
+
+        Args:
+            message: Error message
+            cache_path: Path to cache file that caused the error
+        """
+        details = self._build_cache_details(cache_path=cache_path)
+        super().__init__(message=message, details=details)
+        self.cache_path = cache_path
+
+    def _build_cache_details(self, cache_path: Optional[str]) -> Optional[Dict[str, Any]]:
+        """
+        Build details dictionary for cache errors.
+
+        Args:
+            cache_path: Path to cache file that caused the error
+
+        Returns:
+            Details dictionary if meaningful data available, None otherwise
+        """
+        if cache_path:
+            return {"cache_path": cache_path}
+        return None
+
+
+class BundledDataError(CatalogError):
+    """Raised when bundled data is missing or corrupt."""
+
+    pass

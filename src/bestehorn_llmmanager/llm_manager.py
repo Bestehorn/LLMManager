@@ -7,10 +7,12 @@ with automatic retry logic, authentication handling, and comprehensive response 
 
 import logging
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union, cast
 
 from .bedrock.auth.auth_manager import AuthManager
 from .bedrock.cache import CachePointManager
+from .bedrock.catalog import BedrockModelCatalog
 from .bedrock.exceptions.llm_manager_exceptions import (
     AuthenticationError,
     ConfigurationError,
@@ -20,6 +22,7 @@ from .bedrock.exceptions.llm_manager_exceptions import (
 )
 from .bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
 from .bedrock.models.cache_structures import CacheConfig
+from .bedrock.models.catalog_structures import CacheMode
 from .bedrock.models.llm_manager_constants import (
     ContentLimits,
     ConverseAPIFields,
@@ -80,6 +83,8 @@ class LLMManager:
         retry_config: Optional[RetryConfig] = None,
         cache_config: Optional[CacheConfig] = None,
         unified_model_manager: Optional[UnifiedModelManager] = None,
+        catalog_cache_mode: Optional[CacheMode] = None,
+        catalog_cache_directory: Optional[Path] = None,
         force_download: bool = False,
         strict_cache_mode: bool = False,
         ignore_cache_age: bool = False,
@@ -96,16 +101,20 @@ class LLMManager:
             auth_config: Authentication configuration. If None, uses auto-detection
             retry_config: Retry behavior configuration. If None, uses defaults
             cache_config: Cache configuration for prompt caching. If None, caching is disabled
-            unified_model_manager: Pre-configured UnifiedModelManager. If None, creates new one
-            force_download: If True, force download fresh model data during initialization,
-                bypassing any cached data. Defaults to False (uses cache when available).
-                Note: This parameter is ignored if unified_model_manager is provided.
-            strict_cache_mode: If True, fail when expired model profile cache cannot be refreshed.
-                             If False (default), use stale cache with warning when refresh fails.
-                             Applies to model profile data caching, not prompt caching.
-            ignore_cache_age: If True, bypass model profile cache age validation entirely.
-                            If False (default), respect max_cache_age_hours setting.
-                            Applies to model profile data caching, not prompt caching.
+            unified_model_manager: DEPRECATED - Pre-configured UnifiedModelManager for backward
+                                  compatibility. If None, uses new BedrockModelCatalog.
+            catalog_cache_mode: Cache mode for model catalog (FILE, MEMORY, NONE).
+                               If None, defaults to FILE. Ignored if unified_model_manager provided.
+            catalog_cache_directory: Directory for catalog cache file.
+                                    If None, uses platform-specific default.
+                                    Ignored if unified_model_manager provided.
+            force_download: DEPRECATED - Use catalog_cache_mode=CacheMode.NONE with force_refresh
+                           instead. If True, force download fresh model data during initialization.
+                           Note: This parameter is ignored if unified_model_manager is provided.
+            strict_cache_mode: DEPRECATED - Applies only to legacy UnifiedModelManager.
+                              If True, fail when expired model profile cache cannot be refreshed.
+            ignore_cache_age: DEPRECATED - Applies only to legacy UnifiedModelManager.
+                             If True, bypass model profile cache age validation entirely.
             default_inference_config: Default inference parameters to apply
             timeout: Request timeout in seconds
             log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
@@ -141,28 +150,65 @@ class LLMManager:
             self._cache_point_manager = CachePointManager(self._cache_config)
             self._logger.info(f"Caching enabled with strategy: {self._cache_config.strategy.value}")
 
-        # Handle force_download conflict with unified_model_manager
-        effective_force_download = force_download
-        if unified_model_manager and force_download:
-            self._logger.warning(
-                "Both 'unified_model_manager' and 'force_download=True' were provided. "
-                "The 'force_download' parameter will be ignored since a pre-configured "
-                "UnifiedModelManager was supplied. To force download, configure the "
-                "UnifiedModelManager directly with force_download=True."
-            )
-            effective_force_download = False
-
-        # Initialize or use provided UnifiedModelManager
+        # Initialize model catalog (new system or legacy for backward compatibility)
         if unified_model_manager:
-            self._unified_model_manager = unified_model_manager
-        else:
-            self._unified_model_manager = UnifiedModelManager(
-                strict_cache_mode=strict_cache_mode,
-                ignore_cache_age=ignore_cache_age,
+            # Legacy path: use provided UnifiedModelManager
+            self._logger.warning(
+                "Using deprecated UnifiedModelManager. Please migrate to BedrockModelCatalog. "
+                "The unified_model_manager parameter will be removed in a future version. "
+                "See migration guide for details."
             )
-
-        # Initialize model data with proper cache management
-        self._initialize_model_data(force_download=effective_force_download)
+            self._unified_model_manager = unified_model_manager
+            self._catalog = None  # Not using new catalog
+            
+            # Handle force_download conflict
+            if force_download:
+                self._logger.warning(
+                    "Both 'unified_model_manager' and 'force_download=True' were provided. "
+                    "The 'force_download' parameter will be ignored since a pre-configured "
+                    "UnifiedModelManager was supplied."
+                )
+            
+            # Initialize model data with legacy manager
+            self._initialize_model_data_legacy(force_download=False)
+        else:
+            # New path: use BedrockModelCatalog
+            self._unified_model_manager = None  # Not using legacy manager
+            
+            # Determine catalog cache mode
+            effective_cache_mode = catalog_cache_mode or CacheMode.FILE
+            
+            # Handle deprecated parameters
+            if force_download:
+                self._logger.warning(
+                    "The 'force_download' parameter is deprecated. "
+                    "Using force_refresh=True with BedrockModelCatalog instead."
+                )
+            
+            if strict_cache_mode or ignore_cache_age:
+                self._logger.warning(
+                    "The 'strict_cache_mode' and 'ignore_cache_age' parameters are deprecated "
+                    "and only apply to the legacy UnifiedModelManager. "
+                    "They are ignored when using BedrockModelCatalog."
+                )
+            
+            # Initialize BedrockModelCatalog
+            self._catalog = BedrockModelCatalog(
+                auth_manager=self._auth_manager,
+                cache_mode=effective_cache_mode,
+                cache_directory=catalog_cache_directory,
+                force_refresh=force_download,  # Map force_download to force_refresh
+                timeout=timeout,
+            )
+            
+            # Ensure catalog is available (will trigger initialization strategy)
+            try:
+                self._catalog.ensure_catalog_available()
+                self._logger.info("Model catalog initialized successfully")
+            except Exception as e:
+                raise ConfigurationError(
+                    f"Failed to initialize model catalog: {str(e)}"
+                ) from e
 
         # Validate model/region combinations
         self._validate_model_region_combinations()
@@ -212,9 +258,12 @@ class LLMManager:
             if not isinstance(region, str) or not region.strip():
                 raise ConfigurationError(f"Invalid region name: {region}")
 
-    def _initialize_model_data(self, force_download: bool = False) -> None:
+    def _initialize_model_data_legacy(self, force_download: bool = False) -> None:
         """
-        Initialize model data for the UnifiedModelManager.
+        Initialize model data for the legacy UnifiedModelManager.
+
+        DEPRECATED: This method is only used for backward compatibility with
+        the legacy UnifiedModelManager. New code should use BedrockModelCatalog.
 
         This method attempts to load cached model data first (unless force_download is True),
         and if unavailable, refreshes the data by downloading from AWS documentation. Model
@@ -336,9 +385,18 @@ class LLMManager:
             model_found_in_any_region = False
             for region in self._regions:
                 try:
-                    access_info = self._unified_model_manager.get_model_access_info(
-                        model_name=model, region=region
-                    )
+                    # Use appropriate method based on which system is active
+                    if self._catalog:
+                        # New catalog system
+                        access_info = self._catalog.get_model_info(
+                            model_name=model, region=region
+                        )
+                    else:
+                        # Legacy UnifiedModelManager
+                        access_info = self._unified_model_manager.get_model_access_info(
+                            model_name=model, region=region
+                        )
+                    
                     if access_info:
                         available_combinations += 1
                         model_found_in_any_region = True
@@ -357,15 +415,28 @@ class LLMManager:
 
             # Check if this is due to missing model data
             try:
-                if not self._unified_model_manager._cached_catalog:
-                    error_details.append(
-                        "No model data available. Try refreshing model data or ensure internet connectivity."
-                    )
+                if self._catalog:
+                    # New catalog system
+                    if not self._catalog.is_catalog_loaded:
+                        error_details.append(
+                            "No model data available. Try refreshing model data or ensure internet connectivity."
+                        )
+                    else:
+                        available_models = [
+                            m.model_name for m in self._catalog.list_models()[:10]
+                        ]
+                        error_details.append(f"Available models (sample): {available_models}")
                 else:
-                    available_models = self._unified_model_manager.get_model_names()[
-                        :10
-                    ]  # Show first 10
-                    error_details.append(f"Available models (sample): {available_models}")
+                    # Legacy system
+                    if not self._unified_model_manager._cached_catalog:
+                        error_details.append(
+                            "No model data available. Try refreshing model data or ensure internet connectivity."
+                        )
+                    else:
+                        available_models = self._unified_model_manager.get_model_names()[
+                            :10
+                        ]  # Show first 10
+                        error_details.append(f"Available models (sample): {available_models}")
             except Exception:
                 error_details.append("Could not retrieve available model information.")
 
@@ -432,10 +503,12 @@ class LLMManager:
         )
 
         # Generate retry targets
+        # Pass the appropriate manager based on which system is active
+        manager_for_retry = self._catalog if self._catalog else self._unified_model_manager
         retry_targets = self._retry_manager.generate_retry_targets(
             models=self._models,
             regions=self._regions,
-            unified_model_manager=self._unified_model_manager,
+            unified_model_manager=manager_for_retry,
         )
 
         if not retry_targets:
@@ -557,10 +630,12 @@ class LLMManager:
         )
 
         # Generate retry targets using the regular retry manager
+        # Pass the appropriate manager based on which system is active
+        manager_for_retry = self._catalog if self._catalog else self._unified_model_manager
         retry_targets = self._retry_manager.generate_retry_targets(
             models=self._models,
             regions=self._regions,
-            unified_model_manager=self._unified_model_manager,
+            unified_model_manager=manager_for_retry,
         )
 
         if not retry_targets:
@@ -869,9 +944,18 @@ class LLMManager:
             Dictionary with access information, None if not available
         """
         try:
-            access_info = self._unified_model_manager.get_model_access_info(
-                model_name=model_name, region=region
-            )
+            # Use appropriate method based on which system is active
+            if self._catalog:
+                # New catalog system
+                access_info = self._catalog.get_model_info(
+                    model_name=model_name, region=region
+                )
+            else:
+                # Legacy UnifiedModelManager
+                access_info = self._unified_model_manager.get_model_access_info(
+                    model_name=model_name, region=region
+                )
+            
             if access_info:
                 return {
                     "access_method": access_info.access_method.value,
@@ -912,9 +996,18 @@ class LLMManager:
         for model in self._models:
             for region in self._regions:
                 try:
-                    access_info = self._unified_model_manager.get_model_access_info(
-                        model_name=model, region=region
-                    )
+                    # Use appropriate method based on which system is active
+                    if self._catalog:
+                        # New catalog system
+                        access_info = self._catalog.get_model_info(
+                            model_name=model, region=region
+                        )
+                    else:
+                        # Legacy UnifiedModelManager
+                        access_info = self._unified_model_manager.get_model_access_info(
+                            model_name=model, region=region
+                        )
+                    
                     if access_info:
                         # Type assertion to help mypy
                         validation_result["model_region_combinations"] = (
@@ -943,8 +1036,15 @@ class LLMManager:
             LLMManagerError: If refresh fails
         """
         try:
-            self._unified_model_manager.refresh_unified_data()
-            self._logger.info("Model data refreshed successfully")
+            # Use appropriate method based on which system is active
+            if self._catalog:
+                # New catalog system
+                self._catalog.refresh_catalog()
+                self._logger.info("Model catalog refreshed successfully")
+            else:
+                # Legacy UnifiedModelManager
+                self._unified_model_manager.refresh_unified_data()
+                self._logger.info("Model data refreshed successfully")
         except Exception as e:
             raise LLMManagerError(f"Failed to refresh model data: {str(e)}") from e
 

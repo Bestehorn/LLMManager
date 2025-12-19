@@ -1,6 +1,25 @@
 """
 Amazon Bedrock CRIS (Cross-Region Inference) Manager.
 
+.. deprecated:: 3.1.0
+    CRISManager is deprecated and will be removed in version 4.0.0.
+    Use :class:`~bestehorn_llmmanager.bedrock.catalog.BedrockModelCatalog` instead.
+
+    Migration guide:
+
+    Old code::
+
+        from bestehorn_llmmanager.bedrock.CRISManager import CRISManager
+        manager = CRISManager()
+        catalog = manager.refresh_cris_data()
+
+    New code::
+
+        from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+        catalog = BedrockModelCatalog(cache_mode=CacheMode.FILE)
+        unified_catalog = catalog.ensure_catalog_available()
+        # CRIS data is automatically included in the unified catalog
+
 This module provides the CRISManager class for downloading, parsing, and managing
 Amazon Bedrock Cross-Region Inference model information from AWS documentation.
 
@@ -31,6 +50,7 @@ License: MIT
 """
 
 import logging
+import warnings
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -54,6 +74,17 @@ class CRISManagerError(Exception):
 class CRISManager:
     """
     Amazon Bedrock CRIS (Cross-Region Inference) Manager.
+
+    .. deprecated:: 3.1.0
+        CRISManager is deprecated and will be removed in version 4.0.0.
+        Use :class:`~bestehorn_llmmanager.bedrock.catalog.BedrockModelCatalog` instead.
+
+        The new BedrockModelCatalog provides:
+        - Unified model and CRIS data in a single catalog
+        - API-only data retrieval (no HTML parsing)
+        - Configurable cache modes (FILE, MEMORY, NONE)
+        - Bundled fallback data for offline scenarios
+        - Lambda-friendly design with no file system dependencies in NONE mode
 
     Orchestrates the download, parsing, and serialization of Amazon Bedrock
     Cross-Region Inference model information from AWS documentation.
@@ -82,6 +113,22 @@ class CRISManager:
         """
         Initialize the CRISManager with configuration options.
 
+        .. deprecated:: 3.1.0
+            CRISManager is deprecated. Use BedrockModelCatalog instead.
+
+            Migration example::
+
+                # Old code
+                from bestehorn_llmmanager.bedrock.CRISManager import CRISManager
+                manager = CRISManager()
+                catalog = manager.refresh_cris_data()
+
+                # New code
+                from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+                catalog = BedrockModelCatalog(cache_mode=CacheMode.FILE)
+                unified_catalog = catalog.ensure_catalog_available()
+                # CRIS data is automatically included in the unified catalog
+
         Args:
             html_output_path: Custom path for HTML output (defaults to docs/CRIS.htm)
             json_output_path: Custom path for JSON output (defaults to docs/CRIS.json)
@@ -90,6 +137,14 @@ class CRISManager:
             use_api: If True, use AWS Bedrock API for CRIS data (recommended). If False, use HTML parsing.
             auth_manager: Optional AuthManager for AWS authentication. If None and use_api=True, a default will be created.
         """
+        warnings.warn(
+            "CRISManager is deprecated and will be removed in version 4.0.0. "
+            "Please migrate to BedrockModelCatalog which provides unified model and CRIS data "
+            "with API-based retrieval, configurable caching, and improved Lambda support. "
+            "See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         self.html_output_path = html_output_path or Path(CRISFilePaths.DEFAULT_HTML_OUTPUT)
         self.json_output_path = json_output_path or Path(CRISFilePaths.DEFAULT_JSON_OUTPUT)
         self.documentation_url = documentation_url or CRISURLs.DOCUMENTATION

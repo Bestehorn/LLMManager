@@ -10,6 +10,7 @@ include SECURITY.md
 # Include package data
 recursive-include src/bestehorn_llmmanager *.py
 include src/bestehorn_llmmanager/py.typed
+include src/bestehorn_llmmanager/bedrock/package_data/bedrock_catalog_bundled.json
 
 # Exclude generated version file (handled by setuptools_scm)
 exclude src/bestehorn_llmmanager/_version.py
