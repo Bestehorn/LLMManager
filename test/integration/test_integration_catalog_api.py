@@ -223,9 +223,7 @@ class TestBedrockAPIFetcherIntegration:
         assert invalid_region in raw_data.failed_regions
         assert isinstance(raw_data.failed_regions[invalid_region], str)
 
-    def test_fetch_all_data_all_invalid_regions(
-        self, auth_manager_with_profile: Any
-    ) -> None:
+    def test_fetch_all_data_all_invalid_regions(self, auth_manager_with_profile: Any) -> None:
         """
         Test error handling when all regions fail.
 

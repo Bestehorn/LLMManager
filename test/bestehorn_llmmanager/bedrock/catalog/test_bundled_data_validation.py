@@ -188,9 +188,9 @@ class TestBundledDataValidation:
         model_ids = [model.model_id for model in bundled_catalog.models.values()]
         unique_model_ids = set(model_ids)
 
-        assert len(model_ids) == len(unique_model_ids), (
-            "Duplicate model IDs found in bundled catalog"
-        )
+        assert len(model_ids) == len(
+            unique_model_ids
+        ), "Duplicate model IDs found in bundled catalog"
 
     def test_model_names_match_dict_keys(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that model names in the dict match the model info."""
@@ -232,6 +232,6 @@ class TestBundledDataValidation:
 
         # Metadata regions should be a subset of or equal to model regions
         # (models may be available in regions not queried if they're CRIS-only)
-        assert len(bundled_catalog.metadata.api_regions_queried) > 0, (
-            "Metadata should list at least one region that was queried"
-        )
+        assert (
+            len(bundled_catalog.metadata.api_regions_queried) > 0
+        ), "Metadata should list at least one region that was queried"
