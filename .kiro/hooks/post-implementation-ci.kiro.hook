@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Post-Implementation CI Check",
+  "description": "Automatically executes mandatory post-activity requirements including unit tests, CI workflow compliance checks, documentation updates, LLM documentation consolidation, deviation review, and temporary file cleanup",
+  "version": "1",
+  "when": {
+    "type": "agentComplete"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Execute the mandatory post-activity requirements from .kiro/steering/post-activity.md:\n\n1. **Run All Tests**: Execute pytest test/ to run all unit tests. If any tests fail, continue editing code until all tests pass. Implementation is never finished with failing tests.\n\n2. **Run CI Checks Locally**: Execute all commit checking steps locally:\n   - Run: venv\\Scripts\\activate & black src/ test/ --check --extend-exclude=\"src/bestehorn_llmmanager/_version.py\"\n   - Run: venv\\Scripts\\activate & isort src/ test/ --check-only --skip=\"src/bestehorn_llmmanager/_version.py\"\n   - Run: venv\\Scripts\\activate & flake8 src/ test/ --exclude=\"src/bestehorn_llmmanager/_version.py\"\n   - Run: venv\\Scripts\\activate & mypy --exclude=\"_version\" src/\n   - Run: venv\\Scripts\\activate & bandit -r src/ scripts/ -x \"src/bestehorn_llmmanager/_version.py\"\n   Fix any issues identified before continuing.\n\n3. **Update Documentation**: Once all tests succeed, revise and update entire documentation in docs/ to reflect any changes in the project so new developers can get started quickly.\n\n4. **Update docs/forLLMConsumption.md**: Consolidate all relevant documentation for LLM/coding assistant consumption in docs/forLLMConsumption.md.\n\n5. **Flag Deviations**: Review entire documentation in docs/ and identify deviations between documentation and current implementation. Explicitly flag these deviations.\n\n6. **Clean tmp/**: Remove all files in tmp/ directory.\n\nProvide an activity summary including:\n- Status of all unit tests (pass/fail counts)\n- Results of CI workflow checks (which checks passed, which failed, what was fixed)\n- Documentation changes made (which files updated, what sections changed)\n- Any deviations identified between documentation and implementation\n- Confirmation that temporary files have been cleaned up\n\nNO ACTIVITY IS COMPLETE until all these steps are successfully executed. Partial completion is not acceptable.\n\n**Project-Specific Notes**:\n- Line length is 100 characters (not 120)\n- Always exclude _version.py from all checks\n- Use Windows path separators and activation commands\n- Package name: bestehorn-llmmanager\n- Source directory: src/bestehorn_llmmanager/"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "enabled": true,
+  "name": "Run Pre-Commit Checks",
+  "description": "Manually trigger comprehensive pre-commit checks workflow including dependency installation, code formatting, linting, type checking, and security scanning",
+  "version": "1",
+  "when": {
+    "type": "manual"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Execute the pre-commit checks workflow:\n\n1. **Verify Virtual Environment**: Confirm that the virtual environment is activated. If not, activate it using: venv\\Scripts\\activate\n\n2. **Install/Update Dependencies**: Ensure all development dependencies are installed:\n   - Run: venv\\Scripts\\activate & pip install -e \".[dev]\"\n   - Verify installation of: black, flake8, isort, mypy, bandit\n\n3. **Code Formatting Check (black)**:\n   - Run: venv\\Scripts\\activate & black src/ test/ scripts/ --check --extend-exclude=\"src/bestehorn_llmmanager/_version.py\"\n   - Line length: 100 characters (project-specific)\n   - If formatting issues found, run without --check to auto-fix: venv\\Scripts\\activate & black src/ test/ scripts/ --extend-exclude=\"src/bestehorn_llmmanager/_version.py\"\n\n4. **Import Sorting Check (isort)**:\n   - Run: venv\\Scripts\\activate & isort src/ test/ scripts/ --check-only --skip=\"src/bestehorn_llmmanager/_version.py\"\n   - Profile: black\n   - If issues found, run without --check-only to auto-fix: venv\\Scripts\\activate & isort src/ test/ scripts/ --skip=\"src/bestehorn_llmmanager/_version.py\"\n\n5. **Linting Check (flake8)**:\n   - Run: venv\\Scripts\\activate & flake8 src/ test/ scripts/ --max-line-length=100 --extend-ignore=E203,W503 --exclude=\"src/bestehorn_llmmanager/_version.py\"\n   - Fix any linting issues manually\n\n6. **Type Checking (mypy)**:\n   - Run: venv\\Scripts\\activate & mypy --exclude=\"_version\" src/\n   - Fix any type errors found\n\n7. **Security Scanning (bandit)**:\n   - Run: venv\\Scripts\\activate & bandit -r src/ scripts/ -x \"src/bestehorn_llmmanager/_version.py\"\n   - Review and fix any security issues found\n\n8. **Report Results**: Provide a summary including:\n   - Which checks passed\n   - Which checks failed and what issues were found\n   - What fixes were applied (auto-fixes vs manual fixes)\n   - Any remaining issues that need attention\n\n**CRITICAL REMINDERS**:\n- Always exclude src/bestehorn_llmmanager/_version.py from ALL checks (it's auto-generated)\n- Line length is 100 characters (not 120) - this is project-specific\n- Use Windows activation command: venv\\Scripts\\activate\n- All commands must run inside the activated virtual environment\n\nRepeat steps until all checks pass. Do not proceed if any critical issues remain."
+  }
+}

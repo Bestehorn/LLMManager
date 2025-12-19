@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "name": "Lint Python on Save",
+  "description": "Runs black and isort formatting checks on saved Python files",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["**/*.py"]
+  },
+  "then": {
+    "type": "shell",
+    "command": "venv\\Scripts\\activate & black --check --quiet ${file} & isort --check-only --quiet ${file}"
+  }
+}
