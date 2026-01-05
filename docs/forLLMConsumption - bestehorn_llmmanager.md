@@ -10,7 +10,7 @@ The LLMManager package provides a comprehensive interface for managing AWS Bedro
 - **ParallelLLMManager**: Extended class for parallel processing of multiple requests
 - **MessageBuilder**: Fluent interface for building multi-modal messages with automatic format detection
 - **BedrockResponse**: Comprehensive response object with metadata and utilities
-- **UnifiedModelManager**: Manages model availability and access information
+- **BedrockModelCatalog**: Unified model management system (replaces deprecated UnifiedModelManager)
 
 ## MessageBuilder - Fluent Message Construction
 
@@ -1433,6 +1433,410 @@ if validation_result["valid"]:
 else:
     print(f"Configuration errors: {validation_result['errors']}")
 ```
+
+## BedrockModelCatalog - Unified Model Management
+
+The `BedrockModelCatalog` is the new unified system for managing AWS Bedrock model availability data. It replaces the deprecated `ModelManager`, `CRISManager`, and `UnifiedModelManager` classes.
+
+### Overview
+
+**Key Features:**
+- API-only data retrieval (no HTML parsing)
+- Single unified class for all model management
+- Flexible cache modes (FILE, MEMORY, NONE)
+- Lambda-friendly design
+- Bundled fallback data for offline scenarios
+- Automatic failover and error handling
+
+**Deprecation Notice:**
+The following classes are deprecated and will be removed in version 4.0.0:
+- `ModelManager` - Use `BedrockModelCatalog` instead
+- `CRISManager` - Use `BedrockModelCatalog` instead
+- `UnifiedModelManager` - Use `BedrockModelCatalog` instead
+
+### Basic Usage
+
+```python
+from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog
+
+# Initialize with defaults
+catalog = BedrockModelCatalog()
+
+# Check if a model is available in a region
+is_available = catalog.is_model_available(
+    model_name="Claude 3 Haiku",
+    region="us-east-1"
+)
+
+# Get detailed model information
+model_info = catalog.get_model_info(
+    model_name="Claude 3 Haiku",
+    region="us-east-1"
+)
+
+if model_info:
+    print(f"Model ID: {model_info.model_id}")
+    print(f"Inference Profile: {model_info.inference_profile_id}")
+    print(f"Access Method: {model_info.access_method.value}")
+    print(f"Supports Streaming: {model_info.supports_streaming}")
+
+# List all available models
+all_models = catalog.list_models()
+
+# Filter models by criteria
+anthropic_models = catalog.list_models(
+    region="us-east-1",
+    provider="Anthropic",
+    streaming_only=True
+)
+```
+
+### Cache Modes
+
+The catalog supports three cache modes to fit different deployment scenarios:
+
+#### CacheMode.FILE (Default)
+
+File-based caching with persistent storage.
+
+```python
+from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+from pathlib import Path
+
+catalog = BedrockModelCatalog(
+    cache_mode=CacheMode.FILE,
+    cache_directory=Path("/tmp/bedrock_cache"),
+    cache_max_age_hours=24.0
+)
+```
+
+**Best for:** Production environments, Lambda with /tmp access  
+**Pros:** Fast warm starts, persistent across process restarts  
+**Cons:** Requires file system write access  
+**Performance:** < 100ms warm start
+
+#### CacheMode.MEMORY
+
+In-memory caching for process lifetime.
+
+```python
+catalog = BedrockModelCatalog(cache_mode=CacheMode.MEMORY)
+```
+
+**Best for:** Read-only environments, Lambda without /tmp  
+**Pros:** No file I/O, works in restricted environments  
+**Cons:** Cache lost on process restart  
+**Performance:** Fast during warm starts, slower on cold starts
+
+#### CacheMode.NONE
+
+No caching, always fetch fresh data.
+
+```python
+catalog = BedrockModelCatalog(
+    cache_mode=CacheMode.NONE,
+    fallback_to_bundled=True
+)
+```
+
+**Best for:** Security-critical environments, always need latest data  
+**Pros:** Always fresh data, no stale cache issues  
+**Cons:** Higher latency, more API calls  
+**Performance:** 2-5 seconds per initialization
+
+### Initialization Parameters
+
+```python
+def __init__(
+    self,
+    cache_mode: CacheMode = CacheMode.FILE,
+    cache_directory: Optional[Path] = None,
+    cache_max_age_hours: float = 24.0,
+    force_refresh: bool = False,
+    timeout: int = 30,
+    max_workers: int = 10,
+    fallback_to_bundled: bool = True,
+) -> None
+```
+
+**Parameters:**
+- `cache_mode`: Caching strategy (FILE, MEMORY, NONE). Default: FILE
+- `cache_directory`: Directory for cache file. Default: platform-specific cache directory
+- `cache_max_age_hours`: Maximum cache age before refresh. Default: 24.0
+- `force_refresh`: Force API refresh even if cache is valid. Default: False
+- `timeout`: API call timeout in seconds. Default: 30
+- `max_workers`: Parallel workers for multi-region API calls. Default: 10
+- `fallback_to_bundled`: Use bundled data if API fails. Default: True
+
+### Query Methods
+
+#### get_model_info()
+
+Get detailed information about a model in a specific region.
+
+```python
+def get_model_info(
+    self,
+    model_name: str,
+    region: str
+) -> Optional[ModelAccessInfo]
+```
+
+**Returns:** `ModelAccessInfo` object or `None` if model not available
+
+**Example:**
+```python
+model_info = catalog.get_model_info("Claude 3 Haiku", "us-east-1")
+if model_info:
+    print(f"Model ID: {model_info.model_id}")
+    print(f"Inference Profile: {model_info.inference_profile_id}")
+    print(f"Access Method: {model_info.access_method.value}")
+    print(f"Supports Streaming: {model_info.supports_streaming}")
+    print(f"Regions: {model_info.regions}")
+```
+
+#### is_model_available()
+
+Check if a model is available in a specific region.
+
+```python
+def is_model_available(
+    self,
+    model_name: str,
+    region: str
+) -> bool
+```
+
+**Returns:** `True` if model is available, `False` otherwise
+
+**Example:**
+```python
+if catalog.is_model_available("Claude 3 Haiku", "us-east-1"):
+    print("Model is available")
+else:
+    print("Model is not available")
+```
+
+#### list_models()
+
+List models with optional filtering.
+
+```python
+def list_models(
+    self,
+    region: Optional[str] = None,
+    provider: Optional[str] = None,
+    streaming_only: bool = False
+) -> List[ModelInfo]
+```
+
+**Parameters:**
+- `region`: Filter by AWS region (optional)
+- `provider`: Filter by provider name (optional)
+- `streaming_only`: Only return streaming-capable models (optional)
+
+**Returns:** List of `ModelInfo` objects
+
+**Example:**
+```python
+# List all models
+all_models = catalog.list_models()
+
+# List models in specific region
+us_east_models = catalog.list_models(region="us-east-1")
+
+# List models by provider
+anthropic_models = catalog.list_models(provider="Anthropic")
+
+# List streaming-capable models
+streaming_models = catalog.list_models(streaming_only=True)
+
+# Combined filters
+filtered = catalog.list_models(
+    region="us-west-2",
+    provider="Anthropic",
+    streaming_only=True
+)
+```
+
+#### get_catalog_metadata()
+
+Get metadata about the catalog source and freshness.
+
+```python
+def get_catalog_metadata(self) -> CatalogMetadata
+```
+
+**Returns:** `CatalogMetadata` object with source, timestamp, and version information
+
+**Example:**
+```python
+metadata = catalog.get_catalog_metadata()
+print(f"Source: {metadata.source.value}")  # API, CACHE, or BUNDLED
+print(f"Retrieved: {metadata.retrieval_timestamp}")
+print(f"Regions queried: {metadata.api_regions_queried}")
+
+if metadata.source == CatalogSource.BUNDLED:
+    print(f"Bundled version: {metadata.bundled_data_version}")
+elif metadata.source == CatalogSource.CACHE:
+    print(f"Cache file: {metadata.cache_file_path}")
+```
+
+### Data Structures
+
+#### CatalogMetadata
+
+```python
+@dataclass
+class CatalogMetadata:
+    source: CatalogSource  # API, CACHE, or BUNDLED
+    retrieval_timestamp: datetime
+    api_regions_queried: List[str]
+    bundled_data_version: Optional[str]
+    cache_file_path: Optional[Path]
+```
+
+#### CatalogSource
+
+```python
+class CatalogSource(Enum):
+    API = "api"          # Fresh data from AWS APIs
+    CACHE = "cache"      # Loaded from cache file
+    BUNDLED = "bundled"  # Loaded from bundled package data
+```
+
+#### CacheMode
+
+```python
+class CacheMode(Enum):
+    FILE = "file"      # Cache to file system
+    MEMORY = "memory"  # Cache in memory only
+    NONE = "none"      # No caching
+```
+
+### Bundled Fallback Data
+
+The package includes pre-generated model data for offline scenarios:
+
+**Features:**
+- Automatic fallback if API calls fail
+- Works without AWS credentials or internet access
+- Updated with each package release
+- Includes generation timestamp and version
+
+**Example:**
+```python
+# Catalog will try: Cache → API → Bundled Data
+catalog = BedrockModelCatalog(fallback_to_bundled=True)
+
+metadata = catalog.get_catalog_metadata()
+if metadata.source == CatalogSource.BUNDLED:
+    print(f"Using bundled data (version: {metadata.bundled_data_version})")
+    print("Consider refreshing for latest model availability")
+```
+
+### Lambda Deployment
+
+#### Lambda with /tmp Access (Recommended)
+
+```python
+from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog, CacheMode
+from pathlib import Path
+
+def lambda_handler(event, context):
+    catalog = BedrockModelCatalog(
+        cache_mode=CacheMode.FILE,
+        cache_directory=Path("/tmp/bedrock_cache")
+    )
+    
+    model_info = catalog.get_model_info("Claude 3 Haiku", "us-east-1")
+    return {"available": model_info is not None}
+```
+
+#### Lambda Read-Only Environment
+
+```python
+def lambda_handler(event, context):
+    catalog = BedrockModelCatalog(cache_mode=CacheMode.MEMORY)
+    is_available = catalog.is_model_available("Claude 3 Haiku", "us-east-1")
+    return {"available": is_available}
+```
+
+### Integration with LLMManager
+
+The `LLMManager` automatically uses `BedrockModelCatalog` internally. You can configure catalog behavior through LLMManager parameters:
+
+```python
+from bestehorn_llmmanager import LLMManager
+from bestehorn_llmmanager.bedrock.catalog import CacheMode
+from pathlib import Path
+
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"],
+    catalog_cache_mode=CacheMode.FILE,
+    catalog_cache_directory=Path("/tmp/my_cache")
+)
+```
+
+**LLMManager Catalog Parameters:**
+- `catalog_cache_mode`: Cache mode for the catalog (default: FILE)
+- `catalog_cache_directory`: Cache directory path (default: platform-specific)
+
+### Error Handling
+
+The catalog uses a fallback strategy for reliability:
+
+1. **Try Cache:** Load from cache if valid
+2. **Try API:** Fetch from AWS APIs if cache invalid/missing
+3. **Try Bundled:** Use bundled data if API fails
+4. **Raise Error:** Only if all sources fail
+
+**Exceptions:**
+- `CatalogUnavailableError`: Raised when catalog cannot be obtained from any source
+- `APIFetchError`: Raised when API fetching fails
+- `CacheError`: Raised when cache operations fail
+- `BundledDataError`: Raised when bundled data is missing or corrupt
+
+**Example:**
+```python
+from bestehorn_llmmanager.bedrock.exceptions import CatalogUnavailableError
+
+try:
+    catalog = BedrockModelCatalog(
+        fallback_to_bundled=False  # Disable bundled fallback
+    )
+except CatalogUnavailableError as e:
+    print(f"Catalog unavailable: {e}")
+    # Handle error (e.g., use default models)
+```
+
+### Performance Characteristics
+
+- **Cold start (no cache):** 2-5 seconds (parallel API calls)
+- **Warm start (valid cache):** < 100ms (file load)
+- **Memory usage:** ~5-10 MB for full catalog
+- **Cache file size:** ~500 KB - 1 MB
+
+### Migration from Old Managers
+
+**Old Code:**
+```python
+from bestehorn_llmmanager.bedrock import UnifiedModelManager
+
+manager = UnifiedModelManager()
+model_info = manager.get_model_info("Claude 3 Haiku", "us-east-1")
+```
+
+**New Code:**
+```python
+from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog
+
+catalog = BedrockModelCatalog()
+model_info = catalog.get_model_info("Claude 3 Haiku", "us-east-1")
+```
+
+See the [Migration Guide](MIGRATION_GUIDE.md) for detailed migration instructions.
 
 ## Best Practices
 
