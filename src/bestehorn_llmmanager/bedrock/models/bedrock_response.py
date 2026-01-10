@@ -25,7 +25,9 @@ class BedrockResponse:
         response_data: Raw response data from Bedrock API
         model_used: Model ID that was successfully used
         region_used: AWS region that was successfully used
-        access_method_used: Access method that was used (direct/cris)
+        access_method_used: Access method that was used (direct/regional_cris/global_cris)
+        inference_profile_used: Whether an inference profile was used for the request
+        inference_profile_id: The inference profile ID/ARN if profile was used
         attempts: List of all attempts made
         total_duration_ms: Total time taken for all attempts
         api_latency_ms: API latency from successful response
@@ -33,6 +35,9 @@ class BedrockResponse:
         features_disabled: List of features that were disabled for compatibility
         validation_attempts: List of validation attempts made
         validation_errors: List of validation error details
+        parameters_removed: List of parameter names removed due to incompatibility
+        original_additional_fields: Original additionalModelRequestFields before removal
+        final_additional_fields: Final additionalModelRequestFields actually used
     """
 
     success: bool
@@ -40,6 +45,8 @@ class BedrockResponse:
     model_used: Optional[str] = None
     region_used: Optional[str] = None
     access_method_used: Optional[str] = None
+    inference_profile_used: bool = False
+    inference_profile_id: Optional[str] = None
     attempts: List[RequestAttempt] = field(default_factory=list)
     total_duration_ms: Optional[float] = None
     api_latency_ms: Optional[float] = None
@@ -47,6 +54,9 @@ class BedrockResponse:
     features_disabled: List[str] = field(default_factory=list)
     validation_attempts: List["ValidationAttempt"] = field(default_factory=list)
     validation_errors: List[Dict[str, Any]] = field(default_factory=list)
+    parameters_removed: Optional[List[str]] = None
+    original_additional_fields: Optional[Dict[str, Any]] = None
+    final_additional_fields: Optional[Dict[str, Any]] = None
 
     def get_content(self) -> Optional[str]:
         """
@@ -356,6 +366,90 @@ class BedrockResponse:
 
         return metrics
 
+    def had_parameters_removed(self) -> bool:
+        """
+        Check if any parameters were removed during retry due to incompatibility.
+
+        Returns:
+            True if parameters were removed, False otherwise
+        """
+        return bool(self.parameters_removed)
+
+    def get_parameter_warnings(self) -> List[str]:
+        """
+        Get warnings related to parameter compatibility.
+
+        Returns:
+            List of warning messages about parameter removal
+        """
+        parameter_warnings = []
+
+        if self.had_parameters_removed() and self.parameters_removed:
+            # Add warnings about removed parameters
+            for param_name in self.parameters_removed:
+                warning_msg = (
+                    f"Parameter '{param_name}' was removed due to incompatibility "
+                    f"with model/region combination"
+                )
+                parameter_warnings.append(warning_msg)
+
+            # Add summary warning if multiple parameters were removed
+            if len(self.parameters_removed) > 1:
+                summary_msg = (
+                    f"Total of {len(self.parameters_removed)} parameters were removed "
+                    f"for compatibility"
+                )
+                parameter_warnings.append(summary_msg)
+
+        return parameter_warnings
+
+    def get_access_method(self) -> Optional[str]:
+        """
+        Get the access method used for the successful request.
+
+        Returns:
+            Access method name (e.g., "direct", "regional_cris", "global_cris"), None if not available
+        """
+        return self.access_method_used
+
+    def was_profile_used(self) -> bool:
+        """
+        Check if an inference profile was used for the request.
+
+        Returns:
+            True if inference profile was used, False otherwise
+        """
+        return self.inference_profile_used
+
+    def get_profile_id(self) -> Optional[str]:
+        """
+        Get the inference profile ID/ARN if profile was used.
+
+        Returns:
+            Profile ID/ARN if profile was used, None otherwise
+        """
+        return self.inference_profile_id if self.inference_profile_used else None
+
+    def get_access_method_info(self) -> Dict[str, Any]:
+        """
+        Get comprehensive access method information.
+
+        Returns:
+            Dictionary with access method details including:
+            - access_method: The access method used
+            - profile_used: Whether profile was used
+            - profile_id: Profile ID if used
+            - model_id: Model ID used
+            - region: Region used
+        """
+        return {
+            "access_method": self.access_method_used,
+            "profile_used": self.inference_profile_used,
+            "profile_id": self.inference_profile_id,
+            "model_id": self.model_used,
+            "region": self.region_used,
+        }
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Convert the response to a dictionary suitable for JSON serialization.
@@ -369,6 +463,8 @@ class BedrockResponse:
             "model_used": self.model_used,
             "region_used": self.region_used,
             "access_method_used": self.access_method_used,
+            "inference_profile_used": self.inference_profile_used,
+            "inference_profile_id": self.inference_profile_id,
             "total_duration_ms": self.total_duration_ms,
             "api_latency_ms": self.api_latency_ms,
             "warnings": self.warnings,
@@ -396,6 +492,9 @@ class BedrockResponse:
                 for va in self.validation_attempts
             ],
             "validation_errors": self.validation_errors,
+            "parameters_removed": self.parameters_removed,
+            "original_additional_fields": self.original_additional_fields,
+            "final_additional_fields": self.final_additional_fields,
         }
 
     def to_json(self, indent: Optional[int] = None) -> str:
@@ -458,6 +557,8 @@ class BedrockResponse:
             model_used=data.get("model_used"),
             region_used=data.get("region_used"),
             access_method_used=data.get("access_method_used"),
+            inference_profile_used=data.get("inference_profile_used", False),
+            inference_profile_id=data.get("inference_profile_id"),
             attempts=attempts,
             total_duration_ms=data.get("total_duration_ms"),
             api_latency_ms=data.get("api_latency_ms"),
@@ -465,6 +566,9 @@ class BedrockResponse:
             features_disabled=data.get("features_disabled", []),
             validation_attempts=validation_attempts,
             validation_errors=data.get("validation_errors", []),
+            parameters_removed=data.get("parameters_removed"),
+            original_additional_fields=data.get("original_additional_fields"),
+            final_additional_fields=data.get("final_additional_fields"),
         )
 
     def __repr__(self) -> str:
@@ -494,7 +598,9 @@ class StreamingResponse:
         stream_position: Final position in the stream
         model_used: Model ID that was used for streaming
         region_used: AWS region that was used for streaming
-        access_method_used: Access method that was used
+        access_method_used: Access method that was used (direct/regional_cris/global_cris)
+        inference_profile_used: Whether an inference profile was used for the request
+        inference_profile_id: The inference profile ID/ARN if profile was used
         total_duration_ms: Total streaming duration in milliseconds
         api_latency_ms: API latency from streaming metadata
         stop_reason: Reason why streaming stopped
@@ -519,6 +625,8 @@ class StreamingResponse:
     model_used: Optional[str] = None
     region_used: Optional[str] = None
     access_method_used: Optional[str] = None
+    inference_profile_used: bool = False
+    inference_profile_id: Optional[str] = None
     total_duration_ms: Optional[float] = None
     api_latency_ms: Optional[float] = None
     stop_reason: Optional[str] = None

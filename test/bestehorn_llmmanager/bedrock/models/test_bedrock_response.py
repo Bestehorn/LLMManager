@@ -1194,3 +1194,109 @@ class TestStreamingResponseIteratorProtocol:
 
         switches = response.get_target_switches()
         assert switches == 3
+
+    def test_had_parameters_removed_true(self):
+        """Test had_parameters_removed with parameters removed."""
+        response = BedrockResponse(
+            success=True,
+            parameters_removed=["anthropic_beta", "custom_param"],
+        )
+        assert response.had_parameters_removed() is True
+
+    def test_had_parameters_removed_false(self):
+        """Test had_parameters_removed with no parameters removed."""
+        response = BedrockResponse(success=True, parameters_removed=None)
+        assert response.had_parameters_removed() is False
+
+        response_empty = BedrockResponse(success=True, parameters_removed=[])
+        assert response_empty.had_parameters_removed() is False
+
+    def test_get_parameter_warnings_single_parameter(self):
+        """Test get_parameter_warnings with single parameter removed."""
+        response = BedrockResponse(
+            success=True,
+            parameters_removed=["anthropic_beta"],
+        )
+
+        warnings = response.get_parameter_warnings()
+        assert len(warnings) == 1
+        assert "anthropic_beta" in warnings[0]
+        assert "incompatibility" in warnings[0]
+
+    def test_get_parameter_warnings_multiple_parameters(self):
+        """Test get_parameter_warnings with multiple parameters removed."""
+        response = BedrockResponse(
+            success=True,
+            parameters_removed=["anthropic_beta", "custom_param", "another_param"],
+        )
+
+        warnings = response.get_parameter_warnings()
+        # Should have one warning per parameter plus a summary
+        assert len(warnings) == 4
+
+        # Check individual parameter warnings
+        assert any("anthropic_beta" in w for w in warnings)
+        assert any("custom_param" in w for w in warnings)
+        assert any("another_param" in w for w in warnings)
+
+        # Check summary warning
+        assert any("Total of 3 parameters" in w for w in warnings)
+
+    def test_get_parameter_warnings_no_parameters_removed(self):
+        """Test get_parameter_warnings with no parameters removed."""
+        response = BedrockResponse(success=True, parameters_removed=None)
+        assert response.get_parameter_warnings() == []
+
+        response_empty = BedrockResponse(success=True, parameters_removed=[])
+        assert response_empty.get_parameter_warnings() == []
+
+    def test_parameter_metadata_in_to_dict(self):
+        """Test parameter metadata is included in to_dict."""
+        response = BedrockResponse(
+            success=True,
+            parameters_removed=["anthropic_beta"],
+            original_additional_fields={"anthropic_beta": ["context-1m-2025-08-07"]},
+            final_additional_fields=None,
+        )
+
+        result = response.to_dict()
+        assert result["parameters_removed"] == ["anthropic_beta"]
+        assert result["original_additional_fields"] == {"anthropic_beta": ["context-1m-2025-08-07"]}
+        assert result["final_additional_fields"] is None
+
+    def test_parameter_metadata_in_from_dict(self):
+        """Test parameter metadata is restored from from_dict."""
+        data = {
+            "success": True,
+            "parameters_removed": ["anthropic_beta"],
+            "original_additional_fields": {"anthropic_beta": ["context-1m-2025-08-07"]},
+            "final_additional_fields": None,
+            "attempts": [],
+            "validation_attempts": [],
+        }
+
+        response = BedrockResponse.from_dict(data)
+        assert response.parameters_removed == ["anthropic_beta"]
+        assert response.original_additional_fields == {"anthropic_beta": ["context-1m-2025-08-07"]}
+        assert response.final_additional_fields is None
+        assert response.had_parameters_removed() is True
+
+    def test_parameter_metadata_round_trip(self):
+        """Test parameter metadata survives to_dict/from_dict round trip."""
+        original = BedrockResponse(
+            success=True,
+            model_used="claude-3",
+            parameters_removed=["param1", "param2"],
+            original_additional_fields={"param1": "value1", "param2": "value2"},
+            final_additional_fields={"other_param": "value"},
+        )
+
+        # Round trip
+        data = original.to_dict()
+        reconstructed = BedrockResponse.from_dict(data)
+
+        # Verify all parameter metadata is preserved
+        assert reconstructed.parameters_removed == original.parameters_removed
+        assert reconstructed.original_additional_fields == original.original_additional_fields
+        assert reconstructed.final_additional_fields == original.final_additional_fields
+        assert reconstructed.had_parameters_removed() == original.had_parameters_removed()

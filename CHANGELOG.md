@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Automatic Inference Profile Support**: System now automatically detects when models require inference profile access and retries with appropriate profiles
+- `ProfileRequirementDetector` class for detecting profile requirement errors from AWS ValidationException messages
+- `AccessMethodSelector` class for intelligent selection of access methods (direct → regional CRIS → global CRIS)
+- `AccessMethodTracker` singleton for learning and persisting access method preferences across requests
+- Profile requirement detection from AWS error patterns ("with on-demand throughput isn't supported", "retry your request with the ID or ARN of an inference profile")
+- Automatic profile retry logic that doesn't count as a separate retry attempt
+- Access method learning system that optimizes future requests based on successful access patterns
+- Response metadata indicating which access method was used (direct, regional_cris, or global_cris)
+- Profile usage statistics in ParallelResponse for monitoring profile adoption
+- Comprehensive logging for profile detection, selection, and usage at appropriate levels (WARNING, INFO, DEBUG)
+- Support for parallel processing with automatic profile handling per request
+- Graceful degradation when profile information is unavailable
+- Documentation in `docs/INFERENCE_PROFILE_TROUBLESHOOTING.md` for profile-related issues
+- Jupyter notebook `notebooks/InferenceProfile_Demo.ipynb` demonstrating profile support
+
+### Changed
+- RetryManager now includes profile detection and automatic retry logic
+- BedrockResponse includes access method metadata (access_method_used, inference_profile_used, inference_profile_id)
+- ParallelResponse aggregates access method statistics across all parallel requests
+- Profile-based access is completely transparent to existing users - no code changes required
+
+### Fixed
+- Eliminated unnecessary retry attempts for models requiring inference profiles (e.g., Claude Sonnet 4.5)
+- Improved user experience by automatically handling profile requirements without manual configuration
+
+### Backward Compatibility
+- All existing code continues to work without changes
+- Models supporting direct access use it by default
+- No breaking changes to existing APIs
+- Profile support is additive only
+
 ## [0.3.0] - 2025-11-25
 
 ### Added

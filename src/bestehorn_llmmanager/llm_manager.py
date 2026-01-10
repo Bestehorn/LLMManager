@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union, cast
 
 from .bedrock.auth.auth_manager import AuthManager
+from .bedrock.builders.parameter_builder import ParameterBuilder
 from .bedrock.cache import CachePointManager
 from .bedrock.catalog import BedrockModelCatalog
 from .bedrock.exceptions.llm_manager_exceptions import (
@@ -35,6 +36,7 @@ from .bedrock.models.llm_manager_structures import (
     ResponseValidationConfig,
     RetryConfig,
 )
+from .bedrock.models.model_specific_structures import ModelSpecificConfig
 from .bedrock.models.parallel_structures import BedrockConverseRequest
 from .bedrock.retry.retry_manager import RetryManager
 from .bedrock.streaming.streaming_retry_manager import StreamingRetryManager
@@ -89,6 +91,7 @@ class LLMManager:
         strict_cache_mode: bool = False,
         ignore_cache_age: bool = False,
         default_inference_config: Optional[Dict[str, Any]] = None,
+        model_specific_config: Optional[ModelSpecificConfig] = None,
         timeout: int = LLMManagerConfig.DEFAULT_TIMEOUT,
         log_level: Union[int, str] = LLMManagerConfig.DEFAULT_LOG_LEVEL,
     ) -> None:
@@ -116,6 +119,7 @@ class LLMManager:
             ignore_cache_age: DEPRECATED - Applies only to legacy UnifiedModelManager.
                              If True, bypass model profile cache age validation entirely.
             default_inference_config: Default inference parameters to apply
+            model_specific_config: Default configuration for model-specific parameters
             timeout: Request timeout in seconds
             log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
 
@@ -135,6 +139,7 @@ class LLMManager:
         self._regions = regions.copy()
         self._timeout = timeout
         self._default_inference_config = default_inference_config or {}
+        self._default_model_specific_config = model_specific_config
 
         # Initialize components
         self._auth_manager = AuthManager(auth_config=auth_config)
@@ -142,6 +147,7 @@ class LLMManager:
         self._streaming_retry_manager = StreamingRetryManager(
             retry_config=retry_config or RetryConfig()
         )
+        self._parameter_builder = ParameterBuilder()
 
         # Initialize cache manager if caching is enabled
         self._cache_config = cache_config or CacheConfig(enabled=False)
@@ -373,6 +379,9 @@ class LLMManager:
         """
         Validate that at least one model/region combination is available.
 
+        Uses the catalog's name resolution system to provide helpful error messages
+        with suggestions when model names cannot be resolved.
+
         Raises:
             ConfigurationError: If no valid model/region combinations are found
         """
@@ -385,7 +394,7 @@ class LLMManager:
                 try:
                     # Use appropriate method based on which system is active
                     if self._catalog:
-                        # New catalog system
+                        # New catalog system - uses name resolution internally
                         access_info = self._catalog.get_model_info(model_name=model, region=region)
                     else:
                         # Legacy UnifiedModelManager
@@ -401,46 +410,91 @@ class LLMManager:
                     continue
 
             if not model_found_in_any_region:
-                validation_errors.append(f"Model '{model}' not found in any specified region")
+                # Build detailed error message with suggestions
+                error_msg = self._build_model_not_found_error(model_name=model)
+                validation_errors.append(error_msg)
 
         if available_combinations == 0:
-            error_details = []
-            error_details.append(f"Models specified: {self._models}")
-            error_details.append(f"Regions specified: {self._regions}")
-            error_details.extend(validation_errors)
-
-            # Check if this is due to missing model data
-            try:
-                if self._catalog:
-                    # New catalog system
-                    if not self._catalog.is_catalog_loaded:
-                        error_details.append(
-                            "No model data available. Try refreshing model data or ensure internet connectivity."
-                        )
-                    else:
-                        available_models = [m.model_name for m in self._catalog.list_models()[:10]]
-                        error_details.append(f"Available models (sample): {available_models}")
-                else:
-                    # Legacy system
-                    if not self._unified_model_manager._cached_catalog:
-                        error_details.append(
-                            "No model data available. Try refreshing model data or ensure internet connectivity."
-                        )
-                    else:
-                        available_models = self._unified_model_manager.get_model_names()[
-                            :10
-                        ]  # Show first 10
-                        error_details.append(f"Available models (sample): {available_models}")
-            except Exception:
-                error_details.append("Could not retrieve available model information.")
-
-            error_message = (
-                "No valid model/region combinations found during initialization. "
-                "Please check model names and region availability. " + " ".join(error_details)
-            )
-
+            # Build comprehensive error message
+            error_message = self._build_no_combinations_error(validation_errors=validation_errors)
             self._logger.error(error_message)
             raise ConfigurationError(error_message)
+
+    def _build_model_not_found_error(self, model_name: str) -> str:
+        """
+        Build a detailed error message for a model that wasn't found.
+
+        Args:
+            model_name: The model name that wasn't found
+
+        Returns:
+            Detailed error message with suggestions
+        """
+        error_parts = [f"Model '{model_name}' not found in any specified region."]
+
+        # Try to get suggestions from name resolver
+        if self._catalog:
+            try:
+                resolver = self._catalog._get_name_resolver()
+                suggestions = resolver.get_suggestions(user_name=model_name, max_suggestions=3)
+
+                if suggestions:
+                    error_parts.append(f"Did you mean: {', '.join(suggestions)}?")
+                else:
+                    # No suggestions available - provide general guidance
+                    error_parts.append(
+                        "Check the model name spelling or use catalog.list_models() "
+                        "to see available models."
+                    )
+            except Exception as e:
+                self._logger.debug(f"Could not get suggestions for {model_name}: {e}")
+                error_parts.append("Check the model name and region availability.")
+
+        return " ".join(error_parts)
+
+    def _build_no_combinations_error(self, validation_errors: List[str]) -> str:
+        """
+        Build a comprehensive error message when no valid combinations are found.
+
+        Args:
+            validation_errors: List of validation error messages for each model
+
+        Returns:
+            Comprehensive error message with all details
+        """
+        error_details = []
+        error_details.append("No valid model/region combinations found during initialization.")
+        error_details.append(f"Models specified: {self._models}")
+        error_details.append(f"Regions specified: {self._regions}")
+        error_details.extend(validation_errors)
+
+        # Add catalog status information
+        try:
+            if self._catalog:
+                # New catalog system
+                if not self._catalog.is_catalog_loaded:
+                    error_details.append(
+                        "No model data available. Try refreshing model data or "
+                        "ensure internet connectivity."
+                    )
+                else:
+                    # Show sample of available models
+                    available_models = [m.model_name for m in self._catalog.list_models()[:10]]
+                    error_details.append(f"Available models (sample): {available_models}")
+            else:
+                # Legacy system
+                if not self._unified_model_manager._cached_catalog:
+                    error_details.append(
+                        "No model data available. Try refreshing model data or "
+                        "ensure internet connectivity."
+                    )
+                else:
+                    available_models = self._unified_model_manager.get_model_names()[:10]
+                    error_details.append(f"Available models (sample): {available_models}")
+        except Exception:
+            error_details.append("Could not retrieve available model information.")
+
+        return " ".join(error_details)
 
     def converse(
         self,
@@ -448,6 +502,8 @@ class LLMManager:
         system: Optional[List[Dict[str, str]]] = None,
         inference_config: Optional[Dict[str, Any]] = None,
         additional_model_request_fields: Optional[Dict[str, Any]] = None,
+        model_specific_config: Optional[ModelSpecificConfig] = None,
+        enable_extended_context: bool = False,
         additional_model_response_field_paths: Optional[List[str]] = None,
         guardrail_config: Optional[Dict[str, Any]] = None,
         tool_config: Optional[Dict[str, Any]] = None,
@@ -462,7 +518,9 @@ class LLMManager:
             messages: List of message objects for the conversation
             system: List of system message objects
             inference_config: Inference configuration parameters
-            additional_model_request_fields: Model-specific request parameters
+            additional_model_request_fields: Model-specific request parameters (legacy)
+            model_specific_config: Configuration for model-specific parameters (overrides default)
+            enable_extended_context: Convenience flag to enable extended context window
             additional_model_response_field_paths: Additional response fields to return
             guardrail_config: Guardrail configuration
             tool_config: Tool use configuration
@@ -483,12 +541,20 @@ class LLMManager:
         # Validate request
         self._validate_converse_request(messages=messages)
 
+        # Determine effective model_specific_config
+        # Priority: per-request config > enable_extended_context flag > default config
+        effective_model_specific_config = self._resolve_model_specific_config(
+            model_specific_config=model_specific_config,
+            enable_extended_context=enable_extended_context,
+        )
+
         # Build request arguments
         request_args = self._build_converse_request(
             messages=messages,
             system=system,
             inference_config=inference_config,
             additional_model_request_fields=additional_model_request_fields,
+            model_specific_config=effective_model_specific_config,
             additional_model_response_field_paths=additional_model_response_field_paths,
             guardrail_config=guardrail_config,
             tool_config=tool_config,
@@ -506,10 +572,28 @@ class LLMManager:
         )
 
         if not retry_targets:
-            raise ConfigurationError(
-                "No valid model/region combinations available. "
-                "Check model names and region availability."
-            )
+            # Build error message with suggestions
+            error_parts = ["No valid model/region combinations available."]
+
+            # Try to get suggestions for each model
+            if self._catalog:
+                try:
+                    resolver = self._catalog._get_name_resolver()
+                    for model in self._models:
+                        suggestions = resolver.get_suggestions(user_name=model, max_suggestions=3)
+                        if suggestions:
+                            error_parts.append(
+                                f"Model '{model}' not found. Did you mean: {', '.join(suggestions)}?"
+                            )
+                        else:
+                            error_parts.append(f"Model '{model}' not found.")
+                except Exception as e:
+                    self._logger.debug(f"Could not get suggestions: {e}")
+                    error_parts.append("Check model names and region availability.")
+            else:
+                error_parts.append("Check model names and region availability.")
+
+            raise ConfigurationError(" ".join(error_parts))
 
         try:
             # Execute with retry logic (with optional response validation)
@@ -538,6 +622,18 @@ class LLMManager:
             # Get successful attempt info
             successful_attempt = next((a for a in attempts if a.success), None)
 
+            # Determine if profile was used and extract profile ID
+            inference_profile_used = False
+            inference_profile_id = None
+            if successful_attempt:
+                # Check if access method indicates profile usage
+                access_method = successful_attempt.access_method
+                if access_method in ["regional_cris", "global_cris"]:
+                    inference_profile_used = True
+                    inference_profile_id = (
+                        successful_attempt.model_id
+                    )  # model_id contains profile ARN
+
             # Create response object
             response = BedrockResponse(
                 success=True,
@@ -545,6 +641,8 @@ class LLMManager:
                 model_used=successful_attempt.model_id if successful_attempt else None,
                 region_used=successful_attempt.region if successful_attempt else None,
                 access_method_used=successful_attempt.access_method if successful_attempt else None,
+                inference_profile_used=inference_profile_used,
+                inference_profile_id=inference_profile_id,
                 attempts=attempts,
                 total_duration_ms=total_duration,
                 api_latency_ms=api_latency,
@@ -573,6 +671,8 @@ class LLMManager:
         system: Optional[List[Dict[str, str]]] = None,
         inference_config: Optional[Dict[str, Any]] = None,
         additional_model_request_fields: Optional[Dict[str, Any]] = None,
+        model_specific_config: Optional[ModelSpecificConfig] = None,
+        enable_extended_context: bool = False,
         additional_model_response_field_paths: Optional[List[str]] = None,
         guardrail_config: Optional[Dict[str, Any]] = None,
         tool_config: Optional[Dict[str, Any]] = None,
@@ -590,7 +690,9 @@ class LLMManager:
             messages: List of message objects for the conversation
             system: List of system message objects
             inference_config: Inference configuration parameters
-            additional_model_request_fields: Model-specific request parameters
+            additional_model_request_fields: Model-specific request parameters (legacy)
+            model_specific_config: Configuration for model-specific parameters (overrides default)
+            enable_extended_context: Convenience flag to enable extended context window
             additional_model_response_field_paths: Additional response fields to return
             guardrail_config: Guardrail configuration
             tool_config: Tool use configuration
@@ -610,12 +712,20 @@ class LLMManager:
         # Validate request
         self._validate_converse_request(messages=messages)
 
+        # Determine effective model_specific_config
+        # Priority: per-request config > enable_extended_context flag > default config
+        effective_model_specific_config = self._resolve_model_specific_config(
+            model_specific_config=model_specific_config,
+            enable_extended_context=enable_extended_context,
+        )
+
         # Build request arguments (same as regular converse but we'll handle streaming)
         request_args = self._build_converse_request(
             messages=messages,
             system=system,
             inference_config=inference_config,
             additional_model_request_fields=additional_model_request_fields,
+            model_specific_config=effective_model_specific_config,
             additional_model_response_field_paths=additional_model_response_field_paths,
             guardrail_config=guardrail_config,
             tool_config=tool_config,
@@ -633,10 +743,28 @@ class LLMManager:
         )
 
         if not retry_targets:
-            raise ConfigurationError(
-                "No valid model/region combinations available for streaming. "
-                "Check model names and region availability."
-            )
+            # Build error message with suggestions
+            error_parts = ["No valid model/region combinations available for streaming."]
+
+            # Try to get suggestions for each model
+            if self._catalog:
+                try:
+                    resolver = self._catalog._get_name_resolver()
+                    for model in self._models:
+                        suggestions = resolver.get_suggestions(user_name=model, max_suggestions=3)
+                        if suggestions:
+                            error_parts.append(
+                                f"Model '{model}' not found. Did you mean: {', '.join(suggestions)}?"
+                            )
+                        else:
+                            error_parts.append(f"Model '{model}' not found.")
+                except Exception as e:
+                    self._logger.debug(f"Could not get suggestions: {e}")
+                    error_parts.append("Check model names and region availability.")
+            else:
+                error_parts.append("Check model names and region availability.")
+
+            raise ConfigurationError(" ".join(error_parts))
 
         try:
             # Execute with streaming retry logic and recovery
@@ -748,19 +876,69 @@ class LLMManager:
             )
         # Implicit return here - defensive code for robustness
 
+    def _resolve_model_specific_config(
+        self,
+        model_specific_config: Optional[ModelSpecificConfig],
+        enable_extended_context: bool,
+    ) -> Optional[ModelSpecificConfig]:
+        """
+        Resolve the effective model_specific_config from multiple sources.
+
+        Priority order:
+        1. Per-request model_specific_config (if provided)
+        2. Create config from enable_extended_context flag (if True)
+        3. Default model_specific_config from __init__ (if set)
+        4. None (no model-specific configuration)
+
+        Args:
+            model_specific_config: Per-request configuration
+            enable_extended_context: Convenience flag for extended context
+
+        Returns:
+            Effective ModelSpecificConfig or None
+        """
+        # If per-request config provided, use it (highest priority)
+        if model_specific_config is not None:
+            return model_specific_config
+
+        # If enable_extended_context flag is True, create config from it
+        if enable_extended_context:
+            return ModelSpecificConfig(enable_extended_context=True)
+
+        # Fall back to default config from __init__
+        return self._default_model_specific_config
+
     def _build_converse_request(
         self,
         messages: List[Dict[str, Any]],
         system: Optional[List[Dict[str, str]]] = None,
         inference_config: Optional[Dict[str, Any]] = None,
         additional_model_request_fields: Optional[Dict[str, Any]] = None,
+        model_specific_config: Optional[ModelSpecificConfig] = None,
         additional_model_response_field_paths: Optional[List[str]] = None,
         guardrail_config: Optional[Dict[str, Any]] = None,
         tool_config: Optional[Dict[str, Any]] = None,
         request_metadata: Optional[Dict[str, Any]] = None,
         prompt_variables: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
-        """Build the request arguments for the Converse API."""
+        """
+        Build the request arguments for the Converse API.
+
+        Args:
+            messages: List of message objects
+            system: System message objects
+            inference_config: Inference configuration
+            additional_model_request_fields: Direct model-specific fields (legacy)
+            model_specific_config: Structured model-specific configuration
+            additional_model_response_field_paths: Additional response fields
+            guardrail_config: Guardrail configuration
+            tool_config: Tool configuration
+            request_metadata: Request metadata
+            prompt_variables: Prompt variables
+
+        Returns:
+            Dictionary of request arguments for the Converse API
+        """
         # Apply cache point injection if caching is enabled
         processed_messages = messages
         if self._cache_point_manager and self._cache_config.enabled:
@@ -790,10 +968,27 @@ class LLMManager:
         if effective_inference_config:
             request_args[ConverseAPIFields.INFERENCE_CONFIG] = effective_inference_config
 
-        if additional_model_request_fields:
-            request_args[ConverseAPIFields.ADDITIONAL_MODEL_REQUEST_FIELDS] = (
-                additional_model_request_fields
+        # Build additionalModelRequestFields using ParameterBuilder
+        # Use the first model as a reference for model-specific parameter building
+        # The retry manager will rebuild if needed for different models
+        reference_model = self._models[0] if self._models else ""
+
+        built_additional_fields = None
+        if model_specific_config is not None or additional_model_request_fields is not None:
+            built_additional_fields = self._parameter_builder.build_additional_fields(
+                model_name=reference_model,
+                model_specific_config=model_specific_config,
+                additional_model_request_fields=additional_model_request_fields,
             )
+
+        if built_additional_fields:
+            request_args[ConverseAPIFields.ADDITIONAL_MODEL_REQUEST_FIELDS] = (
+                built_additional_fields
+            )
+
+        # Store model_specific_config for retry manager to rebuild parameters per model
+        if model_specific_config is not None:
+            request_args["_model_specific_config"] = model_specific_config
 
         if additional_model_response_field_paths:
             request_args[ConverseAPIFields.ADDITIONAL_MODEL_RESPONSE_FIELD_PATHS] = (

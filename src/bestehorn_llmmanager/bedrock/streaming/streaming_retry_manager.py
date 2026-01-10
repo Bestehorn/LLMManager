@@ -205,6 +205,13 @@ class StreamingRetryManager(RetryManager):
             streaming_response.access_method_used = access_info.access_method.value
             streaming_response.request_attempt = attempt
 
+            # Determine if profile was used and extract profile ID
+            access_method = access_info.access_method.value
+            if access_method in ["regional_cris", "global_cris"]:
+                streaming_response.inference_profile_used = True
+                # The model_id in operation_args contains the profile ARN when profile is used
+                streaming_response.inference_profile_id = operation_args.get("model_id")
+
             # Set up the EventStream for lazy processing through iterator protocol
             streaming_response._set_event_stream(event_stream)
 

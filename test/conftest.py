@@ -89,6 +89,12 @@ def pytest_addoption(parser: Any) -> None:
         default=None,
         help="Primary AWS region for integration tests (overrides AWS_INTEGRATION_TEST_REGIONS env var)",
     )
+    parser.addoption(
+        "--run-real-bedrock-tests",
+        action="store_true",
+        default=False,
+        help="Run tests that make real AWS Bedrock API calls (may incur costs)",
+    )
 
 
 def pytest_configure(config: Any) -> None:

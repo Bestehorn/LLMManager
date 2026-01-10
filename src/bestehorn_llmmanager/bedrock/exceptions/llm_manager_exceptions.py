@@ -512,3 +512,34 @@ class BundledDataError(CatalogError):
     """Raised when bundled data is missing or corrupt."""
 
     pass
+
+
+class ProfileRequirementError(ModelAccessError):
+    """
+    Exception indicating a model requires inference profile access.
+
+    This is an internal exception used to signal profile requirement
+    detection within the retry logic.
+    """
+
+    original_error: Exception
+
+    def __init__(
+        self,
+        model_id: str,
+        region: str,
+        original_error: Exception,
+        message: Optional[str] = None,
+    ) -> None:
+        """
+        Initialize profile requirement error.
+
+        Args:
+            model_id: Model ID that requires profile
+            region: Region where requirement was detected
+            original_error: Original ValidationException from AWS
+            message: Optional custom message
+        """
+        error_message = message or f"Model {model_id} requires inference profile in {region}"
+        super().__init__(message=error_message, model_id=model_id, region=region)
+        self.original_error = original_error

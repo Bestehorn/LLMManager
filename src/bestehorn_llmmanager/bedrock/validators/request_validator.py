@@ -4,9 +4,11 @@ Handles request ID collision detection and request structure validation.
 """
 
 import logging
-from typing import Dict, List
+from typing import Any, Dict, List
 
+from ..exceptions.llm_manager_exceptions import RequestValidationError as LLMRequestValidationError
 from ..exceptions.parallel_exceptions import RequestIdCollisionError, RequestValidationError
+from ..models.model_specific_structures import ModelSpecificConfig
 from ..models.parallel_constants import ParallelErrorMessages, ParallelLogMessages
 from ..models.parallel_structures import BedrockConverseRequest
 
@@ -280,3 +282,76 @@ class RequestValidator:
             )
 
         self._logger.info(f"Batch validation completed successfully for {len(requests)} requests")
+
+    def validate_additional_model_request_fields(
+        self, additional_model_request_fields: Any
+    ) -> None:
+        """
+        Validate additionalModelRequestFields parameter type.
+
+        Args:
+            additional_model_request_fields: The parameter to validate
+
+        Raises:
+            LLMRequestValidationError: If parameter is not a dictionary or None
+        """
+        if additional_model_request_fields is None:
+            return
+
+        if not isinstance(additional_model_request_fields, dict):
+            raise LLMRequestValidationError(
+                message=(
+                    f"additionalModelRequestFields must be a dictionary or None, "
+                    f"got {type(additional_model_request_fields).__name__}"
+                ),
+                invalid_fields=["additionalModelRequestFields"],
+            )
+
+        self._logger.debug("additionalModelRequestFields validation passed")
+
+    def validate_enable_extended_context(self, enable_extended_context: Any) -> None:
+        """
+        Validate enable_extended_context parameter type.
+
+        Args:
+            enable_extended_context: The parameter to validate
+
+        Raises:
+            LLMRequestValidationError: If parameter is not a boolean
+        """
+        if not isinstance(enable_extended_context, bool):
+            raise LLMRequestValidationError(
+                message=(
+                    f"enable_extended_context must be a boolean, "
+                    f"got {type(enable_extended_context).__name__}"
+                ),
+                invalid_fields=["enable_extended_context"],
+            )
+
+        self._logger.debug("enable_extended_context validation passed")
+
+    def validate_model_specific_config(self, model_specific_config: Any) -> None:
+        """
+        Validate ModelSpecificConfig parameter structure.
+
+        Args:
+            model_specific_config: The parameter to validate
+
+        Raises:
+            LLMRequestValidationError: If parameter is not a ModelSpecificConfig instance or None
+        """
+        if model_specific_config is None:
+            return
+
+        if not isinstance(model_specific_config, ModelSpecificConfig):
+            raise LLMRequestValidationError(
+                message=(
+                    f"model_specific_config must be a ModelSpecificConfig instance or None, "
+                    f"got {type(model_specific_config).__name__}"
+                ),
+                invalid_fields=["model_specific_config"],
+            )
+
+        # ModelSpecificConfig validates its own fields in __post_init__
+        # so if we have an instance, it's already validated
+        self._logger.debug("model_specific_config validation passed")

@@ -167,3 +167,19 @@ def test_session(aws_test_client: AWSTestClient, request: Any) -> Any:
     summary = aws_test_client.end_test_session()
     if summary:
         print(f"\nTest session summary: {summary}")
+
+
+@pytest.fixture(scope="function")
+def sample_test_messages() -> list:
+    """
+    Provide sample test messages for integration tests.
+
+    Returns:
+        List of message dictionaries for testing
+    """
+    return [
+        {
+            "role": "user",
+            "content": [{"text": "Hello! Please respond with a brief greeting."}],
+        }
+    ]

@@ -103,6 +103,15 @@ from .bedrock_catalog import BedrockModelCatalog
 from .bundled_loader import BundledDataLoader
 from .cache_manager import CacheManager
 
+# Import name resolution structures
+from .name_resolution_structures import (
+    AliasGenerationConfig,
+    ErrorType,
+    MatchType,
+    ModelNameMatch,
+    ModelResolutionError,
+)
+
 # Public API
 __all__ = [
     # Main class
@@ -115,6 +124,12 @@ __all__ = [
     "CatalogMetadata",
     "CatalogSource",
     "UnifiedCatalog",
+    # Name resolution structures
+    "AliasGenerationConfig",
+    "ErrorType",
+    "MatchType",
+    "ModelNameMatch",
+    "ModelResolutionError",
     # Exceptions
     "APIFetchError",
     "BundledDataError",

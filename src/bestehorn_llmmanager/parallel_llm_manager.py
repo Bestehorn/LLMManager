@@ -19,6 +19,7 @@ from .bedrock.executors.thread_parallel_executor import ThreadParallelExecutor
 from .bedrock.models.bedrock_response import BedrockResponse
 from .bedrock.models.llm_manager_constants import LLMManagerConfig
 from .bedrock.models.llm_manager_structures import AuthConfig, ResponseValidationConfig, RetryConfig
+from .bedrock.models.model_specific_structures import ModelSpecificConfig
 from .bedrock.models.parallel_constants import ParallelConfig, ParallelLogMessages
 from .bedrock.models.parallel_structures import (
     BedrockConverseRequest,
@@ -228,6 +229,7 @@ class ParallelLLMManager:
         requests: List[BedrockConverseRequest],
         target_regions_per_request: Optional[int] = None,
         response_validation_config: Optional[ResponseValidationConfig] = None,
+        model_specific_config: Optional[ModelSpecificConfig] = None,
     ) -> ParallelResponse:
         """
         Execute multiple conversation requests in parallel across regions.
@@ -236,6 +238,7 @@ class ParallelLLMManager:
             requests: List of BedrockConverseRequest objects to process
             target_regions_per_request: Target number of regions to assign per request
             response_validation_config: Optional validation configuration for responses
+            model_specific_config: Optional model-specific configuration to apply to all requests
 
         Returns:
             ParallelResponse with aggregated results
@@ -273,7 +276,8 @@ class ParallelLLMManager:
                 assignments=assignments,
                 request_map=request_map,
                 execute_single_request_func=self._create_single_request_executor(
-                    response_validation_config=response_validation_config
+                    response_validation_config=response_validation_config,
+                    model_specific_config=model_specific_config,
                 ),
                 retry_config=self._retry_config,
                 available_regions=self._regions,
@@ -311,13 +315,16 @@ class ParallelLLMManager:
                 ) from e
 
     def _create_single_request_executor(
-        self, response_validation_config: Optional[ResponseValidationConfig] = None
+        self,
+        response_validation_config: Optional[ResponseValidationConfig] = None,
+        model_specific_config: Optional[ModelSpecificConfig] = None,
     ) -> Callable[[Dict[str, Any]], BedrockResponse]:
         """
         Create a function to execute a single request through LLMManager.
 
         Args:
             response_validation_config: Optional response validation configuration
+            model_specific_config: Optional model-specific configuration to apply
 
         Returns:
             Function that can execute a single request
@@ -325,6 +332,10 @@ class ParallelLLMManager:
 
         def execute_single_request(converse_args: Dict) -> "BedrockResponse":
             """Execute a single request using the underlying LLMManager."""
+            # Apply model_specific_config if provided and not already in request
+            if model_specific_config is not None and "model_specific_config" not in converse_args:
+                converse_args["model_specific_config"] = model_specific_config
+
             return self._llm_manager.converse(
                 response_validation_config=response_validation_config, **converse_args
             )
@@ -499,6 +510,7 @@ class ParallelLLMManager:
         filter_func: Optional[Callable[[str, BedrockResponse], bool]] = None,
         target_regions_per_request: Optional[int] = None,
         response_validation_config: Optional[ResponseValidationConfig] = None,
+        model_specific_config: Optional[ModelSpecificConfig] = None,
     ) -> ParallelResponse:
         """
         Retry failed requests from a previous parallel execution.
@@ -514,6 +526,7 @@ class ParallelLLMManager:
                         Return True to retry the request, False to skip it.
             target_regions_per_request: Target number of regions for retry attempts
             response_validation_config: Optional validation configuration for responses
+            model_specific_config: Optional model-specific configuration for retry attempts
 
         Returns:
             ParallelResponse with merged results (previous successful + retry results)
@@ -552,6 +565,7 @@ class ParallelLLMManager:
             requests=retry_requests,
             target_regions_per_request=target_regions_per_request,
             response_validation_config=response_validation_config,
+            model_specific_config=model_specific_config,
         )
 
         # Merge retry results with previous results

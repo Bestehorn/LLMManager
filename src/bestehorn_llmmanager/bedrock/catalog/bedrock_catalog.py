@@ -27,6 +27,7 @@ from ..models.unified_structures import ModelAccessInfo, UnifiedModelInfo
 from .api_fetcher import BedrockAPIFetcher
 from .bundled_loader import BundledDataLoader
 from .cache_manager import CacheManager
+from .name_resolver import ModelNameResolver
 from .transformer import CatalogTransformer
 
 
@@ -135,6 +136,9 @@ class BedrockModelCatalog:
         # In-memory catalog cache (for subsequent queries)
         self._catalog: Optional[UnifiedCatalog] = None
 
+        # Lazy-initialized name resolver
+        self._name_resolver: Optional[ModelNameResolver] = None
+
         self._logger.info(CatalogLogMessages.CATALOG_INIT_STARTED.format(mode=cache_mode.value))
 
     def _validate_configuration(
@@ -184,6 +188,27 @@ class BedrockModelCatalog:
         # Validate max_workers
         if max_workers <= 0:
             raise ValueError(CatalogErrorMessages.INVALID_MAX_WORKERS.format(value=max_workers))
+
+    def _get_name_resolver(self) -> ModelNameResolver:
+        """
+        Get or initialize the name resolver.
+
+        The resolver is initialized lazily on first use to avoid overhead
+        during catalog initialization.
+
+        Returns:
+            ModelNameResolver instance
+
+        Raises:
+            CatalogUnavailableError: If catalog cannot be loaded
+        """
+        if self._name_resolver is None:
+            # Ensure catalog is available
+            catalog = self.ensure_catalog_available()
+            # Initialize resolver with catalog
+            self._name_resolver = ModelNameResolver(catalog=catalog)
+            self._logger.debug("ModelNameResolver initialized")
+        return self._name_resolver
 
     def ensure_catalog_available(self) -> UnifiedCatalog:
         """
@@ -321,8 +346,14 @@ class BedrockModelCatalog:
         - Streaming support
         - Modalities
 
+        The method supports flexible model name resolution including:
+        - Exact API names
+        - Friendly aliases (e.g., "Claude 3 Haiku")
+        - Legacy UnifiedModelManager names
+        - Normalized variations (spacing, punctuation)
+
         Args:
-            model_name: Model name or ID to query
+            model_name: Model name or ID to query (supports aliases)
             region: AWS region to check availability. If None, returns info
                    for any region where model is available.
 
@@ -342,23 +373,35 @@ class BedrockModelCatalog:
         # Ensure catalog is available
         catalog = self.ensure_catalog_available()
 
-        # Get model from catalog
-        model_info = catalog.get_model(name=model_name)
-        if model_info is None:
+        # Resolve model name using name resolver
+        resolver = self._get_name_resolver()
+        match = resolver.resolve_name(user_name=model_name, strict=False)
+
+        # If name couldn't be resolved, return None
+        if match is None:
             self._logger.debug(f"Model {model_name} not found in catalog")
+            return None
+
+        # Extract canonical name from match
+        resolved_name = match.canonical_name
+
+        # Get model from catalog using resolved name
+        model_info = catalog.get_model(name=resolved_name)
+        if model_info is None:
+            self._logger.debug(f"Model {resolved_name} not found in catalog")
             return None
 
         # If region specified, get access info for that region
         if region:
             access_info = model_info.get_access_info_for_region(region=region)
             if access_info is None:
-                self._logger.debug(f"Model {model_name} not available in region {region}")
+                self._logger.debug(f"Model {resolved_name} not available in region {region}")
             return access_info
 
         # If no region specified, return access info for first available region
         available_regions = model_info.get_supported_regions()
         if not available_regions:
-            self._logger.debug(f"Model {model_name} has no available regions")
+            self._logger.debug(f"Model {resolved_name} has no available regions")
             return None
 
         # Return access info for first available region
@@ -373,8 +416,14 @@ class BedrockModelCatalog:
         """
         Check if model is available in region.
 
+        This method supports flexible model name resolution including:
+        - Exact API names
+        - Friendly aliases (e.g., "Claude 3 Haiku")
+        - Legacy UnifiedModelManager names
+        - Normalized variations (spacing, punctuation)
+
         Args:
-            model_name: Model name or ID to check
+            model_name: Model name or ID to check (supports aliases)
             region: AWS region to check
 
         Returns:
@@ -386,8 +435,19 @@ class BedrockModelCatalog:
         # Ensure catalog is available
         catalog = self.ensure_catalog_available()
 
-        # Get model from catalog
-        model_info = catalog.get_model(name=model_name)
+        # Resolve model name using name resolver
+        resolver = self._get_name_resolver()
+        match = resolver.resolve_name(user_name=model_name, strict=False)
+
+        # If name couldn't be resolved, model is not available
+        if match is None:
+            return False
+
+        # Extract canonical name from match
+        resolved_name = match.canonical_name
+
+        # Get model from catalog using resolved name
+        model_info = catalog.get_model(name=resolved_name)
         if model_info is None:
             return False
 
@@ -452,6 +512,7 @@ class BedrockModelCatalog:
 
         This method clears:
         - In-memory catalog cache (self._catalog)
+        - Name resolver cache (self._name_resolver)
         - Persistent cache (file or memory cache via CacheManager)
 
         After calling this method, the next query will trigger a fresh
@@ -459,6 +520,7 @@ class BedrockModelCatalog:
         """
         # Clear in-memory cache
         self._catalog = None
+        self._name_resolver = None
         self._logger.debug("In-memory catalog cache cleared")
 
         # Clear persistent cache
@@ -479,8 +541,9 @@ class BedrockModelCatalog:
         """
         self._logger.info("Forcing catalog refresh from AWS APIs")
 
-        # Clear in-memory cache
+        # Clear in-memory cache (including name resolver)
         self._catalog = None
+        self._name_resolver = None
 
         # Temporarily set force_refresh
         original_force_refresh = self._force_refresh

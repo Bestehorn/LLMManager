@@ -247,7 +247,12 @@ class TestBedrockAPIFetcherIntegration:
 
         # Verify error message
         error_msg = str(exc_info.value)
-        assert "all regions failed" in error_msg.lower() or "no data" in error_msg.lower()
+        # Check for the actual error message format: "Failed to fetch data from all X regions"
+        assert (
+            "failed to fetch data from all" in error_msg.lower()
+            or "all regions failed" in error_msg.lower()
+            or "no data" in error_msg.lower()
+        )
 
 
 @pytest.mark.integration

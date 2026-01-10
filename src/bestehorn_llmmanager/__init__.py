@@ -35,6 +35,10 @@ Example Usage:
 For detailed documentation, see the documentation in the docs/ directory.
 """
 
+# Model-specific configuration and tracking
+from .bedrock.models.model_specific_structures import ModelSpecificConfig
+from .bedrock.tracking.parameter_compatibility_tracker import ParameterCompatibilityTracker
+
 # Package metadata
 from .llm_manager import LLMManager
 
@@ -86,4 +90,8 @@ __all__ = [
     "DocumentFormatEnum",
     "VideoFormatEnum",
     "DetectionMethodEnum",
+    # Model-specific configuration
+    "ModelSpecificConfig",
+    # Advanced: Parameter compatibility tracking
+    "ParameterCompatibilityTracker",
 ]

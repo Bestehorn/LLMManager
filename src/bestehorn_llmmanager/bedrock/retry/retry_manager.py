@@ -28,6 +28,10 @@ from ..models.llm_manager_structures import (
     ValidationAttempt,
     ValidationResult,
 )
+from ..tracking.access_method_tracker import AccessMethodTracker
+from ..tracking.parameter_compatibility_tracker import ParameterCompatibilityTracker
+from .access_method_selector import AccessMethodSelector
+from .profile_requirement_detector import ProfileRequirementDetector
 
 
 class RetryManager:
@@ -37,6 +41,18 @@ class RetryManager:
     Implements different retry strategies, error classification, and
     handles graceful degradation of features when needed.
     """
+
+    # Error patterns indicating parameter incompatibility
+    PARAMETER_INCOMPATIBILITY_PATTERNS = [
+        "unsupported parameter",
+        "invalid field",
+        "unknown parameter",
+        "parameter not supported",
+        "unrecognized field",
+        "invalid request field",
+        "does not support parameter",
+        "parameter is not valid for this model",
+    ]
 
     def __init__(self, retry_config: RetryConfig) -> None:
         """
@@ -50,6 +66,15 @@ class RetryManager:
 
         # Initialize content filter for feature restoration
         self._content_filter = ContentFilter()
+
+        # Initialize parameter compatibility tracker
+        self._parameter_tracker = ParameterCompatibilityTracker.get_instance()
+
+        # Initialize profile support components
+        self._access_method_tracker = AccessMethodTracker.get_instance()
+        self._access_method_selector = AccessMethodSelector(
+            access_method_tracker=self._access_method_tracker
+        )
 
         # Build combined retryable error types
         self._retryable_errors = (
@@ -180,6 +205,56 @@ class RetryManager:
                     return True, content_type
 
         return False, None
+
+    def is_parameter_compatibility_error(self, error: Exception) -> Tuple[bool, Optional[str]]:
+        """
+        Determine if an error is due to unsupported parameters.
+
+        Args:
+            error: The error to evaluate
+
+        Returns:
+            Tuple of (is_parameter_error, parameter_name_if_identified)
+        """
+        error_message = str(error).lower()
+
+        # Check for parameter incompatibility patterns
+        for pattern in self.PARAMETER_INCOMPATIBILITY_PATTERNS:
+            if pattern in error_message:
+                # Try to extract parameter name from error message
+                parameter_name = self._extract_parameter_name(error_message)
+                return True, parameter_name
+
+        return False, None
+
+    def _extract_parameter_name(self, error_message: str) -> Optional[str]:
+        """
+        Extract parameter name from error message if possible.
+
+        Args:
+            error_message: Error message to parse (should be lowercase)
+
+        Returns:
+            Parameter name if found, None otherwise
+        """
+        # Common patterns for parameter names in error messages
+        import re
+
+        # Pattern: "parameter 'name'" or "field 'name'"
+        match = re.search(r"(?:parameter|field)\s+['\"]([^'\"]+)['\"]", error_message)
+        if match:
+            return match.group(1)
+
+        # Pattern: "additionalModelRequestFields.name" (case-insensitive since message is lowercase)
+        match = re.search(r"additionalmodelrequestfields\.(\w+)", error_message)
+        if match:
+            return match.group(1)
+
+        return None
+        if match:
+            return match.group(1)
+
+        return None
 
     def should_disable_feature_and_retry(self, error: Exception) -> Tuple[bool, Optional[str]]:
         """
@@ -361,6 +436,7 @@ class RetryManager:
         operation_args: Dict[str, Any],
         retry_targets: List[Tuple[str, str, ModelAccessInfo]],
         disabled_features: Optional[List[str]] = None,
+        model_specific_config: Optional[Any] = None,
     ) -> Tuple[Any, List[RequestAttempt], List[str]]:
         """
         Execute an operation with retry logic and content filtering.
@@ -374,6 +450,7 @@ class RetryManager:
             operation_args: Arguments to pass to the operation
             retry_targets: List of (model, region, access_info) to try
             disabled_features: List of features to disable for compatibility
+            model_specific_config: Optional model-specific configuration
 
         Returns:
             Tuple of (result, attempts_made, warnings)
@@ -387,6 +464,9 @@ class RetryManager:
 
         # Create filter state to track content filtering
         filter_state = self._content_filter.create_filter_state(operation_args)
+
+        # Track original parameters for compatibility tracking
+        original_additional_fields = operation_args.get("additionalModelRequestFields")
 
         for attempt_num, (model, region, access_info) in enumerate(retry_targets, 1):
             attempt_start = datetime.now()
@@ -416,6 +496,18 @@ class RetryManager:
                         )
                     )
 
+                # Check if we should skip this combination due to known parameter incompatibility
+                if original_additional_fields and self._parameter_tracker.is_known_incompatible(
+                    model_id=access_info.model_id,
+                    region=region,
+                    parameters=original_additional_fields,
+                ):
+                    self._logger.debug(
+                        f"Skipping known incompatible combination: {model} in {region} "
+                        f"with parameters {list(original_additional_fields.keys())}"
+                    )
+                    continue
+
                 # Check if we should restore features for this model
                 should_restore, features_to_restore = (
                     self._content_filter.should_restore_features_for_model(
@@ -436,20 +528,15 @@ class RetryManager:
                 # Prepare operation arguments with current target
                 current_args = operation_args.copy()
 
-                # Set model ID based on access method (compare by value to avoid enum import issues)
-                if access_info.access_method.value in ["direct", "both"]:
-                    # Prefer direct access
-                    current_args["model_id"] = access_info.model_id
-                    if access_info.access_method.value == "both":
-                        self._logger.debug(f"Using direct access for {model}")
-                elif access_info.access_method.value == "cris_only":
-                    # Use CRIS profile
-                    current_args["model_id"] = access_info.inference_profile_id
-                    self._logger.debug(f"Using CRIS access for {model}")
-                else:
-                    self._logger.error(
-                        f"UNEXPECTED ACCESS METHOD: {access_info.access_method} (value: {access_info.access_method.value})"
-                    )
+                # Select model ID using intelligent selection (considers learned preferences)
+                model_id_to_use, selected_access_method = self._select_model_id_for_request(
+                    access_info=access_info, model_name=model, region=region
+                )
+
+                current_args["model_id"] = model_id_to_use
+                self._logger.debug(
+                    f"Using model ID '{model_id_to_use}' with access method '{selected_access_method}'"
+                )
 
                 # Apply content filtering based on current disabled features
                 if disabled_features and self._config.enable_feature_fallback:
@@ -457,15 +544,33 @@ class RetryManager:
                         filter_state=filter_state, disabled_features=set(disabled_features)
                     )
                     # Re-add model ID which might have been overwritten
-                    if access_info.access_method.value in ["direct", "both"]:
-                        current_args["model_id"] = access_info.model_id
-                    else:
-                        current_args["model_id"] = access_info.inference_profile_id
+                    current_args["model_id"] = model_id_to_use
 
                 # Execute the operation
                 result = operation(region=region, **current_args)
 
-                # Success!
+                # Success! Record parameter compatibility
+                if original_additional_fields:
+                    self._parameter_tracker.record_success(
+                        model_id=access_info.model_id,
+                        region=region,
+                        parameters=original_additional_fields,
+                    )
+
+                # Record successful access method
+                self._access_method_tracker.record_success(
+                    model_id=access_info.model_id,
+                    region=region,
+                    access_method=selected_access_method,
+                    model_id_used=model_id_to_use,
+                )
+
+                # Log access method learning
+                self._logger.debug(
+                    f"Learned access method '{selected_access_method}' for model "
+                    f"'{access_info.model_id}' in region '{region}'"
+                )
+
                 attempt.end_time = datetime.now()
                 attempt.success = True
                 attempts.append(attempt)
@@ -490,6 +595,89 @@ class RetryManager:
                     )
                 )
 
+                # Check if this is a profile requirement error
+                if ProfileRequirementDetector.is_profile_requirement_error(error=error):
+                    # Extract model ID from error
+                    detected_model_id = ProfileRequirementDetector.extract_model_id_from_error(
+                        error=error
+                    )
+
+                    # Log profile requirement detection
+                    self._logger.warning(
+                        f"Profile requirement detected for model '{model}' in region '{region}'. "
+                        f"Model ID from error: {detected_model_id or 'not extracted'}"
+                    )
+
+                    # Try immediate retry with profile
+                    profile_result, profile_success, profile_warning = self._retry_with_profile(
+                        operation=operation,
+                        operation_args=operation_args,
+                        model=model,
+                        region=region,
+                        access_info=access_info,
+                        original_error=error,
+                    )
+
+                    if profile_success:
+                        # Success with profile!
+                        attempt.success = True
+                        if profile_warning:
+                            warnings.append(profile_warning)
+
+                        self._logger.info(
+                            f"Request succeeded for {model} in {region} using inference profile"
+                        )
+
+                        return profile_result, attempts, warnings
+                    else:
+                        # Profile retry failed, continue to next target
+                        self._logger.debug(
+                            f"Profile retry also failed for {model} in {region}, "
+                            f"continuing to next target"
+                        )
+
+                # Check if this is a parameter compatibility error
+                is_param_error, param_name = self.is_parameter_compatibility_error(error)
+                if is_param_error and original_additional_fields:
+                    # Record parameter incompatibility
+                    self._parameter_tracker.record_failure(
+                        model_id=access_info.model_id,
+                        region=region,
+                        parameters=original_additional_fields,
+                        error=error,
+                    )
+
+                    # Try to retry without parameters
+                    self._logger.warning(
+                        f"Parameter compatibility error detected for {model} in {region}. "
+                        f"Retrying without additionalModelRequestFields."
+                    )
+
+                    retry_result, retry_success, retry_warning = self._retry_without_parameters(
+                        operation=operation,
+                        operation_args=operation_args,
+                        model=model,
+                        region=region,
+                        access_info=access_info,
+                    )
+
+                    if retry_success:
+                        # Success without parameters!
+                        attempt.success = True
+                        if retry_warning:
+                            warnings.append(retry_warning)
+
+                        self._logger.info(
+                            f"Request succeeded for {model} in {region} after removing parameters"
+                        )
+
+                        return retry_result, attempts, warnings
+                    else:
+                        # Retry without parameters also failed, continue to next target
+                        self._logger.debug(
+                            f"Retry without parameters also failed for {model} in {region}"
+                        )
+
                 # Check if we should try feature fallback first
                 should_fallback, feature_to_disable = self.should_disable_feature_and_retry(error)
                 if (
@@ -512,10 +700,7 @@ class RetryManager:
                             filter_state=filter_state, disabled_features=set(disabled_features)
                         )
                         # Re-add model ID
-                        if access_info.access_method.value in ["direct", "both"]:
-                            fallback_args["model_id"] = access_info.model_id
-                        else:
-                            fallback_args["model_id"] = access_info.inference_profile_id
+                        fallback_args["model_id"] = model_id_to_use
 
                         result = operation(region=region, **fallback_args)
 
@@ -559,20 +744,262 @@ class RetryManager:
                 # Continue to next target
                 continue
 
-        # All attempts failed
+        # All attempts failed - check if profile unavailability was the issue
         last_errors = [attempt.error for attempt in attempts if attempt.error]
         models_tried = list(set(attempt.model_id for attempt in attempts))
         regions_tried = list(set(attempt.region for attempt in attempts))
 
-        raise RetryExhaustedError(
-            message=LLMManagerErrorMessages.ALL_RETRIES_FAILED.format(
+        # Check if all errors were profile requirement errors
+        profile_requirement_errors = [
+            error
+            for error in last_errors
+            if ProfileRequirementDetector.is_profile_requirement_error(error=error)
+        ]
+
+        # Build error message with profile-specific guidance if applicable
+        if profile_requirement_errors and len(profile_requirement_errors) == len(last_errors):
+            # All errors were profile requirements - provide specific guidance
+            error_message = (
+                f"All retry attempts exhausted. All {len(models_tried)} model(s) tried "
+                f"require inference profiles but profile access failed. "
+                f"Models requiring profiles: {', '.join(models_tried)}. "
+                f"Consider refreshing catalog data or trying different models/regions."
+            )
+        elif profile_requirement_errors:
+            # Some errors were profile requirements
+            error_message = (
+                f"All retry attempts exhausted. {len(profile_requirement_errors)} of "
+                f"{len(last_errors)} attempts failed due to missing inference profiles. "
+                f"Models tried: {', '.join(models_tried)}. "
+                f"Consider refreshing catalog data."
+            )
+        else:
+            # Use default error message
+            error_message = LLMManagerErrorMessages.ALL_RETRIES_FAILED.format(
                 model_count=len(models_tried), region_count=len(regions_tried)
-            ),
+            )
+
+        raise RetryExhaustedError(
+            message=error_message,
             attempts_made=len(attempts),
             last_errors=last_errors,
             models_tried=models_tried,
             regions_tried=regions_tried,
         )
+
+    def _retry_without_parameters(
+        self,
+        operation: Callable[..., Any],
+        operation_args: Dict[str, Any],
+        model: str,
+        region: str,
+        access_info: ModelAccessInfo,
+    ) -> Tuple[Any, bool, Optional[str]]:
+        """
+        Retry operation without additionalModelRequestFields.
+
+        Args:
+            operation: Function to execute
+            operation_args: Original operation arguments
+            model: Model name
+            region: Region name
+            access_info: Model access information
+
+        Returns:
+            Tuple of (result, success, warning_message)
+        """
+        try:
+            # Create args without additionalModelRequestFields
+            retry_args = operation_args.copy()
+            original_fields = retry_args.pop("additionalModelRequestFields", None)
+
+            # Set model ID
+            if access_info.access_method.value in ["direct", "both"]:
+                retry_args["model_id"] = access_info.model_id
+            else:
+                retry_args["model_id"] = access_info.inference_profile_id
+
+            # Log parameter removal
+            if original_fields:
+                param_names = list(original_fields.keys())
+                self._logger.warning(
+                    f"Removed additionalModelRequestFields for {model} in {region}: "
+                    f"{', '.join(param_names)}"
+                )
+
+            # Execute without parameters
+            result = operation(region=region, **retry_args)
+
+            # Create warning message
+            warning = None
+            if original_fields:
+                param_names = list(original_fields.keys())
+                warning = (
+                    f"Parameters removed due to incompatibility with {model} in {region}: "
+                    f"{', '.join(param_names)}"
+                )
+
+            return result, True, warning
+
+        except Exception as retry_error:
+            self._logger.debug(f"Retry without parameters failed: {retry_error}")
+            return None, False, None
+
+    def _retry_with_profile(
+        self,
+        operation: Callable[..., Any],
+        operation_args: Dict[str, Any],
+        model: str,
+        region: str,
+        access_info: ModelAccessInfo,
+        original_error: Exception,
+    ) -> Tuple[Any, bool, Optional[str]]:
+        """
+        Retry operation with inference profile after detecting requirement.
+
+        This method is called when a profile requirement error is detected.
+        It attempts to retry with available CRIS profiles without incrementing
+        the retry attempt counter.
+
+        Args:
+            operation: Function to execute
+            operation_args: Original operation arguments
+            model: Model name
+            region: Region name
+            access_info: Model access information
+            original_error: The profile requirement error
+
+        Returns:
+            Tuple of (result, success, warning_message)
+        """
+        from .access_method_structures import AccessMethodNames
+
+        # Record profile requirement for future requests
+        self._access_method_tracker.record_profile_requirement(
+            model_id=access_info.model_id, region=region
+        )
+
+        # Check if profile information is available in catalog
+        if not access_info.has_any_cris_access():
+            self._logger.warning(
+                f"Model '{model}' in region '{region}' requires inference profile but "
+                f"no profile information available in catalog. Continuing to next model/region."
+            )
+            return None, False, None
+
+        # Get fallback access methods (excluding direct access which failed)
+        fallback_methods = self._access_method_selector.get_fallback_access_methods(
+            access_info=access_info, failed_method=AccessMethodNames.DIRECT
+        )
+
+        if not fallback_methods:
+            self._logger.warning(
+                f"No inference profiles available for model '{model}' in region '{region}'"
+            )
+            return None, False, None
+
+        # Try each fallback method
+        for profile_id, access_method in fallback_methods:
+            try:
+                # Log profile selection
+                self._logger.info(
+                    f"Retrying with inference profile for model '{model}' in region '{region}' "
+                    f"using access method '{access_method}'"
+                )
+
+                # Create args with profile ID
+                retry_args = operation_args.copy()
+                retry_args["model_id"] = profile_id
+
+                # Execute with profile
+                result = operation(region=region, **retry_args)
+
+                # Success! Record successful access method
+                self._access_method_tracker.record_success(
+                    model_id=access_info.model_id,
+                    region=region,
+                    access_method=access_method,
+                    model_id_used=profile_id,
+                )
+
+                # Log access method learning
+                self._logger.debug(
+                    f"Learned access method '{access_method}' for model "
+                    f"'{access_info.model_id}' in region '{region}' (from profile requirement)"
+                )
+
+                # Log success
+                self._logger.info(
+                    f"Profile retry succeeded for model '{model}' in region '{region}' "
+                    f"using access method '{access_method}'"
+                )
+
+                # Create warning message
+                warning = (
+                    f"Model '{model}' in region '{region}' requires inference profile access. "
+                    f"Using {access_method} profile."
+                )
+
+                return result, True, warning
+
+            except Exception as profile_error:
+                self._logger.debug(
+                    f"Profile retry failed with access method '{access_method}': {profile_error}"
+                )
+                # Continue to next fallback method
+                continue
+
+        # All profile retries failed
+        self._logger.warning(f"All profile retries failed for model '{model}' in region '{region}'")
+        return None, False, None
+
+    def _select_model_id_for_request(
+        self,
+        access_info: ModelAccessInfo,
+        model_name: str,
+        region: str,
+    ) -> Tuple[str, str]:
+        """
+        Select appropriate model ID for request based on access info and learned preferences.
+
+        This method queries the AccessMethodTracker for learned preferences and uses
+        the AccessMethodSelector to choose the optimal model ID (direct or profile).
+
+        Args:
+            access_info: Model access information from catalog
+            model_name: User-provided model name
+            region: Target region
+
+        Returns:
+            Tuple of (model_id_to_use, access_method_name)
+
+        Examples:
+            - ("anthropic.claude-3-haiku-20240307-v1:0", "direct")
+            - ("arn:aws:bedrock:us-east-1::inference-profile/...", "regional_cris")
+        """
+        # Query for learned preference
+        learned_preference = self._access_method_tracker.get_preference(
+            model_id=access_info.model_id, region=region
+        )
+
+        # Use selector to choose optimal access method
+        model_id_to_use, access_method = self._access_method_selector.select_access_method(
+            access_info=access_info, learned_preference=learned_preference
+        )
+
+        # Log selection
+        if learned_preference:
+            self._logger.debug(
+                f"Selected access method '{access_method}' for model '{model_name}' "
+                f"in region '{region}' based on learned preference"
+            )
+        else:
+            self._logger.debug(
+                f"Selected access method '{access_method}' for model '{model_name}' "
+                f"in region '{region}' using default preference order"
+            )
+
+        return model_id_to_use, access_method
 
     def _remove_disabled_features(
         self, request_args: Dict[str, Any], disabled_features: List[str]
@@ -940,15 +1367,43 @@ class RetryManager:
                 # Continue to next target
                 continue
 
-        # All attempts failed
+        # All attempts failed - check if profile unavailability was the issue
         last_errors = [attempt.error for attempt in attempts if attempt.error]
         models_tried = list(set(attempt.model_id for attempt in attempts))
         regions_tried = list(set(attempt.region for attempt in attempts))
 
-        raise RetryExhaustedError(
-            message=LLMManagerErrorMessages.ALL_RETRIES_FAILED.format(
+        # Check if all errors were profile requirement errors
+        profile_requirement_errors = [
+            error
+            for error in last_errors
+            if ProfileRequirementDetector.is_profile_requirement_error(error=error)
+        ]
+
+        # Build error message with profile-specific guidance if applicable
+        if profile_requirement_errors and len(profile_requirement_errors) == len(last_errors):
+            # All errors were profile requirements - provide specific guidance
+            error_message = (
+                f"All retry attempts exhausted. All {len(models_tried)} model(s) tried "
+                f"require inference profiles but profile access failed. "
+                f"Models requiring profiles: {', '.join(models_tried)}. "
+                f"Consider refreshing catalog data or trying different models/regions."
+            )
+        elif profile_requirement_errors:
+            # Some errors were profile requirements
+            error_message = (
+                f"All retry attempts exhausted. {len(profile_requirement_errors)} of "
+                f"{len(last_errors)} attempts failed due to missing inference profiles. "
+                f"Models tried: {', '.join(models_tried)}. "
+                f"Consider refreshing catalog data."
+            )
+        else:
+            # Use default error message
+            error_message = LLMManagerErrorMessages.ALL_RETRIES_FAILED.format(
                 model_count=len(models_tried), region_count=len(regions_tried)
-            ),
+            )
+
+        raise RetryExhaustedError(
+            message=error_message,
             attempts_made=len(attempts),
             last_errors=last_errors,
             models_tried=models_tried,

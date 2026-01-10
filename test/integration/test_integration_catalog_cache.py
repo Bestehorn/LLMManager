@@ -538,6 +538,11 @@ class TestCacheErrorHandling:
         """
         import os
         import stat
+        import sys
+
+        # Skip on Windows as chmod doesn't work the same way
+        if sys.platform == "win32":
+            pytest.skip("chmod read-only test not reliable on Windows")
 
         # Create cache directory
         cache_dir = tmp_path / "readonly_cache"

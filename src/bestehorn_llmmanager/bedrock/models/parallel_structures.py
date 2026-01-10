@@ -107,6 +107,7 @@ class BedrockConverseRequest:
         tool_config: Tool use configuration
         request_metadata: Metadata for the request
         prompt_variables: Variables for prompt templates
+        model_specific_config: Configuration for model-specific parameters
         request_id: Unique identifier for the request (auto-generated if None)
         retry_count: Number of times this request has been retried
         failure_history: List of failure entries tracking all retry attempts
@@ -122,6 +123,7 @@ class BedrockConverseRequest:
     tool_config: Optional[Dict[str, Any]] = None
     request_metadata: Optional[Dict[str, Any]] = None
     prompt_variables: Optional[Dict[str, Any]] = None
+    model_specific_config: Optional[Any] = None
     request_id: Optional[str] = None
     retry_count: int = field(default=0)
     failure_history: List[FailureEntry] = field(default_factory=list)
@@ -215,6 +217,8 @@ class BedrockConverseRequest:
             args["request_metadata"] = self.request_metadata
         if self.prompt_variables is not None:
             args["prompt_variables"] = self.prompt_variables
+        if self.model_specific_config is not None:
+            args["model_specific_config"] = self.model_specific_config
 
         return args
 
@@ -582,6 +586,144 @@ class ParallelResponse:
             List of request IDs that can be retried
         """
         return self.failed_request_ids + self.timed_out_request_ids
+
+    def get_requests_with_removed_parameters(self) -> Dict[str, List[str]]:
+        """
+        Get mapping of request IDs to removed parameters.
+
+        Returns:
+            Dictionary mapping request_id to list of removed parameter names
+        """
+        result: Dict[str, List[str]] = {}
+
+        for req_id, response in self.request_responses.items():
+            if response.parameters_removed:
+                result[req_id] = response.parameters_removed
+
+        return result
+
+    def get_parameter_compatibility_summary(self) -> Dict[str, Any]:
+        """
+        Get summary of parameter compatibility across all requests.
+
+        Returns:
+            Summary dictionary including:
+            - total_requests_with_parameters: Total requests that had parameters
+            - requests_with_removed_parameters: Count of requests with removed parameters
+            - most_common_incompatible_parameters: List of most common incompatible parameters
+            - affected_request_ids: List of request IDs with removed parameters
+        """
+        requests_with_removed = self.get_requests_with_removed_parameters()
+
+        # Count parameter occurrences
+        parameter_counts: Dict[str, int] = {}
+        for removed_params in requests_with_removed.values():
+            for param in removed_params:
+                parameter_counts[param] = parameter_counts.get(param, 0) + 1
+
+        # Sort by frequency
+        sorted_params = sorted(parameter_counts.items(), key=lambda x: x[1], reverse=True)
+
+        # Count requests with any parameters (original or removed)
+        requests_with_params = 0
+        for response in self.request_responses.values():
+            if (
+                response.original_additional_fields
+                or response.final_additional_fields
+                or response.parameters_removed
+            ):
+                requests_with_params += 1
+
+        return {
+            "total_requests_with_parameters": requests_with_params,
+            "requests_with_removed_parameters": len(requests_with_removed),
+            "most_common_incompatible_parameters": sorted_params,
+            "affected_request_ids": list(requests_with_removed.keys()),
+        }
+
+    def get_access_method_statistics(self) -> Dict[str, Any]:
+        """
+        Get statistics about access methods used across all requests.
+
+        Returns:
+            Dictionary with access method statistics including:
+            - total_requests: Total number of requests
+            - direct_access_count: Number of requests using direct access
+            - regional_cris_count: Number of requests using regional CRIS profiles
+            - global_cris_count: Number of requests using global CRIS profiles
+            - profile_usage_count: Total number of requests using any profile
+            - profile_usage_percentage: Percentage of requests using profiles
+            - access_method_breakdown: Detailed breakdown by access method
+        """
+        total_requests = len(self.request_responses)
+
+        # Count by access method
+        access_method_counts: Dict[str, int] = {}
+        profile_count = 0
+
+        for response in self.request_responses.values():
+            access_method = response.access_method_used
+            if access_method:
+                access_method_counts[access_method] = access_method_counts.get(access_method, 0) + 1
+
+                # Count profile usage
+                if response.inference_profile_used:
+                    profile_count += 1
+
+        # Calculate percentages
+        profile_percentage = (profile_count / total_requests * 100) if total_requests > 0 else 0.0
+
+        return {
+            "total_requests": total_requests,
+            "direct_access_count": access_method_counts.get("direct", 0),
+            "regional_cris_count": access_method_counts.get("regional_cris", 0),
+            "global_cris_count": access_method_counts.get("global_cris", 0),
+            "profile_usage_count": profile_count,
+            "profile_usage_percentage": round(profile_percentage, 2),
+            "access_method_breakdown": access_method_counts,
+        }
+
+    def get_requests_by_access_method(self, access_method: str) -> Dict[str, BedrockResponse]:
+        """
+        Get all requests that used a specific access method.
+
+        Args:
+            access_method: Access method to filter by (e.g., "direct", "regional_cris", "global_cris")
+
+        Returns:
+            Dictionary of request_id -> BedrockResponse for matching requests
+        """
+        return {
+            req_id: response
+            for req_id, response in self.request_responses.items()
+            if response.access_method_used == access_method
+        }
+
+    def get_profile_usage_details(self) -> Dict[str, Any]:
+        """
+        Get detailed information about profile usage across all requests.
+
+        Returns:
+            Dictionary with profile usage details including:
+            - requests_using_profiles: List of request IDs using profiles
+            - profile_ids_used: Set of unique profile IDs used
+            - profile_usage_by_request: Mapping of request_id to profile_id
+        """
+        requests_using_profiles = []
+        profile_ids_used = set()
+        profile_usage_by_request = {}
+
+        for req_id, response in self.request_responses.items():
+            if response.inference_profile_used and response.inference_profile_id:
+                requests_using_profiles.append(req_id)
+                profile_ids_used.add(response.inference_profile_id)
+                profile_usage_by_request[req_id] = response.inference_profile_id
+
+        return {
+            "requests_using_profiles": requests_using_profiles,
+            "profile_ids_used": list(profile_ids_used),
+            "profile_usage_by_request": profile_usage_by_request,
+        }
 
     def to_dict(self) -> Dict[str, Any]:
         """
