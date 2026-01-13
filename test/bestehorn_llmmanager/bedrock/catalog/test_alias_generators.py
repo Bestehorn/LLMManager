@@ -220,26 +220,31 @@ class TestPrefixedModelAliasGenerator:
         assert not generator.can_generate(model_info=non_prefixed_model)
 
     def test_generate_removes_regional_prefix(self) -> None:
-        """Test removal of regional prefixes."""
+        """Test that regional prefixes are NOT removed (to prevent ambiguity)."""
         config = AliasGenerationConfig()
         generator = PrefixedModelAliasGenerator(config=config)
 
         model = create_test_model(model_name="APAC Anthropic Claude 3 Haiku")
         aliases = generator.generate(model_info=model)
 
-        # Should remove APAC prefix
-        assert "Anthropic Claude 3 Haiku" in aliases
+        # Should remove Anthropic (provider) but keep APAC (regional)
+        # Regional prefixes must be preserved to prevent ambiguous aliases
+        assert "APAC Claude 3 Haiku" in aliases
+        # Should NOT generate unprefixed variant (would be ambiguous)
+        assert "Claude 3 Haiku" not in aliases
 
     def test_generate_removes_provider_prefix(self) -> None:
-        """Test removal of provider prefixes."""
+        """Test removal of provider prefixes while preserving regional prefixes."""
         config = AliasGenerationConfig()
         generator = PrefixedModelAliasGenerator(config=config)
 
         model = create_test_model(model_name="APAC Anthropic Claude 3 Haiku")
         aliases = generator.generate(model_info=model)
 
-        # Should remove both APAC and Anthropic prefixes
-        assert "Claude 3 Haiku" in aliases
+        # Should remove Anthropic (provider) but keep APAC (regional)
+        assert "APAC Claude 3 Haiku" in aliases
+        # Should NOT remove regional prefix (would create ambiguous aliases)
+        assert "Claude 3 Haiku" not in aliases
 
     def test_generate_removes_provider_only(self) -> None:
         """Test removal of provider prefix without regional prefix."""

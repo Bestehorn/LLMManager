@@ -162,6 +162,11 @@ class ClaudeAliasGenerator(AliasGenerator):
 
     Generates aliases for Claude models following patterns like:
     - "Claude Haiku 4 5 20251001" → ["Claude 4.5 Haiku", "Claude Haiku 4.5", "Claude 4 Haiku"]
+    - "APAC Claude Haiku 4 5 20251001" → ["APAC Claude 4.5 Haiku", "APAC Claude Haiku 4.5"]
+
+    IMPORTANT: Regional prefixes (APAC, EU, US) are preserved in aliases to prevent
+    ambiguity between regional variants. Regional variants like "APAC Claude 1 Haiku"
+    and "Claude 1 Haiku" have different model_ids and must generate distinct aliases.
 
     This generator handles version number variations and different orderings
     of model variant names (Haiku, Sonnet, Opus).
@@ -169,6 +174,9 @@ class ClaudeAliasGenerator(AliasGenerator):
 
     # Known Claude model variants
     CLAUDE_VARIANTS = ["Haiku", "Sonnet", "Opus"]
+
+    # Regional prefixes that should be preserved
+    REGIONAL_PREFIXES = ["APAC", "EU", "US"]
 
     def can_generate(self, model_info: UnifiedModelInfo) -> bool:
         """
@@ -186,6 +194,8 @@ class ClaudeAliasGenerator(AliasGenerator):
         """
         Generate aliases for Claude models.
 
+        IMPORTANT: Regional prefixes are preserved to prevent ambiguity.
+
         Args:
             model_info: Model information
 
@@ -194,6 +204,9 @@ class ClaudeAliasGenerator(AliasGenerator):
         """
         aliases: List[str] = []
         model_name = model_info.model_name
+
+        # Extract regional prefix if present
+        regional_prefix = self._extract_regional_prefix(name=model_name)
 
         # Extract variant (Haiku, Sonnet, Opus)
         variant = self._extract_variant(name=model_name)
@@ -207,9 +220,14 @@ class ClaudeAliasGenerator(AliasGenerator):
 
         # Generate version variants if configured
         if self.config.generate_version_variants:
-            # Full version: "Claude 4.5 Haiku"
-            # This is the primary alias format
-            aliases.append(f"Claude {version} {variant}")
+            # Full version with regional prefix if present
+            # Examples:
+            # - "Claude 4.5 Haiku" (no prefix)
+            # - "APAC Claude 4.5 Haiku" (with prefix)
+            if regional_prefix:
+                aliases.append(f"{regional_prefix} Claude {version} {variant}")
+            else:
+                aliases.append(f"Claude {version} {variant}")
 
             # Only generate major version alias if it's different from full version
             # AND if the full version has a minor component (e.g., "3.5" → "3")
@@ -222,14 +240,36 @@ class ClaudeAliasGenerator(AliasGenerator):
 
         # Generate spacing variants if configured
         if self.config.generate_spacing_variants:
-            # No space between Claude and version: "Claude4.5 Haiku"
-            aliases.append(f"Claude{version} {variant}")
+            # No space between Claude and version
+            # Examples:
+            # - "Claude4.5 Haiku" (no prefix)
+            # - "APAC Claude4.5 Haiku" (with prefix)
+            if regional_prefix:
+                aliases.append(f"{regional_prefix} Claude{version} {variant}")
+            else:
+                aliases.append(f"Claude{version} {variant}")
 
         # Remove duplicates and enforce limit
         aliases = self._deduplicate_aliases(aliases=aliases)
         aliases = self._enforce_alias_limit(aliases=aliases)
 
         return aliases
+
+    def _extract_regional_prefix(self, name: str) -> str:
+        """
+        Extract regional prefix from model name if present.
+
+        Args:
+            name: Model name
+
+        Returns:
+            Regional prefix (APAC, EU, US) or empty string if not found
+        """
+        for prefix in self.REGIONAL_PREFIXES:
+            pattern = rf"^{re.escape(prefix)}\s+"
+            if re.match(pattern=pattern, string=name, flags=re.IGNORECASE):
+                return prefix
+        return ""
 
     def _extract_variant(self, name: str) -> str:
         """
@@ -316,16 +356,23 @@ class PrefixedModelAliasGenerator(AliasGenerator):
     Alias generator for provider-prefixed models.
 
     Generates aliases for models with regional or provider prefixes like:
-    - "APAC Anthropic Claude 3 Haiku" → ["APAC Claude 3 Haiku", "Claude 3 Haiku"]
+    - "APAC Anthropic Claude 3 Haiku" → ["APAC Claude 3 Haiku"]
+    - "Anthropic Claude 3 Haiku" → ["Claude 3 Haiku"]
 
-    This generator creates both prefixed and unprefixed variants.
+    IMPORTANT: This generator does NOT remove regional prefixes (APAC, EU, US) to avoid
+    ambiguity between regional variants. Regional variants like "APAC Claude 1 Haiku"
+    and "Claude 1 Haiku" are different models with different model_ids and must not
+    generate overlapping aliases.
+
+    Only provider prefixes (Anthropic, Amazon, etc.) are removed since they don't
+    indicate different model variants.
     """
 
-    # Known prefixes to remove
-    KNOWN_PREFIXES = [
-        "APAC",
-        "EU",
-        "US",
+    # Regional prefixes that should NOT be removed (to avoid ambiguity)
+    REGIONAL_PREFIXES = ["APAC", "EU", "US"]
+
+    # Provider prefixes that can be safely removed
+    PROVIDER_PREFIXES = [
         "Anthropic",
         "Amazon",
         "Meta",
@@ -334,6 +381,9 @@ class PrefixedModelAliasGenerator(AliasGenerator):
         "Mistral",
         "Stability",
     ]
+
+    # All known prefixes (for detection)
+    KNOWN_PREFIXES = REGIONAL_PREFIXES + PROVIDER_PREFIXES
 
     def can_generate(self, model_info: UnifiedModelInfo) -> bool:
         """
@@ -356,6 +406,9 @@ class PrefixedModelAliasGenerator(AliasGenerator):
         """
         Generate aliases for prefixed models.
 
+        IMPORTANT: Regional prefixes (APAC, EU, US) are NOT removed to prevent
+        ambiguity between regional variants. Only provider prefixes are removed.
+
         Args:
             model_info: Model information
 
@@ -367,30 +420,48 @@ class PrefixedModelAliasGenerator(AliasGenerator):
 
         # Generate no-prefix variants if configured
         if self.config.generate_no_prefix_variants:
-            # Remove regional prefixes (APAC, EU, US)
-            regional_prefixes = ["APAC", "EU", "US"]
-            no_regional = self._remove_prefix(name=model_name, prefixes=regional_prefixes)
-            if no_regional != model_name:
-                aliases.append(no_regional)
+            # DO NOT remove regional prefixes - they indicate different model variants
+            # Regional variants like "APAC Claude 1 Haiku" and "Claude 1 Haiku"
+            # have different model_ids and must not generate overlapping aliases
 
-            # Remove provider prefixes (Anthropic, Amazon, etc.)
-            provider_prefixes = [
-                "Anthropic",
-                "Amazon",
-                "Meta",
-                "Cohere",
-                "AI21",
-                "Mistral",
-                "Stability",
-            ]
-            no_provider = self._remove_prefix(name=no_regional, prefixes=provider_prefixes)
-            if no_provider != no_regional:
-                aliases.append(no_provider)
+            # Check if model has a regional prefix
+            has_regional_prefix = False
+            for regional_prefix in self.REGIONAL_PREFIXES:
+                pattern = rf"^{re.escape(regional_prefix)}\s+"
+                if re.match(pattern=pattern, string=model_name, flags=re.IGNORECASE):
+                    has_regional_prefix = True
+                    break
 
-            # Also try removing provider from original name
-            no_provider_original = self._remove_prefix(name=model_name, prefixes=provider_prefixes)
-            if no_provider_original != model_name:
-                aliases.append(no_provider_original)
+            if has_regional_prefix:
+                # Model has regional prefix - only remove provider prefix that comes AFTER it
+                # Example: "APAC Anthropic Claude 3 Haiku" → "APAC Claude 3 Haiku"
+                # First, extract the regional prefix
+                regional_prefix_match = None
+                for regional_prefix in self.REGIONAL_PREFIXES:
+                    pattern = rf"^({re.escape(regional_prefix)})\s+"
+                    match = re.match(pattern=pattern, string=model_name, flags=re.IGNORECASE)
+                    if match:
+                        regional_prefix_match = match.group(1)
+                        break
+
+                if regional_prefix_match:
+                    # Remove the regional prefix temporarily to process the rest
+                    rest_of_name = model_name[len(regional_prefix_match) :].strip()
+
+                    # Try to remove provider prefix from the rest
+                    no_provider = self._remove_prefix(
+                        name=rest_of_name, prefixes=self.PROVIDER_PREFIXES
+                    )
+
+                    if no_provider != rest_of_name:
+                        # Successfully removed provider prefix, add back regional prefix
+                        aliases.append(f"{regional_prefix_match} {no_provider}")
+            else:
+                # No regional prefix - just remove provider prefix
+                # Example: "Anthropic Claude 3 Haiku" → "Claude 3 Haiku"
+                no_provider = self._remove_prefix(name=model_name, prefixes=self.PROVIDER_PREFIXES)
+                if no_provider != model_name:
+                    aliases.append(no_provider)
 
         # Remove duplicates and enforce limit
         aliases = self._deduplicate_aliases(aliases=aliases)
