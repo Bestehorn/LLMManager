@@ -7,11 +7,9 @@ Tests verify that logging occurs at the correct levels for different operations:
 - INFO level for extended context enablement
 """
 
-import logging
-from typing import Any, Dict, List
-from unittest.mock import MagicMock, patch
+from typing import Any, Dict
+from unittest.mock import patch
 
-import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -161,7 +159,7 @@ class TestLoggingLevelCompliance:
 
         with patch("bestehorn_llmmanager.bedrock.builders.parameter_builder.logger") as mock_logger:
             # Build parameters
-            result = builder.build_additional_fields(
+            builder.build_additional_fields(
                 model_name=model_name,
                 model_specific_config=model_config,
             )
@@ -261,7 +259,7 @@ class TestLoggingLevelCompliance:
 
         with patch("bestehorn_llmmanager.bedrock.builders.parameter_builder.logger") as mock_logger:
             # Build parameters with extended context enabled for incompatible model
-            result = builder.build_additional_fields(
+            builder.build_additional_fields(
                 model_name=model_name,
                 model_specific_config=config,
             )

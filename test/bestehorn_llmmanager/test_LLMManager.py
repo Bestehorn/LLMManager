@@ -305,9 +305,10 @@ class TestLLMManager:
         result = basic_llm_manager.get_model_access_info("Claude Haiku 4 5 20251001", "us-east-1")
 
         assert result is not None
-        assert "access_method" in result
+        assert "access_methods" in result  # Plural - list of available access methods
         assert "model_id" in result
-        assert "inference_profile_id" in result
+        assert "regional_cris_profile_id" in result
+        assert "global_cris_profile_id" in result
         assert "region" in result
 
     def test_validate_configuration_success(self, basic_llm_manager):

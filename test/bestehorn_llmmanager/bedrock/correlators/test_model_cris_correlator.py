@@ -11,7 +11,7 @@ import pytest
 from bestehorn_llmmanager.bedrock.correlators.model_cris_correlator import (
     ModelCRISCorrelator,
 )
-from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo, ModelAccessMethod
+from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from bestehorn_llmmanager.bedrock.models.cris_structures import (
     CRISCatalog,
     CRISInferenceProfile,

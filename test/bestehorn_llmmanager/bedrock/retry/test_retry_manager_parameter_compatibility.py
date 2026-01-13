@@ -6,14 +6,12 @@ retry without parameters, and track compatibility information.
 """
 
 from typing import Any, Dict
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
 from botocore.exceptions import ClientError
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RetryExhaustedError
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConfig
 from bestehorn_llmmanager.bedrock.retry.retry_manager import RetryManager

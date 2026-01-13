@@ -6,12 +6,6 @@ Property 17: Error Type Distinction in Logs
 Validates: Requirements 9.5
 """
 
-import logging
-from typing import Any, Dict
-from unittest.mock import Mock, patch
-
-import pytest
-from botocore.exceptions import ClientError
 from hypothesis import given, settings
 from hypothesis import strategies as st
 

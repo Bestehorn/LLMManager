@@ -304,7 +304,7 @@ def test_property_test_state_isolation(
         tracker = AccessMethodTracker.get_instance()
 
         # Verify tracker starts empty (or from previous cycle if reset failed)
-        initial_stats = tracker.get_statistics()
+        tracker.get_statistics()
 
         # Record several preferences
         for i in range(num_operations):

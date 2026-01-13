@@ -307,9 +307,6 @@ class TestAliasGeneratorEdgeCases:
 
     def test_empty_model_name(self) -> None:
         """Test handling of empty model names."""
-        config = AliasGenerationConfig()
-        # generators list removed (unused)
-
         # This should raise during model creation, not during alias generation
         with pytest.raises(ValueError):
             create_test_model(model_name="")

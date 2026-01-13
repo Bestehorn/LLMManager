@@ -7,8 +7,6 @@ verifying error pattern matching, model ID extraction, and edge case handling.
 **Feature: inference-profile-support**
 """
 
-import pytest
-
 from bestehorn_llmmanager.bedrock.retry.profile_requirement_detector import (
     ProfileRequirementDetector,
 )

@@ -52,28 +52,31 @@ pytest test/ -v --cov=bestehorn_llmmanager --cov-fail-under=80
 
 ### Current Status
 
-- **Production Code**: Must generate ZERO deprecation warnings
-- **Test Code**: Total warnings must be under 100
-- **Monitoring**: `test/bestehorn_llmmanager/test_deprecation_warning_count.py` enforces the threshold
+- **Production Code**: Must generate ZERO deprecation warnings (enforced by test)
+- **Test Code**: Monitored through CI logs and manual review
+- **Enforcement**: `test/bestehorn_llmmanager/test_production_deprecation_warnings.py`
 
-### Warning Threshold Configuration
+### Production Code Warning Test
 
-The deprecation warning threshold is enforced by a dedicated test that:
-1. Runs the full test suite
-2. Counts deprecation warnings
-3. Fails if count exceeds 100
+A fast-running test ensures production code generates no deprecation warnings:
 
-**Location**: `test/bestehorn_llmmanager/test_deprecation_warning_count.py`
+**Location**: `test/bestehorn_llmmanager/test_production_deprecation_warnings.py`
 
-### Reducing the Threshold
+This test:
+1. Imports all production modules
+2. Captures any deprecation warnings
+3. Fails if any warnings are found in production code
 
-As deprecated APIs are migrated, the threshold should be gradually reduced:
+**Runtime**: < 1 second (no timeout issues)
 
-1. Update the threshold in `test_deprecation_warning_count.py`
-2. Verify all tests pass with the new threshold
-3. Document the change in the PR
+### Test Code Warning Monitoring
 
-**Goal**: Reduce threshold to 0 over time.
+Test code deprecation warnings are monitored through:
+1. **CI Logs**: Review pytest output for warning summaries
+2. **Manual Review**: Periodic audits of test code
+3. **Code Reviews**: Flag new warnings in PRs
+
+**Note**: The previous comprehensive warning count test was removed due to timeout issues (15+ minutes to run full test suite). Production code cleanliness is the critical metric.
 
 ### Handling New Warnings
 

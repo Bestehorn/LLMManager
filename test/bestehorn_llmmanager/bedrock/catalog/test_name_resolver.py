@@ -127,8 +127,8 @@ class TestAliasMatching:
         """Test alias matching for prefixed model."""
         resolver = ModelNameResolver(catalog=sample_catalog)
 
-        # Try alias without prefix
-        match = resolver.resolve_name(user_name="Claude 3 Haiku", strict=True)
+        # Try alias WITH prefix (regional prefixes are preserved to avoid ambiguity)
+        match = resolver.resolve_name(user_name="APAC Claude 3 Haiku", strict=True)
 
         assert match is not None
         assert match.canonical_name == "APAC Anthropic Claude 3 Haiku"

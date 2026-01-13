@@ -6,7 +6,6 @@ access method learning, backward compatibility, and parallel processing.
 """
 
 import logging
-from typing import List
 from unittest.mock import MagicMock, patch
 
 import pytest

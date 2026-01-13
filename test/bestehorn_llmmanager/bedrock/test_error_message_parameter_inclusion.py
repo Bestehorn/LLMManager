@@ -6,7 +6,6 @@ the final error message includes the names of the incompatible parameters.
 """
 
 from typing import Any, Dict
-from unittest.mock import MagicMock
 
 import pytest
 from hypothesis import given, settings

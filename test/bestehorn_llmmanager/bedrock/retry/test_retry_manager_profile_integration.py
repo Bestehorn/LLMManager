@@ -5,8 +5,6 @@ Tests specific scenarios for profile requirement detection, retry logic,
 access method selection, and preference learning.
 """
 
-from unittest.mock import MagicMock, Mock, patch
-
 import pytest
 
 from src.bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo

@@ -4,9 +4,6 @@ Property-based tests for RetryManager profile integration.
 Tests universal properties that must hold for profile retry behavior.
 """
 
-from unittest.mock import MagicMock, Mock, patch
-
-import pytest
 from hypothesis import given
 from hypothesis import strategies as st
 
@@ -178,7 +175,7 @@ class TestProfileRetryIdempotence:
             # Property: Result should be successful
             assert result is not None, "Result should not be None after successful profile retry"
 
-        except Exception as e:
+        except Exception:
             # If profile retry fails, that's acceptable for this test
             # We're only testing that when it succeeds, it doesn't increment counter
             pass

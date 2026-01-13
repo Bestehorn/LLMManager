@@ -7,8 +7,6 @@ inference profile usage and access methods.
 
 from datetime import datetime
 
-import pytest
-
 from src.bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse
 from src.bestehorn_llmmanager.bedrock.models.llm_manager_structures import RequestAttempt
 

@@ -729,8 +729,6 @@ class TestLLMManagerIntegration:
             assert manager._default_model_specific_config == default_config
 
             # Verify it's used when building requests
-            messages = [{"role": "user", "content": [{"text": "test"}]}]
-
             # Resolve with no per-request config
             resolved = manager._resolve_model_specific_config(
                 model_specific_config=None,

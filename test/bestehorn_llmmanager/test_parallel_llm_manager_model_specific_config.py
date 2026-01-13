@@ -6,7 +6,6 @@ Tests parallel request field independence, model-specific filtering, and respons
 
 from unittest.mock import MagicMock, patch
 
-import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -155,7 +154,7 @@ class TestParallelFieldIndependence:
 
         # Execute parallel requests
         try:
-            response = manager.converse_parallel(requests=requests)
+            manager.converse_parallel(requests=requests)
 
             # Verify we got responses for all requests
             assert len(call_configs) >= len(requests), "Should have at least one call per request"
@@ -421,11 +420,11 @@ class TestParallelResponseMetadata:
         # Verify counts match
         assert (
             summary["requests_with_removed_parameters"] == num_with_removed_params
-        ), f"Summary count should match actual removals"
+        ), "Summary count should match actual removals"
 
         assert (
             len(summary["affected_request_ids"]) == num_with_removed_params
-        ), f"Affected request IDs count should match removals"
+        ), "Affected request IDs count should match removals"
 
 
 class TestParallelParameterIncompatibility:
