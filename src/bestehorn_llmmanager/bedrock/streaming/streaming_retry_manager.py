@@ -202,12 +202,22 @@ class StreamingRetryManager(RetryManager):
             streaming_response = StreamingResponse(True)
             streaming_response.model_used = model
             streaming_response.region_used = region
-            streaming_response.access_method_used = access_info.access_method.value
+
+            # Migration: Determine access method from available flags instead of deprecated property
+            if access_info.has_direct_access:
+                access_method_name = "direct"
+            elif access_info.has_regional_cris:
+                access_method_name = "regional_cris"
+            elif access_info.has_global_cris:
+                access_method_name = "global_cris"
+            else:
+                access_method_name = "unknown"
+
+            streaming_response.access_method_used = access_method_name
             streaming_response.request_attempt = attempt
 
             # Determine if profile was used and extract profile ID
-            access_method = access_info.access_method.value
-            if access_method in ["regional_cris", "global_cris"]:
+            if access_method_name in ["regional_cris", "global_cris"]:
                 streaming_response.inference_profile_used = True
                 # The model_id in operation_args contains the profile ARN when profile is used
                 streaming_response.inference_profile_id = operation_args.get("model_id")

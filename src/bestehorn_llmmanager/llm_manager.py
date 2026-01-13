@@ -1144,10 +1144,20 @@ class LLMManager:
                 )
 
             if access_info:
+                # Migration: Use orthogonal flags and specific profile IDs instead of deprecated properties
+                access_methods = []
+                if access_info.has_direct_access:
+                    access_methods.append("direct")
+                if access_info.has_regional_cris:
+                    access_methods.append("regional_cris")
+                if access_info.has_global_cris:
+                    access_methods.append("global_cris")
+
                 return {
-                    "access_method": access_info.access_method.value,
+                    "access_methods": access_methods,  # List of available access methods
                     "model_id": access_info.model_id,
-                    "inference_profile_id": access_info.inference_profile_id,
+                    "regional_cris_profile_id": access_info.regional_cris_profile_id,
+                    "global_cris_profile_id": access_info.global_cris_profile_id,
                     "region": access_info.region,
                 }
         except Exception as e:

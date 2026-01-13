@@ -145,6 +145,10 @@ filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
 ]
+# Note: Deprecation warnings are currently ignored to allow gradual migration.
+# Total deprecation warning count is monitored via test_deprecation_warning_count.py
+# which enforces a threshold of 100 warnings. This threshold should be gradually
+# reduced as deprecated APIs are migrated. See CONTRIBUTING.md for guidelines.
 
 # Code formatting with Black
 [tool.black]

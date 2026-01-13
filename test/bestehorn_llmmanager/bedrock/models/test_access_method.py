@@ -1,5 +1,15 @@
 """
 Tests for access method enumeration and ModelAccessInfo with orthogonal flags.
+
+INTENTIONAL DEPRECATION TESTS:
+This test file contains tests that intentionally use deprecated APIs to verify
+backward compatibility. Tests in the following classes use deprecated APIs:
+- TestModelAccessMethod: Tests deprecated enum values (CRIS_ONLY, BOTH)
+- TestModelAccessInfoDeprecatedProperties: Tests deprecated properties (access_method, inference_profile_id)
+- TestModelAccessInfoFromLegacy: Tests from_legacy factory method with deprecated enums
+
+The deprecation warnings from these specific tests are EXPECTED and should not be
+counted as issues. These tests validate backward compatibility requirements.
 """
 
 import warnings

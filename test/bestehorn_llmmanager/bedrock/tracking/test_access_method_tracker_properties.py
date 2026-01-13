@@ -267,3 +267,102 @@ def test_property_tracker_thread_safety(
 
     # Verify no errors occurred during concurrent reads
     assert len(read_errors) == 0, f"Errors occurred during concurrent reads: {read_errors}"
+
+
+@given(
+    model_ids=st.lists(simple_model_id_strategy, min_size=3, max_size=10, unique=True),
+    regions=st.lists(region_strategy, min_size=3, max_size=10),
+    access_methods=st.lists(access_method_strategy, min_size=3, max_size=10),
+)
+@settings(max_examples=100, deadline=5000)
+def test_property_test_state_isolation(
+    model_ids: List[str], regions: List[str], access_methods: List[str]
+) -> None:
+    """
+    Property 5: Test State Isolation
+
+    For any sequence of test runs, when the AccessMethodTracker is reset between tests,
+    each test should produce the same result regardless of execution order.
+
+    This test verifies that:
+    1. Recording preferences and then resetting clears all state
+    2. After reset, no preferences are retained
+    3. Multiple reset cycles produce consistent behavior
+    4. Reset is thread-safe and atomic
+
+    Feature: ci-failure-fixes, Property 5: Test State Isolation
+    Validates: Requirements 1.1
+    """
+    # Ensure we have enough data
+    num_operations = min(len(model_ids), len(regions), len(access_methods))
+    if num_operations < 3:
+        return
+
+    # Test multiple reset cycles
+    for cycle in range(3):
+        # Get tracker instance
+        tracker = AccessMethodTracker.get_instance()
+
+        # Verify tracker starts empty (or from previous cycle if reset failed)
+        initial_stats = tracker.get_statistics()
+
+        # Record several preferences
+        for i in range(num_operations):
+            tracker.record_success(
+                model_id=model_ids[i],
+                region=regions[i],
+                access_method=access_methods[i],
+                model_id_used=model_ids[i],
+            )
+
+        # Verify preferences were recorded
+        stats_after_recording = tracker.get_statistics()
+        assert stats_after_recording["total_tracked"] > 0, (
+            f"Expected preferences to be recorded in cycle {cycle}, "
+            f"but total_tracked is {stats_after_recording['total_tracked']}"
+        )
+
+        # Verify we can retrieve the preferences
+        for i in range(num_operations):
+            preference = tracker.get_preference(model_id=model_ids[i], region=regions[i])
+            assert preference is not None, (
+                f"Expected preference to exist for model '{model_ids[i]}' "
+                f"in region '{regions[i]}' before reset in cycle {cycle}"
+            )
+
+        # Reset the tracker
+        AccessMethodTracker.reset_for_testing()
+
+        # Get a new instance (should be fresh)
+        tracker_after_reset = AccessMethodTracker.get_instance()
+
+        # Verify all preferences were cleared
+        stats_after_reset = tracker_after_reset.get_statistics()
+        assert stats_after_reset["total_tracked"] == 0, (
+            f"Expected all preferences to be cleared after reset in cycle {cycle}, "
+            f"but total_tracked is {stats_after_reset['total_tracked']}"
+        )
+
+        # Verify preferences are no longer retrievable
+        for i in range(num_operations):
+            preference = tracker_after_reset.get_preference(
+                model_id=model_ids[i], region=regions[i]
+            )
+            assert preference is None, (
+                f"Expected no preference for model '{model_ids[i]}' "
+                f"in region '{regions[i]}' after reset in cycle {cycle}, "
+                f"but got: {preference}"
+            )
+
+        # Verify requires_profile returns False for all (no learned preferences)
+        for i in range(num_operations):
+            requires_profile = tracker_after_reset.requires_profile(
+                model_id=model_ids[i], region=regions[i]
+            )
+            assert not requires_profile, (
+                f"Expected requires_profile to be False for model '{model_ids[i]}' "
+                f"in region '{regions[i]}' after reset in cycle {cycle}"
+            )
+
+    # Final cleanup
+    AccessMethodTracker.reset_for_testing()

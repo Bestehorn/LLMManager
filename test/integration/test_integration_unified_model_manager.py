@@ -3,6 +3,11 @@ Integration tests for UnifiedModelManager functionality with real AWS.
 
 These tests validate the UnifiedModelManager functionality with real AWS calls,
 covering areas that have low coverage in unit tests due to mocking.
+
+INTENTIONAL DEPRECATION USAGE:
+Some tests in this file use the deprecated access_method property to verify
+backward compatibility with real AWS data. This usage is intentional and the
+deprecation warnings are expected.
 """
 
 import pytest

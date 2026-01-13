@@ -43,9 +43,11 @@ Example:
 
     Query model access information:
     >>> access_info = manager.get_model_access_info("Claude 3 Haiku", "us-east-1")
-    >>> print(f"Access method: {access_info.access_method}")
+    >>> # Migration: Use orthogonal flags instead of deprecated properties
+    >>> print(f"Has direct access: {access_info.has_direct_access}")
+    >>> print(f"Has regional CRIS: {access_info.has_regional_cris}")
     >>> print(f"Model ID: {access_info.model_id}")
-    >>> print(f"Inference profile: {access_info.inference_profile_id}")
+    >>> print(f"Regional CRIS profile: {access_info.regional_cris_profile_id}")
 
 Author: Generated code for production use
 License: MIT

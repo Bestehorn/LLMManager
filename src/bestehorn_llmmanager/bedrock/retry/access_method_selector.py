@@ -54,6 +54,11 @@ class AccessMethodSelector:
         """
         Select optimal access method and return model ID to use.
 
+        Migration Note: This method uses the current orthogonal access flags
+        (has_direct_access, has_regional_cris, has_global_cris) instead of
+        the deprecated access_method property. This ensures deterministic
+        behavior and avoids deprecation warnings.
+
         This method selects the best access method based on:
         1. Learned preferences (if provided)
         2. Available access methods in ModelAccessInfo

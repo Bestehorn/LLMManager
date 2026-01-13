@@ -176,10 +176,9 @@ class TestModelCRISCorrelator:
                     hyperparameters_link=model_info.hyperparameters_link,
                     region_access={
                         "us-east-1": ModelAccessInfo(
-                            access_method=ModelAccessMethod.DIRECT,
                             region="us-east-1",
+                            has_direct_access=True,
                             model_id=model_info.model_id,
-                            inference_profile_id=None,
                         )
                     },
                 )

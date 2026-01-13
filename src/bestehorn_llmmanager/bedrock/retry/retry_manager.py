@@ -374,8 +374,16 @@ class RetryManager:
                         )
                         if access_info:
                             retry_targets.append((model, region, access_info))
+                            # Migration: Use orthogonal flags instead of deprecated access_method property
+                            access_flags = []
+                            if access_info.has_direct_access:
+                                access_flags.append("direct")
+                            if access_info.has_regional_cris:
+                                access_flags.append("regional_cris")
+                            if access_info.has_global_cris:
+                                access_flags.append("global_cris")
                             self._logger.debug(
-                                f"Found access info for {model} in {region}: {access_info.access_method}"
+                                f"Found access info for {model} in {region}: {', '.join(access_flags)}"
                             )
                         else:
                             access_failures.append(
@@ -472,10 +480,14 @@ class RetryManager:
             attempt_start = datetime.now()
 
             # Create attempt record
+            # Migration: Get access method name from selector instead of deprecated property
+            _, access_method_name = self._select_model_id_for_request(
+                access_info=access_info, model_name=model, region=region
+            )
             attempt = RequestAttempt(
                 model_id=model,
                 region=region,
-                access_method=access_info.access_method.value,
+                access_method=access_method_name,  # Use current access method name
                 attempt_number=attempt_num,
                 start_time=attempt_start,
             )
@@ -813,11 +825,20 @@ class RetryManager:
             retry_args = operation_args.copy()
             original_fields = retry_args.pop("additionalModelRequestFields", None)
 
-            # Set model ID
-            if access_info.access_method.value in ["direct", "both"]:
+            # Migration: Use orthogonal flags instead of deprecated access_method property
+            # Set model ID based on available access methods
+            if access_info.has_direct_access:
+                # Use direct model ID
                 retry_args["model_id"] = access_info.model_id
+            elif access_info.has_regional_cris:
+                # Use regional CRIS profile
+                retry_args["model_id"] = access_info.regional_cris_profile_id
+            elif access_info.has_global_cris:
+                # Use global CRIS profile
+                retry_args["model_id"] = access_info.global_cris_profile_id
             else:
-                retry_args["model_id"] = access_info.inference_profile_id
+                # This should not happen due to ModelAccessInfo validation
+                raise ValueError(f"No access methods available for {model} in {region}")
 
             # Log parameter removal
             if original_fields:
@@ -1227,10 +1248,14 @@ class RetryManager:
             attempt_start = datetime.now()
 
             # Create attempt record
+            # Migration: Get access method name from selector instead of deprecated property
+            _, access_method_name = self._select_model_id_for_request(
+                access_info=access_info, model_name=model, region=region
+            )
             attempt = RequestAttempt(
                 model_id=model,
                 region=region,
-                access_method=access_info.access_method.value,
+                access_method=access_method_name,  # Use current access method name
                 attempt_number=attempt_num,
                 start_time=attempt_start,
             )
@@ -1268,12 +1293,13 @@ class RetryManager:
                     bedrock_response = result
                 else:
                     # If result is raw dict, create BedrockResponse
+                    # Migration: Use access_method_name from earlier selection
                     bedrock_response = BedrockResponse(
                         success=True,
                         response_data=result,
                         model_used=model,
                         region_used=region,
-                        access_method_used=access_info.access_method.value,
+                        access_method_used=access_method_name,  # Use current access method name
                     )
 
                 # Execute response validation with retries
@@ -1450,14 +1476,20 @@ class RetryManager:
         # Prepare operation arguments with current target
         current_args = operation_args.copy()
 
-        # Set model ID based on access method (compare by value to avoid enum import issues)
-        if access_info.access_method.value in ["direct", "both"]:
+        # Migration: Use orthogonal flags instead of deprecated access_method property
+        # Set model ID based on available access methods (prefer direct, then regional CRIS, then global CRIS)
+        if access_info.has_direct_access:
             current_args["model_id"] = access_info.model_id
-            if access_info.access_method.value == "both":
-                self._logger.debug(f"Using direct access for {model}")
-        elif access_info.access_method.value == "cris_only":
-            current_args["model_id"] = access_info.inference_profile_id
-            self._logger.debug(f"Using CRIS access for {model}")
+            self._logger.debug(f"Using direct access for {model}")
+        elif access_info.has_regional_cris:
+            current_args["model_id"] = access_info.regional_cris_profile_id
+            self._logger.debug(f"Using regional CRIS access for {model}")
+        elif access_info.has_global_cris:
+            current_args["model_id"] = access_info.global_cris_profile_id
+            self._logger.debug(f"Using global CRIS access for {model}")
+        else:
+            # This should not happen due to ModelAccessInfo validation
+            raise ValueError(f"No access methods available for {model} in {access_info.region}")
 
         # Apply content filtering based on current disabled features
         if disabled_features and self._config.enable_feature_fallback:
@@ -1465,10 +1497,12 @@ class RetryManager:
                 filter_state=filter_state, disabled_features=set(disabled_features)
             )
             # Re-add model ID which might have been overwritten
-            if access_info.access_method.value in ["direct", "both"]:
+            if access_info.has_direct_access:
                 current_args["model_id"] = access_info.model_id
-            else:
-                current_args["model_id"] = access_info.inference_profile_id
+            elif access_info.has_regional_cris:
+                current_args["model_id"] = access_info.regional_cris_profile_id
+            elif access_info.has_global_cris:
+                current_args["model_id"] = access_info.global_cris_profile_id
 
         return current_args
 

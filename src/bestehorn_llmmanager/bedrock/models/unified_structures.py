@@ -68,11 +68,12 @@ class UnifiedModelInfo:
         Returns:
             List of regions supporting direct access
         """
+        # Migration: Use orthogonal flags instead of deprecated access_method property
         return sorted(
             [
                 region
                 for region, access_info in self.region_access.items()
-                if access_info.access_method in [ModelAccessMethod.DIRECT, ModelAccessMethod.BOTH]
+                if access_info.has_direct_access
             ]
         )
 
@@ -83,11 +84,13 @@ class UnifiedModelInfo:
         Returns:
             List of regions with CRIS-only access
         """
+        # Migration: Use orthogonal flags instead of deprecated access_method property
         return sorted(
             [
                 region
                 for region, access_info in self.region_access.items()
-                if access_info.access_method == ModelAccessMethod.CRIS_ONLY
+                if (access_info.has_regional_cris or access_info.has_global_cris)
+                and not access_info.has_direct_access
             ]
         )
 
@@ -98,12 +101,12 @@ class UnifiedModelInfo:
         Returns:
             List of regions supporting CRIS access
         """
+        # Migration: Use orthogonal flags instead of deprecated access_method property
         return sorted(
             [
                 region
                 for region, access_info in self.region_access.items()
-                if access_info.access_method
-                in [ModelAccessMethod.CRIS_ONLY, ModelAccessMethod.BOTH]
+                if access_info.has_regional_cris or access_info.has_global_cris
             ]
         )
 
@@ -147,11 +150,14 @@ class UnifiedModelInfo:
         if not access_info:
             return None
 
-        # If both methods available, return direct access as recommended
-        if access_info.access_method == ModelAccessMethod.BOTH:
+        # Migration: Use orthogonal flags instead of deprecated access_method property
+        # If both direct and CRIS available, return direct access as recommended
+        if access_info.has_direct_access:
             return ModelAccessInfo(
                 region=region,
                 has_direct_access=True,
+                has_regional_cris=False,
+                has_global_cris=False,
                 model_id=access_info.model_id,
             )
 
@@ -164,10 +170,13 @@ class UnifiedModelInfo:
         Returns:
             List of unique inference profile IDs
         """
+        # Migration: Use specific profile IDs instead of deprecated inference_profile_id property
         profiles = set()
         for access_info in self.region_access.values():
-            if access_info.inference_profile_id:
-                profiles.add(access_info.inference_profile_id)
+            if access_info.regional_cris_profile_id:
+                profiles.add(access_info.regional_cris_profile_id)
+            if access_info.global_cris_profile_id:
+                profiles.add(access_info.global_cris_profile_id)
         return sorted(list(profiles))
 
     def to_dict(self) -> Dict[str, Union[str, List[str], bool, Dict, None]]:

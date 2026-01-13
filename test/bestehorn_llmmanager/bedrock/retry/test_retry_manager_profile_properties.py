@@ -197,15 +197,81 @@ class TestBackwardCompatibilityPreservation:
     @given(
         access_info=model_access_info_strategy(),
     )
+    def test_access_method_selection_determinism(self, access_info):
+        """
+        Property 1: Access Method Selection Determinism
+
+        For any ModelAccessInfo and learned preference combination, when the
+        AccessMethodSelector selects an access method with the same inputs,
+        it should always return the same model ID and access method name.
+
+        Feature: ci-failure-fixes, Property 1: Access Method Selection Determinism
+        Validates: Requirements 1.2, 4.1
+        """
+        # Create retry manager
+        retry_config = RetryConfig(max_retries=3)
+        retry_manager = RetryManager(retry_config=retry_config)
+
+        # Track which model ID was used across multiple calls
+        used_model_ids = []
+
+        def mock_operation(region, **kwargs):
+            used_model_ids.append(kwargs.get("model_id"))
+            return {"success": True}
+
+        # Create retry targets
+        model_name = (
+            access_info.model_id
+            or access_info.regional_cris_profile_id
+            or access_info.global_cris_profile_id
+            or "test-model"
+        )
+        retry_targets = [(model_name, access_info.region, access_info)]
+
+        # Execute the same operation multiple times
+        for i in range(3):
+            # Reset the used_model_ids for this iteration
+            used_model_ids.clear()
+
+            # Execute with retry
+            result, attempts, warnings = retry_manager.execute_with_retry(
+                operation=mock_operation,
+                operation_args={},
+                retry_targets=retry_targets,
+            )
+
+            # Property: Should always use the same model ID on first attempt
+            assert (
+                len(used_model_ids) > 0
+            ), f"At least one model ID should have been used in iteration {i}"
+            first_model_id = used_model_ids[0]
+
+            # Store the first iteration's result for comparison
+            if i == 0:
+                expected_model_id = first_model_id
+            else:
+                # Verify subsequent iterations use the same model ID
+                assert first_model_id == expected_model_id, (
+                    f"Access method selection should be deterministic. "
+                    f"Expected: {expected_model_id}, Got: {first_model_id} in iteration {i}"
+                )
+
+    @given(
+        access_info=model_access_info_strategy(),
+    )
     def test_direct_access_preferred_by_default(self, access_info):
         """
-        Property: Direct access is preferred by default.
+        Property 2: Direct Access Preference Without Learned State
 
         For any model with direct access available and no learned preference,
         the system should attempt direct access first.
 
-        Feature: inference-profile-support, Property 6: Backward Compatibility Preservation
-        Validates: Requirements 6.1, 6.2, 6.3
+        This test validates that when no learned preference exists, the
+        AccessMethodSelector always selects the direct model ID (not a profile ARN)
+        as the first choice for models that support direct access.
+
+        Feature: ci-failure-fixes, Property 2: Direct Access Preference Without Learned State
+        Validates: Requirements 1.2, 1.3
         """
         # Skip if direct access not available
         if not access_info.has_direct_access:

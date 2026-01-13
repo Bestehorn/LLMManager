@@ -28,6 +28,7 @@ class AccessMethodTracker:
 
     _instance: Optional["AccessMethodTracker"] = None
     _lock: threading.Lock = threading.Lock()
+    _initialized: bool = False
 
     def __new__(cls) -> "AccessMethodTracker":
         """
@@ -243,3 +244,32 @@ class AccessMethodTracker:
             logger.debug(f"Access method statistics: {statistics}")
 
             return statistics
+
+    @classmethod
+    def reset_for_testing(cls) -> None:
+        """
+        Reset singleton state for testing purposes.
+
+        WARNING: This method should ONLY be called from test code.
+        DO NOT call this method in production code as it will clear all
+        learned preferences and reset the singleton instance.
+
+        This method is provided to ensure test isolation by clearing the
+        singleton state between test runs. It uses thread-safe operations
+        to prevent race conditions during reset.
+
+        Thread-safe: Uses class-level lock to ensure atomic reset.
+        """
+        with cls._lock:
+            if cls._instance is not None:
+                # Clear all learned preferences
+                with cls._instance._preference_lock:
+                    cls._instance._preferences.clear()
+
+                # Reset initialization flag
+                cls._instance._initialized = False
+
+            # Reset singleton instance
+            cls._instance = None
+
+            logger.debug("AccessMethodTracker reset for testing")
