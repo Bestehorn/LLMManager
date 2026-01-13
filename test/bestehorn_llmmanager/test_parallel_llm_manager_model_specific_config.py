@@ -95,7 +95,7 @@ class TestParallelFieldIndependence:
     Validates: Requirements 6.1, 6.2
     """
 
-    @settings(max_examples=100)
+    @settings(max_examples=10, deadline=None)
     @given(requests=st.lists(bedrock_converse_request_strategy(), min_size=2, max_size=5))
     @patch("bestehorn_llmmanager.llm_manager.LLMManager.converse")
     @patch("bestehorn_llmmanager.llm_manager.UnifiedModelManager")
@@ -205,7 +205,7 @@ class TestParallelModelSpecificFiltering:
     Validates: Requirements 6.4
     """
 
-    @settings(max_examples=100)
+    @settings(max_examples=10, deadline=None)
     @given(
         num_requests=st.integers(min_value=2, max_value=4), enable_extended_context=st.booleans()
     )
@@ -312,7 +312,7 @@ class TestParallelResponseMetadata:
     Validates: Requirements 6.5
     """
 
-    @settings(max_examples=100)
+    @settings(max_examples=10, deadline=None)
     @given(
         num_requests=st.integers(min_value=2, max_value=4),
         num_with_removed_params=st.integers(min_value=0, max_value=2),

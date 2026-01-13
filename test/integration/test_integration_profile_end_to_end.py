@@ -6,7 +6,7 @@ access method learning, backward compatibility, and parallel processing.
 """
 
 import logging
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -354,7 +354,7 @@ class TestAccessMethodTrackerIntegration:
         Validates: Requirements 5.3, 5.4
         """
         # Create first manager and record a preference
-        manager1 = LLMManager(
+        _ = LLMManager(
             models=TEST_MODELS,
             regions=TEST_REGIONS,
             log_level=logging.DEBUG,
