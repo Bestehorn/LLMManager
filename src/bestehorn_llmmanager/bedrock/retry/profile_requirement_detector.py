@@ -41,7 +41,7 @@ class ProfileRequirementDetector:
     ]
 
     @classmethod
-    def is_profile_requirement_error(cls, error: Exception) -> bool:
+    def is_profile_requirement_error(cls, error: Optional[Exception]) -> bool:
         """
         Check if error indicates profile requirement.
 
@@ -82,7 +82,7 @@ class ProfileRequirementDetector:
         return False
 
     @classmethod
-    def extract_model_id_from_error(cls, error: Exception) -> Optional[str]:
+    def extract_model_id_from_error(cls, error: Optional[Exception]) -> Optional[str]:
         """
         Extract model ID from profile requirement error message.
 
@@ -134,7 +134,7 @@ class ProfileRequirementDetector:
                 # Filter out common false positives
                 if "." in potential_model_id and len(potential_model_id) > 10:
                     logger.debug(f"Extracted model ID from error (generic): '{potential_model_id}'")
-                    return potential_model_id
+                    return str(potential_model_id)
 
         logger.debug("Could not extract model ID from error message")
         return None

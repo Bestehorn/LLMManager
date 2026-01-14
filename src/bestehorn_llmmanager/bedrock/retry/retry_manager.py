@@ -251,10 +251,6 @@ class RetryManager:
             return match.group(1)
 
         return None
-        if match:
-            return match.group(1)
-
-        return None
 
     def should_disable_feature_and_retry(self, error: Exception) -> Tuple[bool, Optional[str]]:
         """
@@ -508,11 +504,22 @@ class RetryManager:
                         )
                     )
 
+                # Get tracking ID for parameter compatibility (use profile ID if model_id is None)
+                tracking_id = (
+                    access_info.model_id
+                    or access_info.regional_cris_profile_id
+                    or access_info.global_cris_profile_id
+                )
+
                 # Check if we should skip this combination due to known parameter incompatibility
-                if original_additional_fields and self._parameter_tracker.is_known_incompatible(
-                    model_id=access_info.model_id,
-                    region=region,
-                    parameters=original_additional_fields,
+                if (
+                    tracking_id
+                    and original_additional_fields
+                    and self._parameter_tracker.is_known_incompatible(
+                        model_id=tracking_id,
+                        region=region,
+                        parameters=original_additional_fields,
+                    )
                 ):
                     self._logger.debug(
                         f"Skipping known incompatible combination: {model} in {region} "
@@ -561,27 +568,28 @@ class RetryManager:
                 # Execute the operation
                 result = operation(region=region, **current_args)
 
-                # Success! Record parameter compatibility
-                if original_additional_fields:
+                # Success! Record parameter compatibility (use tracking_id from above)
+                if tracking_id and original_additional_fields:
                     self._parameter_tracker.record_success(
-                        model_id=access_info.model_id,
+                        model_id=tracking_id,
                         region=region,
                         parameters=original_additional_fields,
                     )
 
-                # Record successful access method
-                self._access_method_tracker.record_success(
-                    model_id=access_info.model_id,
-                    region=region,
-                    access_method=selected_access_method,
-                    model_id_used=model_id_to_use,
-                )
+                # Record successful access method (use tracking_id from above)
+                if tracking_id:
+                    self._access_method_tracker.record_success(
+                        model_id=tracking_id,
+                        region=region,
+                        access_method=selected_access_method,
+                        model_id_used=model_id_to_use,
+                    )
 
-                # Log access method learning
-                self._logger.debug(
-                    f"Learned access method '{selected_access_method}' for model "
-                    f"'{access_info.model_id}' in region '{region}'"
-                )
+                    # Log access method learning
+                    self._logger.debug(
+                        f"Learned access method '{selected_access_method}' for model "
+                        f"'{tracking_id}' in region '{region}'"
+                    )
 
                 attempt.end_time = datetime.now()
                 attempt.success = True
@@ -650,10 +658,10 @@ class RetryManager:
 
                 # Check if this is a parameter compatibility error
                 is_param_error, param_name = self.is_parameter_compatibility_error(error)
-                if is_param_error and original_additional_fields:
-                    # Record parameter incompatibility
+                if is_param_error and tracking_id and original_additional_fields:
+                    # Record parameter incompatibility (use tracking_id from above)
                     self._parameter_tracker.record_failure(
-                        model_id=access_info.model_id,
+                        model_id=tracking_id,
                         region=region,
                         parameters=original_additional_fields,
                         error=error,
@@ -895,10 +903,21 @@ class RetryManager:
         """
         from .access_method_structures import AccessMethodNames
 
-        # Record profile requirement for future requests
-        self._access_method_tracker.record_profile_requirement(
-            model_id=access_info.model_id, region=region
+        # Get tracking ID (use profile ID if model_id is None)
+        tracking_id = (
+            access_info.model_id
+            or access_info.regional_cris_profile_id
+            or access_info.global_cris_profile_id
         )
+
+        if tracking_id is None:
+            self._logger.warning(
+                f"Cannot retry with profile for {model} in {region}: no tracking ID available"
+            )
+            return None, False, None
+
+        # Record profile requirement for future requests
+        self._access_method_tracker.record_profile_requirement(model_id=tracking_id, region=region)
 
         # Check if profile information is available in catalog
         if not access_info.has_any_cris_access():
@@ -935,9 +954,9 @@ class RetryManager:
                 # Execute with profile
                 result = operation(region=region, **retry_args)
 
-                # Success! Record successful access method
+                # Success! Record successful access method (use tracking_id from above)
                 self._access_method_tracker.record_success(
-                    model_id=access_info.model_id,
+                    model_id=tracking_id,
                     region=region,
                     access_method=access_method,
                     model_id_used=profile_id,
@@ -998,9 +1017,21 @@ class RetryManager:
             - ("anthropic.claude-3-haiku-20240307-v1:0", "direct")
             - ("arn:aws:bedrock:us-east-1::inference-profile/...", "regional_cris")
         """
+        # Get tracking ID (use profile ID if model_id is None)
+        tracking_id = (
+            access_info.model_id
+            or access_info.regional_cris_profile_id
+            or access_info.global_cris_profile_id
+        )
+
+        if tracking_id is None:
+            raise ValueError(
+                f"Cannot select model ID for {model_name} in {region}: no tracking ID available"
+            )
+
         # Query for learned preference
         learned_preference = self._access_method_tracker.get_preference(
-            model_id=access_info.model_id, region=region
+            model_id=tracking_id, region=region
         )
 
         # Use selector to choose optimal access method
