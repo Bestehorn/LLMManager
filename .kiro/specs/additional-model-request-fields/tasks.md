@@ -280,7 +280,7 @@ This implementation plan breaks down the feature into discrete, testable tasks. 
   - Ensure all property tests run efficiently
   - _Requirements: 6.1, 6.2_
 
-- [ ] 15. Create demonstration notebook
+- [x] 15. Create demonstration notebook
   - Create `notebooks/ExtendedContext_Demo.ipynb`
   - Add introduction explaining extended context feature
   - Add example with enable_extended_context=True

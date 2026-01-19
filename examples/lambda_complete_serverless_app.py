@@ -132,7 +132,7 @@ def handle_converse(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "catalog_source": metadata.source.value,
                 "cache_mode": "NONE",
                 "duration_ms": response.total_duration_ms,
-                "usage": response.get_usage()
+                "usage": response.get_usage()  # Or use accessor methods: response.get_input_tokens(), etc.
             })
         }
         
@@ -183,7 +183,7 @@ def handle_stream(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "region_used": streaming_response.region_used,
                 "cache_mode": "NONE",
                 "duration_ms": streaming_response.total_duration_ms,
-                "usage": streaming_response.get_usage()
+                "usage": streaming_response.get_usage()  # Or use accessor methods: streaming_response.get_input_tokens(), etc.
             })
         }
         

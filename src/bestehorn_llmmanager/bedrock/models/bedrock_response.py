@@ -108,6 +108,56 @@ class BedrockResponse:
         except (KeyError, TypeError, AttributeError):
             return None
 
+    def get_input_tokens(self) -> int:
+        """
+        Get the number of input tokens used in the request.
+
+        Returns:
+            Number of input tokens, 0 if not available
+        """
+        usage = self.get_usage()
+        return usage.get("input_tokens", 0) if usage else 0
+
+    def get_output_tokens(self) -> int:
+        """
+        Get the number of output tokens generated in the response.
+
+        Returns:
+            Number of output tokens, 0 if not available
+        """
+        usage = self.get_usage()
+        return usage.get("output_tokens", 0) if usage else 0
+
+    def get_total_tokens(self) -> int:
+        """
+        Get the total number of tokens (input + output) used.
+
+        Returns:
+            Total number of tokens, 0 if not available
+        """
+        usage = self.get_usage()
+        return usage.get("total_tokens", 0) if usage else 0
+
+    def get_cache_read_tokens(self) -> int:
+        """
+        Get the number of tokens read from prompt cache.
+
+        Returns:
+            Number of cache read tokens, 0 if not available
+        """
+        usage = self.get_usage()
+        return usage.get("cache_read_tokens", 0) if usage else 0
+
+    def get_cache_write_tokens(self) -> int:
+        """
+        Get the number of tokens written to prompt cache.
+
+        Returns:
+            Number of cache write tokens, 0 if not available
+        """
+        usage = self.get_usage()
+        return usage.get("cache_write_tokens", 0) if usage else 0
+
     def get_metrics(self) -> Optional[Dict[str, Union[float, int]]]:
         """
         Get performance metrics from the response.
@@ -975,6 +1025,56 @@ class StreamingResponse:
             }
         except (KeyError, TypeError, AttributeError):
             return None
+
+    def get_input_tokens(self) -> int:
+        """
+        Get the number of input tokens used in the request.
+
+        Returns:
+            Number of input tokens, 0 if not available
+        """
+        usage = self.get_usage()
+        return usage.get("input_tokens", 0) if usage else 0
+
+    def get_output_tokens(self) -> int:
+        """
+        Get the number of output tokens generated in the response.
+
+        Returns:
+            Number of output tokens, 0 if not available
+        """
+        usage = self.get_usage()
+        return usage.get("output_tokens", 0) if usage else 0
+
+    def get_total_tokens(self) -> int:
+        """
+        Get the total number of tokens (input + output) used.
+
+        Returns:
+            Total number of tokens, 0 if not available
+        """
+        usage = self.get_usage()
+        return usage.get("total_tokens", 0) if usage else 0
+
+    def get_cache_read_tokens(self) -> int:
+        """
+        Get the number of tokens read from prompt cache.
+
+        Returns:
+            Number of cache read tokens, 0 if not available
+        """
+        usage = self.get_usage()
+        return usage.get("cache_read_tokens", 0) if usage else 0
+
+    def get_cache_write_tokens(self) -> int:
+        """
+        Get the number of tokens written to prompt cache.
+
+        Returns:
+            Number of cache write tokens, 0 if not available
+        """
+        usage = self.get_usage()
+        return usage.get("cache_write_tokens", 0) if usage else 0
 
     def get_metrics(self) -> Optional[Dict[str, Union[float, int]]]:
         """

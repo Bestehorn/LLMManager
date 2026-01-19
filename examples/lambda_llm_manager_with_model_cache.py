@@ -100,7 +100,7 @@ def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 "catalog_source": metadata.source.value,
                 "cache_mode": "MEMORY",
                 "duration_ms": response.total_duration_ms,
-                "usage": response.get_usage()
+                "usage": response.get_usage()  # Or use accessor methods: response.get_input_tokens(), etc.
             })
         }
         

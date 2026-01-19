@@ -674,6 +674,13 @@ usage = response.get_usage()                             # Dict: Token usage inf
 metrics = response.get_metrics()                         # Dict: Performance metrics
 stop_reason = response.get_stop_reason()                 # String: Why generation stopped
 
+# Token usage accessor methods (recommended)
+input_tokens = response.get_input_tokens()               # Int: Input tokens used
+output_tokens = response.get_output_tokens()             # Int: Output tokens generated
+total_tokens = response.get_total_tokens()               # Int: Total tokens (input + output)
+cache_read_tokens = response.get_cache_read_tokens()     # Int: Tokens read from cache
+cache_write_tokens = response.get_cache_write_tokens()   # Int: Tokens written to cache
+
 # Execution details
 model_used = response.model_used                         # String: Model ID that succeeded
 region_used = response.region_used                       # String: Region that succeeded
@@ -1223,6 +1230,144 @@ response = manager.converse(
     messages=[message],
     response_validation_config=validation_config
 )
+```
+
+### Token Usage Tracking
+
+The BedrockResponse and StreamingResponse classes provide two ways to access token usage information:
+
+1. **Accessor Methods (Recommended)**: Individual methods for each token type
+2. **Dictionary Access**: Traditional get_usage() method returning a dictionary
+
+#### Using Accessor Methods (Recommended)
+
+The accessor methods provide a cleaner, more maintainable API that protects your code from internal structure changes:
+
+```python
+from bestehorn_llmmanager import LLMManager, create_user_message
+
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"]
+)
+
+message = create_user_message().add_text("Explain quantum computing").build()
+response = manager.converse(messages=[message])
+
+if response.success:
+    # Use accessor methods (recommended approach)
+    input_tokens = response.get_input_tokens()
+    output_tokens = response.get_output_tokens()
+    total_tokens = response.get_total_tokens()
+    
+    print(f"Token Usage:")
+    print(f"  Input tokens: {input_tokens:,}")
+    print(f"  Output tokens: {output_tokens:,}")
+    print(f"  Total tokens: {total_tokens:,}")
+    
+    # Access cache token information (for prompt caching)
+    cache_read = response.get_cache_read_tokens()
+    cache_write = response.get_cache_write_tokens()
+    
+    if cache_read > 0 or cache_write > 0:
+        print(f"  Cache read tokens: {cache_read:,}")
+        print(f"  Cache write tokens: {cache_write:,}")
+```
+
+#### Using Dictionary Access (Legacy)
+
+The get_usage() method returns a dictionary with snake_case keys for backward compatibility:
+
+```python
+# Dictionary access (legacy approach)
+usage = response.get_usage()
+if usage:
+    print(f"Token Usage:")
+    print(f"  Input tokens: {usage.get('input_tokens', 0):,}")
+    print(f"  Output tokens: {usage.get('output_tokens', 0):,}")
+    print(f"  Total tokens: {usage.get('total_tokens', 0):,}")
+    print(f"  Cache read tokens: {usage.get('cache_read_tokens', 0):,}")
+    print(f"  Cache write tokens: {usage.get('cache_write_tokens', 0):,}")
+```
+
+#### Token Usage with Streaming
+
+Streaming responses also support both access patterns:
+
+```python
+# Streaming with accessor methods
+streaming_response = manager.converse_stream(messages=[message])
+
+# Consume the stream
+for chunk in streaming_response:
+    print(chunk, end='', flush=True)
+
+# Access token usage after streaming completes
+print(f"\nToken Usage:")
+print(f"  Input: {streaming_response.get_input_tokens():,}")
+print(f"  Output: {streaming_response.get_output_tokens():,}")
+print(f"  Total: {streaming_response.get_total_tokens():,}")
+```
+
+#### Token Usage in Parallel Processing
+
+Track token usage across multiple parallel requests:
+
+```python
+from bestehorn_llmmanager import ParallelLLMManager
+from bestehorn_llmmanager.bedrock.models.parallel_structures import BedrockConverseRequest
+
+parallel_manager = ParallelLLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1", "us-west-2"]
+)
+
+# Create multiple requests
+requests = [
+    BedrockConverseRequest(
+        request_id=f"req-{i}",
+        messages=[create_user_message().add_text(f"Question {i}").build()]
+    )
+    for i in range(5)
+]
+
+parallel_response = parallel_manager.converse_parallel(requests=requests)
+
+# Calculate total token usage across all requests
+total_input = 0
+total_output = 0
+total_tokens = 0
+
+for request_id, response in parallel_response.request_responses.items():
+    if response.success:
+        total_input += response.get_input_tokens()
+        total_output += response.get_output_tokens()
+        total_tokens += response.get_total_tokens()
+
+print(f"Total Token Usage Across {len(requests)} Requests:")
+print(f"  Total input tokens: {total_input:,}")
+print(f"  Total output tokens: {total_output:,}")
+print(f"  Total tokens: {total_tokens:,}")
+print(f"  Average tokens per request: {total_tokens / len(requests):.1f}")
+```
+
+#### Graceful Handling of Missing Token Data
+
+All accessor methods return 0 when token data is unavailable, making them safe to use without explicit None checks:
+
+```python
+# Accessor methods always return integers (0 if unavailable)
+input_tokens = response.get_input_tokens()  # Returns 0 if no data
+output_tokens = response.get_output_tokens()  # Returns 0 if no data
+
+# Safe to use in calculations without None checks
+total_cost = (input_tokens * 0.001) + (output_tokens * 0.002)
+
+# Check if token data is available
+if response.get_total_tokens() > 0:
+    print(f"Token usage: {response.get_total_tokens():,}")
+else:
+    print("Token usage data not available")
 ```
 
 ## Error Handling

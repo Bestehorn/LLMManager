@@ -69,9 +69,9 @@ def basic_streaming_example():
         usage = streaming_response.get_usage()
         if usage:
             print(f"\n🎯 Token Usage:")
-            print(f"   Input tokens: {usage.get('input_tokens', 0)}")
-            print(f"   Output tokens: {usage.get('output_tokens', 0)}")
-            print(f"   Total tokens: {usage.get('total_tokens', 0)}")
+            print(f"   Input tokens: {streaming_response.get_input_tokens()}")
+            print(f"   Output tokens: {streaming_response.get_output_tokens()}")
+            print(f"   Total tokens: {streaming_response.get_total_tokens()}")
             
         if streaming_response.warnings:
             print(f"\n⚠️ Warnings: {streaming_response.warnings}")
@@ -223,9 +223,8 @@ def streaming_error_recovery_example():
                     print(f"   🔄 Stream switched to: {recovery_info.get('final_model')} in {recovery_info.get('final_region')}")
             
             # Show token usage if available
-            usage = streaming_response.get_usage()
-            if usage and usage.get('total_tokens', 0) > 0:
-                print(f"\n🎯 Token usage: {usage['input_tokens']} input + {usage['output_tokens']} output = {usage['total_tokens']} total")
+            if streaming_response.get_total_tokens() > 0:
+                print(f"\n🎯 Token usage: {streaming_response.get_input_tokens()} input + {streaming_response.get_output_tokens()} output = {streaming_response.get_total_tokens()} total")
             
             # Show enhanced timing metrics
             metrics = streaming_response.get_metrics()

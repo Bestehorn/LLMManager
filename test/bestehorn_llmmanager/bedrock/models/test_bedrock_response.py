@@ -682,6 +682,171 @@ class TestStreamingResponse:
         response = StreamingResponse(success=True, usage_info=None)
         assert response.get_usage() is None
 
+    def test_get_input_tokens_with_valid_data(self):
+        """Test get_input_tokens with valid usage data."""
+        usage_info = {
+            "input_tokens": 150,
+            "output_tokens": 75,
+            "total_tokens": 225,
+        }
+        response = StreamingResponse(success=True, usage_info=usage_info)
+        assert response.get_input_tokens() == 150
+
+    def test_get_input_tokens_with_missing_data(self):
+        """Test get_input_tokens with missing data."""
+        # No usage info
+        response = StreamingResponse(success=True, usage_info=None)
+        assert response.get_input_tokens() == 0
+
+        # Empty usage info
+        response = StreamingResponse(success=True, usage_info={})
+        assert response.get_input_tokens() == 0
+
+    def test_get_output_tokens_with_valid_data(self):
+        """Test get_output_tokens with valid usage data."""
+        usage_info = {
+            "input_tokens": 150,
+            "output_tokens": 75,
+            "total_tokens": 225,
+        }
+        response = StreamingResponse(success=True, usage_info=usage_info)
+        assert response.get_output_tokens() == 75
+
+    def test_get_output_tokens_with_missing_data(self):
+        """Test get_output_tokens with missing data."""
+        # No usage info
+        response = StreamingResponse(success=True, usage_info=None)
+        assert response.get_output_tokens() == 0
+
+        # Empty usage info
+        response = StreamingResponse(success=True, usage_info={})
+        assert response.get_output_tokens() == 0
+
+    def test_get_total_tokens_with_valid_data(self):
+        """Test get_total_tokens with valid usage data."""
+        usage_info = {
+            "input_tokens": 150,
+            "output_tokens": 75,
+            "total_tokens": 225,
+        }
+        response = StreamingResponse(success=True, usage_info=usage_info)
+        assert response.get_total_tokens() == 225
+
+    def test_get_total_tokens_with_missing_data(self):
+        """Test get_total_tokens with missing data."""
+        # No usage info
+        response = StreamingResponse(success=True, usage_info=None)
+        assert response.get_total_tokens() == 0
+
+        # Empty usage info
+        response = StreamingResponse(success=True, usage_info={})
+        assert response.get_total_tokens() == 0
+
+    def test_get_cache_read_tokens_with_valid_data(self):
+        """Test get_cache_read_tokens with valid cache data."""
+        usage_info = {
+            "input_tokens": 150,
+            "output_tokens": 75,
+            "total_tokens": 225,
+            "cache_read_tokens": 50,
+            "cache_write_tokens": 25,
+        }
+        response = StreamingResponse(success=True, usage_info=usage_info)
+        assert response.get_cache_read_tokens() == 50
+
+    def test_get_cache_read_tokens_with_missing_data(self):
+        """Test get_cache_read_tokens with missing data."""
+        # No usage info
+        response = StreamingResponse(success=True, usage_info=None)
+        assert response.get_cache_read_tokens() == 0
+
+        # Usage info without cache data
+        usage_info = {"input_tokens": 150, "output_tokens": 75}
+        response = StreamingResponse(success=True, usage_info=usage_info)
+        assert response.get_cache_read_tokens() == 0
+
+    def test_get_cache_write_tokens_with_valid_data(self):
+        """Test get_cache_write_tokens with valid cache data."""
+        usage_info = {
+            "input_tokens": 150,
+            "output_tokens": 75,
+            "total_tokens": 225,
+            "cache_read_tokens": 50,
+            "cache_write_tokens": 25,
+        }
+        response = StreamingResponse(success=True, usage_info=usage_info)
+        assert response.get_cache_write_tokens() == 25
+
+    def test_get_cache_write_tokens_with_missing_data(self):
+        """Test get_cache_write_tokens with missing data."""
+        # No usage info
+        response = StreamingResponse(success=True, usage_info=None)
+        assert response.get_cache_write_tokens() == 0
+
+        # Usage info without cache data
+        usage_info = {"input_tokens": 150, "output_tokens": 75}
+        response = StreamingResponse(success=True, usage_info=usage_info)
+        assert response.get_cache_write_tokens() == 0
+
+    def test_accessor_methods_consistency_with_bedrock_response(self):
+        """Test that StreamingResponse accessor methods behave consistently with BedrockResponse."""
+        usage_info = {
+            "input_tokens": 200,
+            "output_tokens": 100,
+            "total_tokens": 300,
+            "cache_read_tokens": 75,
+            "cache_write_tokens": 50,
+        }
+
+        # Create StreamingResponse
+        streaming_response = StreamingResponse(success=True, usage_info=usage_info)
+
+        # Create equivalent BedrockResponse
+        response_data = {
+            "usage": {
+                "inputTokens": 200,
+                "outputTokens": 100,
+                "totalTokens": 300,
+                "cacheReadInputTokens": 75,
+                "cacheWriteInputTokens": 50,
+            }
+        }
+        bedrock_response = BedrockResponse(success=True, response_data=response_data)
+
+        # Verify both return same values
+        assert streaming_response.get_input_tokens() == bedrock_response.get_input_tokens()
+        assert streaming_response.get_output_tokens() == bedrock_response.get_output_tokens()
+        assert streaming_response.get_total_tokens() == bedrock_response.get_total_tokens()
+        assert (
+            streaming_response.get_cache_read_tokens() == bedrock_response.get_cache_read_tokens()
+        )
+        assert (
+            streaming_response.get_cache_write_tokens()
+            == bedrock_response.get_cache_write_tokens()
+        )
+
+    def test_accessor_methods_with_unsuccessful_streaming(self):
+        """Test accessor methods with unsuccessful streaming."""
+        usage_info = {
+            "input_tokens": 200,
+            "output_tokens": 100,
+            "total_tokens": 300,
+        }
+
+        # Create unsuccessful StreamingResponse
+        response = StreamingResponse(success=False, usage_info=usage_info)
+
+        # Accessor methods should still work (success flag doesn't affect usage access)
+        assert response.get_input_tokens() == 200
+        assert response.get_output_tokens() == 100
+        assert response.get_total_tokens() == 300
+
+        # But with no usage info, should return 0
+        response_no_usage = StreamingResponse(success=False, usage_info=None)
+        assert response_no_usage.get_input_tokens() == 0
+        assert response_no_usage.get_output_tokens() == 0
+        assert response_no_usage.get_total_tokens() == 0
+
     def test_get_metrics(self):
         """Test get_metrics method."""
         response = StreamingResponse(success=True, api_latency_ms=1000.0, total_duration_ms=2000.0)
@@ -1300,3 +1465,266 @@ class TestStreamingResponseIteratorProtocol:
         assert reconstructed.original_additional_fields == original.original_additional_fields
         assert reconstructed.final_additional_fields == original.final_additional_fields
         assert reconstructed.had_parameters_removed() == original.had_parameters_removed()
+
+
+
+class TestBedrockResponseTokenAccessorProperties:
+    """Property-based tests for BedrockResponse token accessor methods."""
+
+    @pytest.mark.parametrize("execution_number", range(100))
+    def test_property_accessor_methods_match_get_usage(self, execution_number):
+        """
+        Property 1: Accessor Methods Return Values Matching get_usage()
+
+        Feature: token-usage-key-inconsistency, Property 1: For any BedrockResponse with
+        valid usage data, calling an accessor method should return the same value as
+        accessing the corresponding key in the get_usage() dictionary.
+
+        Validates: Requirements 2.1, 2.2, 2.3
+        """
+        # Generate random token values
+        import random
+
+        input_tokens = random.randint(0, 10000)
+        output_tokens = random.randint(0, 10000)
+        total_tokens = input_tokens + output_tokens
+        cache_read_tokens = random.randint(0, 1000)
+        cache_write_tokens = random.randint(0, 1000)
+
+        # Create response with usage data
+        response_data = {
+            "usage": {
+                "inputTokens": input_tokens,
+                "outputTokens": output_tokens,
+                "totalTokens": total_tokens,
+                "cacheReadInputTokens": cache_read_tokens,
+                "cacheWriteInputTokens": cache_write_tokens,
+            }
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+
+        # Get usage dictionary
+        usage = response.get_usage()
+        assert usage is not None
+
+        # Verify accessor methods return same values as dictionary keys
+        assert response.get_input_tokens() == usage["input_tokens"]
+        assert response.get_output_tokens() == usage["output_tokens"]
+        assert response.get_total_tokens() == usage["total_tokens"]
+        assert response.get_cache_read_tokens() == usage["cache_read_tokens"]
+        assert response.get_cache_write_tokens() == usage["cache_write_tokens"]
+
+    @pytest.mark.parametrize("execution_number", range(100))
+    def test_property_accessor_methods_return_zero_for_missing_data(self, execution_number):
+        """
+        Property 2: Accessor Methods Return Zero for Missing Data
+
+        Feature: token-usage-key-inconsistency, Property 2: For any BedrockResponse
+        without valid usage data, all token accessor methods should return 0.
+
+        Validates: Requirements 2.4, 2.5, 3.3, 5.2
+        """
+        import random
+
+        # Test different missing data scenarios
+        scenarios = [
+            # Unsuccessful response
+            {"success": False, "response_data": {"usage": {"inputTokens": 100}}},
+            # Missing response_data
+            {"success": True, "response_data": None},
+            # Missing usage field
+            {"success": True, "response_data": {}},
+            # Empty usage field
+            {"success": True, "response_data": {"usage": {}}},
+        ]
+
+        scenario = random.choice(scenarios)
+        response = BedrockResponse(**scenario)
+
+        # All accessor methods should return 0
+        assert response.get_input_tokens() == 0
+        assert response.get_output_tokens() == 0
+        assert response.get_total_tokens() == 0
+        assert response.get_cache_read_tokens() == 0
+        assert response.get_cache_write_tokens() == 0
+
+    @pytest.mark.parametrize("execution_number", range(100))
+    def test_property_cache_accessor_methods_return_correct_values(self, execution_number):
+        """
+        Property 3: Cache Accessor Methods Return Correct Values
+
+        Feature: token-usage-key-inconsistency, Property 3: For any BedrockResponse
+        with cache usage data, calling get_cache_read_tokens() or get_cache_write_tokens()
+        should return the same value as accessing the corresponding key in the get_usage()
+        dictionary.
+
+        Validates: Requirements 3.1, 3.2
+        """
+        import random
+
+        # Generate random cache token values
+        cache_read_tokens = random.randint(0, 5000)
+        cache_write_tokens = random.randint(0, 5000)
+        input_tokens = random.randint(100, 10000)
+        output_tokens = random.randint(100, 10000)
+
+        # Create response with cache usage data
+        response_data = {
+            "usage": {
+                "inputTokens": input_tokens,
+                "outputTokens": output_tokens,
+                "totalTokens": input_tokens + output_tokens,
+                "cacheReadInputTokens": cache_read_tokens,
+                "cacheWriteInputTokens": cache_write_tokens,
+            }
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+
+        # Get usage dictionary
+        usage = response.get_usage()
+        assert usage is not None
+
+        # Verify cache accessor methods return correct values
+        assert response.get_cache_read_tokens() == usage["cache_read_tokens"]
+        assert response.get_cache_write_tokens() == usage["cache_write_tokens"]
+        assert response.get_cache_read_tokens() == cache_read_tokens
+        assert response.get_cache_write_tokens() == cache_write_tokens
+
+    @pytest.mark.parametrize("execution_number", range(100))
+    def test_property_get_usage_maintains_backward_compatible_structure(self, execution_number):
+        """
+        Property 4: get_usage() Maintains Backward Compatible Structure
+
+        Feature: token-usage-key-inconsistency, Property 4: For any BedrockResponse,
+        calling get_usage() should return either None or a dictionary with snake_case keys.
+
+        Validates: Requirements 4.1, 4.2, 4.4
+        """
+        import random
+
+        # Generate random response scenarios
+        scenarios = [
+            # Successful response with usage data
+            {
+                "success": True,
+                "response_data": {
+                    "usage": {
+                        "inputTokens": random.randint(0, 10000),
+                        "outputTokens": random.randint(0, 10000),
+                        "totalTokens": random.randint(0, 20000),
+                    }
+                },
+            },
+            # Unsuccessful response
+            {"success": False, "response_data": {"usage": {"inputTokens": 100}}},
+            # Missing response_data
+            {"success": True, "response_data": None},
+        ]
+
+        scenario = random.choice(scenarios)
+        response = BedrockResponse(**scenario)
+
+        usage = response.get_usage()
+
+        # Usage should be None or a dictionary
+        assert usage is None or isinstance(usage, dict)
+
+        # If dictionary, verify snake_case keys
+        if usage is not None:
+            expected_keys = {
+                "input_tokens",
+                "output_tokens",
+                "total_tokens",
+                "cache_read_tokens",
+                "cache_write_tokens",
+            }
+            assert set(usage.keys()) == expected_keys
+
+            # Verify existing access patterns still work
+            assert isinstance(usage.get("input_tokens", 0), int)
+            assert isinstance(usage.get("output_tokens", 0), int)
+            assert isinstance(usage.get("total_tokens", 0), int)
+
+    @pytest.mark.parametrize("execution_number", range(100))
+    def test_property_accessor_methods_delegate_to_get_usage(self, execution_number):
+        """
+        Property 5: Accessor Methods Delegate to get_usage()
+
+        Feature: token-usage-key-inconsistency, Property 5: For any BedrockResponse,
+        the value returned by an accessor method should be derivable from the get_usage()
+        dictionary, ensuring no independent data sources.
+
+        Validates: Requirements 5.4
+        """
+        import random
+
+        # Generate random token values
+        input_tokens = random.randint(0, 10000)
+        output_tokens = random.randint(0, 10000)
+        total_tokens = input_tokens + output_tokens
+
+        # Create response with usage data
+        response_data = {
+            "usage": {
+                "inputTokens": input_tokens,
+                "outputTokens": output_tokens,
+                "totalTokens": total_tokens,
+            }
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+
+        # Get usage dictionary
+        usage = response.get_usage()
+        assert usage is not None
+
+        # Verify all accessor values are derivable from get_usage()
+        assert response.get_input_tokens() == usage.get("input_tokens", 0)
+        assert response.get_output_tokens() == usage.get("output_tokens", 0)
+        assert response.get_total_tokens() == usage.get("total_tokens", 0)
+        assert response.get_cache_read_tokens() == usage.get("cache_read_tokens", 0)
+        assert response.get_cache_write_tokens() == usage.get("cache_write_tokens", 0)
+
+        # Verify no accessor returns a value that's not in get_usage()
+        # (i.e., no independent data sources)
+        for accessor_name, key in [
+            ("get_input_tokens", "input_tokens"),
+            ("get_output_tokens", "output_tokens"),
+            ("get_total_tokens", "total_tokens"),
+            ("get_cache_read_tokens", "cache_read_tokens"),
+            ("get_cache_write_tokens", "cache_write_tokens"),
+        ]:
+            accessor_value = getattr(response, accessor_name)()
+            usage_value = usage.get(key, 0)
+            assert accessor_value == usage_value
+
+    @pytest.mark.parametrize("execution_number", range(100))
+    def test_property_total_tokens_equals_input_plus_output(self, execution_number):
+        """
+        Property 6: Total Tokens Equals Input Plus Output
+
+        Feature: token-usage-key-inconsistency, Property 6: For any BedrockResponse
+        with valid usage data, get_total_tokens() should equal get_input_tokens() plus
+        get_output_tokens().
+
+        Validates: Requirements 2.3
+        """
+        import random
+
+        # Generate random token values
+        input_tokens = random.randint(0, 10000)
+        output_tokens = random.randint(0, 10000)
+        total_tokens = input_tokens + output_tokens
+
+        # Create response with usage data
+        response_data = {
+            "usage": {
+                "inputTokens": input_tokens,
+                "outputTokens": output_tokens,
+                "totalTokens": total_tokens,
+            }
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+
+        # Verify total tokens equals input plus output
+        assert response.get_total_tokens() == response.get_input_tokens() + response.get_output_tokens()
+        assert response.get_total_tokens() == input_tokens + output_tokens

@@ -71,6 +71,14 @@ def main():
             if cache_info['cache_hit']:
                 print(f"Cache HIT: {cache_info['cache_read_tokens']} tokens")
         
+        # Alternative: Use accessor methods for cache tokens
+        cache_read = response.get_cache_read_tokens()
+        cache_write = response.get_cache_write_tokens()
+        if cache_read > 0:
+            print(f"Cache read (accessor): {cache_read} tokens")
+        if cache_write > 0:
+            print(f"Cache write (accessor): {cache_write} tokens")
+        
         # Get efficiency metrics
         efficiency = response.get_cache_efficiency()
         if efficiency:

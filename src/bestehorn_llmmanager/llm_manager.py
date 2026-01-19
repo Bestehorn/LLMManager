@@ -1050,6 +1050,9 @@ class LLMManager:
         if "model_id" in converse_args:
             converse_args["modelId"] = converse_args.pop("model_id")
 
+        # Remove internal parameters that should not be sent to AWS
+        converse_args.pop("_model_specific_config", None)
+
         # Execute the converse call with all prepared arguments
         response = client.converse(**converse_args)
 
@@ -1097,6 +1100,9 @@ class LLMManager:
         converse_stream_args = kwargs.copy()
         if "model_id" in converse_stream_args:
             converse_stream_args["modelId"] = converse_stream_args.pop("model_id")
+
+        # Remove internal parameters that should not be sent to AWS
+        converse_stream_args.pop("_model_specific_config", None)
 
         # Execute the streaming converse call with all prepared arguments
         response = client.converse_stream(**converse_stream_args)
