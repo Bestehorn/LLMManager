@@ -821,8 +821,7 @@ class TestStreamingResponse:
             streaming_response.get_cache_read_tokens() == bedrock_response.get_cache_read_tokens()
         )
         assert (
-            streaming_response.get_cache_write_tokens()
-            == bedrock_response.get_cache_write_tokens()
+            streaming_response.get_cache_write_tokens() == bedrock_response.get_cache_write_tokens()
         )
 
     def test_accessor_methods_with_unsuccessful_streaming(self):
@@ -1467,7 +1466,6 @@ class TestStreamingResponseIteratorProtocol:
         assert reconstructed.had_parameters_removed() == original.had_parameters_removed()
 
 
-
 class TestBedrockResponseTokenAccessorProperties:
     """Property-based tests for BedrockResponse token accessor methods."""
 
@@ -1726,5 +1724,8 @@ class TestBedrockResponseTokenAccessorProperties:
         response = BedrockResponse(success=True, response_data=response_data)
 
         # Verify total tokens equals input plus output
-        assert response.get_total_tokens() == response.get_input_tokens() + response.get_output_tokens()
+        assert (
+            response.get_total_tokens()
+            == response.get_input_tokens() + response.get_output_tokens()
+        )
         assert response.get_total_tokens() == input_tokens + output_tokens

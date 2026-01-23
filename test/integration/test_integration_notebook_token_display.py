@@ -95,10 +95,7 @@ def get_available_test_model_and_region(
         Tuple of (model_name, region) if available combination found, (None, None) otherwise
     """
     try:
-        from bestehorn_llmmanager.bedrock.UnifiedModelManager import (
-            UnifiedModelManager,
-            UnifiedModelManagerError,
-        )
+        from bestehorn_llmmanager.bedrock.UnifiedModelManager import UnifiedModelManager
 
         # Create and initialize UnifiedModelManager
         unified_manager = UnifiedModelManager()
@@ -201,14 +198,14 @@ class TestNotebookTokenDisplay:
         # Verify displayed values match actual API response (Requirement 1.5)
         usage = response.get_usage()
         assert usage is not None, "Usage data should be available"
-        assert (
-            input_tokens == usage.get("input_tokens", 0)
+        assert input_tokens == usage.get(
+            "input_tokens", 0
         ), "Accessor method should match usage dictionary"
-        assert (
-            output_tokens == usage.get("output_tokens", 0)
+        assert output_tokens == usage.get(
+            "output_tokens", 0
         ), "Accessor method should match usage dictionary"
-        assert (
-            total_tokens == usage.get("total_tokens", 0)
+        assert total_tokens == usage.get(
+            "total_tokens", 0
         ), "Accessor method should match usage dictionary"
 
         # Verify token arithmetic
@@ -271,15 +268,9 @@ class TestNotebookTokenDisplay:
         total_tokens = response.get_total_tokens()
 
         # Verify non-zero token counts for large text (Requirement 1.4)
-        assert (
-            input_tokens > 0
-        ), "Input tokens should be greater than 0 for large text request"
-        assert (
-            output_tokens > 0
-        ), "Output tokens should be greater than 0 for large text request"
-        assert (
-            total_tokens > 0
-        ), "Total tokens should be greater than 0 for large text request"
+        assert input_tokens > 0, "Input tokens should be greater than 0 for large text request"
+        assert output_tokens > 0, "Output tokens should be greater than 0 for large text request"
+        assert total_tokens > 0, "Total tokens should be greater than 0 for large text request"
 
         # Verify input tokens are substantial (should be close to estimated)
         # Allow for some variance due to tokenization differences
@@ -294,14 +285,14 @@ class TestNotebookTokenDisplay:
         # Verify displayed values match actual API response (Requirement 1.5)
         usage = response.get_usage()
         assert usage is not None, "Usage data should be available"
-        assert (
-            input_tokens == usage.get("input_tokens", 0)
+        assert input_tokens == usage.get(
+            "input_tokens", 0
         ), "Accessor method should match usage dictionary"
-        assert (
-            output_tokens == usage.get("output_tokens", 0)
+        assert output_tokens == usage.get(
+            "output_tokens", 0
         ), "Accessor method should match usage dictionary"
-        assert (
-            total_tokens == usage.get("total_tokens", 0)
+        assert total_tokens == usage.get(
+            "total_tokens", 0
         ), "Accessor method should match usage dictionary"
 
     def test_notebook_example3_token_tracking(self) -> None:
@@ -377,12 +368,12 @@ class TestNotebookTokenDisplay:
         # Verify displayed values match actual API response (Requirement 1.5)
         usage = response.get_usage()
         assert usage is not None, "Usage data should be available"
-        assert (
-            result["actual_input"] == usage.get("input_tokens", 0)
+        assert result["actual_input"] == usage.get(
+            "input_tokens", 0
         ), "Accessor method should match usage dictionary"
-        assert (
-            result["output"] == usage.get("output_tokens", 0)
+        assert result["output"] == usage.get(
+            "output_tokens", 0
         ), "Accessor method should match usage dictionary"
-        assert (
-            result["total"] == usage.get("total_tokens", 0)
+        assert result["total"] == usage.get(
+            "total_tokens", 0
         ), "Accessor method should match usage dictionary"
