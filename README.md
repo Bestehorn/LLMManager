@@ -76,6 +76,12 @@ If this is an issue, feel free to contact me and propose another name.
 
 ## ✨ Features
 
+### 🌍 **Region Discovery**
+- **Dynamic Discovery**: Automatically discover Bedrock-enabled AWS regions
+- **Intelligent Caching**: File-based caching with configurable TTL (default: 24 hours)
+- **Static Utilities**: Region constants and static lists for offline scenarios
+- **Geographic Filtering**: Easy filtering by geographic area (US, EU, AP, etc.)
+
 ### 🏗️ **Fluent MessageBuilder**
 - **Intuitive API**: Chain methods to build complex multi-modal messages
 - **Automatic Format Detection**: Intelligent file type detection from content and filenames

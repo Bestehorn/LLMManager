@@ -35,6 +35,10 @@ Example Usage:
 For detailed documentation, see the documentation in the docs/ directory.
 """
 
+# Region utilities
+from .bedrock.discovery import BedrockRegionDiscovery
+from .bedrock.models.aws_regions import AWSRegions, get_all_regions
+
 # Model-specific configuration and tracking
 from .bedrock.models.model_specific_structures import ModelSpecificConfig
 from .bedrock.tracking.parameter_compatibility_tracker import ParameterCompatibilityTracker
@@ -90,6 +94,10 @@ __all__ = [
     "DocumentFormatEnum",
     "VideoFormatEnum",
     "DetectionMethodEnum",
+    # Region utilities
+    "BedrockRegionDiscovery",
+    "get_all_regions",
+    "AWSRegions",
     # Model-specific configuration
     "ModelSpecificConfig",
     # Advanced: Parameter compatibility tracking
