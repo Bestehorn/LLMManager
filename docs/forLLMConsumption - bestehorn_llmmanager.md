@@ -674,6 +674,13 @@ usage = response.get_usage()                             # Dict: Token usage inf
 metrics = response.get_metrics()                         # Dict: Performance metrics
 stop_reason = response.get_stop_reason()                 # String: Why generation stopped
 
+# Token usage accessor methods (recommended)
+input_tokens = response.get_input_tokens()               # Int: Input tokens used
+output_tokens = response.get_output_tokens()             # Int: Output tokens generated
+total_tokens = response.get_total_tokens()               # Int: Total tokens (input + output)
+cache_read_tokens = response.get_cache_read_tokens()     # Int: Tokens read from cache
+cache_write_tokens = response.get_cache_write_tokens()   # Int: Tokens written to cache
+
 # Execution details
 model_used = response.model_used                         # String: Model ID that succeeded
 region_used = response.region_used                       # String: Region that succeeded
@@ -1225,6 +1232,144 @@ response = manager.converse(
 )
 ```
 
+### Token Usage Tracking
+
+The BedrockResponse and StreamingResponse classes provide two ways to access token usage information:
+
+1. **Accessor Methods (Recommended)**: Individual methods for each token type
+2. **Dictionary Access**: Traditional get_usage() method returning a dictionary
+
+#### Using Accessor Methods (Recommended)
+
+The accessor methods provide a cleaner, more maintainable API that protects your code from internal structure changes:
+
+```python
+from bestehorn_llmmanager import LLMManager, create_user_message
+
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1"]
+)
+
+message = create_user_message().add_text("Explain quantum computing").build()
+response = manager.converse(messages=[message])
+
+if response.success:
+    # Use accessor methods (recommended approach)
+    input_tokens = response.get_input_tokens()
+    output_tokens = response.get_output_tokens()
+    total_tokens = response.get_total_tokens()
+    
+    print(f"Token Usage:")
+    print(f"  Input tokens: {input_tokens:,}")
+    print(f"  Output tokens: {output_tokens:,}")
+    print(f"  Total tokens: {total_tokens:,}")
+    
+    # Access cache token information (for prompt caching)
+    cache_read = response.get_cache_read_tokens()
+    cache_write = response.get_cache_write_tokens()
+    
+    if cache_read > 0 or cache_write > 0:
+        print(f"  Cache read tokens: {cache_read:,}")
+        print(f"  Cache write tokens: {cache_write:,}")
+```
+
+#### Using Dictionary Access (Legacy)
+
+The get_usage() method returns a dictionary with snake_case keys for backward compatibility:
+
+```python
+# Dictionary access (legacy approach)
+usage = response.get_usage()
+if usage:
+    print(f"Token Usage:")
+    print(f"  Input tokens: {usage.get('input_tokens', 0):,}")
+    print(f"  Output tokens: {usage.get('output_tokens', 0):,}")
+    print(f"  Total tokens: {usage.get('total_tokens', 0):,}")
+    print(f"  Cache read tokens: {usage.get('cache_read_tokens', 0):,}")
+    print(f"  Cache write tokens: {usage.get('cache_write_tokens', 0):,}")
+```
+
+#### Token Usage with Streaming
+
+Streaming responses also support both access patterns:
+
+```python
+# Streaming with accessor methods
+streaming_response = manager.converse_stream(messages=[message])
+
+# Consume the stream
+for chunk in streaming_response:
+    print(chunk, end='', flush=True)
+
+# Access token usage after streaming completes
+print(f"\nToken Usage:")
+print(f"  Input: {streaming_response.get_input_tokens():,}")
+print(f"  Output: {streaming_response.get_output_tokens():,}")
+print(f"  Total: {streaming_response.get_total_tokens():,}")
+```
+
+#### Token Usage in Parallel Processing
+
+Track token usage across multiple parallel requests:
+
+```python
+from bestehorn_llmmanager import ParallelLLMManager
+from bestehorn_llmmanager.bedrock.models.parallel_structures import BedrockConverseRequest
+
+parallel_manager = ParallelLLMManager(
+    models=["Claude 3 Haiku"],
+    regions=["us-east-1", "us-west-2"]
+)
+
+# Create multiple requests
+requests = [
+    BedrockConverseRequest(
+        request_id=f"req-{i}",
+        messages=[create_user_message().add_text(f"Question {i}").build()]
+    )
+    for i in range(5)
+]
+
+parallel_response = parallel_manager.converse_parallel(requests=requests)
+
+# Calculate total token usage across all requests
+total_input = 0
+total_output = 0
+total_tokens = 0
+
+for request_id, response in parallel_response.request_responses.items():
+    if response.success:
+        total_input += response.get_input_tokens()
+        total_output += response.get_output_tokens()
+        total_tokens += response.get_total_tokens()
+
+print(f"Total Token Usage Across {len(requests)} Requests:")
+print(f"  Total input tokens: {total_input:,}")
+print(f"  Total output tokens: {total_output:,}")
+print(f"  Total tokens: {total_tokens:,}")
+print(f"  Average tokens per request: {total_tokens / len(requests):.1f}")
+```
+
+#### Graceful Handling of Missing Token Data
+
+All accessor methods return 0 when token data is unavailable, making them safe to use without explicit None checks:
+
+```python
+# Accessor methods always return integers (0 if unavailable)
+input_tokens = response.get_input_tokens()  # Returns 0 if no data
+output_tokens = response.get_output_tokens()  # Returns 0 if no data
+
+# Safe to use in calculations without None checks
+total_cost = (input_tokens * 0.001) + (output_tokens * 0.002)
+
+# Check if token data is available
+if response.get_total_tokens() > 0:
+    print(f"Token usage: {response.get_total_tokens():,}")
+else:
+    print("Token usage data not available")
+```
+
 ## Error Handling
 
 ### Exception Hierarchy
@@ -1357,6 +1502,409 @@ response = manager.converse(messages=[message])
 - Regions without CRIS profiles are automatically skipped
 - Detailed logging at INFO level for troubleshooting
 
+## Inference Profile Support (Automatic)
+
+### Overview
+
+Starting in v0.4.0, LLMManager includes automatic inference profile support for AWS Bedrock models that require profile-based access. This feature is completely transparent - the system automatically detects when models require inference profiles, selects appropriate profiles, and learns access method preferences over time.
+
+**Key Features:**
+- **Automatic Detection**: Detects profile requirements from AWS ValidationException errors
+- **Intelligent Selection**: Automatically selects optimal inference profiles
+- **Learning System**: Learns and remembers successful access methods
+- **Zero Configuration**: No code changes required - works automatically
+- **Backward Compatible**: Models with direct access continue working unchanged
+
+### What Are Inference Profiles?
+
+Inference profiles (also called Cross-Region Inference or CRIS profiles) are AWS Bedrock resources that provide access to foundation models, potentially across multiple regions. Some newer models (like Claude Sonnet 4.5) require profile-based access instead of direct model ID invocation.
+
+**Access Methods:**
+- **Direct Access**: Using model ID directly (e.g., `anthropic.claude-3-haiku-20240307-v1:0`)
+- **Regional CRIS**: Using regional inference profile ARN
+- **Global CRIS**: Using global inference profile ID
+
+### Automatic Profile Detection
+
+The system automatically detects when a model requires inference profile access:
+
+```python
+from bestehorn_llmmanager import LLMManager, create_user_message
+
+# No special configuration needed!
+manager = LLMManager(
+    models=["Claude Sonnet 4.5"],  # Requires inference profile
+    regions=["us-east-1", "us-west-2"]
+)
+
+message = create_user_message().add_text("Hello!").build()
+
+# System automatically:
+# 1. Detects profile requirement from AWS error
+# 2. Selects appropriate inference profile
+# 3. Retries with profile immediately
+# 4. Learns preference for future requests
+response = manager.converse(messages=[message])
+
+if response.success:
+    print(f"Response: {response.get_content()}")
+    print(f"Access method used: {response.access_method_used}")
+    print(f"Profile used: {response.inference_profile_used}")
+```
+
+### Access Method Selection
+
+The system uses intelligent preference ordering when multiple access methods are available:
+
+**Preference Order:**
+1. **Direct Access** - Fastest, lowest latency (preferred when available)
+2. **Regional CRIS** - Region-specific inference profile
+3. **Global CRIS** - Cross-region inference profile
+
+**Automatic Learning:**
+Once the system successfully uses a specific access method, it remembers this preference for future requests to the same model/region combination.
+
+```python
+# First request: System tries direct access, detects profile requirement, retries with profile
+response1 = manager.converse(messages=[message])
+# Access method: regional_cris (learned)
+
+# Second request: System uses learned preference immediately
+response2 = manager.converse(messages=[message])
+# Access method: regional_cris (from learned preference)
+```
+
+### Checking Access Method Used
+
+Response objects include metadata about which access method was used:
+
+```python
+response = manager.converse(messages=[message])
+
+if response.success:
+    # Check access method
+    print(f"Access method: {response.access_method_used}")
+    # Output: "direct", "regional_cris", or "global_cris"
+    
+    # Check if inference profile was used
+    if response.inference_profile_used:
+        print(f"Profile ID: {response.inference_profile_id}")
+        # Output: Profile ARN or ID
+    
+    # Model and region information
+    print(f"Model: {response.model_used}")
+    print(f"Region: {response.region_used}")
+```
+
+### Response Metadata Fields
+
+**BedrockResponse Fields:**
+- `access_method_used` (str): Access method used ("direct", "regional_cris", "global_cris")
+- `inference_profile_used` (bool): Whether an inference profile was used
+- `inference_profile_id` (str): Profile ARN/ID if profile was used
+
+**ParallelResponse Aggregation:**
+```python
+from bestehorn_llmmanager import ParallelLLMManager
+from bestehorn_llmmanager.bedrock.models.parallel_structures import BedrockConverseRequest
+
+parallel_manager = ParallelLLMManager(
+    models=["Claude Sonnet 4.5", "Claude 3 Haiku"],
+    regions=["us-east-1", "us-west-2"]
+)
+
+requests = [
+    BedrockConverseRequest(request_id=f"req-{i}", messages=[message])
+    for i in range(10)
+]
+
+parallel_response = parallel_manager.converse_parallel(requests=requests)
+
+# Access method statistics
+stats = parallel_response.parallel_execution_stats
+print(f"Direct access: {stats.access_method_distribution.get('direct', 0)}")
+print(f"Regional CRIS: {stats.access_method_distribution.get('regional_cris', 0)}")
+print(f"Global CRIS: {stats.access_method_distribution.get('global_cris', 0)}")
+```
+
+### Access Method Statistics
+
+Monitor access method usage across your application:
+
+```python
+from bestehorn_llmmanager.bedrock.tracking import AccessMethodTracker
+
+# Get singleton tracker instance
+tracker = AccessMethodTracker.get_instance()
+
+# Get statistics
+stats = tracker.get_statistics()
+
+print(f"Total tracked combinations: {stats['total_tracked']}")
+print(f"Profile-required models: {stats['profile_required_count']}")
+print(f"Direct-access models: {stats['direct_access_count']}")
+
+# Check if specific model requires profile
+requires_profile = tracker.requires_profile(
+    model_id="anthropic.claude-sonnet-4-20250514-v1:0",
+    region="us-east-1"
+)
+print(f"Requires profile: {requires_profile}")
+```
+
+### Parallel Processing Support
+
+Inference profile support works seamlessly with parallel processing:
+
+```python
+from bestehorn_llmmanager import ParallelLLMManager, create_user_message
+from bestehorn_llmmanager.bedrock.models.parallel_structures import BedrockConverseRequest
+
+parallel_manager = ParallelLLMManager(
+    models=["Claude Sonnet 4.5"],  # Requires profiles
+    regions=["us-east-1", "us-west-2", "eu-west-1"]
+)
+
+# Create multiple requests
+messages = [
+    create_user_message().add_text(f"Question {i}").build()
+    for i in range(5)
+]
+
+requests = [
+    BedrockConverseRequest(request_id=f"req-{i}", messages=[msg])
+    for i, msg in enumerate(messages)
+]
+
+# Execute in parallel - profiles handled automatically for each request
+parallel_response = parallel_manager.converse_parallel(requests=requests)
+
+# Check results
+for request_id, response in parallel_response.request_responses.items():
+    if response.success:
+        print(f"{request_id}: {response.access_method_used}")
+```
+
+### Graceful Degradation
+
+When profile information is unavailable, the system gracefully falls back:
+
+```python
+# If a model requires a profile but none is available:
+# 1. System logs warning about missing profile
+# 2. Continues to next model/region combination
+# 3. Eventually succeeds with available model/region
+
+manager = LLMManager(
+    models=["Claude Sonnet 4.5", "Claude 3 Haiku"],  # Fallback to Haiku if needed
+    regions=["us-east-1", "us-west-2"]
+)
+
+response = manager.converse(messages=[message])
+
+# Check warnings for profile-related issues
+warnings = response.get_warnings()
+for warning in warnings:
+    print(f"Warning: {warning}")
+```
+
+### Logging
+
+Profile support includes comprehensive logging at appropriate levels:
+
+**WARNING Level** (Default):
+- Profile requirement detection
+- Missing profile information
+- Profile unavailability
+
+**INFO Level**:
+- Profile selection
+- Profile retry success
+- Access method switches
+
+**DEBUG Level**:
+- Access method learning
+- Preference updates
+- Detailed retry flow
+
+```python
+import logging
+
+# Enable INFO logging to see profile usage
+manager = LLMManager(
+    models=["Claude Sonnet 4.5"],
+    regions=["us-east-1"],
+    log_level=logging.INFO
+)
+
+# Logs will show:
+# INFO: Model 'anthropic.claude-sonnet-4-20250514-v1:0' requires inference profile in region 'us-east-1'. Retrying with profile...
+# INFO: Using inference profile 'arn:aws:bedrock:us-east-1::inference-profile/...' for model 'Claude Sonnet 4.5' in 'us-east-1'
+# INFO: Request succeeded using inference profile for model 'Claude Sonnet 4.5' in 'us-east-1'
+```
+
+### Backward Compatibility
+
+**No Breaking Changes:**
+- All existing code continues to work without modifications
+- Models supporting direct access use it by default
+- Profile support is additive only
+- No API changes required
+
+```python
+# Existing code works unchanged
+manager = LLMManager(
+    models=["Claude 3 Haiku"],  # Supports direct access
+    regions=["us-east-1"]
+)
+
+message = create_user_message().add_text("Hello").build()
+response = manager.converse(messages=[message])
+
+# Uses direct access (no profile needed)
+print(f"Access method: {response.access_method_used}")  # "direct"
+```
+
+### Common Scenarios
+
+#### Scenario 1: New Model Requiring Profile
+
+```python
+# First time using Claude Sonnet 4.5
+manager = LLMManager(
+    models=["Claude Sonnet 4.5"],
+    regions=["us-east-1"]
+)
+
+message = create_user_message().add_text("Hello").build()
+response = manager.converse(messages=[message])
+
+# System automatically:
+# 1. Tries direct access (fails with ValidationException)
+# 2. Detects profile requirement
+# 3. Selects inference profile
+# 4. Retries with profile (succeeds)
+# 5. Records preference for future use
+
+print(f"Success: {response.success}")
+print(f"Access method: {response.access_method_used}")  # "regional_cris"
+```
+
+#### Scenario 2: Mixed Access Methods
+
+```python
+# Using models with different access requirements
+manager = LLMManager(
+    models=["Claude Sonnet 4.5", "Claude 3 Haiku"],  # Mixed requirements
+    regions=["us-east-1", "us-west-2"]
+)
+
+message = create_user_message().add_text("Hello").build()
+response = manager.converse(messages=[message])
+
+# System uses appropriate access method for each model
+# Claude Sonnet 4.5: Uses inference profile
+# Claude 3 Haiku: Uses direct access
+```
+
+#### Scenario 3: Monitoring Access Methods
+
+```python
+from bestehorn_llmmanager.bedrock.tracking import AccessMethodTracker
+
+# Execute multiple requests
+for i in range(10):
+    message = create_user_message().add_text(f"Request {i}").build()
+    response = manager.converse(messages=[message])
+    print(f"Request {i}: {response.access_method_used}")
+
+# Check learned preferences
+tracker = AccessMethodTracker.get_instance()
+stats = tracker.get_statistics()
+
+print(f"\nAccess Method Statistics:")
+print(f"Total tracked: {stats['total_tracked']}")
+print(f"Profile required: {stats['profile_required_count']}")
+print(f"Direct access: {stats['direct_access_count']}")
+```
+
+### Troubleshooting
+
+**Issue: Model requires profile but none available**
+
+```python
+# Error message will indicate:
+# "Model 'anthropic.claude-sonnet-4-20250514-v1:0' requires inference profile 
+#  in 'us-east-1' but no profile information available in catalog"
+
+# Solution: Refresh catalog data
+manager.refresh_model_data()
+
+# Or use fallback model
+manager = LLMManager(
+    models=["Claude Sonnet 4.5", "Claude 3 Haiku"],  # Fallback to Haiku
+    regions=["us-east-1"]
+)
+```
+
+**Issue: Want to see which access method is being used**
+
+```python
+# Enable INFO logging
+import logging
+
+manager = LLMManager(
+    models=["Claude Sonnet 4.5"],
+    regions=["us-east-1"],
+    log_level=logging.INFO
+)
+
+# Check response metadata
+response = manager.converse(messages=[message])
+print(f"Access method: {response.access_method_used}")
+print(f"Profile used: {response.inference_profile_used}")
+if response.inference_profile_used:
+    print(f"Profile ID: {response.inference_profile_id}")
+```
+
+**Issue: Want to monitor access method distribution**
+
+```python
+from bestehorn_llmmanager.bedrock.tracking import AccessMethodTracker
+
+tracker = AccessMethodTracker.get_instance()
+stats = tracker.get_statistics()
+
+print(f"Access method distribution:")
+for method, count in stats.get('access_method_distribution', {}).items():
+    print(f"  {method}: {count}")
+```
+
+### Performance Impact
+
+**Minimal Overhead:**
+- Profile detection only occurs on ValidationException (rare)
+- Access method lookup is O(1) dictionary lookup
+- Learning system uses thread-safe in-memory cache
+- No additional API calls (profile info from catalog)
+
+**Typical Performance:**
+- First request with profile requirement: +1 retry (immediate)
+- Subsequent requests: No overhead (uses learned preference)
+- Parallel processing: No performance degradation
+
+### Summary
+
+Inference profile support in LLMManager is:
+- **Automatic**: No configuration or code changes required
+- **Intelligent**: Learns and optimizes access methods over time
+- **Transparent**: Works seamlessly with existing code
+- **Reliable**: Graceful fallback when profiles unavailable
+- **Observable**: Comprehensive logging and statistics
+- **Performant**: Minimal overhead, fast learning
+
+The system handles all complexity of inference profiles automatically, allowing you to focus on building your application without worrying about AWS Bedrock access method details.
+
 ## Model and Region Management
 
 ### Enhanced Provider Support
@@ -1394,15 +1942,78 @@ Some models may only be available through CRIS in certain regions. These are aut
 
 ### Model Names
 
-Common model names supported:
+The LLMManager supports flexible model name resolution (NEW in v3.1.0), allowing you to use friendly, memorable names instead of exact API identifiers. **For complete documentation, see the [Model Name Resolution Guide](MODEL_NAME_RESOLUTION_GUIDE.md).**
+
+**Friendly Names (Recommended):**
 - `"Claude 3 Haiku"` - Fast, efficient model
 - `"Claude 3 Sonnet"` - Balanced performance
 - `"Claude 3 Opus"` - Most capable model
 - `"Claude 3.5 Sonnet"` - Enhanced version
+- `"Claude 3.5 Haiku"` - Enhanced efficient model
+- `"Claude 4.5 Haiku"` - Latest efficient model
 - `"Nova Micro"` - Amazon's multimodal model
 - `"Nova Lite"` - Amazon's lightweight model
 - `"Nova Pro"` - Amazon's professional model
+- `"Llama 3 8B Instruct"` - Meta's instruction-tuned model
+- `"Llama 3.1 8B Instruct"` - Meta's enhanced model
 - `"Marengo Embed v2.7"` - TwelveLabs embedding model
+
+**Name Resolution Features:**
+- **Case Insensitive**: `"claude 3 haiku"` = `"Claude 3 Haiku"`
+- **Flexible Spacing**: `"Claude3Haiku"` = `"Claude 3 Haiku"`
+- **Flexible Punctuation**: `"Claude-3-Haiku"` = `"Claude 3 Haiku"`
+- **Version Formats**: `"Claude 3.5 Sonnet"` = `"Claude 3 5 Sonnet"`
+- **Word Order**: `"Claude 3 Haiku"` = `"Claude Haiku 3"`
+- **Provider Prefixes**: `"Anthropic Claude 3 Haiku"` = `"Claude 3 Haiku"`
+- **Automatic Aliases**: System generates multiple aliases for each model
+- **Legacy Support**: All UnifiedModelManager names work automatically
+
+**API Names (Also Supported):**
+- `"anthropic.claude-3-haiku-20240307-v1:0"` - Full model ID
+- `"Claude Haiku 4 5 20251001"` - API model name
+
+**Legacy Names (Backward Compatible):**
+All UnifiedModelManager names are automatically supported for backward compatibility. No code changes required when migrating from UnifiedModelManager to BedrockModelCatalog.
+
+**Examples:**
+```python
+from bestehorn_llmmanager import LLMManager
+
+# All of these work and refer to the same model:
+manager = LLMManager(models=["Claude 3 Haiku"], regions=["us-east-1"])
+manager = LLMManager(models=["Claude Haiku 3"], regions=["us-east-1"])
+manager = LLMManager(models=["claude-3-haiku"], regions=["us-east-1"])
+manager = LLMManager(models=["CLAUDE 3 HAIKU"], regions=["us-east-1"])
+manager = LLMManager(models=["Claude3Haiku"], regions=["us-east-1"])
+
+# Version number flexibility:
+manager = LLMManager(models=["Claude 3.5 Sonnet"], regions=["us-east-1"])
+manager = LLMManager(models=["Claude 3 5 Sonnet"], regions=["us-east-1"])
+manager = LLMManager(models=["Claude Sonnet 3.5"], regions=["us-east-1"])
+
+# Legacy UnifiedModelManager names still work:
+manager = LLMManager(models=["Titan Text G1 - Lite"], regions=["us-east-1"])
+```
+
+**Error Handling:**
+If a model name cannot be resolved, you'll receive a helpful error message with suggestions:
+
+```python
+from bestehorn_llmmanager.bedrock.exceptions import ConfigurationError
+
+try:
+    manager = LLMManager(models=["Claude 3 Hiku"], regions=["us-east-1"])  # Typo
+except ConfigurationError as e:
+    print(e)
+    # "Model 'Claude 3 Hiku' not found. Did you mean: Claude 3 Haiku, 
+    #  Claude 3.5 Haiku, Claude 3 Sonnet?"
+```
+
+**For More Information:**
+- Complete name resolution documentation: [Model Name Resolution Guide](MODEL_NAME_RESOLUTION_GUIDE.md)
+- Migration scenarios and examples
+- Troubleshooting guide
+- Legacy name mappings table
 
 ### AWS Regions
 
@@ -1447,12 +2058,186 @@ The `BedrockModelCatalog` is the new unified system for managing AWS Bedrock mod
 - Lambda-friendly design
 - Bundled fallback data for offline scenarios
 - Automatic failover and error handling
+- **User-friendly model name resolution** (NEW in v3.1.0)
 
 **Deprecation Notice:**
 The following classes are deprecated and will be removed in version 4.0.0:
 - `ModelManager` - Use `BedrockModelCatalog` instead
 - `CRISManager` - Use `BedrockModelCatalog` instead
 - `UnifiedModelManager` - Use `BedrockModelCatalog` instead
+
+### Model Name Resolution (NEW in v3.1.0)
+
+The `BedrockModelCatalog` now includes a powerful model name resolution system that allows you to reference models using friendly, memorable names instead of API-specific identifiers.
+
+**For complete documentation, see the [Model Name Resolution Guide](MODEL_NAME_RESOLUTION_GUIDE.md).**
+
+#### Why Name Resolution?
+
+AWS Bedrock API returns model names like `"Claude Haiku 4 5 20251001"` which are difficult to remember and use. The name resolution system automatically generates user-friendly aliases like `"Claude 3 Haiku"`, `"Claude Haiku 4.5"`, and maintains backward compatibility with legacy `UnifiedModelManager` names.
+
+#### Key Features
+
+- **User-Friendly Names**: Use memorable names like `"Claude 3 Haiku"` instead of `"Claude Haiku 4 5 20251001"`
+- **Flexible Matching**: Case-insensitive, handles spacing/punctuation variations
+- **Version Flexibility**: `"Claude 3.5 Sonnet"` = `"Claude 3 5 Sonnet"` = `"Claude Sonnet 3.5"`
+- **Backward Compatible**: All `UnifiedModelManager` legacy names work automatically
+- **Helpful Errors**: Suggestions provided when names don't resolve
+- **Automatic Aliases**: System generates multiple aliases for each model
+
+#### Supported Name Formats
+
+The catalog accepts multiple name formats for the same model:
+
+**API Names (Exact):**
+- `"Claude Haiku 4 5 20251001"` - Exact API name
+- `"anthropic.claude-3-haiku-20240307-v1:0"` - Full model ID
+
+**Friendly Aliases (Generated):**
+- `"Claude 3 Haiku"` - Simple, memorable name
+- `"Claude Haiku 3"` - Alternative word order
+- `"Claude 3.5 Sonnet"` - Version with decimal notation
+- `"Claude Sonnet 3.5"` - Alternative word order
+
+**Legacy Names (Backward Compatible):**
+- All `UnifiedModelManager` names are supported
+- Automatic mapping to new catalog names
+- Clear error messages for deprecated models
+
+**Flexible Matching:**
+- Case insensitive: `"claude 3 haiku"` = `"Claude 3 Haiku"`
+- Spacing variations: `"Claude3Haiku"` = `"Claude 3 Haiku"`
+- Punctuation variations: `"Claude-3-Haiku"` = `"Claude 3 Haiku"`
+- Version formats: `"4.5"` = `"4 5"` = `"45"`
+- Word order: `"Claude 3 Haiku"` = `"Claude Haiku 3"`
+- Provider prefixes: `"Anthropic Claude 3 Haiku"` = `"Claude 3 Haiku"`
+
+#### Quick Examples
+
+```python
+from bestehorn_llmmanager.bedrock.catalog import BedrockModelCatalog
+
+catalog = BedrockModelCatalog()
+
+# All of these resolve to the same model:
+model_info = catalog.get_model_info("Claude 3 Haiku", "us-east-1")
+model_info = catalog.get_model_info("Claude Haiku 3", "us-east-1")
+model_info = catalog.get_model_info("claude-3-haiku", "us-east-1")
+model_info = catalog.get_model_info("CLAUDE 3 HAIKU", "us-east-1")
+model_info = catalog.get_model_info("Claude3Haiku", "us-east-1")
+
+# Version number flexibility:
+model_info = catalog.get_model_info("Claude 3.5 Sonnet", "us-east-1")
+model_info = catalog.get_model_info("Claude Sonnet 3.5", "us-east-1")
+model_info = catalog.get_model_info("Claude 3 5 Sonnet", "us-east-1")
+
+# Legacy UnifiedModelManager names still work:
+model_info = catalog.get_model_info("Titan Text G1 - Lite", "us-east-1")
+model_info = catalog.get_model_info("Llama 3 8B Instruct", "us-east-1")
+```
+
+#### Error Messages with Suggestions
+
+When a model name cannot be resolved, the catalog provides helpful suggestions:
+
+```python
+from bestehorn_llmmanager.bedrock.exceptions import ConfigurationError
+
+try:
+    model_info = catalog.get_model_info("Claude 3 Hiku", "us-east-1")  # Typo
+except ConfigurationError as e:
+    # Error message includes suggestions:
+    # "Model 'Claude 3 Hiku' not found in region 'us-east-1'. 
+    #  Did you mean: Claude 3 Haiku, Claude 3.5 Haiku, Claude 3 Sonnet?"
+    print(e)
+```
+
+#### Name Resolution with LLMManager
+
+The `LLMManager` automatically uses the name resolution system:
+
+```python
+from bestehorn_llmmanager import LLMManager, create_user_message
+
+# Use friendly names - no need to know exact API names!
+manager = LLMManager(
+    models=["Claude 3 Haiku", "Claude 3.5 Sonnet"],  # Friendly names
+    regions=["us-east-1", "us-west-2"]
+)
+
+message = create_user_message().add_text("Hello!").build()
+response = manager.converse(messages=[message])
+
+# The system automatically resolves to the correct model IDs
+print(f"Used model: {response.model_used}")
+```
+
+#### Common Model Name Aliases
+
+**Claude Models:**
+- `"Claude 3 Haiku"`, `"Claude Haiku 3"`, `"claude-3-haiku"`
+- `"Claude 3 Sonnet"`, `"Claude Sonnet 3"`, `"claude-3-sonnet"`
+- `"Claude 3 Opus"`, `"Claude Opus 3"`, `"claude-3-opus"`
+- `"Claude 3.5 Sonnet"`, `"Claude Sonnet 3.5"`, `"claude-3-5-sonnet"`
+- `"Claude 3.5 Haiku"`, `"Claude Haiku 3.5"`, `"claude-3-5-haiku"`
+- `"Claude 4.5 Haiku"`, `"Claude Haiku 4.5"`, `"claude-4-5-haiku"`
+
+**Amazon Models:**
+- `"Nova Micro"`, `"Amazon Nova Micro"`
+- `"Nova Lite"`, `"Amazon Nova Lite"`
+- `"Nova Pro"`, `"Amazon Nova Pro"`
+- `"Titan Text G1 - Lite"`, `"Titan Text Lite"`
+
+**Meta Models:**
+- `"Llama 3 8B Instruct"`, `"Llama 3 8B"`
+- `"Llama 3.1 8B Instruct"`, `"Llama 3.1 8B"`
+- `"Llama 3.2 1B Instruct"`, `"Llama 3.2 1B"`
+
+**Provider-Prefixed Models:**
+- `"APAC Claude 3 Haiku"` → resolves to `"Claude 3 Haiku"`
+- `"EU Anthropic Claude 3 Sonnet"` → resolves to `"Claude 3 Sonnet"`
+
+#### Name Resolution Behavior
+
+The resolution system follows this priority order:
+
+1. **Exact Match**: Check for exact API name match
+2. **Alias Match**: Check generated friendly aliases
+3. **Legacy Match**: Check UnifiedModelManager legacy mappings
+4. **Normalized Match**: Check with normalization (case, spacing, punctuation)
+5. **Fuzzy Match**: Find similar names (if not in strict mode)
+
+#### Migration from UnifiedModelManager
+
+**No code changes required!** All legacy names work automatically:
+
+```python
+# OLD CODE (UnifiedModelManager) - Still works!
+manager = LLMManager(
+    models=["Claude 3 Haiku"],  # Legacy name
+    regions=["us-east-1"]
+)
+
+# NEW CODE (BedrockModelCatalog) - Also works!
+manager = LLMManager(
+    models=["Claude 3 Haiku"],  # Same name, automatic resolution
+    regions=["us-east-1"]
+)
+
+# No code changes needed for migration!
+```
+
+#### For More Information
+
+For comprehensive documentation including:
+- Complete list of supported name formats
+- Detailed migration scenarios
+- Troubleshooting guide
+- Legacy name mappings table
+- Testing examples
+- Best practices
+
+See the **[Model Name Resolution Guide](MODEL_NAME_RESOLUTION_GUIDE.md)**.
 
 ### Basic Usage
 
