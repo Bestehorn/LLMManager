@@ -494,6 +494,64 @@
         }
       }
     },
+    "Nemotron Nano 3 30b": {
+      "model_name": "Nemotron Nano 3 30b",
+      "provider": "NVIDIA",
+      "model_id": "nvidia.nemotron-nano-3-30b",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "nvidia.nemotron-nano-3-30b",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "nvidia.nemotron-nano-3-30b",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "nvidia.nemotron-nano-3-30b",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "nvidia.nemotron-nano-3-30b",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "nvidia.nemotron-nano-3-30b",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "nvidia.nemotron-nano-3-30b",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "nvidia.nemotron-nano-3-30b",
+          "inference_profile_id": null
+        }
+      }
+    },
     "Minimax M2": {
       "model_name": "Minimax M2",
       "provider": "MiniMax",
@@ -563,7 +621,7 @@
       "provider": "Mistral AI",
       "model_id": "mistral.voxtral-mini-3b-2507",
       "input_modalities": [
-        "AUDIO",
+        "SPEECH",
         "TEXT"
       ],
       "output_modalities": [
@@ -1143,6 +1201,125 @@
         }
       }
     },
+    "Pegasus 1 2": {
+      "model_name": "Pegasus 1 2",
+      "provider": "TwelveLabs",
+      "model_id": "twelvelabs.pegasus-1-2-v1:0",
+      "input_modalities": [
+        "TEXT",
+        "VIDEO"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "ap-northeast-2": {
+          "access_method": "direct",
+          "region": "ap-northeast-2",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "ap-northeast-3": {
+          "access_method": "direct",
+          "region": "ap-northeast-3",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "ap-southeast-1": {
+          "access_method": "direct",
+          "region": "ap-southeast-1",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "ca-central-1": {
+          "access_method": "direct",
+          "region": "ca-central-1",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "region": "eu-central-1",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "region": "eu-west-1",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "eu-west-3": {
+          "access_method": "direct",
+          "region": "eu-west-3",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "us-west-1": {
+          "access_method": "direct",
+          "region": "us-west-1",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "inference_profile_id": null
+        }
+      }
+    },
     "Nova 2 Sonic": {
       "model_name": "Nova 2 Sonic",
       "provider": "Amazon",
@@ -1265,6 +1442,7 @@
       "provider": "Mistral AI",
       "model_id": "mistral.ministral-3-14b-instruct",
       "input_modalities": [
+        "IMAGE",
         "TEXT"
       ],
       "output_modalities": [
@@ -1393,6 +1571,7 @@
       "provider": "Mistral AI",
       "model_id": "mistral.ministral-3-8b-instruct",
       "input_modalities": [
+        "IMAGE",
         "TEXT"
       ],
       "output_modalities": [
@@ -1457,7 +1636,7 @@
       "provider": "Mistral AI",
       "model_id": "mistral.voxtral-small-24b-2507",
       "input_modalities": [
-        "AUDIO",
+        "SPEECH",
         "TEXT"
       ],
       "output_modalities": [
@@ -2508,6 +2687,7 @@
       "provider": "Mistral AI",
       "model_id": "mistral.ministral-3-3b-instruct",
       "input_modalities": [
+        "IMAGE",
         "TEXT"
       ],
       "output_modalities": [
@@ -2931,170 +3111,6 @@
           "access_method": "direct",
           "region": "us-west-2",
           "model_id": "amazon.titan-embed-g1-text-02",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Titan Text Express V1:0": {
-      "model_name": "Titan Text Express V1:0",
-      "provider": "Amazon",
-      "model_id": "amazon.titan-text-express-v1:0:8k",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-northeast-1": {
-          "access_method": "direct",
-          "region": "ap-northeast-1",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        },
-        "ap-south-1": {
-          "access_method": "direct",
-          "region": "ap-south-1",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        },
-        "ap-southeast-2": {
-          "access_method": "direct",
-          "region": "ap-southeast-2",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        },
-        "ca-central-1": {
-          "access_method": "direct",
-          "region": "ca-central-1",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        },
-        "eu-central-1": {
-          "access_method": "direct",
-          "region": "eu-central-1",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        },
-        "eu-west-1": {
-          "access_method": "direct",
-          "region": "eu-west-1",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        },
-        "eu-west-2": {
-          "access_method": "direct",
-          "region": "eu-west-2",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        },
-        "eu-west-3": {
-          "access_method": "direct",
-          "region": "eu-west-3",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        },
-        "sa-east-1": {
-          "access_method": "direct",
-          "region": "sa-east-1",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "amazon.titan-text-express-v1:0:8k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Titan Text Express": {
-      "model_name": "Titan Text Express",
-      "provider": "Amazon",
-      "model_id": "amazon.titan-text-express-v1",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-northeast-1": {
-          "access_method": "direct",
-          "region": "ap-northeast-1",
-          "model_id": "amazon.titan-text-express-v1",
-          "inference_profile_id": null
-        },
-        "ap-south-1": {
-          "access_method": "direct",
-          "region": "ap-south-1",
-          "model_id": "amazon.titan-text-express-v1",
-          "inference_profile_id": null
-        },
-        "ap-southeast-2": {
-          "access_method": "direct",
-          "region": "ap-southeast-2",
-          "model_id": "amazon.titan-text-express-v1",
-          "inference_profile_id": null
-        },
-        "ca-central-1": {
-          "access_method": "direct",
-          "region": "ca-central-1",
-          "model_id": "amazon.titan-text-express-v1",
-          "inference_profile_id": null
-        },
-        "eu-central-1": {
-          "access_method": "direct",
-          "region": "eu-central-1",
-          "model_id": "amazon.titan-text-express-v1",
-          "inference_profile_id": null
-        },
-        "eu-west-1": {
-          "access_method": "direct",
-          "region": "eu-west-1",
-          "model_id": "amazon.titan-text-express-v1",
-          "inference_profile_id": null
-        },
-        "eu-west-2": {
-          "access_method": "direct",
-          "region": "eu-west-2",
-          "model_id": "amazon.titan-text-express-v1",
-          "inference_profile_id": null
-        },
-        "eu-west-3": {
-          "access_method": "direct",
-          "region": "eu-west-3",
-          "model_id": "amazon.titan-text-express-v1",
-          "inference_profile_id": null
-        },
-        "sa-east-1": {
-          "access_method": "direct",
-          "region": "sa-east-1",
-          "model_id": "amazon.titan-text-express-v1",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "amazon.titan-text-express-v1",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "amazon.titan-text-express-v1",
           "inference_profile_id": null
         }
       }
@@ -3527,7 +3543,7 @@
     "Titan Image Generator": {
       "model_name": "Titan Image Generator",
       "provider": "Amazon",
-      "model_id": "amazon.titan-image-generator-v1:0",
+      "model_id": "amazon.titan-image-generator-v2:0",
       "input_modalities": [
         "IMAGE",
         "TEXT"
@@ -3539,28 +3555,16 @@
       "inference_parameters_link": null,
       "hyperparameters_link": null,
       "region_access": {
-        "ap-south-1": {
-          "access_method": "direct",
-          "region": "ap-south-1",
-          "model_id": "amazon.titan-image-generator-v1:0",
-          "inference_profile_id": null
-        },
-        "eu-west-1": {
-          "access_method": "direct",
-          "region": "eu-west-1",
-          "model_id": "amazon.titan-image-generator-v1:0",
-          "inference_profile_id": null
-        },
         "us-east-1": {
           "access_method": "direct",
           "region": "us-east-1",
-          "model_id": "amazon.titan-image-generator-v1:0",
+          "model_id": "amazon.titan-image-generator-v2:0",
           "inference_profile_id": null
         },
         "us-west-2": {
           "access_method": "direct",
           "region": "us-west-2",
-          "model_id": "amazon.titan-image-generator-v1:0",
+          "model_id": "amazon.titan-image-generator-v2:0",
           "inference_profile_id": null
         }
       }
@@ -5977,13 +5981,13 @@
         }
       }
     },
-    "Pegasus 1 2": {
-      "model_name": "Pegasus 1 2",
-      "provider": "TwelveLabs",
-      "model_id": "twelvelabs.pegasus-1-2-v1:0",
+    "Claude Sonnet 4 20250514 V1:0": {
+      "model_name": "Claude Sonnet 4 20250514 V1:0",
+      "provider": "Anthropic",
+      "model_id": "anthropic.claude-sonnet-4-20250514-v1:0:32k",
       "input_modalities": [
-        "TEXT",
-        "VIDEO"
+        "IMAGE",
+        "TEXT"
       ],
       "output_modalities": [
         "TEXT"
@@ -5992,131 +5996,56 @@
       "inference_parameters_link": null,
       "hyperparameters_link": null,
       "region_access": {
-        "ap-northeast-1": {
-          "access_method": "direct",
-          "region": "ap-northeast-1",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "ap-northeast-2": {
-          "access_method": "direct",
-          "region": "ap-northeast-2",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "ap-northeast-3": {
-          "access_method": "direct",
-          "region": "ap-northeast-3",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "ap-south-1": {
-          "access_method": "direct",
-          "region": "ap-south-1",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "ca-central-1": {
-          "access_method": "direct",
-          "region": "ca-central-1",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "eu-central-1": {
-          "access_method": "direct",
-          "region": "eu-central-1",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "eu-north-1": {
-          "access_method": "direct",
-          "region": "eu-north-1",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "eu-west-1": {
-          "access_method": "direct",
-          "region": "eu-west-1",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "eu-west-2": {
-          "access_method": "direct",
-          "region": "eu-west-2",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "eu-west-3": {
-          "access_method": "direct",
-          "region": "eu-west-3",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "sa-east-1": {
-          "access_method": "direct",
-          "region": "sa-east-1",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "us-east-2": {
-          "access_method": "direct",
-          "region": "us-east-2",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
         "us-west-1": {
           "access_method": "direct",
           "region": "us-west-1",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "twelvelabs.pegasus-1-2-v1:0",
+          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0:32k",
           "inference_profile_id": null
         }
       }
     },
-    "Marengo Embed 2 7": {
-      "model_name": "Marengo Embed 2 7",
-      "provider": "TwelveLabs",
-      "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
+    "Llama4 Scout 17b Instruct V1:0": {
+      "model_name": "Llama4 Scout 17b Instruct V1:0",
+      "provider": "Meta",
+      "model_id": "meta.llama4-scout-17b-instruct-v1:0:128k",
       "input_modalities": [
         "IMAGE",
-        "SPEECH",
-        "TEXT",
-        "VIDEO"
+        "TEXT"
       ],
       "output_modalities": [
-        "EMBEDDING"
+        "TEXT"
       ],
-      "streaming_supported": false,
+      "streaming_supported": true,
       "inference_parameters_link": null,
       "hyperparameters_link": null,
       "region_access": {
-        "ap-northeast-2": {
+        "us-west-1": {
           "access_method": "direct",
-          "region": "ap-northeast-2",
-          "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
+          "region": "us-west-1",
+          "model_id": "meta.llama4-scout-17b-instruct-v1:0:128k",
           "inference_profile_id": null
-        },
-        "eu-west-1": {
+        }
+      }
+    },
+    "Llama4 Maverick 17b Instruct V1:0": {
+      "model_name": "Llama4 Maverick 17b Instruct V1:0",
+      "provider": "Meta",
+      "model_id": "meta.llama4-maverick-17b-instruct-v1:0:128k",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "us-west-1": {
           "access_method": "direct",
-          "region": "eu-west-1",
-          "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
+          "region": "us-west-1",
+          "model_id": "meta.llama4-maverick-17b-instruct-v1:0:128k",
           "inference_profile_id": null
         }
       }
@@ -6158,12 +6087,15 @@
         }
       }
     },
-    "Titan Embed Text V2:0": {
-      "model_name": "Titan Embed Text V2:0",
-      "provider": "Amazon",
-      "model_id": "amazon.titan-embed-text-v2:0:8k",
+    "Marengo Embed 2 7": {
+      "model_name": "Marengo Embed 2 7",
+      "provider": "TwelveLabs",
+      "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
       "input_modalities": [
-        "TEXT"
+        "IMAGE",
+        "SPEECH",
+        "TEXT",
+        "VIDEO"
       ],
       "output_modalities": [
         "EMBEDDING"
@@ -6172,16 +6104,22 @@
       "inference_parameters_link": null,
       "hyperparameters_link": null,
       "region_access": {
-        "ap-northeast-3": {
+        "ap-northeast-2": {
           "access_method": "direct",
-          "region": "ap-northeast-3",
-          "model_id": "amazon.titan-embed-text-v2:0:8k",
+          "region": "ap-northeast-2",
+          "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
+          "inference_profile_id": null
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "region": "eu-west-1",
+          "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
           "inference_profile_id": null
         },
         "us-east-1": {
           "access_method": "direct",
           "region": "us-east-1",
-          "model_id": "amazon.titan-embed-text-v2:0:8k",
+          "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
           "inference_profile_id": null
         }
       }
@@ -6252,41 +6190,6 @@
           "access_method": "direct",
           "region": "us-east-1",
           "model_id": "amazon.nova-reel-v1:0",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Nova Sonic": {
-      "model_name": "Nova Sonic",
-      "provider": "Amazon",
-      "model_id": "amazon.nova-sonic-v1:0",
-      "input_modalities": [
-        "SPEECH"
-      ],
-      "output_modalities": [
-        "SPEECH",
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-northeast-1": {
-          "access_method": "direct",
-          "region": "ap-northeast-1",
-          "model_id": "amazon.nova-sonic-v1:0",
-          "inference_profile_id": null
-        },
-        "eu-north-1": {
-          "access_method": "direct",
-          "region": "eu-north-1",
-          "model_id": "amazon.nova-sonic-v1:0",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "amazon.nova-sonic-v1:0",
           "inference_profile_id": null
         }
       }
@@ -6410,6 +6313,69 @@
         }
       }
     },
+    "Nova Sonic": {
+      "model_name": "Nova Sonic",
+      "provider": "Amazon",
+      "model_id": "amazon.nova-sonic-v1:0",
+      "input_modalities": [
+        "SPEECH"
+      ],
+      "output_modalities": [
+        "SPEECH",
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "amazon.nova-sonic-v1:0",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "amazon.nova-sonic-v1:0",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "amazon.nova-sonic-v1:0",
+          "inference_profile_id": null
+        }
+      }
+    },
+    "Titan Embed Text V2:0": {
+      "model_name": "Titan Embed Text V2:0",
+      "provider": "Amazon",
+      "model_id": "amazon.titan-embed-text-v2:0:8k",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "output_modalities": [
+        "EMBEDDING"
+      ],
+      "streaming_supported": false,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-3": {
+          "access_method": "direct",
+          "region": "ap-northeast-3",
+          "model_id": "amazon.titan-embed-text-v2:0:8k",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "amazon.titan-embed-text-v2:0:8k",
+          "inference_profile_id": null
+        }
+      }
+    },
     "Jamba 1 5 Large": {
       "model_name": "Jamba 1 5 Large",
       "provider": "AI21 Labs",
@@ -6472,119 +6438,6 @@
           "access_method": "direct",
           "region": "us-east-1",
           "model_id": "mistral.mistral-small-2402-v1:0",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Titan Text Lite V1:0": {
-      "model_name": "Titan Text Lite V1:0",
-      "provider": "Amazon",
-      "model_id": "amazon.titan-text-lite-v1:0:4k",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-south-1": {
-          "access_method": "direct",
-          "region": "ap-south-1",
-          "model_id": "amazon.titan-text-lite-v1:0:4k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Titan Text Lite": {
-      "model_name": "Titan Text Lite",
-      "provider": "Amazon",
-      "model_id": "amazon.titan-text-lite-v1",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-south-1": {
-          "access_method": "direct",
-          "region": "ap-south-1",
-          "model_id": "amazon.titan-text-lite-v1",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Claude Sonnet 4 20250514 V1:0": {
-      "model_name": "Claude Sonnet 4 20250514 V1:0",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-sonnet-4-20250514-v1:0:32k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-1": {
-          "access_method": "direct",
-          "region": "us-west-1",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0:32k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Llama4 Scout 17b Instruct V1:0": {
-      "model_name": "Llama4 Scout 17b Instruct V1:0",
-      "provider": "Meta",
-      "model_id": "meta.llama4-scout-17b-instruct-v1:0:128k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-1": {
-          "access_method": "direct",
-          "region": "us-west-1",
-          "model_id": "meta.llama4-scout-17b-instruct-v1:0:128k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Llama4 Maverick 17b Instruct V1:0": {
-      "model_name": "Llama4 Maverick 17b Instruct V1:0",
-      "provider": "Meta",
-      "model_id": "meta.llama4-maverick-17b-instruct-v1:0:128k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-1": {
-          "access_method": "direct",
-          "region": "us-west-1",
-          "model_id": "meta.llama4-maverick-17b-instruct-v1:0:128k",
           "inference_profile_id": null
         }
       }
@@ -6764,28 +6617,28 @@
   },
   "metadata": {
     "source": "bundled",
-    "retrieval_timestamp": "2025-12-17T10:53:23.118597",
+    "retrieval_timestamp": "2026-01-31T13:39:43.629328",
     "api_regions_queried": [
       "us-west-2",
-      "eu-west-3",
-      "ap-northeast-2",
-      "ap-northeast-3",
-      "ap-northeast-1",
-      "ap-southeast-2",
-      "us-east-2",
-      "ca-central-1",
-      "eu-north-1",
-      "us-east-1",
-      "eu-west-2",
       "ap-south-1",
-      "eu-west-1",
-      "ap-southeast-1",
       "us-west-1",
+      "eu-west-1",
+      "eu-west-2",
       "sa-east-1",
-      "eu-central-1"
+      "eu-central-1",
+      "us-east-2",
+      "us-east-1",
+      "eu-north-1",
+      "ca-central-1",
+      "eu-west-3",
+      "ap-southeast-2",
+      "ap-northeast-3",
+      "ap-southeast-1",
+      "ap-northeast-1",
+      "ap-northeast-2"
     ],
-    "bundled_data_version": "0.5.0.post1.dev0",
+    "bundled_data_version": "0.6.0.post1.dev11",
     "cache_file_path": null,
-    "generation_timestamp": "2025-12-17T10:53:23.118597"
+    "generation_timestamp": "2026-01-31T13:39:43.629328"
   }
 }
