@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.2] - 2026-01-31
+
 ### Added
 - **Automatic Inference Profile Support**: System now automatically detects when models require inference profile access and retries with appropriate profiles
 - `ProfileRequirementDetector` class for detecting profile requirement errors from AWS ValidationException messages
