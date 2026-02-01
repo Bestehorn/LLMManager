@@ -847,6 +847,249 @@ inference_config = {
 }
 ```
 
+## Region Discovery and Utilities
+
+The package provides utilities for discovering and working with AWS Bedrock-enabled regions.
+
+### BedrockRegionDiscovery
+
+Dynamic discovery of Bedrock-enabled AWS regions with caching.
+
+#### Constructor
+
+```python
+from bestehorn_llmmanager import BedrockRegionDiscovery
+
+discovery = BedrockRegionDiscovery(
+    cache_dir=None,           # Optional: Directory for cache files (default: docs/)
+    cache_ttl_hours=24        # Optional: Cache time-to-live in hours (default: 24)
+)
+```
+
+#### Core Methods
+
+**get_bedrock_regions() - Get list of Bedrock-enabled regions**
+
+```python
+def get_bedrock_regions(self, force_refresh: bool = False) -> List[str]
+```
+
+Returns a sorted list of AWS regions that support Amazon Bedrock. Results are cached to minimize AWS API calls.
+
+```python
+from bestehorn_llmmanager import BedrockRegionDiscovery
+
+# Create discovery instance
+discovery = BedrockRegionDiscovery()
+
+# Get regions (uses cache if available and valid)
+regions = discovery.get_bedrock_regions()
+print(f"Found {len(regions)} Bedrock regions: {regions}")
+# Output: Found 15 Bedrock regions: ['ap-northeast-1', 'ap-south-1', ...]
+
+# Force refresh from AWS (bypass cache)
+fresh_regions = discovery.get_bedrock_regions(force_refresh=True)
+```
+
+**clear_cache() - Clear cached region data**
+
+```python
+def clear_cache(self) -> None
+```
+
+Clears the cached region data, forcing the next `get_bedrock_regions()` call to fetch fresh data from AWS.
+
+```python
+# Clear the cache
+discovery.clear_cache()
+
+# Next call will fetch fresh data from AWS
+regions = discovery.get_bedrock_regions()
+```
+
+**get_cache_info() - Get cache state information**
+
+```python
+def get_cache_info(self) -> dict
+```
+
+Returns information about the current cache state including path, validity, and age.
+
+```python
+# Get cache information
+cache_info = discovery.get_cache_info()
+
+print(f"Cache file: {cache_info['cache_file']}")
+print(f"Cache exists: {cache_info['cache_exists']}")
+print(f"Cache TTL: {cache_info['cache_ttl_hours']} hours")
+
+if cache_info['cache_exists']:
+    print(f"Cache age: {cache_info.get('cache_age_hours', 0):.1f} hours")
+    print(f"Cache valid: {cache_info.get('cache_valid', False)}")
+    print(f"Cached regions: {cache_info.get('cached_region_count', 0)}")
+```
+
+### Static Region Utilities
+
+For cases where you need a static list of AWS regions or region constants.
+
+#### get_all_regions() - Get all AWS regions
+
+```python
+from bestehorn_llmmanager import get_all_regions
+
+# Get static list of all AWS regions
+all_regions = get_all_regions()
+print(f"Total AWS regions: {len(all_regions)}")
+# Output: Total AWS regions: 25
+```
+
+#### AWSRegions - Region constants
+
+```python
+from bestehorn_llmmanager import AWSRegions, LLMManager
+
+# Use region constants for type safety
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=[
+        AWSRegions.US_EAST_1,
+        AWSRegions.US_WEST_2,
+        AWSRegions.EU_WEST_1,
+        AWSRegions.AP_NORTHEAST_1
+    ]
+)
+
+# Available region constants:
+# US Regions: US_EAST_1, US_EAST_2, US_WEST_1, US_WEST_2
+# US Government: US_GOV_EAST_1, US_GOV_WEST_1
+# Asia Pacific: AP_NORTHEAST_1, AP_NORTHEAST_2, AP_NORTHEAST_3, 
+#               AP_SOUTH_1, AP_SOUTH_2, AP_SOUTHEAST_1, AP_SOUTHEAST_2,
+#               AP_SOUTHEAST_3, AP_SOUTHEAST_4
+# Europe: EU_CENTRAL_1, EU_CENTRAL_2, EU_NORTH_1, EU_SOUTH_1, EU_SOUTH_2,
+#         EU_WEST_1, EU_WEST_2, EU_WEST_3
+# Canada: CA_CENTRAL_1
+# South America: SA_EAST_1
+```
+
+### Region Discovery Usage Patterns
+
+#### Basic Region Discovery
+
+```python
+from bestehorn_llmmanager import BedrockRegionDiscovery, LLMManager
+
+# Discover Bedrock regions dynamically
+discovery = BedrockRegionDiscovery()
+bedrock_regions = discovery.get_bedrock_regions()
+
+# Use discovered regions with LLMManager
+manager = LLMManager(
+    models=["Claude 3 Haiku", "Claude 3 Sonnet"],
+    regions=bedrock_regions  # Use all available Bedrock regions
+)
+```
+
+#### Custom Cache Configuration
+
+```python
+from pathlib import Path
+from bestehorn_llmmanager import BedrockRegionDiscovery
+
+# Custom cache directory and TTL
+custom_cache_dir = Path.home() / ".aws" / "bedrock_cache"
+
+discovery = BedrockRegionDiscovery(
+    cache_dir=custom_cache_dir,
+    cache_ttl_hours=48  # Cache for 48 hours
+)
+
+regions = discovery.get_bedrock_regions()
+```
+
+#### Monitoring Cache State
+
+```python
+from bestehorn_llmmanager import BedrockRegionDiscovery
+
+discovery = BedrockRegionDiscovery()
+
+# Check cache before fetching
+cache_info = discovery.get_cache_info()
+
+if cache_info['cache_exists'] and cache_info.get('cache_valid', False):
+    print(f"Using cached data (age: {cache_info['cache_age_hours']:.1f}h)")
+    regions = discovery.get_bedrock_regions()
+else:
+    print("Fetching fresh data from AWS...")
+    regions = discovery.get_bedrock_regions(force_refresh=True)
+```
+
+#### Selective Region Usage
+
+```python
+from bestehorn_llmmanager import BedrockRegionDiscovery, AWSRegions, LLMManager
+
+# Get all Bedrock regions
+discovery = BedrockRegionDiscovery()
+all_bedrock_regions = discovery.get_bedrock_regions()
+
+# Filter to specific geographic areas
+us_regions = [r for r in all_bedrock_regions if r.startswith('us-')]
+eu_regions = [r for r in all_bedrock_regions if r.startswith('eu-')]
+ap_regions = [r for r in all_bedrock_regions if r.startswith('ap-')]
+
+# Use filtered regions
+manager = LLMManager(
+    models=["Claude 3 Haiku"],
+    regions=us_regions  # Only US regions
+)
+```
+
+#### Error Handling
+
+```python
+from bestehorn_llmmanager import BedrockRegionDiscovery
+from bestehorn_llmmanager.bedrock.discovery.region_discovery import RegionDiscoveryError
+
+try:
+    discovery = BedrockRegionDiscovery()
+    regions = discovery.get_bedrock_regions()
+    print(f"Successfully discovered {len(regions)} regions")
+    
+except RegionDiscoveryError as e:
+    print(f"Failed to discover regions: {e}")
+    # Fallback to static list
+    from bestehorn_llmmanager import get_all_regions
+    regions = get_all_regions()
+    print(f"Using static region list: {len(regions)} regions")
+```
+
+### Region Discovery Features
+
+**Dynamic Discovery:**
+- Uses `boto3.Session().get_available_regions('bedrock')` to discover regions
+- Always returns the most current list of Bedrock-enabled regions
+- Automatically adapts to new region launches
+
+**Caching:**
+- File-based caching with configurable TTL (default: 24 hours)
+- Reduces AWS API calls and improves performance
+- Cache stored in `docs/bedrock_regions.json` by default
+- Thread-safe cache operations
+
+**Reliability:**
+- Automatic cache invalidation based on age
+- Graceful fallback to static list on errors
+- Comprehensive error handling and logging
+
+**Use Cases:**
+- Dynamic region selection for multi-region deployments
+- Automatic adaptation to new AWS region launches
+- Region availability validation
+- Geographic region filtering
+- Cost optimization through region selection
+
 ## Common Usage Patterns
 
 ### Basic Single Request with MessageBuilder
