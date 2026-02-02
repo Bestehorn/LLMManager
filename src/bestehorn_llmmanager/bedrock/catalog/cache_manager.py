@@ -8,7 +8,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from ..exceptions.llm_manager_exceptions import CacheError
 from ..models.catalog_constants import (
@@ -55,16 +55,26 @@ class CacheManager:
         self._mode = mode
         self._max_age_hours = max_age_hours
 
-        # Set up cache directory for FILE mode
+        # Set up cache locations for FILE mode
         self._cache_directory: Optional[Path]
-        self._cache_file_path: Optional[Path]
+        self._cache_locations: List[Path]
 
         if self._mode == CacheMode.FILE:
-            self._cache_directory = directory or CatalogFilePaths.get_default_cache_directory()
-            self._cache_file_path = self._cache_directory / CatalogFilePaths.CACHE_FILENAME
+            # Determine primary cache directory
+            primary_dir = directory or CatalogFilePaths.get_default_cache_directory()
+            fallback_dir = CatalogFilePaths.get_fallback_cache_directory()
+
+            # Create list of cache file paths in priority order
+            self._cache_locations = [
+                primary_dir / CatalogFilePaths.CACHE_FILENAME,
+                fallback_dir / CatalogFilePaths.CACHE_FILENAME,
+            ]
+
+            # Store primary directory for backward compatibility
+            self._cache_directory = primary_dir
         else:
+            self._cache_locations = []
             self._cache_directory = None
-            self._cache_file_path = None
 
         # In-memory cache storage for MEMORY mode
         self._memory_cache: Optional[UnifiedCatalog] = None
@@ -76,8 +86,14 @@ class CacheManager:
 
     @property
     def cache_file_path(self) -> Optional[Path]:
-        """Get the cache file path (None for MEMORY and NONE modes)."""
-        return self._cache_file_path
+        """
+        Get the cache file path (None for MEMORY and NONE modes).
+
+        Returns the primary cache location for backward compatibility.
+        """
+        if self._mode == CacheMode.FILE and self._cache_locations:
+            return self._cache_locations[0]
+        return None
 
     def load_cache(self) -> Optional[UnifiedCatalog]:
         """
@@ -87,7 +103,7 @@ class CacheManager:
             UnifiedCatalog if cache is valid, None otherwise
 
         Behavior by mode:
-        - FILE: Load from cache file if valid
+        - FILE: Load from cache file if valid (tries multiple locations)
         - MEMORY: Return in-memory cache if available
         - NONE: Always return None
         """
@@ -102,30 +118,36 @@ class CacheManager:
             logger.debug("Memory cache is empty")
             return None
 
-        # FILE mode
-        if not self.is_cache_valid():
-            return None
+        # FILE mode - try each location in priority order
+        for cache_path in self._cache_locations:
+            if not cache_path.exists():
+                logger.debug(f"Cache file does not exist: {cache_path}")
+                continue
 
-        try:
-            assert self._cache_file_path is not None  # For mypy
-            logger.info(CatalogLogMessages.CACHE_LOADING.format(path=self._cache_file_path))
+            if not self._is_cache_file_valid(cache_path=cache_path):
+                logger.debug(f"Cache file invalid or expired: {cache_path}")
+                continue
 
-            with open(self._cache_file_path, mode="r", encoding="utf-8") as f:
-                cache_data = json.load(f)
+            try:
+                logger.info(f"Loading catalog from cache: {cache_path}")
+                with open(cache_path, mode="r", encoding="utf-8") as f:
+                    cache_data = json.load(f)
 
-            catalog = UnifiedCatalog.from_dict(data=cache_data)
+                catalog = UnifiedCatalog.from_dict(data=cache_data)
+                logger.info(f"Loaded model catalog cache from {cache_path}")
+                logger.info(
+                    f"Model catalog loaded: {catalog.model_count} models across "
+                    f"{len(catalog.metadata.api_regions_queried)} regions"
+                )
+                return catalog
 
-            logger.info(CatalogLogMessages.CACHE_LOADED.format(count=catalog.model_count))
-            return catalog
+            except (OSError, IOError, json.JSONDecodeError, ValueError) as e:
+                logger.debug(f"Failed to load cache from {cache_path}: {e}")
+                continue
 
-        except (OSError, IOError) as e:
-            logger.warning(CatalogLogMessages.ERROR_CACHE_READ_FAILED.format(error=str(e)))
-            return None
-        except (json.JSONDecodeError, ValueError) as e:
-            logger.warning(
-                CatalogLogMessages.CACHE_INVALID.format(reason=f"Invalid JSON or structure: {e}")
-            )
-            return None
+        # No valid cache found in any location
+        logger.debug("No valid cache found in any location")
+        return None
 
     def save_cache(self, catalog: UnifiedCatalog) -> None:
         """
@@ -135,12 +157,20 @@ class CacheManager:
             catalog: Catalog to cache
 
         Behavior by mode:
-        - FILE: Write to cache file
+        - FILE: Write to cache file (tries multiple locations, never raises)
         - MEMORY: Store in memory
         - NONE: Do nothing
 
-        Raises:
-            CacheError: If cache write fails (FILE mode only)
+        Changes from previous implementation:
+        - Tries each cache location in priority order
+        - Catches all filesystem exceptions (OSError, IOError, PermissionError)
+        - Catches all serialization exceptions (TypeError, ValueError)
+        - Logs WARNING for each failed attempt with path and error
+        - Logs INFO for successful write to primary location
+        - Logs WARNING for successful write to fallback location
+        - Logs WARNING if all writes fail
+        - Never raises exceptions to caller (graceful degradation)
+        - Breaks loop after first successful write
         """
         if self._mode == CacheMode.NONE:
             logger.debug(CatalogLogMessages.CACHE_SKIPPED.format(mode=self._mode.value))
@@ -151,47 +181,55 @@ class CacheManager:
             logger.debug("Catalog saved to memory cache")
             return
 
-        # FILE mode
-        try:
-            assert self._cache_directory is not None  # For mypy
-            assert self._cache_file_path is not None  # For mypy
+        # FILE mode - try each location in priority order
+        write_succeeded = False
 
-            # Create cache directory if it doesn't exist
-            if not self._cache_directory.exists():
-                logger.debug(f"Creating cache directory: {self._cache_directory}")
-                self._cache_directory.mkdir(parents=True, exist_ok=True)
+        for i, cache_path in enumerate(self._cache_locations):
+            is_primary = i == 0
 
-            logger.info(CatalogLogMessages.CACHE_SAVING.format(path=self._cache_file_path))
-
-            # Serialize catalog to JSON
-            cache_data = catalog.to_dict()
-
-            # Add package version for compatibility checking
             try:
-                from ..._version import __version__
+                # Create directory if needed
+                cache_dir = cache_path.parent
+                if not cache_dir.exists():
+                    logger.debug(f"Creating cache directory: {cache_dir}")
+                    cache_dir.mkdir(parents=True, exist_ok=True)
 
-                cache_data[CatalogCacheFields.PACKAGE_VERSION] = __version__
-            except (ImportError, AttributeError):
-                # If version is not available, don't add it
-                # This might happen during development
-                logger.warning("Package version not available, cache may not be version-checked")
+                # Serialize catalog
+                cache_data = catalog.to_dict()
 
-            # Write to file with proper encoding
-            with open(self._cache_file_path, mode="w", encoding="utf-8") as f:
-                json.dump(cache_data, f, indent=2, ensure_ascii=False)
+                # Add package version
+                try:
+                    from ..._version import __version__
 
-            logger.info(CatalogLogMessages.CACHE_SAVED)
+                    cache_data[CatalogCacheFields.PACKAGE_VERSION] = __version__
+                except (ImportError, AttributeError):
+                    logger.warning("Package version not available")
 
-        except (OSError, IOError) as e:
-            error_msg = CatalogErrorMessages.CACHE_WRITE_ERROR.format(
-                path=self._cache_file_path, error=str(e)
+                # Write to file
+                with open(cache_path, mode="w", encoding="utf-8") as f:
+                    json.dump(cache_data, f, indent=2, ensure_ascii=False)
+
+                # Log success
+                if is_primary:
+                    logger.info(f"Successfully saved catalog to cache: {cache_path}")
+                else:
+                    logger.warning(f"Cache written to alternative location: {cache_path}")
+
+                write_succeeded = True
+                break  # Success - don't try remaining locations
+
+            except (OSError, IOError, PermissionError) as e:
+                logger.warning(f"Failed to write cache to {cache_path}: {e}")
+                continue
+            except (TypeError, ValueError) as e:
+                logger.warning(f"Failed to serialize cache data for {cache_path}: {e}")
+                continue
+
+        if not write_succeeded:
+            logger.warning(
+                "Cache data retrieved successfully but could not be written to disk. "
+                "Using retrieved data in memory."
             )
-            logger.error(error_msg)
-            raise CacheError(message=error_msg, cache_path=str(self._cache_file_path)) from e
-        except (TypeError, ValueError) as e:
-            error_msg = CatalogErrorMessages.CACHE_INVALID_STRUCTURE.format(error=str(e))
-            logger.error(error_msg)
-            raise CacheError(message=error_msg, cache_path=str(self._cache_file_path)) from e
 
     def is_cache_valid(self) -> bool:
         """
@@ -211,14 +249,32 @@ class CacheManager:
         if self._mode == CacheMode.MEMORY:
             return self._memory_cache is not None
 
-        # FILE mode
-        if not self._cache_file_path or not self._cache_file_path.exists():
+        # FILE mode - delegate to helper for first location
+        cache_file_path = self.cache_file_path
+        if not cache_file_path:
+            return False
+
+        return self._is_cache_file_valid(cache_path=cache_file_path)
+
+    def _is_cache_file_valid(self, cache_path: Path) -> bool:
+        """
+        Check if a specific cache file is valid.
+
+        Validates cache file existence, structure, age, and version compatibility.
+
+        Args:
+            cache_path: Path to cache file to validate
+
+        Returns:
+            True if cache file is valid, False otherwise
+        """
+        if not cache_path.exists():
             logger.debug(CatalogLogMessages.CACHE_MISS.format(reason="Cache file does not exist"))
             return False
 
         try:
-            # Check file age
-            with open(self._cache_file_path, mode="r", encoding="utf-8") as f:
+            # Load and parse cache file
+            with open(cache_path, mode="r", encoding="utf-8") as f:
                 cache_data = json.load(f)
 
             # Validate structure
@@ -349,9 +405,10 @@ class CacheManager:
             return
 
         # FILE mode
-        if self._cache_file_path and self._cache_file_path.exists():
+        cache_file_path = self.cache_file_path
+        if cache_file_path and cache_file_path.exists():
             try:
-                self._cache_file_path.unlink()
-                logger.info(f"Cache file deleted: {self._cache_file_path}")
+                cache_file_path.unlink()
+                logger.info(f"Cache file deleted: {cache_file_path}")
             except OSError as e:
                 logger.warning(f"Failed to delete cache file: {e}")

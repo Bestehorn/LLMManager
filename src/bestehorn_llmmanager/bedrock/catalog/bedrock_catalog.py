@@ -267,14 +267,9 @@ class BedrockModelCatalog:
             # Transform raw data to unified catalog
             catalog = self._transformer.transform_api_data(raw_data=raw_data)
 
-            # Save to cache if enabled
+            # Save to cache if enabled (never raises exception now)
             if self._cache_mode != CacheMode.NONE:
-                try:
-                    self._cache_manager.save_cache(catalog=catalog)
-                except Exception as e:
-                    self._logger.warning(
-                        CatalogLogMessages.ERROR_CACHE_WRITE_FAILED.format(error=str(e))
-                    )
+                self._cache_manager.save_cache(catalog=catalog)
 
             # Cache in memory
             self._catalog = catalog

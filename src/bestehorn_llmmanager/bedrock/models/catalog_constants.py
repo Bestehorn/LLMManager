@@ -118,6 +118,31 @@ class CatalogFilePaths:
         """
         return CatalogFilePaths.get_default_cache_directory() / CatalogFilePaths.CACHE_FILENAME
 
+    @staticmethod
+    def get_fallback_cache_directory() -> Path:
+        """
+        Get fallback cache directory (writable in Lambda).
+
+        Returns:
+            Path to /tmp/bestehorn-llmmanager-cache/
+        """
+        return Path("/tmp") / "bestehorn-llmmanager-cache"
+
+    @staticmethod
+    def get_all_cache_locations() -> List[Path]:
+        """
+        Get all cache locations in priority order.
+
+        Returns:
+            List of cache directory paths:
+            1. Primary (platform-specific)
+            2. Fallback (/tmp)
+        """
+        return [
+            CatalogFilePaths.get_default_cache_directory(),
+            CatalogFilePaths.get_fallback_cache_directory(),
+        ]
+
 
 class CatalogDefaults:
     """Default configuration values for catalog operations."""
@@ -184,6 +209,20 @@ class CatalogLogMessages:
     CACHE_SAVING: Final[str] = "Saving catalog to cache: {path}"
     CACHE_SAVED: Final[str] = "Successfully saved catalog to cache"
     CACHE_SKIPPED: Final[str] = "Cache skipped (mode={mode})"
+    CACHE_LOAD_ATTEMPT: Final[str] = "Attempting to load cache from: {path}"
+    CACHE_LOAD_SUCCESS: Final[str] = "Loaded model catalog cache from {path}"
+    CACHE_LOAD_FAILED: Final[str] = "Failed to load model catalog cache from {path}"
+    CACHE_WRITE_ATTEMPT: Final[str] = "Attempting to write cache to: {path}"
+    CACHE_WRITE_SUCCESS_PRIMARY: Final[str] = "Successfully saved catalog to cache: {path}"
+    CACHE_WRITE_SUCCESS_FALLBACK: Final[str] = "Cache written to alternative location: {path}"
+    CACHE_WRITE_FAILED: Final[str] = "Failed to write cache to {path}: {error}"
+    CACHE_ALL_WRITES_FAILED: Final[str] = (
+        "Cache data retrieved successfully but could not be written to disk. "
+        "Using retrieved data in memory."
+    )
+    CATALOG_LOADED_INFO: Final[str] = (
+        "Model catalog loaded: {model_count} models across {region_count} regions"
+    )
 
     # API fetch messages
     API_FETCH_STARTED: Final[str] = "Fetching catalog data from AWS APIs ({regions} regions)"

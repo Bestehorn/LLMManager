@@ -179,7 +179,8 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 src_paths = ["src", "test"]
-skip = ["src/bestehorn_llmmanager/_version.py"]
+skip_glob = ["*/_version.py"]
+extend_skip = ["_version.py"]
 
 # Linting with flake8
 [tool.flake8]
