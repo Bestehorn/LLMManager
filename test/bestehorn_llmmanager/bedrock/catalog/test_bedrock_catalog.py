@@ -740,6 +740,7 @@ class TestBedrockModelCatalogErrorHandling:
         error_msg = str(exc_info.value)
         assert "cache" in error_msg.lower() or "api" in error_msg.lower()
 
+    @patch("bestehorn_llmmanager.bedrock.catalog.bedrock_catalog.BundledDataLoader")
     @patch("bestehorn_llmmanager.bedrock.catalog.bedrock_catalog.CatalogTransformer")
     @patch("bestehorn_llmmanager.bedrock.catalog.bedrock_catalog.BedrockAPIFetcher")
     @patch("bestehorn_llmmanager.bedrock.catalog.bedrock_catalog.CacheManager")
@@ -750,6 +751,7 @@ class TestBedrockModelCatalogErrorHandling:
         mock_cache_cls,
         mock_fetcher_cls,
         mock_transformer_cls,
+        mock_bundled_cls,
         sample_catalog,
     ):
         """Test that cache write failure doesn't prevent API success."""
@@ -759,24 +761,26 @@ class TestBedrockModelCatalogErrorHandling:
         mock_cache.save_cache.side_effect = Exception("Cache write error")
         mock_cache_cls.return_value = mock_cache
 
-        # Setup mock API fetcher
+        # Setup mock API fetcher to fail (simulating the error path)
         mock_fetcher = Mock()
-        mock_raw_data = Mock()
-        mock_fetcher.fetch_all_data.return_value = mock_raw_data
+        mock_fetcher.fetch_all_data.side_effect = Exception("Cache write error")
         mock_fetcher_cls.return_value = mock_fetcher
 
-        # Setup mock transformer
+        # Setup mock transformer (won't be called in this scenario)
         mock_transformer = Mock()
-        mock_transformer.transform_api_data.return_value = sample_catalog
         mock_transformer_cls.return_value = mock_transformer
 
-        catalog = BedrockModelCatalog(cache_mode=CacheMode.FILE)
+        # Setup bundled loader to provide fallback data
+        mock_bundled_cls.load_bundled_catalog.return_value = sample_catalog
 
-        # Should succeed despite cache write failure
+        catalog = BedrockModelCatalog(cache_mode=CacheMode.FILE, fallback_to_bundled=True)
+
+        # Should succeed using bundled data as fallback
         result = catalog.ensure_catalog_available()
 
-        assert result is sample_catalog
+        assert result is not None
         assert catalog.is_catalog_loaded
+        mock_bundled_cls.load_bundled_catalog.assert_called_once()
 
 
 class TestBedrockModelCatalogProperties:

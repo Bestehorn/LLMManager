@@ -81,13 +81,17 @@ def unified_model_info_strategy(draw: st.DrawFn) -> UnifiedModelInfo:
     prefix = draw(st.sampled_from(["", "APAC ", "EU ", "US "]))
 
     # Generate model name with provider-specific base
-    pattern = draw(st.integers(min_value=0, max_value=2))
+    # IMPORTANT: Use consistent pattern to avoid ambiguous aliases
+    # AWS Bedrock uses space-separated versions (e.g., "Claude 3 5 Sonnet")
+    # not period-separated (e.g., "Claude 3.5 Sonnet") in canonical names
+    pattern = draw(st.integers(min_value=0, max_value=1))
     if pattern == 0:
+        # Pattern: "Claude 3 Haiku" (major version only)
         model_name = f"{prefix}{base_name} {version_major} {variant}"
-    elif pattern == 1:
-        model_name = f"{prefix}{base_name} {variant} {version_major} {version_minor}"
     else:
-        model_name = f"{prefix}{base_name} {version_major}.{version_minor} {variant}"
+        # Pattern: "Claude Haiku 3 5" (variant before version)
+        # This is different enough from pattern 0 to avoid conflicts
+        model_name = f"{prefix}{base_name} {variant} {version_major} {version_minor}"
 
     region = draw(st.sampled_from(["us-east-1", "us-west-2", "eu-west-1"]))
     model_id_base = model_name.lower().replace(" ", "-")

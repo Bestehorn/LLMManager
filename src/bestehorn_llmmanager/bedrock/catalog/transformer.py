@@ -654,7 +654,10 @@ class CatalogTransformer:
         # Merge inference types supported
         # If either is None, use the non-None value; if both have values, combine them
         merged_inference_types = None
-        if existing.inference_types_supported is not None and new.inference_types_supported is not None:
+        if (
+            existing.inference_types_supported is not None
+            and new.inference_types_supported is not None
+        ):
             merged_inference_types = sorted(
                 list(set(existing.inference_types_supported + new.inference_types_supported))
             )

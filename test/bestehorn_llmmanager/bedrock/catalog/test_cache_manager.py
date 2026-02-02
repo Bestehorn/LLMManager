@@ -681,7 +681,9 @@ class TestCacheManagerMultiLocationWrite:
         assert primary_path.exists()
 
         # Verify INFO log for primary success
-        assert any("Successfully saved catalog to cache" in record.message for record in caplog.records)
+        assert any(
+            "Successfully saved catalog to cache" in record.message for record in caplog.records
+        )
 
         # Verify fallback was not attempted (should not exist after this test)
         assert not fallback_path.exists()
@@ -730,9 +732,7 @@ class TestCacheManagerMultiLocationWrite:
             manager.save_cache(catalog=sample_catalog)
 
         # Verify WARNING log for all writes failed
-        assert any(
-            "could not be written to disk" in record.message for record in caplog.records
-        )
+        assert any("could not be written to disk" in record.message for record in caplog.records)
 
     def test_directory_creation_succeeds_at_primary(self, temp_cache_dir, sample_catalog):
         """Test directory creation succeeds at primary."""

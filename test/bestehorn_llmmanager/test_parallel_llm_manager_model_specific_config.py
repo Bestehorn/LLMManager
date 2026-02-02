@@ -97,9 +97,9 @@ class TestParallelFieldIndependence:
 
     @settings(max_examples=10, deadline=None)
     @given(requests=st.lists(bedrock_converse_request_strategy(), min_size=2, max_size=5))
+    @patch("bestehorn_llmmanager.llm_manager.BedrockModelCatalog")
     @patch("bestehorn_llmmanager.llm_manager.LLMManager.converse")
-    @patch("bestehorn_llmmanager.llm_manager.UnifiedModelManager")
-    def test_parallel_request_field_independence(self, mock_model_manager, mock_converse, requests):
+    def test_parallel_request_field_independence(self, mock_converse, mock_catalog_cls, requests):
         """
         Feature: additional-model-request-fields, Property 11: Parallel Request Field Independence
 
@@ -109,12 +109,14 @@ class TestParallelFieldIndependence:
 
         Validates: Requirements 6.1, 6.2
         """
-        # Setup mock model manager
-        mock_instance = MagicMock()
-        mock_instance.get_model_id.return_value = "us.anthropic.claude-sonnet-4-20250514-v1:0"
-        mock_instance.get_inference_profile_id.return_value = None
-        mock_instance.is_cross_region_inference_enabled.return_value = False
-        mock_model_manager.return_value = mock_instance
+        # Setup mock catalog
+        mock_catalog = MagicMock()
+        mock_access_info = MagicMock()
+        mock_access_info.model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+        mock_access_info.regional_cris_profile_id = None
+        mock_access_info.has_regional_cris = False
+        mock_catalog.get_model_info.return_value = mock_access_info
+        mock_catalog_cls.return_value = mock_catalog
 
         # Track the converse calls to verify field independence
         call_configs = []
@@ -209,10 +211,10 @@ class TestParallelModelSpecificFiltering:
     @given(
         num_requests=st.integers(min_value=2, max_value=4), enable_extended_context=st.booleans()
     )
+    @patch("bestehorn_llmmanager.llm_manager.BedrockModelCatalog")
     @patch("bestehorn_llmmanager.llm_manager.LLMManager.converse")
-    @patch("bestehorn_llmmanager.llm_manager.UnifiedModelManager")
     def test_parallel_model_specific_filtering(
-        self, mock_model_manager, mock_converse, num_requests, enable_extended_context
+        self, mock_converse, mock_catalog_cls, num_requests, enable_extended_context
     ):
         """
         Feature: additional-model-request-fields, Property 12: Parallel Request Model-Specific Filtering
@@ -223,10 +225,9 @@ class TestParallelModelSpecificFiltering:
 
         Validates: Requirements 6.4
         """
-        # Setup mock model manager
-        mock_instance = MagicMock()
-        mock_instance.is_cross_region_inference_enabled.return_value = False
-        mock_model_manager.return_value = mock_instance
+        # Setup mock catalog
+        mock_catalog = MagicMock()
+        mock_catalog_cls.return_value = mock_catalog
 
         # Alternate between compatible and incompatible models
         models = ["Claude Sonnet 4 20250514", "Claude 3 Haiku"]
@@ -241,14 +242,17 @@ class TestParallelModelSpecificFiltering:
             model = models[model_index]
             request_models.append(model)
 
-            # Set appropriate model ID
+            # Set appropriate model ID and mock catalog response
             if "Sonnet 4" in model:
                 model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
             else:
                 model_id = "anthropic.claude-3-haiku-20240307-v1:0"
 
-            mock_instance.get_model_id.return_value = model_id
-            mock_instance.get_inference_profile_id.return_value = None
+            mock_access_info = MagicMock()
+            mock_access_info.model_id = model_id
+            mock_access_info.regional_cris_profile_id = None
+            mock_access_info.has_regional_cris = False
+            mock_catalog.get_model_info.return_value = mock_access_info
 
             # Return mock response
             response = MagicMock(spec=BedrockResponse)
@@ -317,10 +321,10 @@ class TestParallelResponseMetadata:
         num_requests=st.integers(min_value=2, max_value=4),
         num_with_removed_params=st.integers(min_value=0, max_value=2),
     )
+    @patch("bestehorn_llmmanager.llm_manager.BedrockModelCatalog")
     @patch("bestehorn_llmmanager.llm_manager.LLMManager.converse")
-    @patch("bestehorn_llmmanager.llm_manager.UnifiedModelManager")
     def test_parallel_response_parameter_metadata(
-        self, mock_model_manager, mock_converse, num_requests, num_with_removed_params
+        self, mock_converse, mock_catalog_cls, num_requests, num_with_removed_params
     ):
         """
         Feature: additional-model-request-fields, Property 13: Parallel Response Parameter Metadata
@@ -334,12 +338,14 @@ class TestParallelResponseMetadata:
         # Ensure we don't try to remove params from more requests than we have
         num_with_removed_params = min(num_with_removed_params, num_requests)
 
-        # Setup mock model manager
-        mock_instance = MagicMock()
-        mock_instance.get_model_id.return_value = "us.anthropic.claude-sonnet-4-20250514-v1:0"
-        mock_instance.get_inference_profile_id.return_value = None
-        mock_instance.is_cross_region_inference_enabled.return_value = False
-        mock_model_manager.return_value = mock_instance
+        # Setup mock catalog
+        mock_catalog = MagicMock()
+        mock_access_info = MagicMock()
+        mock_access_info.model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+        mock_access_info.regional_cris_profile_id = None
+        mock_access_info.has_regional_cris = False
+        mock_catalog.get_model_info.return_value = mock_access_info
+        mock_catalog_cls.return_value = mock_catalog
 
         # Track which requests should have parameters removed
         requests_with_removal = set(range(num_with_removed_params))
@@ -433,9 +439,9 @@ class TestParallelParameterIncompatibility:
     Validates: Requirements 6.3
     """
 
+    @patch("bestehorn_llmmanager.llm_manager.BedrockModelCatalog")
     @patch("bestehorn_llmmanager.llm_manager.LLMManager.converse")
-    @patch("bestehorn_llmmanager.llm_manager.UnifiedModelManager")
-    def test_parallel_parameter_incompatibility_retry(self, mock_model_manager, mock_converse):
+    def test_parallel_parameter_incompatibility_retry(self, mock_converse, mock_catalog_cls):
         """
         Test parallel request with parameter error and retry.
 
@@ -443,12 +449,14 @@ class TestParallelParameterIncompatibility:
 
         Validates: Requirements 6.3
         """
-        # Setup mock model manager
-        mock_instance = MagicMock()
-        mock_instance.get_model_id.return_value = "us.anthropic.claude-sonnet-4-20250514-v1:0"
-        mock_instance.get_inference_profile_id.return_value = None
-        mock_instance.is_cross_region_inference_enabled.return_value = False
-        mock_model_manager.return_value = mock_instance
+        # Setup mock catalog
+        mock_catalog = MagicMock()
+        mock_access_info = MagicMock()
+        mock_access_info.model_id = "us.anthropic.claude-sonnet-4-20250514-v1:0"
+        mock_access_info.regional_cris_profile_id = None
+        mock_access_info.has_regional_cris = False
+        mock_catalog.get_model_info.return_value = mock_access_info
+        mock_catalog_cls.return_value = mock_catalog
 
         # Track calls to verify retry behavior
         call_count = [0]

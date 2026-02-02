@@ -470,7 +470,6 @@ class PrefixedModelAliasGenerator(AliasGenerator):
         return aliases
 
 
-
 class VersionPeriodAliasGenerator(AliasGenerator):
     """
     Alias generator for period-separated version numbers.
@@ -524,9 +523,7 @@ class VersionPeriodAliasGenerator(AliasGenerator):
         # Convert space-separated digits to period-separated
         # Pattern: \b(\d+)\s+(\d+)\b matches "4 5", "10 5", etc.
         # Replacement: \1.\2 produces "4.5", "10.5", etc.
-        period_version = re.sub(
-            pattern=r"\b(\d+)\s+(\d+)\b", repl=r"\1.\2", string=model_name
-        )
+        period_version = re.sub(pattern=r"\b(\d+)\s+(\d+)\b", repl=r"\1.\2", string=model_name)
 
         # If conversion happened, add the alias
         if period_version != model_name:
