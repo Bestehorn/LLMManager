@@ -88,6 +88,7 @@ class LLMManager:
         catalog_cache_mode: Optional[CacheMode] = None,
         catalog_cache_directory: Optional[Path] = None,
         force_download: bool = False,
+        force_refresh: bool = False,
         strict_cache_mode: bool = False,
         ignore_cache_age: bool = False,
         default_inference_config: Optional[Dict[str, Any]] = None,
@@ -111,9 +112,12 @@ class LLMManager:
             catalog_cache_directory: Directory for catalog cache file.
                                     If None, uses platform-specific default.
                                     Ignored if unified_model_manager provided.
-            force_download: DEPRECATED - Use catalog_cache_mode=CacheMode.NONE with force_refresh
-                           instead. If True, force download fresh model data during initialization.
-                           Note: This parameter is ignored if unified_model_manager is provided.
+            force_download: DEPRECATED - Use force_refresh instead. If True, force download fresh
+                           model data during initialization. Note: This parameter is ignored if
+                           unified_model_manager is provided.
+            force_refresh: If True, force refresh of model catalog data, bypassing cache.
+                          Takes precedence over force_download if both are provided.
+                          Ignored if unified_model_manager is provided.
             strict_cache_mode: DEPRECATED - Applies only to legacy UnifiedModelManager.
                               If True, fail when expired model profile cache cannot be refreshed.
             ignore_cache_age: DEPRECATED - Applies only to legacy UnifiedModelManager.
@@ -167,11 +171,11 @@ class LLMManager:
             self._unified_model_manager = unified_model_manager
             self._catalog = None  # Not using new catalog
 
-            # Handle force_download conflict
-            if force_download:
+            # Handle force_download/force_refresh conflict
+            if force_download or force_refresh:
                 self._logger.warning(
-                    "Both 'unified_model_manager' and 'force_download=True' were provided. "
-                    "The 'force_download' parameter will be ignored since a pre-configured "
+                    "Both 'unified_model_manager' and 'force_download'/'force_refresh' were provided. "
+                    "The force parameters will be ignored since a pre-configured "
                     "UnifiedModelManager was supplied."
                 )
 
@@ -184,11 +188,16 @@ class LLMManager:
             # Determine catalog cache mode
             effective_cache_mode = catalog_cache_mode or CacheMode.FILE
 
+            # Determine effective force_refresh value
+            # Priority: force_refresh > force_download
+            effective_force_refresh = force_refresh or force_download
+
             # Handle deprecated parameters
-            if force_download:
+            if force_download and not force_refresh:
                 self._logger.warning(
                     "The 'force_download' parameter is deprecated. "
-                    "Using force_refresh=True with BedrockModelCatalog instead."
+                    "Please use 'force_refresh' instead. "
+                    "Using force_refresh=True with BedrockModelCatalog."
                 )
 
             if strict_cache_mode or ignore_cache_age:
@@ -203,7 +212,7 @@ class LLMManager:
                 auth_manager=self._auth_manager,
                 cache_mode=effective_cache_mode,
                 cache_directory=catalog_cache_directory,
-                force_refresh=force_download,  # Map force_download to force_refresh
+                force_refresh=effective_force_refresh,
                 timeout=timeout,
             )
 

@@ -78,6 +78,7 @@ class ParallelLLMManager:
         retry_config: Optional[RetryConfig] = None,
         parallel_config: Optional[ParallelProcessingConfig] = None,
         force_download: bool = False,
+        force_refresh: bool = False,
         strict_cache_mode: bool = False,
         ignore_cache_age: bool = False,
         default_inference_config: Optional[Dict] = None,
@@ -93,14 +94,14 @@ class ParallelLLMManager:
             auth_config: Authentication configuration. If None, uses auto-detection
             retry_config: Retry behavior configuration. If None, uses defaults
             parallel_config: Parallel processing configuration. If None, uses defaults
-            force_download: If True, force download fresh model data during initialization,
-                bypassing any cached data. Defaults to False (uses cache when available).
-            strict_cache_mode: If True, fail when expired model profile cache cannot be refreshed.
-                             If False (default), use stale cache with warning when refresh fails.
-                             Applies to model profile data caching, not prompt caching.
-            ignore_cache_age: If True, bypass model profile cache age validation entirely.
-                            If False (default), respect max_cache_age_hours setting.
-                            Applies to model profile data caching, not prompt caching.
+            force_download: DEPRECATED - Use force_refresh instead. If True, force download fresh
+                           model data during initialization, bypassing any cached data.
+            force_refresh: If True, force refresh of model catalog data, bypassing cache.
+                          Takes precedence over force_download if both are provided.
+            strict_cache_mode: DEPRECATED - Applies only to legacy UnifiedModelManager.
+                             If True, fail when expired model profile cache cannot be refreshed.
+            ignore_cache_age: DEPRECATED - Applies only to legacy UnifiedModelManager.
+                            If True, bypass model profile cache age validation entirely.
             default_inference_config: Default inference parameters to apply
             timeout: Request timeout in seconds (applies to individual requests)
             log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
@@ -126,6 +127,7 @@ class ParallelLLMManager:
             auth_config=auth_config,
             retry_config=retry_config,
             force_download=force_download,
+            force_refresh=force_refresh,
             strict_cache_mode=strict_cache_mode,
             ignore_cache_age=ignore_cache_age,
             default_inference_config=default_inference_config,
