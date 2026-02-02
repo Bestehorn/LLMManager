@@ -375,6 +375,18 @@ class CatalogTransformer:
             # Region is the source region where we found this model
             regions_supported = [source_region]
 
+            # Extract inference types supported (new field for determining direct access)
+            inference_types_supported = model_summary.get(
+                CatalogAPIResponseFields.INFERENCE_TYPES_SUPPORTED
+            )
+            if inference_types_supported is not None:
+                if not isinstance(inference_types_supported, list):
+                    self._logger.warning(
+                        f"Invalid INFERENCE_TYPES_SUPPORTED for {model_id}, using None"
+                    )
+                    inference_types_supported = None
+            # If None, it means the field wasn't in the API response (backward compatibility)
+
             # Extract optional documentation links
             # Note: These may not be in the API response, so we use None as default
             inference_parameters_link = None
@@ -389,6 +401,7 @@ class CatalogTransformer:
                 streaming_supported=streaming_supported,
                 inference_parameters_link=inference_parameters_link,
                 hyperparameters_link=hyperparameters_link,
+                inference_types_supported=inference_types_supported,
             )
 
         except Exception as e:
@@ -638,6 +651,18 @@ class CatalogTransformer:
         merged_input = list(set(existing.input_modalities + new.input_modalities))
         merged_output = list(set(existing.output_modalities + new.output_modalities))
 
+        # Merge inference types supported
+        # If either is None, use the non-None value; if both have values, combine them
+        merged_inference_types = None
+        if existing.inference_types_supported is not None and new.inference_types_supported is not None:
+            merged_inference_types = sorted(
+                list(set(existing.inference_types_supported + new.inference_types_supported))
+            )
+        elif existing.inference_types_supported is not None:
+            merged_inference_types = existing.inference_types_supported
+        elif new.inference_types_supported is not None:
+            merged_inference_types = new.inference_types_supported
+
         return BedrockModelInfo(
             provider=existing.provider,
             model_id=existing.model_id,
@@ -648,6 +673,7 @@ class CatalogTransformer:
             inference_parameters_link=existing.inference_parameters_link
             or new.inference_parameters_link,
             hyperparameters_link=existing.hyperparameters_link or new.hyperparameters_link,
+            inference_types_supported=merged_inference_types,
         )
 
     def _merge_region_mappings(

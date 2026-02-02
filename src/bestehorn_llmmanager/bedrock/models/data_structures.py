@@ -24,6 +24,9 @@ class BedrockModelInfo:
         streaming_supported: Whether the model supports streaming responses
         inference_parameters_link: Optional URL to inference parameters documentation
         hyperparameters_link: Optional URL to hyperparameters documentation
+        inference_types_supported: Optional list of supported inference types from AWS API.
+                                   Possible values: ['ON_DEMAND', 'INFERENCE_PROFILE', 'PROVISIONED'].
+                                   None indicates the field was not available (backward compatibility).
     """
 
     provider: str
@@ -34,6 +37,7 @@ class BedrockModelInfo:
     streaming_supported: bool
     inference_parameters_link: Optional[str] = None
     hyperparameters_link: Optional[str] = None
+    inference_types_supported: Optional[List[str]] = None
 
     def to_dict(self) -> Dict[str, Union[str, List[str], bool, None]]:
         """
@@ -51,6 +55,7 @@ class BedrockModelInfo:
             JSONFields.STREAMING_SUPPORTED: self.streaming_supported,
             JSONFields.INFERENCE_PARAMETERS_LINK: self.inference_parameters_link,
             JSONFields.HYPERPARAMETERS_LINK: self.hyperparameters_link,
+            JSONFields.INFERENCE_TYPES_SUPPORTED: self.inference_types_supported,
         }
 
 

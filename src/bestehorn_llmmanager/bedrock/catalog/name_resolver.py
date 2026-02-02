@@ -16,6 +16,7 @@ from .alias_generators import (
     ClaudeAliasGenerator,
     PrefixedModelAliasGenerator,
     VersionedModelAliasGenerator,
+    VersionPeriodAliasGenerator,
 )
 from .legacy_name_mapper import LegacyNameMapper
 from .name_normalizer import normalize_model_name
@@ -71,6 +72,7 @@ class ModelNameResolver:
             ClaudeAliasGenerator(config=self._config),
             VersionedModelAliasGenerator(config=self._config),
             PrefixedModelAliasGenerator(config=self._config),
+            VersionPeriodAliasGenerator(config=self._config),
         ]
 
         # Lazy-initialized indexes
@@ -245,6 +247,10 @@ class ModelNameResolver:
         """
         Try to match using normalized name (case-insensitive, spacing variations).
 
+        This method attempts two types of normalized matching:
+        1. Exact normalized match (highest confidence)
+        2. Substring match in normalized keys (for partial names like "Claude Sonnet 4.5")
+
         Args:
             user_name: User-provided name
 
@@ -258,7 +264,7 @@ class ModelNameResolver:
         if not normalized:
             return None
 
-        # Check if normalized name exists in index
+        # Try exact normalized match first
         if normalized in self._normalized_index:
             matches = self._normalized_index[normalized]
 
@@ -275,6 +281,29 @@ class ModelNameResolver:
             # The caller should use get_suggestions() to see all options
             return None
 
+        # Try substring matching in normalized index keys
+        # This handles cases like "claude sonnet 45" matching "claude sonnet 45 20250929"
+        matching_keys: List[str] = []
+        for key in self._normalized_index.keys():
+            # Check if user input is a substring of the catalog name
+            # This allows "Claude Sonnet 4.5" to match "Claude Sonnet 4 5 20250929"
+            if normalized in key:
+                matching_keys.append(key)
+
+        # If exactly one substring match, use it
+        if len(matching_keys) == 1:
+            matches = self._normalized_index[matching_keys[0]]
+
+            # If the key maps to exactly one model, return it
+            if len(matches) == 1:
+                return ModelNameMatch(
+                    canonical_name=matches[0],
+                    match_type=MatchType.NORMALIZED,
+                    confidence=0.90,  # Lower than exact, but still high confidence
+                    user_input=user_name,
+                )
+
+        # Multiple matches or no matches - return None
         return None
 
     def _try_fuzzy_match(self, user_name: str) -> Optional[ModelNameMatch]:

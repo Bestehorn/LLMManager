@@ -64,6 +64,31 @@ class ModelCRISCorrelator:
             )
         )
 
+    def _supports_direct_access(self, model_info: BedrockModelInfo) -> bool:
+        """
+        Determine if a model supports direct ON_DEMAND access.
+
+        Checks the inference_types_supported field from AWS API to determine
+        if the model can be called directly without an inference profile.
+
+        Args:
+            model_info: Model information from catalog
+
+        Returns:
+            True if model supports ON_DEMAND access, False if CRIS-only
+
+        Backward Compatibility:
+            If inference_types_supported is None (field not available in API response
+            or old bundled data), assumes direct access is available to maintain
+            backward compatibility with existing behavior.
+        """
+        # Backward compatibility: if field is None, assume direct access available
+        if model_info.inference_types_supported is None:
+            return True
+
+        # Check if ON_DEMAND is in the supported inference types
+        return "ON_DEMAND" in model_info.inference_types_supported
+
     def correlate_catalogs(
         self, model_catalog: ModelCatalog, cris_catalog: Optional[CRISCatalog]
     ) -> UnifiedModelCatalog:
@@ -646,41 +671,70 @@ class ModelCRISCorrelator:
                             # Determine if this is a global or regional profile
                             is_global = inference_profile.startswith("global.")
 
+                            # Check if model supports direct access
+                            has_direct = self._supports_direct_access(model_info=model_info)
+
                             if is_global:
-                                # Both direct and global CRIS
+                                # Global CRIS (with or without direct access)
                                 region_access[region] = ModelAccessInfo(
                                     region=region,
-                                    has_direct_access=True,
+                                    has_direct_access=has_direct,
                                     has_global_cris=True,
-                                    model_id=model_info.model_id,
+                                    model_id=model_info.model_id if has_direct else None,
                                     global_cris_profile_id=inference_profile,
                                 )
                             else:
-                                # Both direct and regional CRIS
+                                # Regional CRIS (with or without direct access)
                                 region_access[region] = ModelAccessInfo(
                                     region=region,
-                                    has_direct_access=True,
+                                    has_direct_access=has_direct,
                                     has_regional_cris=True,
-                                    model_id=model_info.model_id,
+                                    model_id=model_info.model_id if has_direct else None,
                                     regional_cris_profile_id=inference_profile,
                                 )
                         else:
-                            # Fallback to direct access only if CRIS profile not available
+                            # Fallback: CRIS profile not available
+                            # Check if model supports direct access
+                            has_direct = self._supports_direct_access(model_info=model_info)
+
+                            if has_direct:
+                                # Direct access only
+                                region_access[region] = ModelAccessInfo(
+                                    region=region,
+                                    has_direct_access=True,
+                                    model_id=model_info.model_id,
+                                )
+                                self._logger.debug(
+                                    f"CRIS available for region '{region}' but no profile found, "
+                                    f"using direct access for model '{model_info.model_id}'"
+                                )
+                            else:
+                                # No direct access and no CRIS profile - skip this region
+                                self._logger.warning(
+                                    f"Model '{model_info.model_id}' in region '{region}' has no "
+                                    f"direct access and no CRIS profile. Skipping region."
+                                )
+                                skipped_regions.append(f"{region} (no access method)")
+                                continue
+                    else:
+                        # No CRIS available - check if direct access is supported
+                        has_direct = self._supports_direct_access(model_info=model_info)
+
+                        if has_direct:
+                            # Direct access only
                             region_access[region] = ModelAccessInfo(
                                 region=region,
                                 has_direct_access=True,
                                 model_id=model_info.model_id,
                             )
-                            self._logger.debug(
-                                f"CRIS available for region '{region}' but no profile found, using direct access for model '{model_info.model_id}'"
+                        else:
+                            # No direct access and no CRIS - skip this region
+                            self._logger.warning(
+                                f"Model '{model_info.model_id}' in region '{region}' has no "
+                                f"direct access and no CRIS profile. Skipping region."
                             )
-                    else:
-                        # Direct access only
-                        region_access[region] = ModelAccessInfo(
-                            region=region,
-                            has_direct_access=True,
-                            model_id=model_info.model_id,
-                        )
+                            skipped_regions.append(f"{region} (no access method)")
+                            continue
             except Exception as e:
                 error_context = (
                     f"Failed to process region '{region}' for model '{model_info.model_id}'. "

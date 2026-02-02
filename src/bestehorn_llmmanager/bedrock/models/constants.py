@@ -19,6 +19,7 @@ class JSONFields:
     STREAMING_SUPPORTED: Final[str] = "streaming_supported"
     INFERENCE_PARAMETERS_LINK: Final[str] = "inference_parameters_link"
     HYPERPARAMETERS_LINK: Final[str] = "hyperparameters_link"
+    INFERENCE_TYPES_SUPPORTED: Final[str] = "inference_types_supported"
 
 
 class HTMLTableColumns:

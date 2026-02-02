@@ -468,3 +468,80 @@ class PrefixedModelAliasGenerator(AliasGenerator):
         aliases = self._enforce_alias_limit(aliases=aliases)
 
         return aliases
+
+
+
+class VersionPeriodAliasGenerator(AliasGenerator):
+    """
+    Alias generator for period-separated version numbers.
+
+    Generates user-friendly aliases by converting space-separated version numbers
+    to period format, matching natural user input patterns.
+
+    Examples:
+        - "Claude Sonnet 4 5 20250929" → ["Claude Sonnet 4.5", "Claude Sonnet 4.5 20250929"]
+        - "Claude 3 5 Sonnet 20241022" → ["Claude 3.5 Sonnet", "Claude 3.5 Sonnet 20241022"]
+        - "Llama 3 1 8b Instruct" → ["Llama 3.1 8b Instruct"]
+        - "Model 1 2 3" → ["Model 1.2.3"]
+
+    This generator handles:
+    - Single-digit versions: "4 5" → "4.5"
+    - Multi-digit versions: "10 5" → "10.5"
+    - Three-part versions: "1 2 3" → "1.2.3"
+    - Multiple version patterns in one name
+    """
+
+    def can_generate(self, model_info: UnifiedModelInfo) -> bool:
+        """
+        Check if model name contains space-separated version numbers.
+
+        Args:
+            model_info: Model information
+
+        Returns:
+            True if model name has space-separated digits that could be versions
+        """
+        if not self.config.enable_version_period_aliases:
+            return False
+
+        # Check for pattern: digit(s) space digit(s)
+        # This matches: "4 5", "3 5", "10 5", "1 2 3", etc.
+        return bool(re.search(pattern=r"\b\d+\s+\d+\b", string=model_info.model_name))
+
+    def generate(self, model_info: UnifiedModelInfo) -> List[str]:
+        """
+        Generate period-separated version aliases.
+
+        Args:
+            model_info: Model information
+
+        Returns:
+            List of generated aliases with period-separated versions
+        """
+        aliases: List[str] = []
+        model_name = model_info.model_name
+
+        # Convert space-separated digits to period-separated
+        # Pattern: \b(\d+)\s+(\d+)\b matches "4 5", "10 5", etc.
+        # Replacement: \1.\2 produces "4.5", "10.5", etc.
+        period_version = re.sub(
+            pattern=r"\b(\d+)\s+(\d+)\b", repl=r"\1.\2", string=model_name
+        )
+
+        # If conversion happened, add the alias
+        if period_version != model_name:
+            aliases.append(period_version)
+
+            # Also generate short form without date if present
+            # Pattern: Remove trailing date (8 digits) and anything after
+            # "Claude Sonnet 4.5 20250929" → "Claude Sonnet 4.5"
+            short_form = re.sub(pattern=r"\s+\d{8}.*$", repl="", string=period_version)
+
+            if short_form != period_version:
+                aliases.append(short_form)
+
+        # Remove duplicates and enforce limit
+        aliases = self._deduplicate_aliases(aliases=aliases)
+        aliases = self._enforce_alias_limit(aliases=aliases)
+
+        return aliases

@@ -69,6 +69,7 @@ class AliasGenerationConfig:
         generate_spacing_variants: Generate spacing variants (e.g., "Claude3" and "Claude 3")
         include_legacy_mappings: Include UnifiedModelManager legacy names
         max_aliases_per_model: Maximum number of aliases per model to prevent explosion
+        enable_version_period_aliases: Generate period-separated version aliases (e.g., "4 5" → "4.5")
     """
 
     generate_version_variants: bool = True
@@ -76,6 +77,7 @@ class AliasGenerationConfig:
     generate_spacing_variants: bool = True
     include_legacy_mappings: bool = True
     max_aliases_per_model: int = 10
+    enable_version_period_aliases: bool = True
 
     def __post_init__(self) -> None:
         """Validate max_aliases_per_model is positive."""
