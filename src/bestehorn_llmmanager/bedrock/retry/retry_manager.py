@@ -974,10 +974,10 @@ class RetryManager:
                     f"using access method '{access_method}'"
                 )
 
-                # Create warning message
+                # Create warning message with actual profile ID for debugging
                 warning = (
                     f"Model '{model}' in region '{region}' requires inference profile access. "
-                    f"Using {access_method} profile."
+                    f"Using {access_method} profile (ID: {profile_id})."
                 )
 
                 return result, True, warning
