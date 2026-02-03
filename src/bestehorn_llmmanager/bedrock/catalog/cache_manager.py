@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Optional
 
-from ..exceptions.llm_manager_exceptions import CacheError
 from ..models.catalog_constants import (
     CatalogCacheFields,
     CatalogErrorMessages,

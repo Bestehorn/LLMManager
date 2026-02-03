@@ -4,22 +4,16 @@ Property-based tests for multi-location cache read functionality.
 Feature: lambda-cache-fallback
 """
 
-import json
-import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import patch
 
-import pytest
-from hypothesis import HealthCheck, given, settings
+from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from bestehorn_llmmanager.bedrock.catalog.cache_manager import CacheManager
-from bestehorn_llmmanager.bedrock.models.catalog_constants import (
-    CatalogCacheFields,
-    CatalogFilePaths,
-)
-from bestehorn_llmmanager.bedrock.models.catalog_structures import CacheMode, UnifiedCatalog
+from bestehorn_llmmanager.bedrock.models.catalog_constants import CatalogCacheFields
+from bestehorn_llmmanager.bedrock.models.catalog_structures import CacheMode
 
 
 # Strategy for generating valid catalog data
