@@ -162,7 +162,7 @@ cd package && zip -r ../lambda_function.zip .
 ```bash
 aws lambda create-function \
   --function-name bedrock-llm-function \
-  --runtime python3.9 \
+  --runtime python3.10 \
   --handler lambda_unified_model_manager.lambda_handler \
   --zip-file fileb://lambda_function.zip \
   --role arn:aws:iam::YOUR_ACCOUNT:role/lambda-bedrock-role

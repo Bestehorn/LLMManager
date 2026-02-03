@@ -5,7 +5,7 @@ inclusion: always
 # Technology Stack
 
 ## Core Technologies
-- Python 3.9+ with type hints and dataclasses
+- Python 3.10+ with type hints and dataclasses
 - AWS Bedrock for LLM interactions
 - boto3 for AWS SDK
 - pytest + hypothesis for testing

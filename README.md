@@ -12,7 +12,7 @@
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.9+
+- Python 3.10+
 - AWS credentials configured (AWS CLI, environment variables, or IAM roles)
 
 ### Installation & Basic Usage
@@ -824,7 +824,7 @@ For more detailed examples, see:
 
 ## Requirements
 
-- Python 3.9+
+- Python 3.10+
 - AWS credentials configured (AWS CLI, environment variables, or IAM roles)
 - Internet access for initial model data download (or use bundled cache for offline scenarios)
 
