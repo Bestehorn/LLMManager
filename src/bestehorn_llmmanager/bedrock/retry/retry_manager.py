@@ -474,6 +474,7 @@ class RetryManager:
 
         for attempt_num, (model, region, access_info) in enumerate(retry_targets, 1):
             attempt_start = datetime.now()
+            model_id_to_use = None  # Initialize to track what model ID was attempted
 
             # Create attempt record
             # Migration: Get access method name from selector instead of deprecated property
@@ -553,8 +554,14 @@ class RetryManager:
                 )
 
                 current_args["model_id"] = model_id_to_use
-                self._logger.debug(
-                    f"Using model ID '{model_id_to_use}' with access method '{selected_access_method}'"
+
+                # Log model name resolution
+                self._logger.info(
+                    LLMManagerLogMessages.MODEL_NAME_RESOLVED.format(
+                        user_name=model,
+                        model_id=model_id_to_use,
+                        access_method=selected_access_method,
+                    )
                 )
 
                 # Apply content filtering based on current disabled features
@@ -597,7 +604,7 @@ class RetryManager:
 
                 self._logger.info(
                     LLMManagerLogMessages.REQUEST_SUCCEEDED.format(
-                        model=model, region=region, attempts=attempt_num
+                        model=model, model_id=model_id_to_use, region=region, attempts=attempt_num
                     )
                 )
 
@@ -609,9 +616,11 @@ class RetryManager:
                 attempt.success = False
                 attempts.append(attempt)
 
+                # Use model_id_to_use if available, otherwise use model name
+                display_model_id = model_id_to_use if model_id_to_use else model
                 self._logger.warning(
                     LLMManagerLogMessages.REQUEST_FAILED.format(
-                        model=model, region=region, error=str(error)
+                        model=model, model_id=display_model_id, region=region, error=str(error)
                     )
                 )
 

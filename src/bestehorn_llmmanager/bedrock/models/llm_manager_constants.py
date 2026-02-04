@@ -143,10 +143,17 @@ class LLMManagerLogMessages:
     FEATURE_DISABLED: Final[str] = (
         "Disabled feature '{feature}' for model '{model}' due to incompatibility"
     )
-    REQUEST_SUCCEEDED: Final[str] = (
-        "Request succeeded with model '{model}' in region '{region}' after {attempts} attempts"
+    MODEL_NAME_RESOLVED: Final[str] = (
+        "Model name '{user_name}' resolved to model ID '{model_id}' "
+        "using access method '{access_method}'"
     )
-    REQUEST_FAILED: Final[str] = "Request failed with model '{model}' in region '{region}': {error}"
+    REQUEST_SUCCEEDED: Final[str] = (
+        "Request succeeded with model '{model}' (ID: {model_id}) in region '{region}' "
+        "after {attempts} attempts"
+    )
+    REQUEST_FAILED: Final[str] = (
+        "Request failed with model '{model}' (ID: {model_id}) in region '{region}': {error}"
+    )
 
     # Retry strategy messages
     TRYING_NEXT_REGION: Final[str] = "Trying next region '{region}' for model '{model}'"

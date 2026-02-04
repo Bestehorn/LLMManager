@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Lambda Cache Write Fix**: Fixed cache writing in AWS Lambda environments where home directory is read-only
+  - Cache manager now properly catches permission errors when creating cache directories
+  - Automatically falls back to `/tmp/bestehorn-llmmanager-cache/` when primary location is inaccessible
+  - No more "Read-only file system" errors in Lambda logs
+  - Maintains full backward compatibility with existing code
+
+### Changed
+- **Enhanced Model Resolution Logging**: Improved logging to show model name resolution and actual model/profile IDs used
+  - Added INFO-level log message showing model name resolution (e.g., "Claude Sonnet 4.5" → "anthropic.claude-sonnet-4-20250514-v1:0")
+  - Updated request success/failure logs to include both user-provided model name and resolved model ID
+  - Makes debugging and monitoring much easier in production environments
+  - Example: "Request failed with model 'Claude Sonnet 4.5' (ID: anthropic.claude-sonnet-4-20250514-v1:0) in region 'us-west-2'"
+
 ## [0.7.2] - 2026-01-31
 
 ### Added

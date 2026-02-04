@@ -191,7 +191,12 @@ class CacheManager:
                 cache_dir = cache_path.parent
                 if not cache_dir.exists():
                     logger.debug(f"Creating cache directory: {cache_dir}")
-                    cache_dir.mkdir(parents=True, exist_ok=True)
+                    try:
+                        cache_dir.mkdir(parents=True, exist_ok=True)
+                    except (OSError, PermissionError) as mkdir_error:
+                        # If we can't create the directory, skip this location
+                        logger.debug(f"Cannot create cache directory {cache_dir}: {mkdir_error}")
+                        continue
 
                 # Serialize catalog
                 cache_data = catalog.to_dict()
