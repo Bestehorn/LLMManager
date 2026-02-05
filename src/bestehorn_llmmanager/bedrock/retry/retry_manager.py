@@ -737,7 +737,7 @@ class RetryManager:
                         attempt.success = True
                         self._logger.info(
                             LLMManagerLogMessages.REQUEST_SUCCEEDED.format(
-                                model=model, region=region, attempts=attempt_num
+                                model=model, model_id=model_id_to_use if model_id_to_use else model, region=region, attempts=attempt_num
                             )
                         )
 
@@ -1366,7 +1366,7 @@ class RetryManager:
 
                     self._logger.info(
                         LLMManagerLogMessages.REQUEST_SUCCEEDED.format(
-                            model=model, region=region, attempts=attempt_num
+                            model=model, model_id=current_args.get("model_id", model), region=region, attempts=attempt_num
                         )
                     )
 
@@ -1416,7 +1416,7 @@ class RetryManager:
 
                 self._logger.warning(
                     LLMManagerLogMessages.REQUEST_FAILED.format(
-                        model=model, region=region, error=str(error)
+                        model=model, model_id=current_args.get("model_id", model) if 'current_args' in locals() else model, region=region, error=str(error)
                     )
                 )
 
