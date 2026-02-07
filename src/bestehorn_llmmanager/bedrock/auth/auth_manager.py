@@ -11,7 +11,7 @@ from botocore.exceptions import ClientError, NoCredentialsError, ProfileNotFound
 
 from ..exceptions.llm_manager_exceptions import AuthenticationError
 from ..models.llm_manager_constants import LLMManagerErrorMessages, LLMManagerLogMessages
-from ..models.llm_manager_structures import AuthConfig, AuthenticationType
+from ..models.llm_manager_structures import AuthConfig, AuthenticationType, Boto3Config
 
 
 class AuthManager:
@@ -25,16 +25,27 @@ class AuthManager:
     - Automatic detection
     """
 
-    def __init__(self, auth_config: Optional[AuthConfig] = None) -> None:
+    def __init__(
+        self,
+        auth_config: Optional[AuthConfig] = None,
+        boto3_config: Optional[Boto3Config] = None,
+    ) -> None:
         """
         Initialize the authentication manager.
 
         Args:
             auth_config: Authentication configuration. If None, uses automatic detection.
+            boto3_config: Boto3 client configuration with Bedrock-optimized defaults.
+                If provided, the config is converted to a botocore.config.Config and
+                applied to all boto3 clients created by this manager. If None, no
+                additional client configuration is applied.
         """
         self._logger = logging.getLogger(__name__)
         self._auth_config = auth_config or AuthConfig(auth_type=AuthenticationType.AUTO)
         self._session: Optional[boto3.Session] = None
+        self._botocore_config = (
+            boto3_config.to_botocore_config() if boto3_config is not None else None
+        )
 
         # Validate configuration
         self._validate_config()
@@ -270,7 +281,11 @@ class AuthManager:
         """
         try:
             session = self.get_session(region=region)
-            client = session.client("bedrock-runtime", region_name=region)
+            client = session.client(
+                "bedrock-runtime",
+                region_name=region,
+                config=self._botocore_config,
+            )
 
             # Test that we can access Bedrock in this region
             self._test_bedrock_access(client=client, region=region)
@@ -305,7 +320,11 @@ class AuthManager:
         """
         try:
             session = self.get_session(region=region)
-            client = session.client("bedrock", region_name=region)
+            client = session.client(
+                "bedrock",
+                region_name=region,
+                config=self._botocore_config,
+            )
             return client
 
         except Exception as e:

@@ -9,6 +9,8 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Union
 
+import botocore.config
+
 from .llm_manager_constants import (
     ConverseAPIFields,
     LLMManagerConfig,
@@ -98,6 +100,64 @@ class RetryConfig:
             raise ValueError("backoff_multiplier must be positive")
         if self.max_retry_delay <= 0:
             raise ValueError("max_retry_delay must be positive")
+
+
+@dataclass(frozen=True)
+class Boto3Config:
+    """
+    Configuration for boto3 client behavior with Bedrock-optimized defaults.
+
+    Encapsulates boto3/botocore client-level settings (read timeout, connect timeout,
+    connection pooling, retries) with defaults optimized for AWS Bedrock inference calls.
+
+    Attributes:
+        read_timeout: Maximum seconds to wait for a server response (default: 600
+            for long-running Bedrock inference calls; boto3 default is 60)
+        connect_timeout: Maximum seconds to wait when establishing a connection
+            (default: 60, matching boto3 default)
+        max_pool_connections: Maximum number of connections in the connection pool
+            (default: 10, matching boto3 default)
+        retries_max_attempts: Maximum number of retry attempts for failed requests
+            (default: 3, matching boto3 default; 0 disables retries)
+    """
+
+    read_timeout: int = 600
+    connect_timeout: int = 60
+    max_pool_connections: int = 10
+    retries_max_attempts: int = 3
+
+    def __post_init__(self) -> None:
+        """Validate all fields are within acceptable ranges."""
+        if self.read_timeout <= 0:
+            raise ValueError(f"read_timeout must be a positive integer, got {self.read_timeout}")
+        if self.connect_timeout <= 0:
+            raise ValueError(
+                f"connect_timeout must be a positive integer, got {self.connect_timeout}"
+            )
+        if self.max_pool_connections <= 0:
+            raise ValueError(
+                f"max_pool_connections must be a positive integer, "
+                f"got {self.max_pool_connections}"
+            )
+        if self.retries_max_attempts < 0:
+            raise ValueError(
+                f"retries_max_attempts must be a non-negative integer, "
+                f"got {self.retries_max_attempts}"
+            )
+
+    def to_botocore_config(self) -> botocore.config.Config:
+        """Convert to botocore.config.Config for use in session.client() calls.
+
+        Returns:
+            A botocore.config.Config instance with the configured timeout,
+            connection pool, and retry settings.
+        """
+        return botocore.config.Config(
+            read_timeout=self.read_timeout,
+            connect_timeout=self.connect_timeout,
+            max_pool_connections=self.max_pool_connections,
+            retries={"max_attempts": self.retries_max_attempts},
+        )
 
 
 @dataclass

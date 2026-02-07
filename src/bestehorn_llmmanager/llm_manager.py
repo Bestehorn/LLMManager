@@ -33,6 +33,7 @@ from .bedrock.models.llm_manager_constants import (
 )
 from .bedrock.models.llm_manager_structures import (
     AuthConfig,
+    Boto3Config,
     ResponseValidationConfig,
     RetryConfig,
 )
@@ -82,6 +83,7 @@ class LLMManager:
         models: List[str],
         regions: List[str],
         auth_config: Optional[AuthConfig] = None,
+        boto3_config: Optional[Boto3Config] = None,
         retry_config: Optional[RetryConfig] = None,
         cache_config: Optional[CacheConfig] = None,
         unified_model_manager: Optional[UnifiedModelManager] = None,
@@ -103,6 +105,9 @@ class LLMManager:
             models: List of model names/IDs to use for requests
             regions: List of AWS regions to try
             auth_config: Authentication configuration. If None, uses auto-detection
+            boto3_config: Boto3 client configuration with Bedrock-optimized defaults.
+                If None, creates a default Boto3Config instance with optimized settings
+                (600s read timeout). Must be an instance of Boto3Config if provided.
             retry_config: Retry behavior configuration. If None, uses defaults
             cache_config: Cache configuration for prompt caching. If None, caching is disabled
             unified_model_manager: DEPRECATED - Pre-configured UnifiedModelManager for backward
@@ -128,7 +133,8 @@ class LLMManager:
             log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
 
         Raises:
-            ConfigurationError: If configuration is invalid
+            ConfigurationError: If configuration is invalid (including invalid
+                boto3_config type)
         """
         # Configure logging for the entire bestehorn_llmmanager package
         self._configure_logging(log_level=log_level)
@@ -146,7 +152,11 @@ class LLMManager:
         self._default_model_specific_config = model_specific_config
 
         # Initialize components
-        self._auth_manager = AuthManager(auth_config=auth_config)
+        boto3_config = self._validate_and_default_boto3_config(boto3_config=boto3_config)
+        self._auth_manager = AuthManager(
+            auth_config=auth_config,
+            boto3_config=boto3_config,
+        )
         self._retry_manager = RetryManager(retry_config=retry_config or RetryConfig())
         self._streaming_retry_manager = StreamingRetryManager(
             retry_config=retry_config or RetryConfig()
@@ -270,6 +280,39 @@ class LLMManager:
         for region in regions:
             if not isinstance(region, str) or not region.strip():
                 raise ConfigurationError(f"Invalid region name: {region}")
+
+    def _validate_and_default_boto3_config(
+        self, boto3_config: Optional[Boto3Config]
+    ) -> Boto3Config:
+        """
+        Validate and default the boto3_config parameter.
+
+        If boto3_config is None, creates a default Boto3Config instance with
+        Bedrock-optimized defaults. If provided, validates it is an instance
+        of Boto3Config.
+
+        Args:
+            boto3_config: The boto3 config to validate, or None for defaults.
+
+        Returns:
+            A validated Boto3Config instance.
+
+        Raises:
+            ConfigurationError: If boto3_config is not None and not a
+                Boto3Config instance.
+        """
+        if boto3_config is None:
+            return Boto3Config()
+
+        if not isinstance(boto3_config, Boto3Config):
+            raise ConfigurationError(
+                message=(
+                    "boto3_config must be an instance of Boto3Config, "
+                    f"got {type(boto3_config).__name__}"
+                ),
+            )
+
+        return boto3_config
 
     def _initialize_model_data_legacy(self, force_download: bool = False) -> None:
         """

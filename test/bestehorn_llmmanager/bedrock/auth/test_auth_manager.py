@@ -415,7 +415,9 @@ class TestAuthManagerBedrockClient:
 
         assert result == mock_client
         mock_get_session.assert_called_once_with(region="us-east-1")
-        mock_session.client.assert_called_once_with("bedrock-runtime", region_name="us-east-1")
+        mock_session.client.assert_called_once_with(
+            "bedrock-runtime", region_name="us-east-1", config=None
+        )
         mock_test_bedrock_access.assert_called_once_with(client=mock_client, region="us-east-1")
 
     @patch.object(AuthManager, "get_session")

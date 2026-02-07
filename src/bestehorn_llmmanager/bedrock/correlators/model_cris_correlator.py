@@ -78,12 +78,13 @@ class ModelCRISCorrelator:
             True if model supports ON_DEMAND access, False if CRIS-only
 
         Backward Compatibility:
-            If inference_types_supported is None (field not available in API response
-            or old bundled data), assumes direct access is available to maintain
-            backward compatibility with existing behavior.
+            If inference_types_supported is None or empty (field not available
+            in API response, old bundled data, or empty list from API),
+            assumes direct access is available to maintain backward
+            compatibility with existing behavior.
         """
-        # Backward compatibility: if field is None, assume direct access available
-        if model_info.inference_types_supported is None:
+        # Backward compatibility: if field is None or empty, assume direct access
+        if not model_info.inference_types_supported:
             return True
 
         # Check if ON_DEMAND is in the supported inference types

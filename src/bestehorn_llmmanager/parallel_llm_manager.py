@@ -18,7 +18,12 @@ from .bedrock.exceptions.parallel_exceptions import (
 from .bedrock.executors.thread_parallel_executor import ThreadParallelExecutor
 from .bedrock.models.bedrock_response import BedrockResponse
 from .bedrock.models.llm_manager_constants import LLMManagerConfig
-from .bedrock.models.llm_manager_structures import AuthConfig, ResponseValidationConfig, RetryConfig
+from .bedrock.models.llm_manager_structures import (
+    AuthConfig,
+    Boto3Config,
+    ResponseValidationConfig,
+    RetryConfig,
+)
 from .bedrock.models.model_specific_structures import ModelSpecificConfig
 from .bedrock.models.parallel_constants import ParallelConfig, ParallelLogMessages
 from .bedrock.models.parallel_structures import (
@@ -75,6 +80,7 @@ class ParallelLLMManager:
         models: List[str],
         regions: List[str],
         auth_config: Optional[AuthConfig] = None,
+        boto3_config: Optional[Boto3Config] = None,
         retry_config: Optional[RetryConfig] = None,
         parallel_config: Optional[ParallelProcessingConfig] = None,
         force_download: bool = False,
@@ -92,6 +98,9 @@ class ParallelLLMManager:
             models: List of model names/IDs to use for requests
             regions: List of AWS regions to use for parallel processing
             auth_config: Authentication configuration. If None, uses auto-detection
+            boto3_config: Boto3 client configuration with Bedrock-optimized defaults.
+                If None, creates a default Boto3Config instance with optimized settings
+                (600s read timeout). Must be an instance of Boto3Config if provided.
             retry_config: Retry behavior configuration. If None, uses defaults
             parallel_config: Parallel processing configuration. If None, uses defaults
             force_download: DEPRECATED - Use force_refresh instead. If True, force download fresh
@@ -125,6 +134,7 @@ class ParallelLLMManager:
             models=models,
             regions=regions,
             auth_config=auth_config,
+            boto3_config=boto3_config,
             retry_config=retry_config,
             force_download=force_download,
             force_refresh=force_refresh,

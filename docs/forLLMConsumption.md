@@ -450,6 +450,7 @@ LLMManager(
     models: List[str],                                    # Required: List of model names/IDs
     regions: List[str],                                   # Required: List of AWS regions
     auth_config: Optional[AuthConfig] = None,             # Optional: Authentication configuration
+    boto3_config: Optional[Boto3Config] = None,           # Optional: Boto3 client configuration
     retry_config: Optional[RetryConfig] = None,           # Optional: Retry behavior configuration
     cache_config: Optional[CacheConfig] = None,           # Optional: Prompt caching configuration
     unified_model_manager: Optional[UnifiedModelManager] = None,  # Optional: Pre-configured model manager
@@ -461,6 +462,9 @@ LLMManager(
     log_level: Union[int, str] = logging.WARNING         # Optional: Logging level (default: WARNING)
 )
 ```
+
+**Boto3 Client Configuration:**
+- `boto3_config`: Optional `Boto3Config` instance for configuring boto3 client behavior (timeouts, connection pooling, retries). If None, a default `Boto3Config` is created with Bedrock-optimized defaults (600s read timeout). The config is applied to all boto3 clients created by the library.
 
 **Model Profile Cache Parameters:**
 - `force_download`: If True, always download fresh model profile data, bypassing cache
@@ -517,6 +521,7 @@ ParallelLLMManager(
     models: List[str],                                    # Required: List of model names/IDs
     regions: List[str],                                   # Required: List of AWS regions
     auth_config: Optional[AuthConfig] = None,             # Optional: Authentication configuration
+    boto3_config: Optional[Boto3Config] = None,           # Optional: Boto3 client configuration
     retry_config: Optional[RetryConfig] = None,           # Optional: Retry behavior configuration
     parallel_config: Optional[ParallelProcessingConfig] = None,  # Optional: Parallel processing config
     default_inference_config: Optional[Dict] = None,     # Optional: Default inference parameters
@@ -761,6 +766,34 @@ auth_config = AuthConfig(
     auth_type=AuthenticationType.AUTO
 )
 ```
+
+### Boto3Config
+
+Boto3 client configuration with Bedrock-optimized defaults:
+
+```python
+from bestehorn_llmmanager import Boto3Config
+
+# Default configuration (Bedrock-optimized: 600s read timeout)
+boto3_config = Boto3Config()
+
+# Custom configuration for long-running inference
+boto3_config = Boto3Config(
+    read_timeout=900,                                    # Read timeout in seconds (default: 600)
+    connect_timeout=60,                                  # Connect timeout in seconds (default: 60)
+    max_pool_connections=10,                             # Max connection pool size (default: 10)
+    retries_max_attempts=3                               # Max retry attempts (default: 3)
+)
+
+# Pass to LLMManager or ParallelLLMManager
+manager = LLMManager(
+    models=["Claude Haiku 4 5 20251001"],
+    regions=["us-east-1"],
+    boto3_config=boto3_config,
+)
+```
+
+The `Boto3Config` is a frozen dataclass. When `boto3_config=None` is passed to `LLMManager` or `ParallelLLMManager`, a default instance is created automatically with the Bedrock-optimized 600-second read timeout. The config is converted internally to a `botocore.config.Config` and applied to all boto3 clients (bedrock-runtime and bedrock control plane).
 
 ### RetryConfig
 

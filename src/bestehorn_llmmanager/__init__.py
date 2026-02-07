@@ -39,6 +39,9 @@ For detailed documentation, see the documentation in the docs/ directory.
 from .bedrock.discovery import BedrockRegionDiscovery
 from .bedrock.models.aws_regions import AWSRegions, get_all_regions
 
+# Configuration dataclasses
+from .bedrock.models.llm_manager_structures import Boto3Config
+
 # Model-specific configuration and tracking
 from .bedrock.models.model_specific_structures import ModelSpecificConfig
 from .bedrock.tracking.parameter_compatibility_tracker import ParameterCompatibilityTracker
@@ -83,6 +86,8 @@ __all__ = [
     # Core classes
     "LLMManager",
     "ParallelLLMManager",
+    # Configuration
+    "Boto3Config",
     # MessageBuilder components
     "MessageBuilder",
     "create_message",
