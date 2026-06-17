@@ -1,6 +1,15 @@
 [run]
 source = src/bestehorn_llmmanager
-omit = 
+# Issue #19: tests run under pytest-xdist (-n auto); its workers are separate processes.
+# parallel=true with the multiprocessing concurrency model makes coverage write per-process
+# data files that combine into the full total. Without this, worker coverage is
+# under-counted under xdist (markedly so on Windows).
+parallel = true
+concurrency =
+    multiprocessing
+    thread
+sigterm = true
+omit =
     */tests/*
     */test_*
     */__pycache__/*

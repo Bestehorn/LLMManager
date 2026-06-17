@@ -95,6 +95,12 @@ Run tests:
 # Run all tests
 pytest
 
+# Run in parallel across CPU cores (much faster; this is what CI does)
+pytest -n auto
+
+# Run serially — use this when debugging a failure (clearer output, no worker noise)
+pytest -n0
+
 # Run with coverage
 pytest --cov=bestehorn_llmmanager
 
@@ -104,6 +110,11 @@ pytest -m "not integration"
 # Run specific test file
 pytest test/bestehorn_llmmanager/test_llm_manager.py
 ```
+
+The test suite is parallel-safe and CI runs it with `pytest -n auto` (pytest-xdist).
+Coverage is collected correctly under parallel execution via the `parallel`/`concurrency`
+settings in `.coveragerc`. Drop to `-n0` for serial execution when a failure is easier to
+read without xdist workers.
 
 ### Documentation
 
