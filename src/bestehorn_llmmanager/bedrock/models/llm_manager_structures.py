@@ -11,10 +11,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 
 import botocore.config
 
-from .llm_manager_constants import (
-    ConverseAPIFields,
-    LLMManagerConfig,
-)
+from .llm_manager_constants import ConverseAPIFields, LLMManagerConfig
 from .llm_manager_constants import ResponseValidationConfig as ValidationConstants
 
 

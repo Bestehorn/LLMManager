@@ -17,9 +17,7 @@ from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
     ConfigurationError,
     RetryExhaustedError,
 )
-from bestehorn_llmmanager.bedrock.tracking.access_method_tracker import (
-    AccessMethodTracker,
-)
+from bestehorn_llmmanager.bedrock.tracking.access_method_tracker import AccessMethodTracker
 from bestehorn_llmmanager.llm_manager import LLMManager
 
 

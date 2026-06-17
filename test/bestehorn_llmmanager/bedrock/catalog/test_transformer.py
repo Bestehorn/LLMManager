@@ -15,14 +15,8 @@ import pytest
 
 from bestehorn_llmmanager.bedrock.catalog.api_fetcher import RawCatalogData
 from bestehorn_llmmanager.bedrock.catalog.transformer import CatalogTransformer
-from bestehorn_llmmanager.bedrock.models.catalog_structures import (
-    CatalogSource,
-    UnifiedCatalog,
-)
-from bestehorn_llmmanager.bedrock.models.cris_structures import (
-    CRISInferenceProfile,
-    CRISModelInfo,
-)
+from bestehorn_llmmanager.bedrock.models.catalog_structures import CatalogSource, UnifiedCatalog
+from bestehorn_llmmanager.bedrock.models.cris_structures import CRISInferenceProfile, CRISModelInfo
 from bestehorn_llmmanager.bedrock.models.data_structures import BedrockModelInfo
 
 

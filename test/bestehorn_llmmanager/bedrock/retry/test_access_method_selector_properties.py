@@ -9,16 +9,12 @@ from hypothesis import given, settings
 from hypothesis import strategies as st
 
 from src.bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
-from src.bestehorn_llmmanager.bedrock.retry.access_method_selector import (
-    AccessMethodSelector,
-)
+from src.bestehorn_llmmanager.bedrock.retry.access_method_selector import AccessMethodSelector
 from src.bestehorn_llmmanager.bedrock.retry.access_method_structures import (
     AccessMethodNames,
     AccessMethodPreference,
 )
-from src.bestehorn_llmmanager.bedrock.tracking.access_method_tracker import (
-    AccessMethodTracker,
-)
+from src.bestehorn_llmmanager.bedrock.tracking.access_method_tracker import AccessMethodTracker
 
 
 # Strategy for generating valid ModelAccessInfo instances

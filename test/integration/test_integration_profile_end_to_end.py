@@ -14,9 +14,7 @@ from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConf
 from bestehorn_llmmanager.bedrock.retry.profile_requirement_detector import (
     ProfileRequirementDetector,
 )
-from bestehorn_llmmanager.bedrock.tracking.access_method_tracker import (
-    AccessMethodTracker,
-)
+from bestehorn_llmmanager.bedrock.tracking.access_method_tracker import AccessMethodTracker
 from bestehorn_llmmanager.llm_manager import LLMManager
 from bestehorn_llmmanager.parallel_llm_manager import ParallelLLMManager
 
@@ -234,9 +232,7 @@ class TestParallelProcessingWithProfiles:
 
         Validates: Requirements 10.1, 10.2, 10.3
         """
-        from bestehorn_llmmanager.bedrock.models.parallel_structures import (
-            BedrockConverseRequest,
-        )
+        from bestehorn_llmmanager.bedrock.models.parallel_structures import BedrockConverseRequest
 
         # Create ParallelLLMManager
         manager = ParallelLLMManager(

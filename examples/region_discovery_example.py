@@ -15,11 +15,7 @@ Features demonstrated:
 
 from pathlib import Path
 
-from bestehorn_llmmanager import (
-    AWSRegions,
-    BedrockRegionDiscovery,
-    get_all_regions,
-)
+from bestehorn_llmmanager import AWSRegions, BedrockRegionDiscovery, get_all_regions
 from bestehorn_llmmanager.bedrock.discovery.region_discovery import RegionDiscoveryError
 
 

@@ -8,9 +8,7 @@ test isolation.
 
 import pytest
 
-from src.bestehorn_llmmanager.bedrock.tracking.access_method_tracker import (
-    AccessMethodTracker,
-)
+from src.bestehorn_llmmanager.bedrock.tracking.access_method_tracker import AccessMethodTracker
 
 
 @pytest.fixture(autouse=True)

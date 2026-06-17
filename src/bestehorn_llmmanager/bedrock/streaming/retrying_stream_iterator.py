@@ -8,11 +8,7 @@ from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from ..models.access_method import ModelAccessInfo
-from .streaming_constants import (
-    StreamingConstants,
-    StreamingErrorMessages,
-    StreamingLogMessages,
-)
+from .streaming_constants import StreamingConstants, StreamingErrorMessages, StreamingLogMessages
 
 
 class MidStreamException:

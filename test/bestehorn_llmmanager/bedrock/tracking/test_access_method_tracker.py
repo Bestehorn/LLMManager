@@ -15,9 +15,7 @@ from typing import List
 import pytest
 
 from bestehorn_llmmanager.bedrock.retry.access_method_structures import AccessMethodNames
-from bestehorn_llmmanager.bedrock.tracking.access_method_tracker import (
-    AccessMethodTracker,
-)
+from bestehorn_llmmanager.bedrock.tracking.access_method_tracker import AccessMethodTracker
 
 
 @pytest.fixture(autouse=True)

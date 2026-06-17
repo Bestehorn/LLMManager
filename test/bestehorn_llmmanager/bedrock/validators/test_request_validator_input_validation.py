@@ -13,9 +13,7 @@ from hypothesis import strategies as st
 from src.bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
     RequestValidationError,
 )
-from src.bestehorn_llmmanager.bedrock.models.model_specific_structures import (
-    ModelSpecificConfig,
-)
+from src.bestehorn_llmmanager.bedrock.models.model_specific_structures import ModelSpecificConfig
 from src.bestehorn_llmmanager.bedrock.validators.request_validator import RequestValidator
 
 # Strategy for generating invalid types (non-dict, non-None)

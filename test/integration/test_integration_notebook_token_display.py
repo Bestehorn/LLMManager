@@ -9,9 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 
-from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
-    ConfigurationError,
-)
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import ConfigurationError
 from bestehorn_llmmanager.llm_manager import LLMManager
 
 # Constants for preferred test regions (in order of preference)

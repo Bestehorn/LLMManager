@@ -9,9 +9,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
-    RequestValidationError,
-)
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RequestValidationError
 from bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields
 from bestehorn_llmmanager.message_builder import (
     ConverseMessageBuilder,

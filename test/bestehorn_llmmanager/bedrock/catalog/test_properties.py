@@ -30,10 +30,7 @@ from bestehorn_llmmanager.bedrock.models.catalog_structures import (
     CatalogSource,
     UnifiedCatalog,
 )
-from bestehorn_llmmanager.bedrock.models.unified_structures import (
-    ModelAccessInfo,
-    UnifiedModelInfo,
-)
+from bestehorn_llmmanager.bedrock.models.unified_structures import ModelAccessInfo, UnifiedModelInfo
 
 # ============================================================================
 # Hypothesis Strategies

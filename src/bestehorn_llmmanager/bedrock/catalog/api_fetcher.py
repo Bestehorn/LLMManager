@@ -11,12 +11,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional, Tuple
 
 from botocore.exceptions import BotoCoreError, ClientError
-from tenacity import (
-    retry,
-    retry_if_exception_type,
-    stop_after_attempt,
-    wait_exponential,
-)
+from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
 
 from ..auth.auth_manager import AuthManager
 from ..exceptions.llm_manager_exceptions import APIFetchError

@@ -11,10 +11,7 @@ import pytest
 
 from bestehorn_llmmanager.bedrock.correlators.model_cris_correlator import ModelCRISCorrelationError
 from bestehorn_llmmanager.bedrock.downloaders.base_downloader import FileSystemError, NetworkError
-from bestehorn_llmmanager.bedrock.models.access_method import (
-    AccessRecommendation,
-    ModelAccessInfo,
-)
+from bestehorn_llmmanager.bedrock.models.access_method import AccessRecommendation, ModelAccessInfo
 from bestehorn_llmmanager.bedrock.models.cris_structures import CRISCatalog
 from bestehorn_llmmanager.bedrock.models.data_structures import ModelCatalog
 from bestehorn_llmmanager.bedrock.models.unified_constants import (

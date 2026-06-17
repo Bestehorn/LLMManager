@@ -14,9 +14,7 @@ from typing import Any
 
 import pytest
 
-from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
-    ConfigurationError,
-)
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import ConfigurationError
 from bestehorn_llmmanager.bedrock.models.catalog_structures import CacheMode
 from bestehorn_llmmanager.llm_manager import LLMManager
 

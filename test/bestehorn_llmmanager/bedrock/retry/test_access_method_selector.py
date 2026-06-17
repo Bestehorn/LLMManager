@@ -7,16 +7,12 @@ Tests specific examples and edge cases for access method selection logic.
 import pytest
 
 from src.bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
-from src.bestehorn_llmmanager.bedrock.retry.access_method_selector import (
-    AccessMethodSelector,
-)
+from src.bestehorn_llmmanager.bedrock.retry.access_method_selector import AccessMethodSelector
 from src.bestehorn_llmmanager.bedrock.retry.access_method_structures import (
     AccessMethodNames,
     AccessMethodPreference,
 )
-from src.bestehorn_llmmanager.bedrock.tracking.access_method_tracker import (
-    AccessMethodTracker,
-)
+from src.bestehorn_llmmanager.bedrock.tracking.access_method_tracker import AccessMethodTracker
 
 
 class TestAccessMethodSelector:

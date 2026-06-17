@@ -40,15 +40,9 @@ class TestProductionDeprecationWarnings:
             from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (  # noqa: F401
                 RetryConfig,
             )
-            from bestehorn_llmmanager.bedrock.retry.retry_manager import (  # noqa: F401
-                RetryManager,
-            )
-            from bestehorn_llmmanager.llm_manager import (  # noqa: F401
-                LLMManager,
-            )
-            from bestehorn_llmmanager.parallel_llm_manager import (  # noqa: F401
-                ParallelLLMManager,
-            )
+            from bestehorn_llmmanager.bedrock.retry.retry_manager import RetryManager  # noqa: F401
+            from bestehorn_llmmanager.llm_manager import LLMManager  # noqa: F401
+            from bestehorn_llmmanager.parallel_llm_manager import ParallelLLMManager  # noqa: F401
 
             # Filter to deprecation warnings from production code
             prod_warnings = [

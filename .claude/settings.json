@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "mcp__awslabs.aws-documentation-mcp-server__*",
+      "mcp__strands-agents-mcp-server__*",
+      "mcp__awslabs.amazon-bedrock-agentcore-mcp-server__*",
+      "mcp__awslabs.cdk-mcp-server__*",
+      "Bash(black:*)",
+      "Bash(isort:*)",
+      "Bash(flake8:*)",
+      "Bash(mypy:*)",
+      "Bash(bandit:*)",
+      "Bash(pytest:*)",
+      "Bash(pre-commit:*)",
+      "Bash(python scripts/github_wrapper.py:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(git worktree:*)",
+      "Bash(git fetch:*)",
+      "Bash(git rebase:*)",
+      "Bash(git push:*)"
+    ],
+    "deny": [
+      "Read(./credentials/**)",
+      "Read(./config/gitlab.json)",
+      "Read(./config/aws_accounts.json)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/no-env-vars.sh"],
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/spec-tdd-gate.sh"],
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/format-on-stop.sh"]
+          },
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/spec-stop-gate.sh"]
+          }
+        ]
+      }
+    ]
+  }
+}

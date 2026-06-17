@@ -8,10 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from bestehorn_llmmanager.bedrock.models.bedrock_response import (
-    BedrockResponse,
-    StreamingResponse,
-)
+from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse, StreamingResponse
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     RequestAttempt,
     ValidationAttempt,

@@ -13,16 +13,8 @@ from typing import List, Optional
 
 from ..auth.auth_manager import AuthManager
 from ..exceptions.llm_manager_exceptions import CatalogUnavailableError
-from ..models.catalog_constants import (
-    CatalogDefaults,
-    CatalogErrorMessages,
-    CatalogLogMessages,
-)
-from ..models.catalog_structures import (
-    CacheMode,
-    CatalogMetadata,
-    UnifiedCatalog,
-)
+from ..models.catalog_constants import CatalogDefaults, CatalogErrorMessages, CatalogLogMessages
+from ..models.catalog_structures import CacheMode, CatalogMetadata, UnifiedCatalog
 from ..models.unified_structures import ModelAccessInfo, UnifiedModelInfo
 from .api_fetcher import BedrockAPIFetcher
 from .bundled_loader import BundledDataLoader

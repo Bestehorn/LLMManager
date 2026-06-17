@@ -150,3 +150,13 @@ bandit_results.json
 
 # Environment
 .env.local
+
+# Claude Code (machine/personal, not shared — team-shared config IS checked in)
+.claude/settings.local.json
+.claude/agent-state/
+.claude/worktrees/
+
+# Git host credentials (allow templates and README)
+credentials/*
+!credentials/*.template
+!credentials/README.md

@@ -17,9 +17,7 @@ from bestehorn_llmmanager.bedrock.models.parallel_structures import (
 from bestehorn_llmmanager.bedrock.retry.profile_requirement_detector import (
     ProfileRequirementDetector,
 )
-from bestehorn_llmmanager.bedrock.tracking.access_method_tracker import (
-    AccessMethodTracker,
-)
+from bestehorn_llmmanager.bedrock.tracking.access_method_tracker import AccessMethodTracker
 from bestehorn_llmmanager.parallel_llm_manager import ParallelLLMManager
 
 # Test configuration

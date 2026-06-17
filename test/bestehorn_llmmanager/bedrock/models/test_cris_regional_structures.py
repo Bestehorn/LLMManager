@@ -5,9 +5,7 @@ Tests for CRISRegionalVariant and CRISMultiRegionalModel classes.
 
 import pytest
 
-from bestehorn_llmmanager.bedrock.models.cris_constants import (
-    CRISJSONFields,
-)
+from bestehorn_llmmanager.bedrock.models.cris_constants import CRISJSONFields
 from bestehorn_llmmanager.bedrock.models.cris_regional_structures import (
     CRISMultiRegionalModel,
     CRISMultiRegionalModelDict,

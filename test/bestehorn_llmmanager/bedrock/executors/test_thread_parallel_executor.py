@@ -6,9 +6,7 @@ import time
 
 import pytest
 
-from bestehorn_llmmanager.bedrock.exceptions.parallel_exceptions import (
-    RequestTimeoutError,
-)
+from bestehorn_llmmanager.bedrock.exceptions.parallel_exceptions import RequestTimeoutError
 from bestehorn_llmmanager.bedrock.executors.thread_parallel_executor import (
     ThreadExecutionContext,
     ThreadParallelExecutor,

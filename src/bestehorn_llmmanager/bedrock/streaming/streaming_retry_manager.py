@@ -13,10 +13,7 @@ from ..models.llm_manager_structures import RequestAttempt
 from ..retry.retry_manager import RetryManager
 from .retrying_stream_iterator import RetryingStreamIterator
 from .stream_processor import StreamProcessor
-from .streaming_constants import (
-    StreamingConstants,
-    StreamingErrorMessages,
-)
+from .streaming_constants import StreamingConstants, StreamingErrorMessages
 
 
 class StreamInterruptedException(Exception):

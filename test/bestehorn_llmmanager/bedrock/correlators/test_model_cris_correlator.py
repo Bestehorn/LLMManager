@@ -8,9 +8,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from bestehorn_llmmanager.bedrock.correlators.model_cris_correlator import (
-    ModelCRISCorrelator,
-)
+from bestehorn_llmmanager.bedrock.correlators.model_cris_correlator import ModelCRISCorrelator
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from bestehorn_llmmanager.bedrock.models.cris_structures import (
     CRISCatalog,
@@ -18,9 +16,7 @@ from bestehorn_llmmanager.bedrock.models.cris_structures import (
     CRISModelInfo,
 )
 from bestehorn_llmmanager.bedrock.models.data_structures import BedrockModelInfo, ModelCatalog
-from bestehorn_llmmanager.bedrock.models.unified_constants import (
-    ModelCorrelationConfig,
-)
+from bestehorn_llmmanager.bedrock.models.unified_constants import ModelCorrelationConfig
 from bestehorn_llmmanager.bedrock.models.unified_structures import (
     UnifiedModelCatalog,
     UnifiedModelInfo,

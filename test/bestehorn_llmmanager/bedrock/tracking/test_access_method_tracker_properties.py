@@ -11,12 +11,8 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from src.bestehorn_llmmanager.bedrock.retry.access_method_structures import (
-    AccessMethodNames,
-)
-from src.bestehorn_llmmanager.bedrock.tracking.access_method_tracker import (
-    AccessMethodTracker,
-)
+from src.bestehorn_llmmanager.bedrock.retry.access_method_structures import AccessMethodNames
+from src.bestehorn_llmmanager.bedrock.tracking.access_method_tracker import AccessMethodTracker
 
 # Strategy for generating valid model IDs
 model_id_strategy = st.text(

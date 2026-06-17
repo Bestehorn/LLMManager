@@ -6,10 +6,7 @@ Tests the abstract base class and DetectionResult data class.
 import pytest
 
 from bestehorn_llmmanager.message_builder_enums import DetectionMethodEnum
-from bestehorn_llmmanager.util.file_type_detector.base_detector import (
-    BaseDetector,
-    DetectionResult,
-)
+from bestehorn_llmmanager.util.file_type_detector.base_detector import BaseDetector, DetectionResult
 
 
 class TestDetectionResult:

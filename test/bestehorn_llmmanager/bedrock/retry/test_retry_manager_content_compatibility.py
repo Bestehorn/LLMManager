@@ -8,10 +8,7 @@ import pytest
 from botocore.exceptions import ClientError
 
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
-from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
-    RetryConfig,
-    RetryStrategy,
-)
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConfig, RetryStrategy
 from bestehorn_llmmanager.bedrock.retry.retry_manager import RetryManager
 
 

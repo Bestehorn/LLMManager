@@ -13,9 +13,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
-    ConfigurationError,
-)
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import ConfigurationError
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import Boto3Config
 from bestehorn_llmmanager.llm_manager import LLMManager
 

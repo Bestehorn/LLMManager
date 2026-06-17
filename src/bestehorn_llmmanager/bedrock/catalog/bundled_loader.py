@@ -19,11 +19,7 @@ except ImportError:
     from importlib_resources import files  # type: ignore
 
 from ..exceptions.llm_manager_exceptions import BundledDataError
-from ..models.catalog_constants import (
-    CatalogErrorMessages,
-    CatalogFilePaths,
-    CatalogLogMessages,
-)
+from ..models.catalog_constants import CatalogErrorMessages, CatalogFilePaths, CatalogLogMessages
 from ..models.catalog_structures import UnifiedCatalog
 
 logger = logging.getLogger(__name__)

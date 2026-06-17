@@ -11,9 +11,7 @@ from hypothesis import given
 from hypothesis import strategies as st
 
 from bestehorn_llmmanager.bedrock.catalog.legacy_name_mapper import LegacyNameMapper
-from bestehorn_llmmanager.bedrock.catalog.legacy_name_mappings import (
-    LEGACY_NAME_MAPPINGS,
-)
+from bestehorn_llmmanager.bedrock.catalog.legacy_name_mappings import LEGACY_NAME_MAPPINGS
 
 
 class TestLegacyNameMapperProperties:

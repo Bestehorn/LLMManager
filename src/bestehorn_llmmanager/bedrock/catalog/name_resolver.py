@@ -20,11 +20,7 @@ from .alias_generators import (
 )
 from .legacy_name_mapper import LegacyNameMapper
 from .name_normalizer import normalize_model_name
-from .name_resolution_structures import (
-    AliasGenerationConfig,
-    MatchType,
-    ModelNameMatch,
-)
+from .name_resolution_structures import AliasGenerationConfig, MatchType, ModelNameMatch
 
 
 class ModelNameResolver:

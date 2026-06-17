@@ -89,12 +89,7 @@ from ..exceptions.llm_manager_exceptions import (
 )
 
 # Import data structures from models
-from ..models.catalog_structures import (
-    CacheMode,
-    CatalogMetadata,
-    CatalogSource,
-    UnifiedCatalog,
-)
+from ..models.catalog_structures import CacheMode, CatalogMetadata, CatalogSource, UnifiedCatalog
 
 # Import main catalog class
 from .bedrock_catalog import BedrockModelCatalog

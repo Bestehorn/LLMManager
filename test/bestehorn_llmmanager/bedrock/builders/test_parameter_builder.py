@@ -11,9 +11,7 @@ from bestehorn_llmmanager.bedrock.builders.parameter_builder import (
     ParameterBuilder,
     ParameterFields,
 )
-from bestehorn_llmmanager.bedrock.models.model_specific_structures import (
-    ModelSpecificConfig,
-)
+from bestehorn_llmmanager.bedrock.models.model_specific_structures import ModelSpecificConfig
 
 
 # Hypothesis strategies for generating test data

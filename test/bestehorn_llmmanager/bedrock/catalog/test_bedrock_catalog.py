@@ -17,19 +17,14 @@ from unittest.mock import Mock, patch
 import pytest
 
 from bestehorn_llmmanager.bedrock.catalog.bedrock_catalog import BedrockModelCatalog
-from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
-    CatalogUnavailableError,
-)
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import CatalogUnavailableError
 from bestehorn_llmmanager.bedrock.models.catalog_structures import (
     CacheMode,
     CatalogMetadata,
     CatalogSource,
     UnifiedCatalog,
 )
-from bestehorn_llmmanager.bedrock.models.unified_structures import (
-    ModelAccessInfo,
-    UnifiedModelInfo,
-)
+from bestehorn_llmmanager.bedrock.models.unified_structures import ModelAccessInfo, UnifiedModelInfo
 
 
 @pytest.fixture

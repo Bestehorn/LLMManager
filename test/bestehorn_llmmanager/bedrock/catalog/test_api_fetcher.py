@@ -15,10 +15,7 @@ import pytest
 from botocore.exceptions import ClientError
 
 from bestehorn_llmmanager.bedrock.auth.auth_manager import AuthManager
-from bestehorn_llmmanager.bedrock.catalog.api_fetcher import (
-    BedrockAPIFetcher,
-    RawCatalogData,
-)
+from bestehorn_llmmanager.bedrock.catalog.api_fetcher import BedrockAPIFetcher, RawCatalogData
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import APIFetchError
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     AuthConfig,

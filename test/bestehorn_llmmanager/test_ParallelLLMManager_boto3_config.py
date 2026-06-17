@@ -10,9 +10,7 @@ Validates: Requirements 2.1, 2.3, 3.1, 3.2, 3.3
 
 from unittest.mock import Mock, patch
 
-from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
-    Boto3Config,
-)
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import Boto3Config
 from bestehorn_llmmanager.parallel_llm_manager import ParallelLLMManager
 
 

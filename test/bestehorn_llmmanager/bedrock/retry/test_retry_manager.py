@@ -13,9 +13,7 @@ import pytest
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RetryExhaustedError
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from bestehorn_llmmanager.bedrock.models.llm_manager_constants import ConverseAPIFields
-from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
-    RetryConfig,
-)
+from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConfig
 from bestehorn_llmmanager.bedrock.retry.retry_manager import RetryManager
 
 
