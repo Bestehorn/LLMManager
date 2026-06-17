@@ -7,7 +7,7 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, Final, List, Optional, Union
 
 import botocore.config
 
@@ -29,6 +29,45 @@ class RetryStrategy(Enum):
 
     REGION_FIRST = LLMManagerConfig.RETRY_STRATEGY_REGION_FIRST
     MODEL_FIRST = LLMManagerConfig.RETRY_STRATEGY_MODEL_FIRST
+
+
+class RegionOrder:
+    """Constants for per-call region ordering in retry-target generation (issue #16).
+
+    Controls how RetryManager orders the configured regions when building the
+    per-call retry sequence:
+
+    - ``FIXED``   : keep the caller's region order (the historical default).
+    - ``ROTATE``  : rotate the region list by a monotonic per-call offset so the
+                    first-attempted region cycles deterministically across calls,
+                    spreading load evenly without dropping any region.
+    - ``SHUFFLE`` : randomly permute the region list per call.
+
+    In all cases the full region set is preserved (only the order changes), so
+    failover depth is unchanged.
+    """
+
+    FIXED: Final[str] = "fixed"
+    ROTATE: Final[str] = "rotate"
+    SHUFFLE: Final[str] = "shuffle"
+
+    ALL: Final[frozenset] = frozenset({FIXED, ROTATE, SHUFFLE})
+
+
+class AccessMethodPreferenceNames:
+    """Constants for caller-selectable access-method preference (issue #16).
+
+    Mirror of the access-method names in
+    ``bedrock.retry.access_method_structures.AccessMethodNames``, duplicated here to
+    keep this module free of a ``retry`` import. Used to validate the
+    ``RetryConfig.access_method_preference`` field.
+    """
+
+    DIRECT: Final[str] = "direct"
+    REGIONAL_CRIS: Final[str] = "regional_cris"
+    GLOBAL_CRIS: Final[str] = "global_cris"
+
+    ALL: Final[frozenset] = frozenset({DIRECT, REGIONAL_CRIS, GLOBAL_CRIS})
 
 
 @dataclass(frozen=True)
@@ -77,6 +116,21 @@ class RetryConfig:
         retry_strategy: Strategy for selecting retry targets
         enable_feature_fallback: Whether to disable features and retry on compatibility errors
         retryable_errors: Additional error types to consider retryable
+        region_order: Per-call region ordering (issue #16). One of RegionOrder.FIXED
+            (default, historical behavior), RegionOrder.ROTATE (rotate the region list by
+            a monotonic per-call offset so first attempts spread across regions), or
+            RegionOrder.SHUFFLE (random per-call permutation). Only reorders regions; the
+            full set is always preserved as failover.
+        access_method_preference: Caller-selectable preferred access method (issue #16).
+            One of AccessMethodPreferenceNames.{DIRECT, REGIONAL_CRIS, GLOBAL_CRIS}, or
+            None (default) to use the manager's historical default order
+            (direct -> regional_cris -> global_cris). A preference learned at runtime from
+            an error still takes precedence over this caller preference.
+        global_cris_fraction: Optional interleave fraction in [0.0, 1.0] (issue #16). When
+            set, approximately this share of calls is routed to the global CRIS profile
+            (when available) and the rest follow the default order, spreading load across
+            the global aggregate quota and the regional endpoints. None (default) disables
+            interleaving.
     """
 
     max_retries: int = LLMManagerConfig.DEFAULT_MAX_RETRIES
@@ -86,6 +140,9 @@ class RetryConfig:
     retry_strategy: RetryStrategy = RetryStrategy.REGION_FIRST
     enable_feature_fallback: bool = True
     retryable_errors: tuple = field(default_factory=tuple)
+    region_order: str = RegionOrder.FIXED
+    access_method_preference: Optional[str] = None
+    global_cris_fraction: Optional[float] = None
 
     def __post_init__(self) -> None:
         """Validate retry configuration."""
@@ -97,6 +154,25 @@ class RetryConfig:
             raise ValueError("backoff_multiplier must be positive")
         if self.max_retry_delay <= 0:
             raise ValueError("max_retry_delay must be positive")
+        if self.region_order not in RegionOrder.ALL:
+            raise ValueError(
+                f"region_order must be one of {sorted(RegionOrder.ALL)}, "
+                f"got {self.region_order!r}"
+            )
+        if (
+            self.access_method_preference is not None
+            and self.access_method_preference not in AccessMethodPreferenceNames.ALL
+        ):
+            raise ValueError(
+                f"access_method_preference must be None or one of "
+                f"{sorted(AccessMethodPreferenceNames.ALL)}, "
+                f"got {self.access_method_preference!r}"
+            )
+        if self.global_cris_fraction is not None and not (0.0 <= self.global_cris_fraction <= 1.0):
+            raise ValueError(
+                f"global_cris_fraction must be between 0.0 and 1.0, "
+                f"got {self.global_cris_fraction}"
+            )
 
 
 @dataclass(frozen=True)

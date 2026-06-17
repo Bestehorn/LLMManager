@@ -42,6 +42,36 @@ class AccessMethodPreference:
     learned_from_error: bool = False
     last_updated: datetime = field(default_factory=datetime.now)
 
+    @classmethod
+    def from_method_name(cls, name: str) -> "AccessMethodPreference":
+        """
+        Build a caller preference from an access-method name (issue #16).
+
+        Creates an AccessMethodPreference whose flags select exactly the named method,
+        with learned_from_error=False (this is a caller hint, not a learned hard
+        requirement).
+
+        Args:
+            name: One of AccessMethodNames.{DIRECT, REGIONAL_CRIS, GLOBAL_CRIS}
+
+        Returns:
+            An AccessMethodPreference preferring the named method.
+
+        Raises:
+            ValueError: If name is not a recognized access-method name.
+        """
+        if name == AccessMethodNames.DIRECT:
+            return cls(prefer_direct=True, prefer_regional_cris=False, prefer_global_cris=False)
+        if name == AccessMethodNames.REGIONAL_CRIS:
+            return cls(prefer_direct=False, prefer_regional_cris=True, prefer_global_cris=False)
+        if name == AccessMethodNames.GLOBAL_CRIS:
+            return cls(prefer_direct=False, prefer_regional_cris=False, prefer_global_cris=True)
+        raise ValueError(
+            f"Unknown access method name: {name!r}. Expected one of "
+            f"{AccessMethodNames.DIRECT!r}, {AccessMethodNames.REGIONAL_CRIS!r}, "
+            f"{AccessMethodNames.GLOBAL_CRIS!r}."
+        )
+
     def get_preferred_method(self) -> str:
         """
         Get the preferred access method name.

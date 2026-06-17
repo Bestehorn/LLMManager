@@ -4,6 +4,8 @@ Handles retry logic, strategies, and error classification.
 """
 
 import logging
+import math
+import random
 import time
 from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -21,6 +23,7 @@ from ..models.llm_manager_constants import (
 )
 from ..models.llm_manager_structures import (
     ContentFilterState,
+    RegionOrder,
     RequestAttempt,
     ResponseValidationConfig,
     RetryConfig,
@@ -31,6 +34,7 @@ from ..models.llm_manager_structures import (
 from ..tracking.access_method_tracker import AccessMethodTracker
 from ..tracking.parameter_compatibility_tracker import ParameterCompatibilityTracker
 from .access_method_selector import AccessMethodSelector
+from .access_method_structures import AccessMethodPreference
 from .profile_requirement_detector import ProfileRequirementDetector
 
 
@@ -89,6 +93,81 @@ class RetryManager:
 
         # Non-retryable errors
         self._non_retryable_errors = RetryableErrorTypes.NON_RETRYABLE_ERRORS
+
+        # Issue #16: per-call counters for region-order rotation (CR-1) and global-CRIS
+        # interleaving (CR-2). A dedicated Random instance keeps SHUFFLE non-determinism
+        # isolated from the global random state.
+        self._region_order_call_counter: int = 0
+        self._access_pref_call_counter: int = 0
+        self._region_shuffle_rng = random.Random()
+
+    def _order_regions(self, regions: List[str]) -> List[str]:
+        """
+        Order the regions for a single retry-target generation call (issue #16, CR-1).
+
+        Returns a reordering of the input regions according to the configured
+        region_order. The returned list always contains exactly the same regions as the
+        input (only the order changes), so failover depth is preserved.
+
+        - RegionOrder.FIXED   -> the input order, unchanged (historical default).
+        - RegionOrder.ROTATE  -> left-rotated by a monotonic per-call offset, so the
+          first-attempted region cycles deterministically across calls.
+        - RegionOrder.SHUFFLE -> a random per-call permutation.
+
+        Args:
+            regions: The caller's configured region list.
+
+        Returns:
+            A new list with the same regions in the configured order.
+        """
+        order = self._config.region_order
+        if order == RegionOrder.FIXED or len(regions) <= 1:
+            return list(regions)
+
+        if order == RegionOrder.ROTATE:
+            offset = self._region_order_call_counter % len(regions)
+            self._region_order_call_counter += 1
+            return list(regions[offset:]) + list(regions[:offset])
+
+        if order == RegionOrder.SHUFFLE:
+            shuffled = list(regions)
+            self._region_shuffle_rng.shuffle(shuffled)
+            return shuffled
+
+        # Unknown order should be impossible (validated in RetryConfig); be safe.
+        return list(regions)
+
+    def _compute_caller_preference(self) -> Optional[AccessMethodPreference]:
+        """
+        Compute the caller's access-method preference for the current call (issue #16, CR-2).
+
+        Resolution order:
+        - If global_cris_fraction is set, route approximately that share of calls to the
+          global CRIS profile using a deterministic round-robin over a per-call counter,
+          and leave the rest to the default selection order (returns None on those calls).
+        - Else if access_method_preference is set, apply it to every call.
+        - Else there is no caller preference (returns None -> historical behavior).
+
+        Returns:
+            An AccessMethodPreference to apply, or None to use the default order.
+        """
+        fraction = self._config.global_cris_fraction
+        if fraction is not None:
+            count = self._access_pref_call_counter
+            self._access_pref_call_counter += 1
+            # Deterministic round-robin: a call routes to global when the cumulative
+            # global "budget" crosses an integer between this call and the next. Over N
+            # calls this yields floor(N*fraction) ~= fraction*N global calls.
+            use_global = math.floor((count + 1) * fraction) > math.floor(count * fraction)
+            if use_global:
+                return AccessMethodPreference.from_method_name(name="global_cris")
+            return None
+
+        preference_name = self._config.access_method_preference
+        if preference_name is not None:
+            return AccessMethodPreference.from_method_name(name=preference_name)
+
+        return None
 
     def is_retryable_error(self, error: Exception, attempt_count: int = 1) -> bool:
         """
@@ -357,10 +436,16 @@ class RetryManager:
         retry_targets = []
         access_failures = []
 
+        # Issue #16 (CR-1): order the regions for this call per the configured
+        # region_order. This only reorders the regions (never drops any), so failover
+        # depth is preserved and the failed_combinations skip logic below is unaffected.
+        # With the default RegionOrder.FIXED this is the caller's original order.
+        ordered_regions = self._order_regions(regions)
+
         if self._config.retry_strategy == RetryStrategy.REGION_FIRST:
             # Try all regions for each model before moving to next model
             for model in models:
-                for region in regions:
+                for region in ordered_regions:
                     if (model, region) in failed_combinations:
                         continue
 
@@ -395,7 +480,7 @@ class RetryManager:
 
         elif self._config.retry_strategy == RetryStrategy.MODEL_FIRST:
             # Try all models for each region before moving to next region
-            for region in regions:
+            for region in ordered_regions:
                 for model in models:
                     if (model, region) in failed_combinations:
                         continue
@@ -1046,9 +1131,16 @@ class RetryManager:
             model_id=tracking_id, region=region
         )
 
+        # Issue #16 (CR-2): compute the caller's access-method preference for this call
+        # (a fixed preference or a per-call interleave decision). A learned preference,
+        # when present, still takes precedence inside the selector.
+        caller_preference = self._compute_caller_preference()
+
         # Use selector to choose optimal access method
         model_id_to_use, access_method = self._access_method_selector.select_access_method(
-            access_info=access_info, learned_preference=learned_preference
+            access_info=access_info,
+            learned_preference=learned_preference,
+            caller_preference=caller_preference,
         )
 
         # Log selection
