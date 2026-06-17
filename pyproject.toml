@@ -145,13 +145,20 @@ markers = [
     "aws_streaming: Tests using streaming responses",
 ]
 filterwarnings = [
+    # Third-party deprecation warnings stay ignored (not actionable here).
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",
+    # The project's OWN deprecation warnings are promoted to errors so any NEW use of a
+    # deprecated bestehorn_llmmanager API fails CI (issue #20). Tests that intentionally
+    # exercise a deprecated surface must assert it via pytest.warns(...) or a scoped
+    # @pytest.mark.filterwarnings, rather than letting the warning leak.
+    "error::bestehorn_llmmanager.bedrock.models.deprecation.DeprecatedEnumValueWarning",
+    "error::bestehorn_llmmanager.bedrock.models.deprecation.DeprecatedAPIWarning",
 ]
-# Note: Deprecation warnings are currently ignored to allow gradual migration.
-# Total deprecation warning count is monitored via test_deprecation_warning_count.py
-# which enforces a threshold of 100 warnings. This threshold should be gradually
-# reduced as deprecated APIs are migrated. See CONTRIBUTING.md for guidelines.
+# Note: the project's own deprecation categories (DeprecatedEnumValueWarning,
+# DeprecatedAPIWarning) are errors — see CONTRIBUTING.md. The legacy CRISManager/
+# ModelManager/UnifiedModelManager classes emit a plain DeprecationWarning (still
+# ignored above) since the whole class is deprecated until v4.0.0.
 
 # Code formatting with Black
 [tool.black]
