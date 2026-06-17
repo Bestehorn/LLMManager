@@ -27,6 +27,12 @@
           "model_id": "nvidia.nemotron-nano-12b-v2",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "nvidia.nemotron-nano-12b-v2",
+          "inference_profile_id": null
+        },
         "eu-west-1": {
           "access_method": "direct",
           "region": "eu-west-1",
@@ -81,87 +87,87 @@
       "hyperparameters_link": null,
       "region_access": {
         "ap-northeast-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "ap-northeast-1",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "ap-northeast-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "ap-northeast-2",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "ap-northeast-3": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "ap-northeast-3",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "ap-south-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "ap-south-1",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "ap-southeast-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "ap-southeast-1",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "ap-southeast-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "ap-southeast-2",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "apac.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "eu-central-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-central-1",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "eu-north-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-north-1",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "eu-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-west-1",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "eu-west-3": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-west-3",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "us-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-1",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.anthropic.claude-sonnet-4-20250514-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.anthropic.claude-sonnet-4-20250514-v1:0"
         }
       }
@@ -241,12 +247,6 @@
           "model_id": null,
           "inference_profile_id": "us.anthropic.claude-haiku-4-5-20251001-v1:0"
         },
-        "us-east-2": {
-          "access_method": "cris_only",
-          "region": "us-east-2",
-          "model_id": null,
-          "inference_profile_id": "us.anthropic.claude-haiku-4-5-20251001-v1:0"
-        },
         "us-west-1": {
           "access_method": "cris_only",
           "region": "us-west-1",
@@ -287,6 +287,12 @@
           "model_id": "qwen.qwen3-235b-a22b-2507-v1:0",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "qwen.qwen3-235b-a22b-2507-v1:0",
+          "inference_profile_id": null
+        },
         "eu-central-1": {
           "access_method": "direct",
           "region": "eu-central-1",
@@ -319,6 +325,77 @@
         }
       }
     },
+    "Kimi K2.5": {
+      "model_name": "Kimi K2.5",
+      "provider": "Moonshot AI",
+      "model_id": "moonshotai.kimi-k2.5",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "moonshotai.kimi-k2.5",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "moonshotai.kimi-k2.5",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "moonshotai.kimi-k2.5",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "moonshotai.kimi-k2.5",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "moonshotai.kimi-k2.5",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "moonshotai.kimi-k2.5",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "moonshotai.kimi-k2.5",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "moonshotai.kimi-k2.5",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "moonshotai.kimi-k2.5",
+          "inference_profile_id": null
+        }
+      }
+    },
     "Gpt Oss 120b 1": {
       "model_name": "Gpt Oss 120b 1",
       "provider": "OpenAI",
@@ -342,6 +419,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "openai.gpt-oss-120b-1:0",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "openai.gpt-oss-120b-1:0",
           "inference_profile_id": null
         },
@@ -411,21 +494,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-creative-upscale-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-creative-upscale-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-creative-upscale-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-creative-upscale-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-creative-upscale-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-creative-upscale-v1:0"
         }
       }
@@ -456,6 +539,12 @@
           "model_id": "qwen.qwen3-next-80b-a3b",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "qwen.qwen3-next-80b-a3b",
+          "inference_profile_id": null
+        },
         "eu-west-1": {
           "access_method": "direct",
           "region": "eu-west-1",
@@ -490,6 +579,153 @@
           "access_method": "direct",
           "region": "us-west-2",
           "model_id": "qwen.qwen3-next-80b-a3b",
+          "inference_profile_id": null
+        }
+      }
+    },
+    "Claude Fable 5": {
+      "model_name": "Claude Fable 5",
+      "provider": "Anthropic",
+      "model_id": "anthropic.claude-fable-5",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-southeast-2": {
+          "access_method": "cris_only",
+          "region": "ap-southeast-2",
+          "model_id": null,
+          "inference_profile_id": "au.anthropic.claude-fable-5"
+        },
+        "ca-central-1": {
+          "access_method": "cris_only",
+          "region": "ca-central-1",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-fable-5"
+        },
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "region": "eu-central-1",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-fable-5"
+        },
+        "eu-north-1": {
+          "access_method": "cris_only",
+          "region": "eu-north-1",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-fable-5"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "region": "eu-west-1",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-fable-5"
+        },
+        "eu-west-2": {
+          "access_method": "cris_only",
+          "region": "eu-west-2",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-fable-5"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "region": "eu-west-3",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-fable-5"
+        },
+        "us-east-1": {
+          "access_method": "cris_only",
+          "region": "us-east-1",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-fable-5"
+        },
+        "us-west-1": {
+          "access_method": "cris_only",
+          "region": "us-west-1",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-fable-5"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "region": "us-west-2",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-fable-5"
+        }
+      }
+    },
+    "V3.2": {
+      "model_name": "V3.2",
+      "provider": "DeepSeek",
+      "model_id": "deepseek.v3.2",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "deepseek.v3.2",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "deepseek.v3.2",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "deepseek.v3.2",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "deepseek.v3.2",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "deepseek.v3.2",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "deepseek.v3.2",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "deepseek.v3.2",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "deepseek.v3.2",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "deepseek.v3.2",
           "inference_profile_id": null
         }
       }
@@ -520,6 +756,18 @@
           "model_id": "nvidia.nemotron-nano-3-30b",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "nvidia.nemotron-nano-3-30b",
+          "inference_profile_id": null
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "region": "eu-west-1",
+          "model_id": "nvidia.nemotron-nano-3-30b",
+          "inference_profile_id": null
+        },
         "eu-west-2": {
           "access_method": "direct",
           "region": "eu-west-2",
@@ -552,6 +800,125 @@
         }
       }
     },
+    "Claude Sonnet 4 6": {
+      "model_name": "Claude Sonnet 4 6",
+      "provider": "Anthropic",
+      "model_id": "anthropic.claude-sonnet-4-6",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "both",
+          "region": "ap-northeast-1",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "jp.anthropic.claude-sonnet-4-6"
+        },
+        "ap-northeast-2": {
+          "access_method": "direct",
+          "region": "ap-northeast-2",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": null
+        },
+        "ap-northeast-3": {
+          "access_method": "both",
+          "region": "ap-northeast-3",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "jp.anthropic.claude-sonnet-4-6"
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": null
+        },
+        "ap-southeast-1": {
+          "access_method": "direct",
+          "region": "ap-southeast-1",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "both",
+          "region": "ap-southeast-2",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "au.anthropic.claude-sonnet-4-6"
+        },
+        "ca-central-1": {
+          "access_method": "both",
+          "region": "ca-central-1",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "us.anthropic.claude-sonnet-4-6"
+        },
+        "eu-central-1": {
+          "access_method": "both",
+          "region": "eu-central-1",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "eu.anthropic.claude-sonnet-4-6"
+        },
+        "eu-north-1": {
+          "access_method": "both",
+          "region": "eu-north-1",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "eu.anthropic.claude-sonnet-4-6"
+        },
+        "eu-west-1": {
+          "access_method": "both",
+          "region": "eu-west-1",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "eu.anthropic.claude-sonnet-4-6"
+        },
+        "eu-west-2": {
+          "access_method": "both",
+          "region": "eu-west-2",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "eu.anthropic.claude-sonnet-4-6"
+        },
+        "eu-west-3": {
+          "access_method": "both",
+          "region": "eu-west-3",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "eu.anthropic.claude-sonnet-4-6"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "both",
+          "region": "us-east-1",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "us.anthropic.claude-sonnet-4-6"
+        },
+        "us-east-2": {
+          "access_method": "both",
+          "region": "us-east-2",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "us.anthropic.claude-sonnet-4-6"
+        },
+        "us-west-1": {
+          "access_method": "both",
+          "region": "us-west-1",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "us.anthropic.claude-sonnet-4-6"
+        },
+        "us-west-2": {
+          "access_method": "both",
+          "region": "us-west-2",
+          "model_id": "anthropic.claude-sonnet-4-6",
+          "inference_profile_id": "us.anthropic.claude-sonnet-4-6"
+        }
+      }
+    },
     "Minimax M2": {
       "model_name": "Minimax M2",
       "provider": "MiniMax",
@@ -575,6 +942,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "minimax.minimax-m2",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "minimax.minimax-m2",
           "inference_profile_id": null
         },
@@ -616,6 +989,88 @@
         }
       }
     },
+    "Glm 4.7 Flash": {
+      "model_name": "Glm 4.7 Flash",
+      "provider": "Z.AI",
+      "model_id": "zai.glm-4.7-flash",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "region": "eu-central-1",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "region": "eu-west-1",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "zai.glm-4.7-flash",
+          "inference_profile_id": null
+        }
+      }
+    },
     "Voxtral Mini 3b 2507": {
       "model_name": "Voxtral Mini 3b 2507",
       "provider": "Mistral AI",
@@ -640,6 +1095,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "mistral.voxtral-mini-3b-2507",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "mistral.voxtral-mini-3b-2507",
           "inference_profile_id": null
         },
@@ -764,10 +1225,10 @@
           "inference_profile_id": "us.amazon.nova-pro-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "direct",
           "region": "us-east-2",
           "model_id": "amazon.nova-pro-v1:0",
-          "inference_profile_id": "us.amazon.nova-pro-v1:0"
+          "inference_profile_id": null
         },
         "us-west-1": {
           "access_method": "both",
@@ -799,21 +1260,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-image-remove-background-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-remove-background-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-image-remove-background-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-remove-background-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-image-remove-background-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-remove-background-v1:0"
         }
       }
@@ -834,21 +1295,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-image-control-sketch-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-control-sketch-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-image-control-sketch-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-control-sketch-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-image-control-sketch-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-control-sketch-v1:0"
         }
       }
@@ -870,93 +1331,63 @@
       "hyperparameters_link": null,
       "region_access": {
         "ap-northeast-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "ap-northeast-1",
-          "model_id": "amazon.nova-2-lite-v1:0",
+          "model_id": null,
           "inference_profile_id": "jp.amazon.nova-2-lite-v1:0"
         },
-        "ap-northeast-2": {
-          "access_method": "direct",
-          "region": "ap-northeast-2",
-          "model_id": "amazon.nova-2-lite-v1:0",
-          "inference_profile_id": null
-        },
-        "ap-south-1": {
-          "access_method": "direct",
-          "region": "ap-south-1",
-          "model_id": "amazon.nova-2-lite-v1:0",
-          "inference_profile_id": null
-        },
-        "ap-southeast-1": {
-          "access_method": "direct",
-          "region": "ap-southeast-1",
-          "model_id": "amazon.nova-2-lite-v1:0",
-          "inference_profile_id": null
-        },
-        "ap-southeast-2": {
-          "access_method": "direct",
-          "region": "ap-southeast-2",
-          "model_id": "amazon.nova-2-lite-v1:0",
-          "inference_profile_id": null
-        },
         "ca-central-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "ca-central-1",
-          "model_id": "amazon.nova-2-lite-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.amazon.nova-2-lite-v1:0"
         },
         "eu-central-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-central-1",
-          "model_id": "amazon.nova-2-lite-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.amazon.nova-2-lite-v1:0"
         },
         "eu-north-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-north-1",
-          "model_id": "amazon.nova-2-lite-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.amazon.nova-2-lite-v1:0"
         },
         "eu-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-west-1",
-          "model_id": "amazon.nova-2-lite-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.amazon.nova-2-lite-v1:0"
         },
-        "eu-west-2": {
-          "access_method": "direct",
-          "region": "eu-west-2",
-          "model_id": "amazon.nova-2-lite-v1:0",
-          "inference_profile_id": null
-        },
         "eu-west-3": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-west-3",
-          "model_id": "amazon.nova-2-lite-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.amazon.nova-2-lite-v1:0"
         },
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "amazon.nova-2-lite-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.amazon.nova-2-lite-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "amazon.nova-2-lite-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.amazon.nova-2-lite-v1:0"
         },
         "us-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-1",
-          "model_id": "amazon.nova-2-lite-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.amazon.nova-2-lite-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "amazon.nova-2-lite-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.amazon.nova-2-lite-v1:0"
         }
       }
@@ -977,22 +1408,104 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-conservative-upscale-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-conservative-upscale-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-conservative-upscale-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-conservative-upscale-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-conservative-upscale-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-conservative-upscale-v1:0"
+        }
+      }
+    },
+    "Minimax M2.5": {
+      "model_name": "Minimax M2.5",
+      "provider": "MiniMax",
+      "model_id": "minimax.minimax-m2.5",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "region": "eu-central-1",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "region": "eu-west-1",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "minimax.minimax-m2.5",
+          "inference_profile_id": null
         }
       }
     },
@@ -1020,6 +1533,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "google.gemma-3-12b-it",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "google.gemma-3-12b-it",
           "inference_profile_id": null
         },
@@ -1077,21 +1596,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-image-search-recolor-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-search-recolor-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-image-search-recolor-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-search-recolor-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-image-search-recolor-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-search-recolor-v1:0"
         }
       }
@@ -1119,6 +1638,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "moonshot.kimi-k2-thinking",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "moonshot.kimi-k2-thinking",
           "inference_profile_id": null
         },
@@ -1172,6 +1697,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "mistral.mistral-large-3-675b-instruct",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "mistral.mistral-large-3-675b-instruct",
           "inference_profile_id": null
         },
@@ -1361,6 +1892,252 @@
         }
       }
     },
+    "Devstral 2 123b": {
+      "model_name": "Devstral 2 123b",
+      "provider": "Mistral AI",
+      "model_id": "mistral.devstral-2-123b",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "region": "eu-central-1",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "region": "eu-west-1",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "mistral.devstral-2-123b",
+          "inference_profile_id": null
+        }
+      }
+    },
+    "Minimax M2.1": {
+      "model_name": "Minimax M2.1",
+      "provider": "MiniMax",
+      "model_id": "minimax.minimax-m2.1",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "region": "eu-central-1",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "region": "eu-west-1",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "minimax.minimax-m2.1",
+          "inference_profile_id": null
+        }
+      }
+    },
+    "Nemotron Super 3 120b": {
+      "model_name": "Nemotron Super 3 120b",
+      "provider": "NVIDIA",
+      "model_id": "nvidia.nemotron-super-3-120b",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        },
+        "eu-central-1": {
+          "access_method": "direct",
+          "region": "eu-central-1",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "region": "eu-west-1",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "nvidia.nemotron-super-3-120b",
+          "inference_profile_id": null
+        }
+      }
+    },
     "Qwen3 32b": {
       "model_name": "Qwen3 32b",
       "provider": "Qwen",
@@ -1384,6 +2161,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "qwen.qwen3-32b-v1:0",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "qwen.qwen3-32b-v1:0",
           "inference_profile_id": null
         },
@@ -1464,6 +2247,12 @@
           "model_id": "mistral.ministral-3-14b-instruct",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "mistral.ministral-3-14b-instruct",
+          "inference_profile_id": null
+        },
         "eu-west-1": {
           "access_method": "direct",
           "region": "eu-west-1",
@@ -1502,6 +2291,125 @@
         }
       }
     },
+    "Claude Opus 4 6": {
+      "model_name": "Claude Opus 4 6",
+      "provider": "Anthropic",
+      "model_id": "anthropic.claude-opus-4-6-v1",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": null
+        },
+        "ap-northeast-2": {
+          "access_method": "direct",
+          "region": "ap-northeast-2",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": null
+        },
+        "ap-northeast-3": {
+          "access_method": "direct",
+          "region": "ap-northeast-3",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": null
+        },
+        "ap-southeast-1": {
+          "access_method": "direct",
+          "region": "ap-southeast-1",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "both",
+          "region": "ap-southeast-2",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "au.anthropic.claude-opus-4-6-v1"
+        },
+        "ca-central-1": {
+          "access_method": "both",
+          "region": "ca-central-1",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "us.anthropic.claude-opus-4-6-v1"
+        },
+        "eu-central-1": {
+          "access_method": "both",
+          "region": "eu-central-1",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "eu.anthropic.claude-opus-4-6-v1"
+        },
+        "eu-north-1": {
+          "access_method": "both",
+          "region": "eu-north-1",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "eu.anthropic.claude-opus-4-6-v1"
+        },
+        "eu-west-1": {
+          "access_method": "both",
+          "region": "eu-west-1",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "eu.anthropic.claude-opus-4-6-v1"
+        },
+        "eu-west-2": {
+          "access_method": "both",
+          "region": "eu-west-2",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "eu.anthropic.claude-opus-4-6-v1"
+        },
+        "eu-west-3": {
+          "access_method": "both",
+          "region": "eu-west-3",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "eu.anthropic.claude-opus-4-6-v1"
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "both",
+          "region": "us-east-1",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "us.anthropic.claude-opus-4-6-v1"
+        },
+        "us-east-2": {
+          "access_method": "both",
+          "region": "us-east-2",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "us.anthropic.claude-opus-4-6-v1"
+        },
+        "us-west-1": {
+          "access_method": "both",
+          "region": "us-west-1",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "us.anthropic.claude-opus-4-6-v1"
+        },
+        "us-west-2": {
+          "access_method": "both",
+          "region": "us-west-2",
+          "model_id": "anthropic.claude-opus-4-6-v1",
+          "inference_profile_id": "us.anthropic.claude-opus-4-6-v1"
+        }
+      }
+    },
     "Nemotron Nano 9b": {
       "model_name": "Nemotron Nano 9b",
       "provider": "NVIDIA",
@@ -1525,6 +2433,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "nvidia.nemotron-nano-9b-v2",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "nvidia.nemotron-nano-9b-v2",
           "inference_profile_id": null
         },
@@ -1593,6 +2507,12 @@
           "model_id": "mistral.ministral-3-8b-instruct",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "mistral.ministral-3-8b-instruct",
+          "inference_profile_id": null
+        },
         "eu-west-1": {
           "access_method": "direct",
           "region": "eu-west-1",
@@ -1658,6 +2578,12 @@
           "model_id": "mistral.voxtral-small-24b-2507",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "mistral.voxtral-small-24b-2507",
+          "inference_profile_id": null
+        },
         "eu-west-1": {
           "access_method": "direct",
           "region": "eu-west-1",
@@ -1696,6 +2622,76 @@
         }
       }
     },
+    "Glm 5": {
+      "model_name": "Glm 5",
+      "provider": "Z.AI",
+      "model_id": "zai.glm-5",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "zai.glm-5",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "zai.glm-5",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "zai.glm-5",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "zai.glm-5",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "zai.glm-5",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "zai.glm-5",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "zai.glm-5",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "zai.glm-5",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "zai.glm-5",
+          "inference_profile_id": null
+        }
+      }
+    },
     "Gpt Oss 20b 1": {
       "model_name": "Gpt Oss 20b 1",
       "provider": "OpenAI",
@@ -1719,6 +2715,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "openai.gpt-oss-20b-1:0",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "openai.gpt-oss-20b-1:0",
           "inference_profile_id": null
         },
@@ -1799,6 +2801,12 @@
           "model_id": "google.gemma-3-4b-it",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "google.gemma-3-4b-it",
+          "inference_profile_id": null
+        },
         "eu-west-1": {
           "access_method": "direct",
           "region": "eu-west-1",
@@ -1853,22 +2861,206 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-fast-upscale-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-fast-upscale-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-fast-upscale-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-fast-upscale-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-fast-upscale-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-fast-upscale-v1:0"
+        }
+      }
+    },
+    "Claude Opus 4 8": {
+      "model_name": "Claude Opus 4 8",
+      "provider": "Anthropic",
+      "model_id": "anthropic.claude-opus-4-8",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "cris_only",
+          "region": "ap-northeast-1",
+          "model_id": null,
+          "inference_profile_id": "jp.anthropic.claude-opus-4-8"
+        },
+        "ap-northeast-3": {
+          "access_method": "cris_only",
+          "region": "ap-northeast-3",
+          "model_id": null,
+          "inference_profile_id": "jp.anthropic.claude-opus-4-8"
+        },
+        "ap-southeast-2": {
+          "access_method": "cris_only",
+          "region": "ap-southeast-2",
+          "model_id": null,
+          "inference_profile_id": "au.anthropic.claude-opus-4-8"
+        },
+        "ca-central-1": {
+          "access_method": "cris_only",
+          "region": "ca-central-1",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-opus-4-8"
+        },
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "region": "eu-central-1",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-opus-4-8"
+        },
+        "eu-north-1": {
+          "access_method": "cris_only",
+          "region": "eu-north-1",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-opus-4-8"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "region": "eu-west-1",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-opus-4-8"
+        },
+        "eu-west-2": {
+          "access_method": "cris_only",
+          "region": "eu-west-2",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-opus-4-8"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "region": "eu-west-3",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-opus-4-8"
+        },
+        "us-east-1": {
+          "access_method": "cris_only",
+          "region": "us-east-1",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-opus-4-8"
+        },
+        "us-west-1": {
+          "access_method": "cris_only",
+          "region": "us-west-1",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-opus-4-8"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "region": "us-west-2",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-opus-4-8"
+        }
+      }
+    },
+    "Claude Opus 4 7": {
+      "model_name": "Claude Opus 4 7",
+      "provider": "Anthropic",
+      "model_id": "anthropic.claude-opus-4-7",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "cris_only",
+          "region": "ap-northeast-1",
+          "model_id": null,
+          "inference_profile_id": "jp.anthropic.claude-opus-4-7"
+        },
+        "ap-northeast-3": {
+          "access_method": "cris_only",
+          "region": "ap-northeast-3",
+          "model_id": null,
+          "inference_profile_id": "jp.anthropic.claude-opus-4-7"
+        },
+        "ap-southeast-2": {
+          "access_method": "cris_only",
+          "region": "ap-southeast-2",
+          "model_id": null,
+          "inference_profile_id": "au.anthropic.claude-opus-4-7"
+        },
+        "ca-central-1": {
+          "access_method": "cris_only",
+          "region": "ca-central-1",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-opus-4-7"
+        },
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "region": "eu-central-1",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-opus-4-7"
+        },
+        "eu-north-1": {
+          "access_method": "cris_only",
+          "region": "eu-north-1",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-opus-4-7"
+        },
+        "eu-west-1": {
+          "access_method": "cris_only",
+          "region": "eu-west-1",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-opus-4-7"
+        },
+        "eu-west-2": {
+          "access_method": "cris_only",
+          "region": "eu-west-2",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-opus-4-7"
+        },
+        "eu-west-3": {
+          "access_method": "cris_only",
+          "region": "eu-west-3",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-opus-4-7"
+        },
+        "us-east-1": {
+          "access_method": "cris_only",
+          "region": "us-east-1",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-opus-4-7"
+        },
+        "us-east-2": {
+          "access_method": "cris_only",
+          "region": "us-east-2",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-opus-4-7"
+        },
+        "us-west-1": {
+          "access_method": "cris_only",
+          "region": "us-west-1",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-opus-4-7"
+        },
+        "us-west-2": {
+          "access_method": "cris_only",
+          "region": "us-west-2",
+          "model_id": null,
+          "inference_profile_id": "us.anthropic.claude-opus-4-7"
         }
       }
     },
@@ -1888,21 +3080,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-image-erase-object-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-erase-object-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-image-erase-object-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-erase-object-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-image-erase-object-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-erase-object-v1:0"
         }
       }
@@ -1930,6 +3122,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "openai.gpt-oss-safeguard-120b",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "openai.gpt-oss-safeguard-120b",
           "inference_profile_id": null
         },
@@ -1998,6 +3196,12 @@
           "model_id": "google.gemma-3-27b-it",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "google.gemma-3-27b-it",
+          "inference_profile_id": null
+        },
         "eu-west-1": {
           "access_method": "direct",
           "region": "eu-west-1",
@@ -2052,21 +3256,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-image-control-structure-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-control-structure-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-image-control-structure-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-control-structure-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-image-control-structure-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-control-structure-v1:0"
         }
       }
@@ -2193,6 +3397,12 @@
           "model_id": "qwen.qwen3-vl-235b-a22b",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "qwen.qwen3-vl-235b-a22b",
+          "inference_profile_id": null
+        },
         "eu-west-1": {
           "access_method": "direct",
           "region": "eu-west-1",
@@ -2231,6 +3441,111 @@
         }
       }
     },
+    "Glm 4.7": {
+      "model_name": "Glm 4.7",
+      "provider": "Z.AI",
+      "model_id": "zai.glm-4.7",
+      "input_modalities": [
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "direct",
+          "region": "ap-northeast-1",
+          "model_id": "zai.glm-4.7",
+          "inference_profile_id": null
+        },
+        "ap-south-1": {
+          "access_method": "direct",
+          "region": "ap-south-1",
+          "model_id": "zai.glm-4.7",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "zai.glm-4.7",
+          "inference_profile_id": null
+        },
+        "eu-north-1": {
+          "access_method": "direct",
+          "region": "eu-north-1",
+          "model_id": "zai.glm-4.7",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "zai.glm-4.7",
+          "inference_profile_id": null
+        },
+        "sa-east-1": {
+          "access_method": "direct",
+          "region": "sa-east-1",
+          "model_id": "zai.glm-4.7",
+          "inference_profile_id": null
+        },
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "zai.glm-4.7",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "zai.glm-4.7",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "zai.glm-4.7",
+          "inference_profile_id": null
+        }
+      }
+    },
+    "Palmyra Vision 7b": {
+      "model_name": "Palmyra Vision 7b",
+      "provider": "Writer",
+      "model_id": "writer.palmyra-vision-7b",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "writer.palmyra-vision-7b",
+          "inference_profile_id": null
+        },
+        "us-east-2": {
+          "access_method": "direct",
+          "region": "us-east-2",
+          "model_id": "writer.palmyra-vision-7b",
+          "inference_profile_id": null
+        },
+        "us-west-2": {
+          "access_method": "direct",
+          "region": "us-west-2",
+          "model_id": "writer.palmyra-vision-7b",
+          "inference_profile_id": null
+        }
+      }
+    },
     "Stable Outpaint": {
       "model_name": "Stable Outpaint",
       "provider": "Stability AI",
@@ -2247,21 +3562,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-outpaint-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-outpaint-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-outpaint-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-outpaint-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-outpaint-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-outpaint-v1:0"
         }
       }
@@ -2282,21 +3597,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-image-inpaint-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-inpaint-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-image-inpaint-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-inpaint-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-image-inpaint-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-inpaint-v1:0"
         }
       }
@@ -2317,21 +3632,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "anthropic.claude-opus-4-1-20250805-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.anthropic.claude-opus-4-1-20250805-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "anthropic.claude-opus-4-1-20250805-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.anthropic.claude-opus-4-1-20250805-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "anthropic.claude-opus-4-1-20250805-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.anthropic.claude-opus-4-1-20250805-v1:0"
         }
       }
@@ -2359,6 +3674,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "qwen.qwen3-coder-480b-a35b-v1:0",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "qwen.qwen3-coder-480b-a35b-v1:0",
           "inference_profile_id": null
         },
@@ -2404,21 +3725,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-image-style-guide-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-style-guide-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-image-style-guide-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-style-guide-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-image-style-guide-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-style-guide-v1:0"
         }
       }
@@ -2447,6 +3768,24 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "mistral.magistral-small-2509",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "mistral.magistral-small-2509",
+          "inference_profile_id": null
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "region": "eu-west-1",
+          "model_id": "mistral.magistral-small-2509",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
           "model_id": "mistral.magistral-small-2509",
           "inference_profile_id": null
         },
@@ -2492,21 +3831,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-style-transfer-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-style-transfer-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-style-transfer-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-style-transfer-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-style-transfer-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-style-transfer-v1:0"
         }
       }
@@ -2587,10 +3926,10 @@
           "inference_profile_id": "eu.cohere.embed-v4:0"
         },
         "eu-west-2": {
-          "access_method": "direct",
+          "access_method": "both",
           "region": "eu-west-2",
           "model_id": "cohere.embed-v4:0",
-          "inference_profile_id": null
+          "inference_profile_id": "eu.cohere.embed-v4:0"
         },
         "eu-west-3": {
           "access_method": "both",
@@ -2656,6 +3995,12 @@
           "model_id": "deepseek.v3-v1:0",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "deepseek.v3-v1:0",
+          "inference_profile_id": null
+        },
         "eu-north-1": {
           "access_method": "direct",
           "region": "eu-north-1",
@@ -2706,6 +4051,24 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "mistral.ministral-3-3b-instruct",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "mistral.ministral-3-3b-instruct",
+          "inference_profile_id": null
+        },
+        "eu-west-1": {
+          "access_method": "direct",
+          "region": "eu-west-1",
+          "model_id": "mistral.ministral-3-3b-instruct",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
           "model_id": "mistral.ministral-3-3b-instruct",
           "inference_profile_id": null
         },
@@ -2828,21 +4191,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "stability.stable-image-search-replace-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-search-replace-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "stability.stable-image-search-replace-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-search-replace-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "stability.stable-image-search-replace-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.stability.stable-image-search-replace-v1:0"
         }
       }
@@ -2870,6 +4233,12 @@
         "ap-south-1": {
           "access_method": "direct",
           "region": "ap-south-1",
+          "model_id": "qwen.qwen3-coder-30b-a3b-v1:0",
+          "inference_profile_id": null
+        },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
           "model_id": "qwen.qwen3-coder-30b-a3b-v1:0",
           "inference_profile_id": null
         },
@@ -2949,6 +4318,12 @@
           "model_id": "openai.gpt-oss-safeguard-20b",
           "inference_profile_id": null
         },
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "openai.gpt-oss-safeguard-20b",
+          "inference_profile_id": null
+        },
         "eu-west-1": {
           "access_method": "direct",
           "region": "eu-west-1",
@@ -2983,34 +4358,6 @@
           "access_method": "direct",
           "region": "us-west-2",
           "model_id": "openai.gpt-oss-safeguard-20b",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Titan Tg1 Large": {
-      "model_name": "Titan Tg1 Large",
-      "provider": "Amazon",
-      "model_id": "amazon.titan-tg1-large",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "amazon.titan-tg1-large",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "amazon.titan-tg1-large",
           "inference_profile_id": null
         }
       }
@@ -3068,21 +4415,21 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "amazon.nova-premier-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.amazon.nova-premier-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "amazon.nova-premier-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.amazon.nova-premier-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "amazon.nova-premier-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.amazon.nova-premier-v1:0"
         }
       }
@@ -3204,10 +4551,10 @@
           "inference_profile_id": "us.amazon.nova-lite-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "direct",
           "region": "us-east-2",
           "model_id": "amazon.nova-lite-v1:0",
-          "inference_profile_id": "us.amazon.nova-lite-v1:0"
+          "inference_profile_id": null
         },
         "us-west-1": {
           "access_method": "both",
@@ -3314,46 +4661,6 @@
           "region": "us-west-2",
           "model_id": "amazon.nova-micro-v1:0",
           "inference_profile_id": "us.amazon.nova-micro-v1:0"
-        }
-      }
-    },
-    "Titan Embed Text V1:2": {
-      "model_name": "Titan Embed Text V1:2",
-      "provider": "Amazon",
-      "model_id": "amazon.titan-embed-text-v1:2:8k",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "EMBEDDING"
-      ],
-      "streaming_supported": false,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-northeast-1": {
-          "access_method": "direct",
-          "region": "ap-northeast-1",
-          "model_id": "amazon.titan-embed-text-v1:2:8k",
-          "inference_profile_id": null
-        },
-        "eu-central-1": {
-          "access_method": "direct",
-          "region": "eu-central-1",
-          "model_id": "amazon.titan-embed-text-v1:2:8k",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "amazon.titan-embed-text-v1:2:8k",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "amazon.titan-embed-text-v1:2:8k",
-          "inference_profile_id": null
         }
       }
     },
@@ -3676,201 +4983,6 @@
         }
       }
     },
-    "Claude 3 5 Sonnet 20241022 V2:0": {
-      "model_name": "Claude 3 5 Sonnet 20241022 V2:0",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0:18k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0:18k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Claude 3 5 Sonnet 20241022": {
-      "model_name": "Claude 3 5 Sonnet 20241022",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-northeast-1": {
-          "access_method": "both",
-          "region": "ap-northeast-1",
-          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
-        },
-        "ap-northeast-2": {
-          "access_method": "both",
-          "region": "ap-northeast-2",
-          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
-        },
-        "ap-northeast-3": {
-          "access_method": "both",
-          "region": "ap-northeast-3",
-          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
-        },
-        "ap-south-1": {
-          "access_method": "both",
-          "region": "ap-south-1",
-          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
-        },
-        "ap-southeast-1": {
-          "access_method": "both",
-          "region": "ap-southeast-1",
-          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
-        },
-        "ap-southeast-2": {
-          "access_method": "both",
-          "region": "ap-southeast-2",
-          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
-        },
-        "us-east-1": {
-          "access_method": "both",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
-        },
-        "us-east-2": {
-          "access_method": "both",
-          "region": "us-east-2",
-          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
-        },
-        "us-west-2": {
-          "access_method": "both",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
-          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
-        }
-      }
-    },
-    "Claude 3 7 Sonnet 20250219": {
-      "model_name": "Claude 3 7 Sonnet 20250219",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-northeast-1": {
-          "access_method": "both",
-          "region": "ap-northeast-1",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "ap-northeast-2": {
-          "access_method": "both",
-          "region": "ap-northeast-2",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "ap-northeast-3": {
-          "access_method": "both",
-          "region": "ap-northeast-3",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "ap-south-1": {
-          "access_method": "both",
-          "region": "ap-south-1",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "ap-southeast-1": {
-          "access_method": "both",
-          "region": "ap-southeast-1",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "ap-southeast-2": {
-          "access_method": "both",
-          "region": "ap-southeast-2",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "eu-central-1": {
-          "access_method": "both",
-          "region": "eu-central-1",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "eu-north-1": {
-          "access_method": "both",
-          "region": "eu-north-1",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "eu-west-1": {
-          "access_method": "both",
-          "region": "eu-west-1",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "eu-west-2": {
-          "access_method": "direct",
-          "region": "eu-west-2",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": null
-        },
-        "eu-west-3": {
-          "access_method": "both",
-          "region": "eu-west-3",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "eu.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "us-east-1": {
-          "access_method": "both",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "us-east-2": {
-          "access_method": "both",
-          "region": "us-east-2",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        },
-        "us-west-2": {
-          "access_method": "both",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
-          "inference_profile_id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
-        }
-      }
-    },
     "Claude 3 5 Haiku 20241022": {
       "model_name": "Claude 3 5 Haiku 20241022",
       "provider": "Anthropic",
@@ -3902,167 +5014,6 @@
           "region": "us-west-2",
           "model_id": "anthropic.claude-3-5-haiku-20241022-v1:0",
           "inference_profile_id": "us.anthropic.claude-3-5-haiku-20241022-v1:0"
-        }
-      }
-    },
-    "Claude Instant V1:2": {
-      "model_name": "Claude Instant V1:2",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-instant-v1:2:100k",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-instant-v1:2:100k",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-instant-v1:2:100k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Claude V2:0": {
-      "model_name": "Claude V2:0",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-v2:0:18k",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-v2:0:18k",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-v2:0:18k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Claude V2:1": {
-      "model_name": "Claude V2:1",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-v2:1:18k",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "eu-central-1": {
-          "access_method": "direct",
-          "region": "eu-central-1",
-          "model_id": "anthropic.claude-v2:1:18k",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-v2:1:18k",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-v2:1:18k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Claude 3 Sonnet 20240229 V1:0": {
-      "model_name": "Claude 3 Sonnet 20240229 V1:0",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-3-sonnet-20240229-v1:0:28k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-northeast-1": {
-          "access_method": "direct",
-          "region": "ap-northeast-1",
-          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0:28k",
-          "inference_profile_id": null
-        },
-        "ap-northeast-2": {
-          "access_method": "direct",
-          "region": "ap-northeast-2",
-          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0:28k",
-          "inference_profile_id": null
-        },
-        "ap-south-1": {
-          "access_method": "direct",
-          "region": "ap-south-1",
-          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0:28k",
-          "inference_profile_id": null
-        },
-        "ap-southeast-1": {
-          "access_method": "direct",
-          "region": "ap-southeast-1",
-          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0:28k",
-          "inference_profile_id": null
-        },
-        "ap-southeast-2": {
-          "access_method": "direct",
-          "region": "ap-southeast-2",
-          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0:28k",
-          "inference_profile_id": null
-        },
-        "eu-west-1": {
-          "access_method": "direct",
-          "region": "eu-west-1",
-          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0:28k",
-          "inference_profile_id": null
-        },
-        "eu-west-3": {
-          "access_method": "direct",
-          "region": "eu-west-3",
-          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0:28k",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0:28k",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0:28k",
-          "inference_profile_id": null
         }
       }
     },
@@ -4117,12 +5068,6 @@
           "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
           "inference_profile_id": null
         },
-        "eu-central-1": {
-          "access_method": "both",
-          "region": "eu-central-1",
-          "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
-          "inference_profile_id": "eu.anthropic.claude-3-sonnet-20240229-v1:0"
-        },
         "eu-west-1": {
           "access_method": "both",
           "region": "eu-west-1",
@@ -4158,71 +5103,12 @@
           "region": "us-west-2",
           "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
           "inference_profile_id": "us.anthropic.claude-3-sonnet-20240229-v1:0"
-        }
-      }
-    },
-    "Claude 3 Haiku 20240307 V1:0": {
-      "model_name": "Claude 3 Haiku 20240307 V1:0",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-3-haiku-20240307-v1:0:48k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-northeast-2": {
-          "access_method": "direct",
-          "region": "ap-northeast-2",
-          "model_id": "anthropic.claude-3-haiku-20240307-v1:0:48k",
-          "inference_profile_id": null
         },
-        "ap-south-1": {
-          "access_method": "direct",
-          "region": "ap-south-1",
-          "model_id": "anthropic.claude-3-haiku-20240307-v1:0:48k",
-          "inference_profile_id": null
-        },
-        "ap-southeast-2": {
-          "access_method": "direct",
-          "region": "ap-southeast-2",
-          "model_id": "anthropic.claude-3-haiku-20240307-v1:0:48k",
-          "inference_profile_id": null
-        },
-        "eu-west-1": {
-          "access_method": "direct",
-          "region": "eu-west-1",
-          "model_id": "anthropic.claude-3-haiku-20240307-v1:0:48k",
-          "inference_profile_id": null
-        },
-        "eu-west-3": {
-          "access_method": "direct",
-          "region": "eu-west-3",
-          "model_id": "anthropic.claude-3-haiku-20240307-v1:0:48k",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-3-haiku-20240307-v1:0:48k",
-          "inference_profile_id": null
-        },
-        "us-east-2": {
-          "access_method": "direct",
-          "region": "us-east-2",
-          "model_id": "anthropic.claude-3-haiku-20240307-v1:0:48k",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-3-haiku-20240307-v1:0:48k",
-          "inference_profile_id": null
+        "eu-central-1": {
+          "access_method": "cris_only",
+          "region": "eu-central-1",
+          "model_id": null,
+          "inference_profile_id": "eu.anthropic.claude-3-sonnet-20240229-v1:0"
         }
       }
     },
@@ -4327,205 +5213,6 @@
         }
       }
     },
-    "Claude 3 Opus 20240229 V1:0": {
-      "model_name": "Claude 3 Opus 20240229 V1:0",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-3-opus-20240229-v1:0:12k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-3-opus-20240229-v1:0:12k",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-3-opus-20240229-v1:0:12k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Claude 3 Opus 20240229": {
-      "model_name": "Claude 3 Opus 20240229",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-3-opus-20240229-v1:0",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "both",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-3-opus-20240229-v1:0",
-          "inference_profile_id": "us.anthropic.claude-3-opus-20240229-v1:0"
-        },
-        "us-west-2": {
-          "access_method": "both",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-3-opus-20240229-v1:0",
-          "inference_profile_id": "us.anthropic.claude-3-opus-20240229-v1:0"
-        }
-      }
-    },
-    "Claude 3 5 Sonnet 20240620 V1:0": {
-      "model_name": "Claude 3 5 Sonnet 20240620 V1:0",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0:18k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0:18k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Claude 3 5 Sonnet 20240620": {
-      "model_name": "Claude 3 5 Sonnet 20240620",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ap-northeast-1": {
-          "access_method": "both",
-          "region": "ap-northeast-1",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        },
-        "ap-northeast-2": {
-          "access_method": "both",
-          "region": "ap-northeast-2",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        },
-        "ap-south-1": {
-          "access_method": "both",
-          "region": "ap-south-1",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        },
-        "ap-southeast-1": {
-          "access_method": "both",
-          "region": "ap-southeast-1",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        },
-        "ap-southeast-2": {
-          "access_method": "both",
-          "region": "ap-southeast-2",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        },
-        "eu-central-1": {
-          "access_method": "both",
-          "region": "eu-central-1",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "eu.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        },
-        "eu-west-1": {
-          "access_method": "both",
-          "region": "eu-west-1",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "eu.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        },
-        "eu-west-3": {
-          "access_method": "both",
-          "region": "eu-west-3",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "eu.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        },
-        "us-east-1": {
-          "access_method": "both",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        },
-        "us-east-2": {
-          "access_method": "both",
-          "region": "us-east-2",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        },
-        "us-west-2": {
-          "access_method": "both",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
-          "inference_profile_id": "us.anthropic.claude-3-5-sonnet-20240620-v1:0"
-        }
-      }
-    },
-    "Claude Opus 4 20250514": {
-      "model_name": "Claude Opus 4 20250514",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-opus-4-20250514-v1:0",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "both",
-          "region": "us-east-1",
-          "model_id": "anthropic.claude-opus-4-20250514-v1:0",
-          "inference_profile_id": "us.anthropic.claude-opus-4-20250514-v1:0"
-        },
-        "us-east-2": {
-          "access_method": "both",
-          "region": "us-east-2",
-          "model_id": "anthropic.claude-opus-4-20250514-v1:0",
-          "inference_profile_id": "us.anthropic.claude-opus-4-20250514-v1:0"
-        },
-        "us-west-2": {
-          "access_method": "both",
-          "region": "us-west-2",
-          "model_id": "anthropic.claude-opus-4-20250514-v1:0",
-          "inference_profile_id": "us.anthropic.claude-opus-4-20250514-v1:0"
-        }
-      }
-    },
     "Command R": {
       "model_name": "Command R",
       "provider": "Cohere",
@@ -4578,58 +5265,6 @@
           "access_method": "direct",
           "region": "us-west-2",
           "model_id": "cohere.command-r-plus-v1:0",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Embed English V3:0": {
-      "model_name": "Embed English V3:0",
-      "provider": "Cohere",
-      "model_id": "cohere.embed-english-v3:0:512",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "EMBEDDING"
-      ],
-      "streaming_supported": false,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ca-central-1": {
-          "access_method": "direct",
-          "region": "ca-central-1",
-          "model_id": "cohere.embed-english-v3:0:512",
-          "inference_profile_id": null
-        },
-        "eu-west-2": {
-          "access_method": "direct",
-          "region": "eu-west-2",
-          "model_id": "cohere.embed-english-v3:0:512",
-          "inference_profile_id": null
-        },
-        "eu-west-3": {
-          "access_method": "direct",
-          "region": "eu-west-3",
-          "model_id": "cohere.embed-english-v3:0:512",
-          "inference_profile_id": null
-        },
-        "sa-east-1": {
-          "access_method": "direct",
-          "region": "sa-east-1",
-          "model_id": "cohere.embed-english-v3:0:512",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "cohere.embed-english-v3:0:512",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "cohere.embed-english-v3:0:512",
           "inference_profile_id": null
         }
       }
@@ -4718,58 +5353,6 @@
           "access_method": "direct",
           "region": "us-west-2",
           "model_id": "cohere.embed-english-v3",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Embed Multilingual V3:0": {
-      "model_name": "Embed Multilingual V3:0",
-      "provider": "Cohere",
-      "model_id": "cohere.embed-multilingual-v3:0:512",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "EMBEDDING"
-      ],
-      "streaming_supported": false,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "ca-central-1": {
-          "access_method": "direct",
-          "region": "ca-central-1",
-          "model_id": "cohere.embed-multilingual-v3:0:512",
-          "inference_profile_id": null
-        },
-        "eu-west-2": {
-          "access_method": "direct",
-          "region": "eu-west-2",
-          "model_id": "cohere.embed-multilingual-v3:0:512",
-          "inference_profile_id": null
-        },
-        "eu-west-3": {
-          "access_method": "direct",
-          "region": "eu-west-3",
-          "model_id": "cohere.embed-multilingual-v3:0:512",
-          "inference_profile_id": null
-        },
-        "sa-east-1": {
-          "access_method": "direct",
-          "region": "sa-east-1",
-          "model_id": "cohere.embed-multilingual-v3:0:512",
-          "inference_profile_id": null
-        },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "cohere.embed-multilingual-v3:0:512",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "cohere.embed-multilingual-v3:0:512",
           "inference_profile_id": null
         }
       }
@@ -4908,40 +5491,6 @@
         }
       }
     },
-    "R1": {
-      "model_name": "R1",
-      "provider": "DeepSeek",
-      "model_id": "deepseek.r1-v1:0",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "deepseek.r1-v1:0",
-          "inference_profile_id": null
-        },
-        "us-east-2": {
-          "access_method": "direct",
-          "region": "us-east-2",
-          "model_id": "deepseek.r1-v1:0",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "deepseek.r1-v1:0",
-          "inference_profile_id": null
-        }
-      }
-    },
     "Llama3 8b Instruct": {
       "model_name": "Llama3 8b Instruct",
       "provider": "Meta",
@@ -5034,34 +5583,6 @@
         }
       }
     },
-    "Llama3 1 8b Instruct V1:0": {
-      "model_name": "Llama3 1 8b Instruct V1:0",
-      "provider": "Meta",
-      "model_id": "meta.llama3-1-8b-instruct-v1:0:128k",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-2": {
-          "access_method": "direct",
-          "region": "us-east-2",
-          "model_id": "meta.llama3-1-8b-instruct-v1:0:128k",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "meta.llama3-1-8b-instruct-v1:0:128k",
-          "inference_profile_id": null
-        }
-      }
-    },
     "Llama3 1 8b Instruct": {
       "model_name": "Llama3 1 8b Instruct",
       "provider": "Meta",
@@ -5093,34 +5614,6 @@
           "region": "us-west-2",
           "model_id": "meta.llama3-1-8b-instruct-v1:0",
           "inference_profile_id": "us.meta.llama3-1-8b-instruct-v1:0"
-        }
-      }
-    },
-    "Llama3 1 70b Instruct V1:0": {
-      "model_name": "Llama3 1 70b Instruct V1:0",
-      "provider": "Meta",
-      "model_id": "meta.llama3-1-70b-instruct-v1:0:128k",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-2": {
-          "access_method": "direct",
-          "region": "us-east-2",
-          "model_id": "meta.llama3-1-70b-instruct-v1:0:128k",
-          "inference_profile_id": null
-        },
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "meta.llama3-1-70b-instruct-v1:0:128k",
-          "inference_profile_id": null
         }
       }
     },
@@ -5186,29 +5679,6 @@
         }
       }
     },
-    "Llama3 2 11b Instruct V1:0": {
-      "model_name": "Llama3 2 11b Instruct V1:0",
-      "provider": "Meta",
-      "model_id": "meta.llama3-2-11b-instruct-v1:0:128k",
-      "input_modalities": [
-        "TEXT",
-        "IMAGE"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "meta.llama3-2-11b-instruct-v1:0:128k",
-          "inference_profile_id": null
-        }
-      }
-    },
     "Llama3 2 11b Instruct": {
       "model_name": "Llama3 2 11b Instruct",
       "provider": "Meta",
@@ -5225,45 +5695,22 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "meta.llama3-2-11b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-11b-instruct-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "meta.llama3-2-11b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-11b-instruct-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "meta.llama3-2-11b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-11b-instruct-v1:0"
-        }
-      }
-    },
-    "Llama3 2 90b Instruct V1:0": {
-      "model_name": "Llama3 2 90b Instruct V1:0",
-      "provider": "Meta",
-      "model_id": "meta.llama3-2-90b-instruct-v1:0:128k",
-      "input_modalities": [
-        "TEXT",
-        "IMAGE"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "meta.llama3-2-90b-instruct-v1:0:128k",
-          "inference_profile_id": null
         }
       }
     },
@@ -5283,44 +5730,22 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "meta.llama3-2-90b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-90b-instruct-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "meta.llama3-2-90b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-90b-instruct-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "meta.llama3-2-90b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-90b-instruct-v1:0"
-        }
-      }
-    },
-    "Llama3 2 1b Instruct V1:0": {
-      "model_name": "Llama3 2 1b Instruct V1:0",
-      "provider": "Meta",
-      "model_id": "meta.llama3-2-1b-instruct-v1:0:128k",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "meta.llama3-2-1b-instruct-v1:0:128k",
-          "inference_profile_id": null
         }
       }
     },
@@ -5339,62 +5764,40 @@
       "hyperparameters_link": null,
       "region_access": {
         "eu-central-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-central-1",
-          "model_id": "meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.meta.llama3-2-1b-instruct-v1:0"
         },
         "eu-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-west-1",
-          "model_id": "meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.meta.llama3-2-1b-instruct-v1:0"
         },
         "eu-west-3": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-west-3",
-          "model_id": "meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.meta.llama3-2-1b-instruct-v1:0"
         },
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-1b-instruct-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-1b-instruct-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "meta.llama3-2-1b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-1b-instruct-v1:0"
-        }
-      }
-    },
-    "Llama3 2 3b Instruct V1:0": {
-      "model_name": "Llama3 2 3b Instruct V1:0",
-      "provider": "Meta",
-      "model_id": "meta.llama3-2-3b-instruct-v1:0:128k",
-      "input_modalities": [
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-2": {
-          "access_method": "direct",
-          "region": "us-west-2",
-          "model_id": "meta.llama3-2-3b-instruct-v1:0:128k",
-          "inference_profile_id": null
         }
       }
     },
@@ -5413,39 +5816,39 @@
       "hyperparameters_link": null,
       "region_access": {
         "eu-central-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-central-1",
-          "model_id": "meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.meta.llama3-2-3b-instruct-v1:0"
         },
         "eu-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-west-1",
-          "model_id": "meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.meta.llama3-2-3b-instruct-v1:0"
         },
         "eu-west-3": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-west-3",
-          "model_id": "meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.meta.llama3-2-3b-instruct-v1:0"
         },
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-3b-instruct-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-3b-instruct-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "meta.llama3-2-3b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama3-2-3b-instruct-v1:0"
         }
       }
@@ -5522,27 +5925,27 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "meta.llama4-scout-17b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama4-scout-17b-instruct-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "meta.llama4-scout-17b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama4-scout-17b-instruct-v1:0"
         },
         "us-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-1",
-          "model_id": "meta.llama4-scout-17b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama4-scout-17b-instruct-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "meta.llama4-scout-17b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama4-scout-17b-instruct-v1:0"
         }
       }
@@ -5563,27 +5966,27 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "meta.llama4-maverick-17b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama4-maverick-17b-instruct-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "meta.llama4-maverick-17b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama4-maverick-17b-instruct-v1:0"
         },
         "us-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-1",
-          "model_id": "meta.llama4-maverick-17b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama4-maverick-17b-instruct-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "meta.llama4-maverick-17b-instruct-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.meta.llama4-maverick-17b-instruct-v1:0"
         }
       }
@@ -5836,45 +6239,45 @@
       "hyperparameters_link": null,
       "region_access": {
         "eu-central-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-central-1",
-          "model_id": "mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.mistral.pixtral-large-2502-v1:0"
         },
         "eu-north-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-north-1",
-          "model_id": "mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.mistral.pixtral-large-2502-v1:0"
         },
         "eu-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-west-1",
-          "model_id": "mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.mistral.pixtral-large-2502-v1:0"
         },
         "eu-west-3": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "eu-west-3",
-          "model_id": "mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
           "inference_profile_id": "eu.mistral.pixtral-large-2502-v1:0"
         },
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.mistral.pixtral-large-2502-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.mistral.pixtral-large-2502-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "mistral.pixtral-large-2502-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.mistral.pixtral-large-2502-v1:0"
         }
       }
@@ -5916,27 +6319,27 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "writer.palmyra-x4-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.writer.palmyra-x4-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "writer.palmyra-x4-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.writer.palmyra-x4-v1:0"
         },
         "us-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-1",
-          "model_id": "writer.palmyra-x4-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.writer.palmyra-x4-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "writer.palmyra-x4-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.writer.palmyra-x4-v1:0"
         }
       }
@@ -5956,97 +6359,28 @@
       "hyperparameters_link": null,
       "region_access": {
         "us-east-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-1",
-          "model_id": "writer.palmyra-x5-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.writer.palmyra-x5-v1:0"
         },
         "us-east-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-east-2",
-          "model_id": "writer.palmyra-x5-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.writer.palmyra-x5-v1:0"
         },
         "us-west-1": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-1",
-          "model_id": "writer.palmyra-x5-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.writer.palmyra-x5-v1:0"
         },
         "us-west-2": {
-          "access_method": "both",
+          "access_method": "cris_only",
           "region": "us-west-2",
-          "model_id": "writer.palmyra-x5-v1:0",
+          "model_id": null,
           "inference_profile_id": "us.writer.palmyra-x5-v1:0"
-        }
-      }
-    },
-    "Claude Sonnet 4 20250514 V1:0": {
-      "model_name": "Claude Sonnet 4 20250514 V1:0",
-      "provider": "Anthropic",
-      "model_id": "anthropic.claude-sonnet-4-20250514-v1:0:32k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-1": {
-          "access_method": "direct",
-          "region": "us-west-1",
-          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0:32k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Llama4 Scout 17b Instruct V1:0": {
-      "model_name": "Llama4 Scout 17b Instruct V1:0",
-      "provider": "Meta",
-      "model_id": "meta.llama4-scout-17b-instruct-v1:0:128k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-1": {
-          "access_method": "direct",
-          "region": "us-west-1",
-          "model_id": "meta.llama4-scout-17b-instruct-v1:0:128k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Llama4 Maverick 17b Instruct V1:0": {
-      "model_name": "Llama4 Maverick 17b Instruct V1:0",
-      "provider": "Meta",
-      "model_id": "meta.llama4-maverick-17b-instruct-v1:0:128k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-west-1": {
-          "access_method": "direct",
-          "region": "us-west-1",
-          "model_id": "meta.llama4-maverick-17b-instruct-v1:0:128k",
-          "inference_profile_id": null
         }
       }
     },
@@ -6087,40 +6421,103 @@
         }
       }
     },
-    "Marengo Embed 2 7": {
-      "model_name": "Marengo Embed 2 7",
-      "provider": "TwelveLabs",
-      "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
+    "Claude 3 5 Sonnet 20240620": {
+      "model_name": "Claude 3 5 Sonnet 20240620",
+      "provider": "Anthropic",
+      "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
       "input_modalities": [
         "IMAGE",
-        "SPEECH",
-        "TEXT",
-        "VIDEO"
+        "TEXT"
       ],
       "output_modalities": [
-        "EMBEDDING"
+        "TEXT"
       ],
-      "streaming_supported": false,
+      "streaming_supported": true,
       "inference_parameters_link": null,
       "hyperparameters_link": null,
       "region_access": {
+        "ap-northeast-1": {
+          "access_method": "both",
+          "region": "ap-northeast-1",
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0"
+        },
         "ap-northeast-2": {
-          "access_method": "direct",
+          "access_method": "both",
           "region": "ap-northeast-2",
-          "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
-          "inference_profile_id": null
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0"
         },
-        "eu-west-1": {
-          "access_method": "direct",
-          "region": "eu-west-1",
-          "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
-          "inference_profile_id": null
+        "ap-south-1": {
+          "access_method": "both",
+          "region": "ap-south-1",
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0"
         },
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "twelvelabs.marengo-embed-2-7-v1:0",
-          "inference_profile_id": null
+        "ap-southeast-1": {
+          "access_method": "both",
+          "region": "ap-southeast-1",
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0"
+        },
+        "ap-southeast-2": {
+          "access_method": "both",
+          "region": "ap-southeast-2",
+          "model_id": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20240620-v1:0"
+        }
+      }
+    },
+    "Claude 3 5 Sonnet 20241022": {
+      "model_name": "Claude 3 5 Sonnet 20241022",
+      "provider": "Anthropic",
+      "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-northeast-1": {
+          "access_method": "both",
+          "region": "ap-northeast-1",
+          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
+        },
+        "ap-northeast-2": {
+          "access_method": "both",
+          "region": "ap-northeast-2",
+          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
+        },
+        "ap-northeast-3": {
+          "access_method": "both",
+          "region": "ap-northeast-3",
+          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
+        },
+        "ap-south-1": {
+          "access_method": "both",
+          "region": "ap-south-1",
+          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
+        },
+        "ap-southeast-1": {
+          "access_method": "both",
+          "region": "ap-southeast-1",
+          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
+        },
+        "ap-southeast-2": {
+          "access_method": "both",
+          "region": "ap-southeast-2",
+          "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+          "inference_profile_id": "apac.anthropic.claude-3-5-sonnet-20241022-v2:0"
         }
       }
     },
@@ -6194,107 +6591,10 @@
         }
       }
     },
-    "Nova 2 Multimodal Embeddings": {
-      "model_name": "Nova 2 Multimodal Embeddings",
-      "provider": "Amazon",
-      "model_id": "amazon.nova-2-multimodal-embeddings-v1:0",
-      "input_modalities": [
-        "TEXT",
-        "IMAGE",
-        "AUDIO",
-        "VIDEO"
-      ],
-      "output_modalities": [
-        "EMBEDDING"
-      ],
-      "streaming_supported": false,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "amazon.nova-2-multimodal-embeddings-v1:0",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Nova 2 Lite V1:0": {
-      "model_name": "Nova 2 Lite V1:0",
-      "provider": "Amazon",
-      "model_id": "amazon.nova-2-lite-v1:0:256k",
-      "input_modalities": [
-        "TEXT",
-        "IMAGE",
-        "VIDEO"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "amazon.nova-2-lite-v1:0:256k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Nova Pro V1:0": {
-      "model_name": "Nova Pro V1:0",
-      "provider": "Amazon",
-      "model_id": "amazon.nova-pro-v1:0:24k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT",
-        "VIDEO"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "amazon.nova-pro-v1:0:24k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Nova Lite V1:0": {
-      "model_name": "Nova Lite V1:0",
-      "provider": "Amazon",
-      "model_id": "amazon.nova-lite-v1:0:24k",
-      "input_modalities": [
-        "IMAGE",
-        "TEXT",
-        "VIDEO"
-      ],
-      "output_modalities": [
-        "TEXT"
-      ],
-      "streaming_supported": true,
-      "inference_parameters_link": null,
-      "hyperparameters_link": null,
-      "region_access": {
-        "us-east-1": {
-          "access_method": "direct",
-          "region": "us-east-1",
-          "model_id": "amazon.nova-lite-v1:0:24k",
-          "inference_profile_id": null
-        }
-      }
-    },
-    "Nova Micro V1:0": {
-      "model_name": "Nova Micro V1:0",
-      "provider": "Amazon",
-      "model_id": "amazon.nova-micro-v1:0:24k",
+    "Qwen3 Coder Next": {
+      "model_name": "Qwen3 Coder Next",
+      "provider": "Qwen",
+      "model_id": "qwen.qwen3-coder-next",
       "input_modalities": [
         "TEXT"
       ],
@@ -6305,10 +6605,51 @@
       "inference_parameters_link": null,
       "hyperparameters_link": null,
       "region_access": {
+        "ap-southeast-2": {
+          "access_method": "direct",
+          "region": "ap-southeast-2",
+          "model_id": "qwen.qwen3-coder-next",
+          "inference_profile_id": null
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "qwen.qwen3-coder-next",
+          "inference_profile_id": null
+        },
         "us-east-1": {
           "access_method": "direct",
           "region": "us-east-1",
-          "model_id": "amazon.nova-micro-v1:0:24k",
+          "model_id": "qwen.qwen3-coder-next",
+          "inference_profile_id": null
+        }
+      }
+    },
+    "Claude 3 7 Sonnet 20250219": {
+      "model_name": "Claude 3 7 Sonnet 20250219",
+      "provider": "Anthropic",
+      "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "ap-south-1": {
+          "access_method": "both",
+          "region": "ap-south-1",
+          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
+          "inference_profile_id": "apac.anthropic.claude-3-7-sonnet-20250219-v1:0"
+        },
+        "eu-west-2": {
+          "access_method": "direct",
+          "region": "eu-west-2",
+          "model_id": "anthropic.claude-3-7-sonnet-20250219-v1:0",
           "inference_profile_id": null
         }
       }
@@ -6348,6 +6689,75 @@
         }
       }
     },
+    "Claude Sonnet 4 20250514 V1:0": {
+      "model_name": "Claude Sonnet 4 20250514 V1:0",
+      "provider": "Anthropic",
+      "model_id": "anthropic.claude-sonnet-4-20250514-v1:0:32k",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "us-west-1": {
+          "access_method": "direct",
+          "region": "us-west-1",
+          "model_id": "anthropic.claude-sonnet-4-20250514-v1:0:32k",
+          "inference_profile_id": null
+        }
+      }
+    },
+    "Llama4 Scout 17b Instruct V1:0": {
+      "model_name": "Llama4 Scout 17b Instruct V1:0",
+      "provider": "Meta",
+      "model_id": "meta.llama4-scout-17b-instruct-v1:0:128k",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "us-west-1": {
+          "access_method": "direct",
+          "region": "us-west-1",
+          "model_id": "meta.llama4-scout-17b-instruct-v1:0:128k",
+          "inference_profile_id": null
+        }
+      }
+    },
+    "Llama4 Maverick 17b Instruct V1:0": {
+      "model_name": "Llama4 Maverick 17b Instruct V1:0",
+      "provider": "Meta",
+      "model_id": "meta.llama4-maverick-17b-instruct-v1:0:128k",
+      "input_modalities": [
+        "IMAGE",
+        "TEXT"
+      ],
+      "output_modalities": [
+        "TEXT"
+      ],
+      "streaming_supported": true,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "us-west-1": {
+          "access_method": "direct",
+          "region": "us-west-1",
+          "model_id": "meta.llama4-maverick-17b-instruct-v1:0:128k",
+          "inference_profile_id": null
+        }
+      }
+    },
     "Titan Embed Text V2:0": {
       "model_name": "Titan Embed Text V2:0",
       "provider": "Amazon",
@@ -6372,6 +6782,31 @@
           "access_method": "direct",
           "region": "us-east-1",
           "model_id": "amazon.titan-embed-text-v2:0:8k",
+          "inference_profile_id": null
+        }
+      }
+    },
+    "Nova 2 Multimodal Embeddings": {
+      "model_name": "Nova 2 Multimodal Embeddings",
+      "provider": "Amazon",
+      "model_id": "amazon.nova-2-multimodal-embeddings-v1:0",
+      "input_modalities": [
+        "TEXT",
+        "IMAGE",
+        "AUDIO",
+        "VIDEO"
+      ],
+      "output_modalities": [
+        "EMBEDDING"
+      ],
+      "streaming_supported": false,
+      "inference_parameters_link": null,
+      "hyperparameters_link": null,
+      "region_access": {
+        "us-east-1": {
+          "access_method": "direct",
+          "region": "us-east-1",
+          "model_id": "amazon.nova-2-multimodal-embeddings-v1:0",
           "inference_profile_id": null
         }
       }
@@ -6617,28 +7052,28 @@
   },
   "metadata": {
     "source": "bundled",
-    "retrieval_timestamp": "2026-01-31T13:39:43.629328",
+    "retrieval_timestamp": "2026-06-17T18:01:01.348765",
     "api_regions_queried": [
       "us-west-2",
-      "ap-south-1",
-      "us-west-1",
+      "ap-northeast-2",
+      "us-east-2",
+      "eu-central-1",
       "eu-west-1",
       "eu-west-2",
-      "sa-east-1",
-      "eu-central-1",
-      "us-east-2",
-      "us-east-1",
-      "eu-north-1",
-      "ca-central-1",
-      "eu-west-3",
+      "ap-south-1",
       "ap-southeast-2",
-      "ap-northeast-3",
-      "ap-southeast-1",
       "ap-northeast-1",
-      "ap-northeast-2"
+      "ca-central-1",
+      "eu-north-1",
+      "us-west-1",
+      "ap-southeast-1",
+      "ap-northeast-3",
+      "us-east-1",
+      "eu-west-3",
+      "sa-east-1"
     ],
-    "bundled_data_version": "0.6.0.post1.dev11",
+    "bundled_data_version": "0.8.2",
     "cache_file_path": null,
-    "generation_timestamp": "2026-01-31T13:39:43.629328"
+    "generation_timestamp": "2026-06-17T18:01:01.348765"
   }
 }
