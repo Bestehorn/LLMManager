@@ -323,8 +323,10 @@ class ConverseMessageBuilder:
                 )
             )
 
-        # Build document content block
-        document_block = {
+        # Build document content block. Explicitly typed as Dict[str, Any] so the nested
+        # document dict accepts the optional string NAME field added below (without the
+        # annotation, mypy infers a narrow value type from FORMAT/SOURCE and rejects it).
+        document_block: Dict[str, Any] = {
             ConverseAPIFields.DOCUMENT: {
                 ConverseAPIFields.FORMAT: format.value,
                 ConverseAPIFields.SOURCE: {ConverseAPIFields.BYTES: bytes},

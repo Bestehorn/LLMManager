@@ -255,11 +255,26 @@ class TestUnifiedModelManager:
             # Catalog should still be returned
             assert catalog is not None
 
-    def test_refresh_unified_data_correlation_error(self, mock_correlator):
+    def test_refresh_unified_data_correlation_error(
+        self, mock_model_manager, mock_cris_manager, mock_correlator
+    ):
         """Test unified data refresh with correlation error."""
-        with patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator",
-            return_value=mock_correlator,
+        # Patch the underlying ModelManager/CRISManager so refresh reaches the
+        # correlation step (otherwise the real ModelManager runs and raises a parsing
+        # error on the absent AWS documentation before the correlator is invoked).
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
+                return_value=mock_model_manager,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
+                return_value=mock_cris_manager,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator",
+                return_value=mock_correlator,
+            ),
         ):
             manager = UnifiedModelManager()
 
@@ -273,11 +288,30 @@ class TestUnifiedModelManager:
             ):
                 manager.refresh_unified_data()
 
-    def test_refresh_unified_data_file_system_error(self, mock_serializer):
+    def test_refresh_unified_data_file_system_error(
+        self, mock_model_manager, mock_cris_manager, mock_correlator, mock_serializer
+    ):
         """Test unified data refresh with file system error."""
-        with patch(
-            "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer",
-            return_value=mock_serializer,
+        # Patch the underlying managers/correlator so refresh reaches the serialization
+        # step (otherwise the real ModelManager runs and raises a parsing error on the
+        # absent AWS documentation before the serializer is invoked).
+        with (
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelManager",
+                return_value=mock_model_manager,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.CRISManager",
+                return_value=mock_cris_manager,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.ModelCRISCorrelator",
+                return_value=mock_correlator,
+            ),
+            patch(
+                "bestehorn_llmmanager.bedrock.UnifiedModelManager.JSONModelSerializer",
+                return_value=mock_serializer,
+            ),
         ):
             manager = UnifiedModelManager()
 
