@@ -90,6 +90,9 @@ class ParallelLLMManager:
         default_inference_config: Optional[Dict] = None,
         timeout: int = ParallelConfig.DEFAULT_REQUEST_TIMEOUT_SECONDS,
         log_level: Union[int, str] = LLMManagerConfig.DEFAULT_LOG_LEVEL,
+        region_order: Optional[str] = None,
+        access_method_preference: Optional[str] = None,
+        global_cris_fraction: Optional[float] = None,
     ) -> None:
         """
         Initialize the Parallel LLM Manager.
@@ -114,6 +117,18 @@ class ParallelLLMManager:
             default_inference_config: Default inference parameters to apply
             timeout: Request timeout in seconds (applies to individual requests)
             log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
+            region_order: Per-call region ordering (issue #16). One of
+                RegionOrder.{FIXED, ROTATE, SHUFFLE}; None (default) preserves the
+                historical fixed order. For a wide parallel fan-out, RegionOrder.ROTATE
+                spreads first attempts across all configured regions to avoid
+                single-region throttling. Forwarded to the underlying LLMManager.
+            access_method_preference: Caller-preferred access method (issue #16): "direct",
+                "regional_cris", "global_cris", or None (default). Forwarded to the
+                underlying LLMManager.
+            global_cris_fraction: Optional interleave fraction in [0.0, 1.0] (issue #16);
+                approximately this share of requests is routed to the global CRIS profile,
+                the rest follow the default order. None (default) disables interleaving.
+                Forwarded to the underlying LLMManager.
 
         Raises:
             ParallelConfigurationError: If configuration is invalid
@@ -143,6 +158,9 @@ class ParallelLLMManager:
             default_inference_config=default_inference_config,
             timeout=timeout,
             log_level=log_level,
+            region_order=region_order,
+            access_method_preference=access_method_preference,
+            global_cris_fraction=global_cris_fraction,
         )
 
         # Initialize parallel processing components

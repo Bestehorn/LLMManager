@@ -20,7 +20,7 @@ exclude src/bestehorn_llmmanager/_version.py
 include tox.ini
 include .coveragerc
 
-# Include scripts
+# Include scripts (Python utilities only; shell helpers are dev-only, excluded below)
 recursive-include scripts *.py
 
 # EXCLUDE everything else by default
@@ -42,9 +42,11 @@ recursive-exclude subdir *
 recursive-exclude .clinerules *
 recursive-exclude .amazonq *
 recursive-exclude .kiro *
+recursive-exclude .claude *
+recursive-exclude credentials *
 recursive-exclude .vscode *
 
-# Exclude development files
+# Exclude development / assistant-tooling files (kept in repo, not shipped in the package)
 exclude .gitignore
 exclude .gitallowed
 exclude *.bat
@@ -56,6 +58,10 @@ exclude .pytest_cache
 exclude htmlcov
 exclude *.html
 exclude *.htm
+exclude CLAUDE.md
+exclude .mcp.json
+exclude .pre-commit-config.yaml
+exclude scripts/setup-hooks.sh
 
 # Exclude any build artifacts
 recursive-exclude build *

@@ -5,6 +5,7 @@ Provides a unified interface for interacting with multiple LLMs across regions
 with automatic retry logic, authentication handling, and comprehensive response management.
 """
 
+import dataclasses
 import logging
 from datetime import datetime
 from pathlib import Path
@@ -97,6 +98,9 @@ class LLMManager:
         model_specific_config: Optional[ModelSpecificConfig] = None,
         timeout: int = LLMManagerConfig.DEFAULT_TIMEOUT,
         log_level: Union[int, str] = LLMManagerConfig.DEFAULT_LOG_LEVEL,
+        region_order: Optional[str] = None,
+        access_method_preference: Optional[str] = None,
+        global_cris_fraction: Optional[float] = None,
     ) -> None:
         """
         Initialize the LLM Manager.
@@ -131,6 +135,17 @@ class LLMManager:
             model_specific_config: Default configuration for model-specific parameters
             timeout: Request timeout in seconds
             log_level: Logging level (e.g., logging.WARNING, "INFO", 20). Defaults to logging.WARNING
+            region_order: Per-call region ordering for retry-target generation (issue #16).
+                One of RegionOrder.{FIXED, ROTATE, SHUFFLE}. None (default) preserves the
+                historical fixed order. When provided, it is folded into the effective
+                RetryConfig (overriding that field on any retry_config passed in).
+            access_method_preference: Caller-preferred access method (issue #16). One of
+                "direct", "regional_cris", "global_cris", or None (default) for the
+                historical order. Folded into the effective RetryConfig when provided.
+            global_cris_fraction: Optional interleave fraction in [0.0, 1.0] (issue #16);
+                approximately this share of calls is routed to the global CRIS profile when
+                available. None (default) disables interleaving. Folded into the effective
+                RetryConfig when provided.
 
         Raises:
             ConfigurationError: If configuration is invalid (including invalid
@@ -157,10 +172,17 @@ class LLMManager:
             auth_config=auth_config,
             boto3_config=boto3_config,
         )
-        self._retry_manager = RetryManager(retry_config=retry_config or RetryConfig())
-        self._streaming_retry_manager = StreamingRetryManager(
-            retry_config=retry_config or RetryConfig()
+        # Fold the issue #16 region-distribution / access-method options into the
+        # effective RetryConfig (caller-provided options override the corresponding
+        # fields; omitting them preserves the historical defaults).
+        effective_retry_config = self._build_effective_retry_config(
+            retry_config=retry_config,
+            region_order=region_order,
+            access_method_preference=access_method_preference,
+            global_cris_fraction=global_cris_fraction,
         )
+        self._retry_manager = RetryManager(retry_config=effective_retry_config)
+        self._streaming_retry_manager = StreamingRetryManager(retry_config=effective_retry_config)
         self._parameter_builder = ParameterBuilder()
 
         # Initialize cache manager if caching is enabled
@@ -262,6 +284,50 @@ class LLMManager:
         if len(root_parts) > 1:
             root_logger = logging.getLogger(root_parts[0])
             root_logger.setLevel(log_level)
+
+    @staticmethod
+    def _build_effective_retry_config(
+        retry_config: Optional[RetryConfig],
+        region_order: Optional[str],
+        access_method_preference: Optional[str],
+        global_cris_fraction: Optional[float],
+    ) -> RetryConfig:
+        """
+        Build the effective RetryConfig, folding in the issue #16 options.
+
+        Starts from the caller's retry_config (or a default RetryConfig) and overrides
+        only the region-distribution / access-method fields that were explicitly provided
+        (non-None). This keeps backward compatibility: when none of the new options are
+        given, the returned config equals the caller's config (or the default).
+
+        Args:
+            retry_config: Caller-provided retry configuration, or None for defaults.
+            region_order: Region ordering override, or None to leave unchanged.
+            access_method_preference: Access-method preference override, or None.
+            global_cris_fraction: Interleave fraction override, or None.
+
+        Returns:
+            The effective RetryConfig to use for the retry managers.
+
+        Raises:
+            ConfigurationError: If the resulting configuration is invalid.
+        """
+        base = retry_config or RetryConfig()
+        overrides: Dict[str, Any] = {}
+        if region_order is not None:
+            overrides["region_order"] = region_order
+        if access_method_preference is not None:
+            overrides["access_method_preference"] = access_method_preference
+        if global_cris_fraction is not None:
+            overrides["global_cris_fraction"] = global_cris_fraction
+
+        if not overrides:
+            return base
+
+        try:
+            return dataclasses.replace(base, **overrides)
+        except ValueError as exc:
+            raise ConfigurationError(str(exc)) from exc
 
     def _validate_initialization_params(self, models: List[str], regions: List[str]) -> None:
         """Validate initialization parameters."""

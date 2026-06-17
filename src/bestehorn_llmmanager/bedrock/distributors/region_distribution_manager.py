@@ -228,18 +228,27 @@ class RegionDistributionManager:
             List of assigned region names
         """
         assigned_regions = []
-        regions_needed = min(target_count, len(available_regions))
+        available_count = len(available_regions)
+        regions_needed = min(target_count, available_count)
 
         for i in range(regions_needed):
-            region_index = (self._last_assigned_region_index + i) % len(available_regions)
+            region_index = (self._last_assigned_region_index + i) % available_count
             region = available_regions[region_index]
             assigned_regions.append(region)
             self._region_assignment_counter[region] += 1
 
-        # Update the starting index for next assignment
+        # Update the starting index for the next assignment.
+        # Issue #16 (CR-3): when the full region set is assigned
+        # (regions_needed == available_count), advancing by regions_needed is a no-op
+        # (regions_needed % available_count == 0), so the starting region would never
+        # rotate and every request would pile its first attempt on available_regions[0].
+        # In that case advance by 1 so the starting region rotates across calls while the
+        # returned set (all regions) is unchanged. For partial assignments
+        # (regions_needed < available_count) keep the historical +regions_needed stride.
+        stride = 1 if regions_needed == available_count else regions_needed
         self._last_assigned_region_index = (
-            self._last_assigned_region_index + regions_needed
-        ) % len(available_regions)
+            self._last_assigned_region_index + stride
+        ) % available_count
 
         return assigned_regions
 

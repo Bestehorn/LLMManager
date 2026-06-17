@@ -46,10 +46,36 @@ class AccessMethodSelector:
         self._tracker = access_method_tracker
         logger.debug("AccessMethodSelector initialized")
 
+    def _resolve_method(
+        self, access_info: ModelAccessInfo, method: str
+    ) -> Optional[Tuple[str, str]]:
+        """
+        Resolve a single access-method name to a (model_id, method) tuple if available.
+
+        Args:
+            access_info: Model access information from catalog.
+            method: One of AccessMethodNames.{DIRECT, REGIONAL_CRIS, GLOBAL_CRIS}.
+
+        Returns:
+            The (model_id_or_profile_id, method_name) tuple if the requested method is
+            available for this access_info, else None.
+        """
+        if method == AccessMethodNames.DIRECT and access_info.has_direct_access:
+            assert access_info.model_id is not None  # Guaranteed by ModelAccessInfo validation
+            return (access_info.model_id, AccessMethodNames.DIRECT)
+        if method == AccessMethodNames.REGIONAL_CRIS and access_info.has_regional_cris:
+            assert access_info.regional_cris_profile_id is not None
+            return (access_info.regional_cris_profile_id, AccessMethodNames.REGIONAL_CRIS)
+        if method == AccessMethodNames.GLOBAL_CRIS and access_info.has_global_cris:
+            assert access_info.global_cris_profile_id is not None
+            return (access_info.global_cris_profile_id, AccessMethodNames.GLOBAL_CRIS)
+        return None
+
     def select_access_method(
         self,
         access_info: ModelAccessInfo,
         learned_preference: Optional[AccessMethodPreference] = None,
+        caller_preference: Optional[AccessMethodPreference] = None,
     ) -> Tuple[str, str]:
         """
         Select optimal access method and return model ID to use.
@@ -60,13 +86,22 @@ class AccessMethodSelector:
         behavior and avoids deprecation warnings.
 
         This method selects the best access method based on:
-        1. Learned preferences (if provided)
-        2. Available access methods in ModelAccessInfo
-        3. Default preference order (direct → regional CRIS → global CRIS)
+        1. Learned preferences (if provided) — highest precedence
+        2. Caller preference (issue #16; if provided and the requested method is
+           available) — applied only when there is no learned preference
+        3. Available access methods in ModelAccessInfo
+        4. Default preference order (direct → regional CRIS → global CRIS)
 
         Args:
             access_info: Model access information from catalog
-            learned_preference: Previously learned preference (if any)
+            learned_preference: Previously learned preference (if any). A learned
+                preference — especially one learned from an error (a hard profile
+                requirement discovered at runtime) — takes precedence over the caller
+                preference, since overriding it would reintroduce a known failure.
+            caller_preference: Caller-supplied access-method preference (issue #16). When
+                provided and no learned preference applies, the requested method is used
+                if available; otherwise selection falls back to the default order (it
+                never raises just because the preferred method is unavailable).
 
         Returns:
             Tuple of (model_id_to_use, access_method_name)
@@ -153,6 +188,19 @@ class AccessMethodSelector:
             logger.debug(
                 f"Learned preference '{preferred_method}' not available, "
                 f"falling back to default order"
+            )
+
+        # Issue #16 (CR-2): apply the caller preference when there is no learned
+        # preference. Try the requested method if available; otherwise fall through to
+        # the default order (never raise just because the preferred method is absent).
+        if learned_preference is None and caller_preference is not None:
+            requested = caller_preference.get_preferred_method()
+            resolved = self._resolve_method(access_info=access_info, method=requested)
+            if resolved is not None:
+                logger.debug(f"Using caller preference: {requested}")
+                return resolved
+            logger.debug(
+                f"Caller preference '{requested}' not available, falling back to default order"
             )
 
         # Use default preference order
