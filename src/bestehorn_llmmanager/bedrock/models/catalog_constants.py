@@ -46,6 +46,9 @@ class CatalogAPIResponseFields:
     INFERENCE_TYPES_SUPPORTED: Final[str] = "inferenceTypesSupported"
     MODEL_LIFECYCLE: Final[str] = "modelLifecycle"
 
+    # Pagination token returned by list APIs (present when more pages remain)
+    NEXT_TOKEN: Final[str] = "nextToken"
+
     # list-inference-profiles response fields
     INFERENCE_PROFILE_SUMMARIES: Final[str] = "inferenceProfileSummaries"
     INFERENCE_PROFILE_NAME: Final[str] = "inferenceProfileName"

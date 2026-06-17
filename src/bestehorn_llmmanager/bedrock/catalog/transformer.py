@@ -509,16 +509,26 @@ class CatalogTransformer:
 
             if model_arn:
                 # Extract region from ARN
+                # Format: arn:aws:bedrock:region:account:foundation-model/model-id
+                # Issue #21: global inference profiles carry a region-less model ARN
+                # (arn:aws:bedrock:::foundation-model/...), so arn_parts[3] is an EMPTY
+                # string. Skipping empty regions prevents an invalid empty destination
+                # region from being recorded (which previously caused CRISInferenceProfile
+                # validation to reject the whole global profile, dropping it entirely).
+                # With no explicit mapping, the caller falls back to
+                # {source_region: [source_region]}, keeping the global profile available
+                # from the region it was listed in.
                 arn_parts = model_arn.split(":")
                 if len(arn_parts) >= 4:
                     model_region = arn_parts[3]
 
-                    # Add mapping: source_region -> model_region
-                    if source_region not in region_mappings:
-                        region_mappings[source_region] = []
+                    if model_region:
+                        # Add mapping: source_region -> model_region
+                        if source_region not in region_mappings:
+                            region_mappings[source_region] = []
 
-                    if model_region not in region_mappings[source_region]:
-                        region_mappings[source_region].append(model_region)
+                        if model_region not in region_mappings[source_region]:
+                            region_mappings[source_region].append(model_region)
 
         # If we found mappings, sort them for consistency
         if region_mappings:
@@ -574,25 +584,30 @@ class CatalogTransformer:
         """
         Extract model name from inference profile ID.
 
-        Handles both global and regional profile ID formats:
-        - Global: "global.anthropic.claude-3-5-haiku-20241022-v1:0"
-        - Regional: "us.anthropic.claude-3-5-haiku-20241022-v1:0"
+        The region/geo prefix (global., us., eu., apac., jp., au., …) is stripped so that
+        ALL profiles for the same foundation model — regional AND global — map to the SAME
+        model name and are grouped into a single CRISModelInfo (issue #21). This lets a
+        model carry both its geographic CRIS profiles and its global CRIS profile, which the
+        correlator then exposes per region so callers can choose between them (geographic for
+        data residency vs. global for cost/throughput — see AWS cross-Region inference docs).
+
+        Note: previously a "global." profile was prefixed with "Global " to form a separate
+        CRIS model. That caused the global profile to either be dropped (no matching base
+        model) or to REPLACE the regional profiles via global-priority matching. Grouping by
+        the prefix-stripped name avoids both.
 
         Examples:
-            "global.anthropic.claude-3-5-haiku-20241022-v1:0" -> "Global Anthropic Claude 3 5 Haiku 20241022"
-            "us.anthropic.claude-3-5-haiku-20241022-v1:0" -> "Anthropic Claude 3 5 Haiku 20241022"
-            "eu.amazon.titan-text-express-v1" -> "Amazon Titan Text Express"
+            "global.anthropic.claude-3-5-haiku-20241022-v1:0" -> "Anthropic Claude 3 5 Haiku 20241022"
+            "us.anthropic.claude-3-5-haiku-20241022-v1:0"     -> "Anthropic Claude 3 5 Haiku 20241022"
+            "eu.amazon.titan-text-express-v1"                 -> "Amazon Titan Text Express"
 
         Args:
             profile_id: Inference profile ID
 
         Returns:
-            Model name with appropriate prefix
+            Model name (provider + model), without any region/geo prefix
         """
-        # Check if this is a global profile
-        is_global = profile_id.startswith("global.")
-
-        # Remove regional prefix (global., us., eu., apac., etc.)
+        # Remove regional/global prefix (global., us., eu., apac., jp., au., etc.)
         parts = profile_id.split(".", 2)  # Split into at most 3 parts
         if len(parts) >= 3:
             # Format: region.provider.model-id
@@ -620,14 +635,8 @@ class CatalogTransformer:
         capitalized_words = [word.capitalize() for word in words if word]
         model_name = " ".join(capitalized_words)
 
-        # Construct full name with provider
-        full_name = f"{provider} {model_name}"
-
-        # Add "Global" prefix if it's a global profile
-        if is_global:
-            full_name = f"Global {full_name}"
-
-        return full_name
+        # Construct full name with provider (no "Global " prefix — see docstring)
+        return f"{provider} {model_name}"
 
     def _merge_model_info(
         self,
