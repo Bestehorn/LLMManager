@@ -179,6 +179,29 @@ class UnifiedModelInfo:
                 profiles.add(access_info.global_cris_profile_id)
         return sorted(list(profiles))
 
+    @staticmethod
+    def _legacy_access_method_value(access_info: ModelAccessInfo) -> str:
+        """
+        Compute the legacy access_method string from the orthogonal flags.
+
+        Mirrors the deprecated ModelAccessInfo.access_method property mapping WITHOUT
+        invoking it (so no deprecation warning is emitted): direct + any CRIS -> "both",
+        any CRIS only -> "cris_only", direct only -> "direct". Written for backward
+        compatibility so older readers of the bundled JSON still find an access_method.
+
+        Args:
+            access_info: The access info to map.
+
+        Returns:
+            One of UnifiedJSONFields.ACCESS_DIRECT / ACCESS_CRIS_ONLY / ACCESS_BOTH.
+        """
+        has_cris = access_info.has_regional_cris or access_info.has_global_cris
+        if access_info.has_direct_access and has_cris:
+            return UnifiedJSONFields.ACCESS_BOTH
+        if has_cris:
+            return UnifiedJSONFields.ACCESS_CRIS_ONLY
+        return UnifiedJSONFields.ACCESS_DIRECT
+
     def to_dict(self) -> Dict[str, Union[str, List[str], bool, Dict, None]]:
         """
         Convert the unified model info to a dictionary suitable for JSON serialization.
@@ -188,12 +211,29 @@ class UnifiedModelInfo:
         """
         region_access_dict = {}
         for region, access_info in self.region_access.items():
-            region_access_dict[region] = {
-                UnifiedJSONFields.ACCESS_METHOD: access_info.access_method.value,
+            # Issue #21: serialize the orthogonal access flags so a region can carry direct
+            # + regional (geographic) CRIS + global CRIS simultaneously. The legacy
+            # ACCESS_METHOD / INFERENCE_PROFILE_ID pair is still written for backward
+            # compatibility with older readers (it collapses to a single method/profile),
+            # but from_dict prefers the orthogonal fields when present.
+            entry: Dict[str, Union[str, bool, None]] = {
                 UnifiedJSONFields.REGION: access_info.region,
+                UnifiedJSONFields.HAS_DIRECT_ACCESS: access_info.has_direct_access,
+                UnifiedJSONFields.HAS_REGIONAL_CRIS: access_info.has_regional_cris,
+                UnifiedJSONFields.HAS_GLOBAL_CRIS: access_info.has_global_cris,
                 UnifiedJSONFields.MODEL_ID: access_info.model_id,
-                UnifiedJSONFields.INFERENCE_PROFILE_ID: access_info.inference_profile_id,
+                UnifiedJSONFields.REGIONAL_CRIS_PROFILE_ID: access_info.regional_cris_profile_id,
+                UnifiedJSONFields.GLOBAL_CRIS_PROFILE_ID: access_info.global_cris_profile_id,
             }
+            # Legacy fields (deprecated) — derived from the orthogonal flags without
+            # emitting deprecation warnings (we read the underlying attributes directly).
+            entry[UnifiedJSONFields.ACCESS_METHOD] = self._legacy_access_method_value(
+                access_info=access_info
+            )
+            entry[UnifiedJSONFields.INFERENCE_PROFILE_ID] = (
+                access_info.regional_cris_profile_id or access_info.global_cris_profile_id
+            )
+            region_access_dict[region] = entry
 
         return {
             UnifiedJSONFields.MODEL_NAME: self.model_name,
@@ -206,6 +246,50 @@ class UnifiedModelInfo:
             UnifiedJSONFields.HYPERPARAMETERS_LINK: self.hyperparameters_link,
             UnifiedJSONFields.REGION_ACCESS: region_access_dict,
         }
+
+    @staticmethod
+    def _access_info_from_dict(access_data: Dict) -> ModelAccessInfo:
+        """
+        Build a ModelAccessInfo from a serialized region-access entry.
+
+        Prefers the orthogonal access fields (has_direct_access / has_regional_cris /
+        has_global_cris + their ids — issue #21), which can represent a region served by
+        both regional and global CRIS. Falls back to the legacy access_method /
+        inference_profile_id pair for older cached catalogs that predate the orthogonal
+        fields.
+
+        Args:
+            access_data: One region's serialized access dictionary.
+
+        Returns:
+            A ModelAccessInfo instance.
+        """
+        region = access_data[UnifiedJSONFields.REGION]
+
+        # New format: orthogonal flags present.
+        if UnifiedJSONFields.HAS_GLOBAL_CRIS in access_data or (
+            UnifiedJSONFields.HAS_REGIONAL_CRIS in access_data
+        ):
+            return ModelAccessInfo(
+                region=region,
+                has_direct_access=bool(access_data.get(UnifiedJSONFields.HAS_DIRECT_ACCESS, False)),
+                has_regional_cris=bool(access_data.get(UnifiedJSONFields.HAS_REGIONAL_CRIS, False)),
+                has_global_cris=bool(access_data.get(UnifiedJSONFields.HAS_GLOBAL_CRIS, False)),
+                model_id=access_data.get(UnifiedJSONFields.MODEL_ID),
+                regional_cris_profile_id=access_data.get(
+                    UnifiedJSONFields.REGIONAL_CRIS_PROFILE_ID
+                ),
+                global_cris_profile_id=access_data.get(UnifiedJSONFields.GLOBAL_CRIS_PROFILE_ID),
+            )
+
+        # Legacy format: single access_method + inference_profile_id.
+        access_method = ModelAccessMethod(access_data[UnifiedJSONFields.ACCESS_METHOD])
+        return ModelAccessInfo.from_legacy(
+            access_method=access_method,
+            region=region,
+            model_id=access_data.get(UnifiedJSONFields.MODEL_ID),
+            inference_profile_id=access_data.get(UnifiedJSONFields.INFERENCE_PROFILE_ID),
+        )
 
     @classmethod
     def from_dict(
@@ -234,13 +318,7 @@ class UnifiedModelInfo:
                 if not isinstance(access_data, dict):
                     raise ValueError(f"Access data for region {region} must be a dictionary")
 
-                access_method = ModelAccessMethod(access_data[UnifiedJSONFields.ACCESS_METHOD])
-                region_access[region] = ModelAccessInfo.from_legacy(
-                    access_method=access_method,
-                    region=access_data[UnifiedJSONFields.REGION],
-                    model_id=access_data.get(UnifiedJSONFields.MODEL_ID),
-                    inference_profile_id=access_data.get(UnifiedJSONFields.INFERENCE_PROFILE_ID),
-                )
+                region_access[region] = cls._access_info_from_dict(access_data=access_data)
 
             # Extract and validate data with proper type conversion
             model_id_raw = data.get(UnifiedJSONFields.MODEL_ID)

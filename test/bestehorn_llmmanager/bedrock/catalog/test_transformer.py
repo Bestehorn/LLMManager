@@ -598,16 +598,27 @@ class TestCatalogTransformerExtractModelNameFromProfile:
     """Tests for _extract_model_name_from_profile method."""
 
     def test_extract_model_name_from_global_profile(self):
-        """Test extraction from global profile ID."""
+        """Global profile IDs map to the same (un-prefixed) name as their regional sibling.
+
+        Issue #21: the region/geo prefix (including 'global.') is stripped so that a model's
+        global and regional CRIS profiles group into ONE CRISModelInfo. The name must NOT
+        carry a 'Global ' prefix (that previously created a separate, un-correlatable model).
+        """
         transformer = CatalogTransformer()
 
         result = transformer._extract_model_name_from_profile(
             profile_id="global.anthropic.claude-3-5-haiku-20241022-v1:0"
         )
 
-        assert "Global" in result
+        assert "Global" not in result
         assert "Anthropic" in result
         assert "Claude" in result
+
+        # The global and regional profiles for the same model must produce the SAME name.
+        regional = transformer._extract_model_name_from_profile(
+            profile_id="us.anthropic.claude-3-5-haiku-20241022-v1:0"
+        )
+        assert result == regional
 
     def test_extract_model_name_from_regional_profile(self):
         """Test extraction from regional profile ID."""

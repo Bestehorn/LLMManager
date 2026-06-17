@@ -3,6 +3,7 @@ Model-CRIS correlation logic for unified Bedrock model management.
 Handles matching and merging data between regular model information and CRIS data.
 """
 
+import dataclasses
 import logging
 from typing import Dict, List, Optional, Set, Tuple
 
@@ -801,7 +802,97 @@ class ModelCRISCorrelator:
                 f"Model '{model_info.model_id}' had {len(skipped_regions)} skipped regions: {skipped_regions}"
             )
 
+        # Issue #21: a region can be served by BOTH a geographic (regional) CRIS profile and
+        # the global CRIS profile. The per-region branches above build access from a single
+        # profile (get_profiles_for_source_region()[0]), so one of the two is otherwise lost.
+        # Reconcile each region to carry every CRIS profile available from it: regional AND
+        # global flags set together when both exist. Geographic vs global are distinct,
+        # caller-selectable profiles (residency vs cost/throughput), so the catalog exposes
+        # both. Purely additive — direct access and any already-set flags are preserved.
+        self._merge_all_cris_profiles_per_region(
+            region_access=region_access, cris_model_info=cris_model_info
+        )
+
         return region_access
+
+    def _merge_all_cris_profiles_per_region(
+        self,
+        region_access: Dict[str, ModelAccessInfo],
+        cris_model_info: Optional[CRISModelInfo],
+    ) -> None:
+        """
+        Ensure each region's ModelAccessInfo carries every CRIS profile available from it.
+
+        For each region already in region_access, look up the regional and global CRIS
+        profiles that can route from it and set has_regional_cris / has_global_cris (with
+        their profile ids) accordingly, preserving existing direct access. ModelAccessInfo
+        is frozen, so a replacement instance is built via dataclasses.replace.
+
+        Args:
+            region_access: region -> ModelAccessInfo built by the access-method branches
+                (mutated in place).
+            cris_model_info: CRIS model information, or None.
+        """
+        if not cris_model_info:
+            return
+
+        for region, access_info in list(region_access.items()):
+            regional_id, global_id = self._split_region_profiles(
+                cris_model_info=cris_model_info, region=region
+            )
+
+            # Compute the reconciled flags/ids, keeping any already-present values.
+            has_regional = access_info.has_regional_cris or regional_id is not None
+            has_global = access_info.has_global_cris or global_id is not None
+            regional_profile = access_info.regional_cris_profile_id or regional_id
+            global_profile = access_info.global_cris_profile_id or global_id
+
+            # Nothing to add for this region.
+            if (has_regional == access_info.has_regional_cris) and (
+                has_global == access_info.has_global_cris
+            ):
+                continue
+
+            region_access[region] = dataclasses.replace(
+                access_info,
+                has_regional_cris=has_regional,
+                regional_cris_profile_id=regional_profile,
+                has_global_cris=has_global,
+                global_cris_profile_id=global_profile,
+            )
+            self._logger.debug(
+                f"Reconciled CRIS profiles for region '{region}': "
+                f"regional={regional_profile}, global={global_profile}"
+            )
+
+    def _split_region_profiles(
+        self, cris_model_info: Optional[CRISModelInfo], region: str
+    ) -> Tuple[Optional[str], Optional[str]]:
+        """
+        Split the CRIS profiles routable from a region into (regional_id, global_id).
+
+        A profile id prefixed 'global.' is the global profile; any other is regional
+        (geographic). Returns the first of each kind found, or None when absent.
+
+        Args:
+            cris_model_info: CRIS model information, or None.
+            region: The source region to query.
+
+        Returns:
+            (regional_profile_id, global_profile_id); either element may be None.
+        """
+        if not cris_model_info:
+            return (None, None)
+
+        regional_id: Optional[str] = None
+        global_id: Optional[str] = None
+        for profile_id in cris_model_info.get_profiles_for_source_region(source_region=region):
+            if profile_id.startswith(CRISGlobalConstants.GLOBAL_PROFILE_PREFIX):
+                if global_id is None:
+                    global_id = profile_id
+            elif regional_id is None:
+                regional_id = profile_id
+        return (regional_id, global_id)
 
     def _get_inference_profile_for_region(
         self, cris_model_info: Optional[CRISModelInfo], region: str

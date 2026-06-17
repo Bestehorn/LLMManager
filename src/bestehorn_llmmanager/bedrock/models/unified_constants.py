@@ -25,9 +25,18 @@ class UnifiedJSONFields:
 
     # Region access information
     REGION_ACCESS: Final[str] = "region_access"
-    ACCESS_METHOD: Final[str] = "access_method"
+    ACCESS_METHOD: Final[str] = "access_method"  # legacy (deprecated) single-method field
     REGION: Final[str] = "region"
-    INFERENCE_PROFILE_ID: Final[str] = "inference_profile_id"
+    INFERENCE_PROFILE_ID: Final[str] = "inference_profile_id"  # legacy single-profile field
+
+    # Orthogonal access-method fields (issue #21). These let a region carry any combination
+    # of direct + regional (geographic) CRIS + global CRIS simultaneously, which the legacy
+    # single ACCESS_METHOD/INFERENCE_PROFILE_ID pair could not represent.
+    HAS_DIRECT_ACCESS: Final[str] = "has_direct_access"
+    HAS_REGIONAL_CRIS: Final[str] = "has_regional_cris"
+    HAS_GLOBAL_CRIS: Final[str] = "has_global_cris"
+    REGIONAL_CRIS_PROFILE_ID: Final[str] = "regional_cris_profile_id"
+    GLOBAL_CRIS_PROFILE_ID: Final[str] = "global_cris_profile_id"
 
     # Access method values
     ACCESS_DIRECT: Final[str] = "direct"

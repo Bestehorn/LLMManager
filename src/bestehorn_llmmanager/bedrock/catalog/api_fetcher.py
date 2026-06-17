@@ -334,25 +334,39 @@ class BedrockAPIFetcher:
             # Get Bedrock control plane client for this region
             client = self._auth_manager.get_bedrock_control_client(region=region)
 
-            # Call list-inference-profiles API with SYSTEM_DEFINED filter
-            response = client.list_inference_profiles(
-                **{CatalogAPIParameters.PROFILE_TYPE_EQUALS: CatalogAPIParameters.SYSTEM_DEFINED}
-            )
+            # Call list-inference-profiles with the SYSTEM_DEFINED filter, following
+            # nextToken pagination so no profiles are lost when a region returns more than
+            # one page (issue #21 — later pages can include global.* profiles). The first
+            # call carries only the type filter (backward compatible); subsequent calls add
+            # the prior page's nextToken.
+            all_summaries: List[Dict[str, Any]] = []
+            request_args: Dict[str, Any] = {
+                CatalogAPIParameters.PROFILE_TYPE_EQUALS: CatalogAPIParameters.SYSTEM_DEFINED
+            }
 
-            # Extract inference profile summaries from response
-            profile_summaries = response.get(
-                CatalogAPIResponseFields.INFERENCE_PROFILE_SUMMARIES, []
-            )
+            while True:
+                response = client.list_inference_profiles(**request_args)
 
-            if not isinstance(profile_summaries, list):
-                raise APIFetchError(
-                    message=CatalogErrorMessages.API_FETCH_INVALID_RESPONSE.format(
-                        error="INFERENCE_PROFILE_SUMMARIES is not a list"
-                    ),
-                    region=region,
+                profile_summaries = response.get(
+                    CatalogAPIResponseFields.INFERENCE_PROFILE_SUMMARIES, []
                 )
 
-            return profile_summaries
+                if not isinstance(profile_summaries, list):
+                    raise APIFetchError(
+                        message=CatalogErrorMessages.API_FETCH_INVALID_RESPONSE.format(
+                            error="INFERENCE_PROFILE_SUMMARIES is not a list"
+                        ),
+                        region=region,
+                    )
+
+                all_summaries.extend(profile_summaries)
+
+                next_token = response.get(CatalogAPIResponseFields.NEXT_TOKEN)
+                if not next_token:
+                    break
+                request_args[CatalogAPIParameters.NEXT_TOKEN] = next_token
+
+            return all_summaries
 
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code", "Unknown")
