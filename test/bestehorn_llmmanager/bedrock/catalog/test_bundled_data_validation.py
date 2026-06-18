@@ -47,9 +47,9 @@ class TestBundledDataValidation:
     def test_all_models_are_unified_model_info(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that all models are UnifiedModelInfo instances."""
         for model_name, model_info in bundled_catalog.models.items():
-            assert isinstance(
-                model_info, UnifiedModelInfo
-            ), f"Model {model_name} is not a UnifiedModelInfo instance"
+            assert isinstance(model_info, UnifiedModelInfo), (
+                f"Model {model_name} is not a UnifiedModelInfo instance"
+            )
 
     def test_all_models_have_required_fields(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that all models have required fields populated."""
@@ -57,33 +57,33 @@ class TestBundledDataValidation:
             # Check required fields
             assert model_info.provider, f"Model {model_name} missing provider"
             assert model_info.model_id, f"Model {model_name} missing model_id"
-            assert isinstance(
-                model_info.region_access, dict
-            ), f"Model {model_name} region_access is not a dict"
+            assert isinstance(model_info.region_access, dict), (
+                f"Model {model_name} region_access is not a dict"
+            )
             assert len(model_info.region_access) > 0, f"Model {model_name} has no regions"
 
     def test_all_models_have_valid_modalities(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that all models have valid modality information."""
         for model_name, model_info in bundled_catalog.models.items():
-            assert isinstance(
-                model_info.input_modalities, list
-            ), f"Model {model_name} input_modalities is not a list"
-            assert isinstance(
-                model_info.output_modalities, list
-            ), f"Model {model_name} output_modalities is not a list"
-            assert (
-                len(model_info.input_modalities) > 0
-            ), f"Model {model_name} has no input modalities"
-            assert (
-                len(model_info.output_modalities) > 0
-            ), f"Model {model_name} has no output modalities"
+            assert isinstance(model_info.input_modalities, list), (
+                f"Model {model_name} input_modalities is not a list"
+            )
+            assert isinstance(model_info.output_modalities, list), (
+                f"Model {model_name} output_modalities is not a list"
+            )
+            assert len(model_info.input_modalities) > 0, (
+                f"Model {model_name} has no input modalities"
+            )
+            assert len(model_info.output_modalities) > 0, (
+                f"Model {model_name} has no output modalities"
+            )
 
     def test_all_models_have_valid_streaming_flag(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that all models have a valid streaming_supported flag."""
         for model_name, model_info in bundled_catalog.models.items():
-            assert isinstance(
-                model_info.streaming_supported, bool
-            ), f"Model {model_name} streaming_supported is not a boolean"
+            assert isinstance(model_info.streaming_supported, bool), (
+                f"Model {model_name} streaming_supported is not a boolean"
+            )
 
     def test_catalog_has_multiple_regions(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that catalog includes models from multiple regions."""
@@ -112,9 +112,9 @@ class TestBundledDataValidation:
             assert len(filtered_models) > 0, f"No models found for region {test_region}"
             # Verify all returned models support the region
             for model in filtered_models:
-                assert model.is_available_in_region(
-                    region=test_region
-                ), f"Model {model.model_id} does not support region {test_region}"
+                assert model.is_available_in_region(region=test_region), (
+                    f"Model {model.model_id} does not support region {test_region}"
+                )
 
     def test_catalog_can_filter_by_provider(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that catalog can be filtered by provider."""
@@ -127,9 +127,9 @@ class TestBundledDataValidation:
             assert len(filtered_models) > 0, f"No models found for provider {test_provider}"
             # Verify all returned models are from the provider
             for model in filtered_models:
-                assert (
-                    model.provider == test_provider
-                ), f"Model {model.model_id} is not from provider {test_provider}"
+                assert model.provider == test_provider, (
+                    f"Model {model.model_id} is not from provider {test_provider}"
+                )
 
     def test_catalog_can_filter_by_streaming(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that catalog can be filtered by streaming support."""
@@ -188,9 +188,9 @@ class TestBundledDataValidation:
         model_ids = [model.model_id for model in bundled_catalog.models.values()]
         unique_model_ids = set(model_ids)
 
-        assert len(model_ids) == len(
-            unique_model_ids
-        ), "Duplicate model IDs found in bundled catalog"
+        assert len(model_ids) == len(unique_model_ids), (
+            "Duplicate model IDs found in bundled catalog"
+        )
 
     def test_model_names_match_dict_keys(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that model names in the dict match the model info."""
@@ -221,9 +221,9 @@ class TestBundledDataValidation:
         major_providers = ["anthropic", "amazon", "meta", "cohere", "ai21", "mistral"]
         found_providers = [p for p in major_providers if p in providers_lower]
 
-        assert (
-            len(found_providers) >= 2
-        ), f"Expected at least 2 major providers, found: {found_providers}"
+        assert len(found_providers) >= 2, (
+            f"Expected at least 2 major providers, found: {found_providers}"
+        )
 
     def test_metadata_regions_match_model_regions(self, bundled_catalog: UnifiedCatalog) -> None:
         """Test that metadata regions match regions found in models."""
@@ -232,6 +232,6 @@ class TestBundledDataValidation:
 
         # Metadata regions should be a subset of or equal to model regions
         # (models may be available in regions not queried if they're CRIS-only)
-        assert (
-            len(bundled_catalog.metadata.api_regions_queried) > 0
-        ), "Metadata should list at least one region that was queried"
+        assert len(bundled_catalog.metadata.api_regions_queried) > 0, (
+            "Metadata should list at least one region that was queried"
+        )

@@ -253,7 +253,6 @@ class TestRetryingStreamIterator:
             patch.object(iterator, "_should_retry_with_next_target", return_value=True),
             patch.object(iterator, "_switch_to_next_target", return_value=True),
         ):
-
             # The first call should trigger error handling and recovery
             event = next(iterator)
             assert event == {"messageStart": {"role": "assistant"}}

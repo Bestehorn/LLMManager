@@ -10,8 +10,7 @@ Tests verify that logging occurs at the correct levels for different operations:
 from typing import Any, Dict
 from unittest.mock import patch
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.builders.parameter_builder import ParameterBuilder
 from bestehorn_llmmanager.bedrock.models.model_specific_structures import ModelSpecificConfig
@@ -228,9 +227,9 @@ class TestLoggingLevelCompliance:
             info_calls = [str(call) for call in mock_logger.info.call_args_list]
             info_messages = " ".join(info_calls)
 
-            assert (
-                "extended context" in info_messages.lower()
-            ), "INFO log should mention extended context"
+            assert "extended context" in info_messages.lower(), (
+                "INFO log should mention extended context"
+            )
             assert model_name in info_messages, "INFO log should mention the model name"
 
     @settings(max_examples=100)
@@ -265,9 +264,9 @@ class TestLoggingLevelCompliance:
             )
 
             # Verify WARNING logging was called
-            assert (
-                mock_logger.warning.called
-            ), "WARNING logging should be called for incompatible model"
+            assert mock_logger.warning.called, (
+                "WARNING logging should be called for incompatible model"
+            )
 
             # Verify the log message mentions incompatibility
             warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
@@ -310,7 +309,7 @@ class TestParameterRemovalLogging:
         # Verify that _retry_without_parameters method exists and contains warning logging
         source = inspect.getsource(retry_manager.RetryManager._retry_without_parameters)
 
-        assert (
-            "logger.warning" in source or "_logger.warning" in source
-        ), "RetryManager._retry_without_parameters should contain WARNING level logging"
+        assert "logger.warning" in source or "_logger.warning" in source, (
+            "RetryManager._retry_without_parameters should contain WARNING level logging"
+        )
         assert "param" in source.lower(), "Warning log should mention parameters"

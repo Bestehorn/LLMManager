@@ -243,9 +243,9 @@ class TestBedrockConverseRequest:
                         return all(check_no_bytes(item) for item in obj)
                     return True
 
-                assert check_no_bytes(
-                    sanitized
-                ), f"Sanitized content still contains bytes objects for test '{test_name}'"
+                assert check_no_bytes(sanitized), (
+                    f"Sanitized content still contains bytes objects for test '{test_name}'"
+                )
 
 
 class TestParallelProcessingConfig:

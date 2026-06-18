@@ -284,7 +284,9 @@ class ParallelExecutor:
 
         # Execute in thread pool to avoid blocking the event loop
         response = await loop.run_in_executor(
-            None, execute_single_request_func, converse_args  # Use default thread pool executor
+            None,
+            execute_single_request_func,
+            converse_args,  # Use default thread pool executor
         )
 
         return cast(BedrockResponse, response)

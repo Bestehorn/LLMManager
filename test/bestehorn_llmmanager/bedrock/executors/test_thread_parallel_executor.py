@@ -208,7 +208,8 @@ class TestThreadParallelExecutor:
     def test_execute_requests_parallel_timeout(self):
         """Test parallel execution with timeout."""
         config = ParallelProcessingConfig(
-            max_concurrent_requests=1, request_timeout_seconds=1  # Short timeout
+            max_concurrent_requests=1,
+            request_timeout_seconds=1,  # Short timeout
         )
         executor = ThreadParallelExecutor(config=config)
 

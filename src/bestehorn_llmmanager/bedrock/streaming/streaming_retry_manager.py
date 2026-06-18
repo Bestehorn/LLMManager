@@ -157,7 +157,7 @@ class StreamingRetryManager(RetryManager):
                 last_errors=[error],
                 models_tried=[],
                 regions_tried=[],
-            )
+            ) from error
 
     def _execute_streaming_operation(
         self,

@@ -3,8 +3,7 @@ Tests for model-specific configuration structures.
 """
 
 import pytest
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.models.model_specific_structures import (
     ModelSpecificConfig,

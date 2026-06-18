@@ -593,7 +593,6 @@ class TestLoggingAndMetadata:
             patch.object(detector._logger, "debug") as mock_debug,
             patch.object(detector._logger, "info") as mock_info,
         ):
-
             jpeg_content = b"\xff\xd8\xff\xe0\x00\x10JFIF"
             detector.detect_image_format(content=jpeg_content, filename="test.jpg")
 

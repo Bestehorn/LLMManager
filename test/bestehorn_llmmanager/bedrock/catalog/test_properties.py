@@ -19,8 +19,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.catalog.bedrock_catalog import BedrockModelCatalog
 from bestehorn_llmmanager.bedrock.catalog.cache_manager import CacheManager
@@ -393,9 +392,9 @@ class TestProperty4ModelAvailabilityConsistency:
                         model_name=model_name,
                         region=region,
                     )
-                    assert (
-                        model_access_info is not None
-                    ), f"Model {model_name} is available in {region} but get_model_info returned None"
+                    assert model_access_info is not None, (
+                        f"Model {model_name} is available in {region} but get_model_info returned None"
+                    )
 
 
 # ============================================================================
@@ -461,15 +460,15 @@ class TestProperty5CacheRoundTripConsistency:
             assert loaded_catalog is not None, "Failed to load saved catalog"
 
             # Verify model count
-            assert (
-                loaded_catalog.model_count == fresh_catalog.model_count
-            ), "Model count changed after round-trip"
+            assert loaded_catalog.model_count == fresh_catalog.model_count, (
+                "Model count changed after round-trip"
+            )
 
             # Verify all models are present
             for model_name in fresh_catalog.models.keys():
-                assert (
-                    model_name in loaded_catalog.models
-                ), f"Model {model_name} missing after round-trip"
+                assert model_name in loaded_catalog.models, (
+                    f"Model {model_name} missing after round-trip"
+                )
 
             # Verify model details
             for model_name, original_model in fresh_catalog.models.items():
@@ -477,9 +476,9 @@ class TestProperty5CacheRoundTripConsistency:
 
                 assert loaded_model.model_name == original_model.model_name, "Model name changed"
                 assert loaded_model.provider == original_model.provider, "Provider changed"
-                assert (
-                    loaded_model.streaming_supported == original_model.streaming_supported
-                ), "Streaming support changed"
+                assert loaded_model.streaming_supported == original_model.streaming_supported, (
+                    "Streaming support changed"
+                )
 
                 # Verify regions
                 original_regions = set(original_model.get_supported_regions())
@@ -487,9 +486,9 @@ class TestProperty5CacheRoundTripConsistency:
                 assert original_regions == loaded_regions, "Supported regions changed"
 
             # Verify metadata
-            assert (
-                loaded_catalog.metadata.source == fresh_catalog.metadata.source
-            ), "Metadata source changed"
+            assert loaded_catalog.metadata.source == fresh_catalog.metadata.source, (
+                "Metadata source changed"
+            )
             assert (
                 loaded_catalog.metadata.api_regions_queried
                 == fresh_catalog.metadata.api_regions_queried

@@ -23,7 +23,9 @@ class TestRetryManagerContentFiltering:
     def setup_method(self) -> None:
         """Set up test fixtures."""
         self.retry_config = RetryConfig(
-            max_retries=3, retry_delay=0.1, enable_feature_fallback=True  # Short delay for tests
+            max_retries=3,
+            retry_delay=0.1,
+            enable_feature_fallback=True,  # Short delay for tests
         )
         self.retry_manager = RetryManager(retry_config=self.retry_config)
 

@@ -208,9 +208,9 @@ class TestNormalizeModelName:
         for test_case in test_cases:
             normalized_once = normalize_model_name(name=test_case)
             normalized_twice = normalize_model_name(name=normalized_once)
-            assert (
-                normalized_once == normalized_twice
-            ), f"Not idempotent for '{test_case}': '{normalized_once}' != '{normalized_twice}'"
+            assert normalized_once == normalized_twice, (
+                f"Not idempotent for '{test_case}': '{normalized_once}' != '{normalized_twice}'"
+            )
 
     # ========================================================================
     # Unicode and Special Cases

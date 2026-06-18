@@ -65,13 +65,10 @@ dev = [
     "freezegun>=1.2.2",
     "factory-boy>=3.3.0",
     "ipykernel>=6.25.0",
-    "black>=23.0.0",
-    "isort>=5.12.0",
-    "flake8>=6.0.0",
+    "ruff>=0.9.0",
     "mypy>=1.5.0",
     "pre-commit>=3.3.0",
     "hypothesis>=6.82.0",
-    "bandit>=1.7.5",
     "boto3-stubs[bedrock-runtime]>=1.28.0",
     "PyYAML>=6.0.0",
     "types-PyYAML>=6.0.0",
@@ -160,51 +157,60 @@ filterwarnings = [
 # ModelManager/UnifiedModelManager classes emit a plain DeprecationWarning (still
 # ignored above) since the whole class is deprecated until v4.0.0.
 
-# Code formatting with Black
-[tool.black]
+# ──────────────────────────────────────────────────────────────────────────────
+# Ruff: replaces black (format) + isort (I) + flake8 (E/F/W) + bandit (S).
+# Keep [tool.mypy] (type checking) and [tool.pytest.ini_options] (tests) as-is.
+# ──────────────────────────────────────────────────────────────────────────────
+[tool.ruff]
 line-length = 100
-target-version = ['py310', 'py311', 'py312', 'py313', 'py314']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/|src/bestehorn_llmmanager/_version\.py
-'''
+# Lowest supported interpreter; target-version drives syntax-aware behavior.
+# (Ruff has no per-version list like black; pin to the minimum: py310.)
+target-version = "py310"
+# Generated version file must never be linted or formatted.
+extend-exclude = ["src/bestehorn_llmmanager/_version.py"]
 
-# Import sorting with isort
-[tool.isort]
-profile = "black"
-line_length = 100
-multi_line_output = 3
-include_trailing_comma = true
-force_grid_wrap = 0
-use_parentheses = true
-ensure_newline_before_comments = true
-src_paths = ["src", "test"]
-skip_glob = ["*/_version.py"]
-extend_skip = ["_version.py"]
+[tool.ruff.lint]
+# E,F,W = pycodestyle + Pyflakes (the flake8 core); I = isort; S = flake8-bandit
+# (replaces standalone bandit); B = flake8-bugbear (low-noise correctness upgrade).
+select = ["E", "F", "W", "I", "S", "B"]
+# E501 (line-too-long) is intentionally NOT enforced: the legacy flake8 config
+# ignored it (tox.ini [flake8] ignore = E203, W503, E501) and `ruff format` already
+# wraps everything it safely can. Long URLs/string-literals/comments are tolerated
+# exactly as before. E203/W503 need no entry: W503 has no ruff code and E203 is an
+# off-by-default preview rule (the formatter handles slice spacing).
+ignore = ["E501"]
 
-# Linting with flake8
-[tool.flake8]
-exclude = [
-    ".git",
-    "__pycache__",
-    "build",
-    "dist",
-    ".eggs",
-    "*.egg-info",
-    ".tox",
-    ".venv",
-    "src/bestehorn_llmmanager/_version.py"
+[tool.ruff.lint.per-file-ignores]
+# Tests legitimately use asserts (S101) and fixture "passwords"/tmp paths; pytest
+# patterns (bare assert, assertRaises(Exception), try/except/pass in cleanup) are
+# expected. These mirror what standalone bandit/flake8 never gated on test code.
+"test/**" = [
+    "S101", "S105", "S106", "S108", "S110", "S112", "S311",
+    "B007", "B009", "B011", "B017", "B028", "B904", "B905",
+    "E714",
 ]
+# Helper CLI scripts deliberately shell out (S602: subprocess shell=True in the
+# version/validate helpers) and open trusted GitHub API URLs (S310: urllib in the
+# github wrapper). These are dev-only tooling, not library attack surface, and were
+# only ever advisory under standalone bandit.
+"scripts/**" = ["S310", "S602"]
+# access_method_selector uses `assert X is not None` purely as mypy type-narrowing
+# guards after a validated-state check (e.g. `if access_info.has_regional_cris:`); the
+# invariant is guaranteed by ModelAccessInfo validation, so S101 does not apply here.
+"src/bestehorn_llmmanager/bedrock/retry/access_method_selector.py" = ["S101"]
+
+[tool.ruff.lint.isort]
+# isort black-compatibility is automatic with ruff-format enabled; there is NO
+# profile="black" key. These mirror the prior [tool.isort] intent.
+known-first-party = ["bestehorn_llmmanager"]
+combine-as-imports = true
+
+[tool.ruff.format]
+# Drop-in for black: line-length=100, double quotes, space indent (black defaults).
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
 
 # Type checking with mypy
 [tool.mypy]

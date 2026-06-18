@@ -68,9 +68,9 @@ def _region_access(correlator, regions, profiles):
     )
     # The correlator keys the unified model by a normalized name; this test exercises a
     # single model, so fetch it without assuming the exact key.
-    assert (
-        len(result.unified_models) == 1
-    ), f"expected 1 unified model, got {list(result.unified_models)}"
+    assert len(result.unified_models) == 1, (
+        f"expected 1 unified model, got {list(result.unified_models)}"
+    )
     unified = next(iter(result.unified_models.values()))
     return unified.region_access
 

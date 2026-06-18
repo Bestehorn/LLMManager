@@ -58,7 +58,7 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
    
    This installs the package in editable mode along with all development dependencies including:
    - Testing tools (pytest, pytest-cov, etc.)
-   - Code quality tools (black, isort, flake8, mypy)
+   - Code quality tools (ruff, mypy)
    - Documentation tools (sphinx)
    - Build tools (build, twine)
 
@@ -71,16 +71,14 @@ Enhancement suggestions are tracked as GitHub issues. When creating an enhanceme
 
 ### Code Style
 
-- We use [Black](https://github.com/psf/black) for code formatting (line length: 100)
-- We use [isort](https://pycqa.github.io/isort/) for import sorting
-- We use [flake8](https://flake8.pycqa.org/) for linting
+- We use [ruff format](https://docs.astral.sh/ruff/formatter/) for code formatting (line length: 100)
+- We use [ruff check](https://docs.astral.sh/ruff/linter/) for linting (including import sorting and security rules)
 - We use [mypy](http://mypy-lang.org/) for type checking
 
 Run all formatters and linters:
 ```bash
-black src/ test/
-isort src/ test/
-flake8 src/ test/
+ruff format src/ test/
+ruff check src/ test/
 mypy src/
 ```
 
@@ -371,24 +369,20 @@ def converse(self, messages: List[Dict[str, Any]], **kwargs) -> BedrockResponse:
    Run these checks before committing:
    ```bash
    # Code formatting
-   black src/ test/ --check --extend-exclude="src/bestehorn_llmmanager/_version.py"
-   isort src/ test/ --check-only --skip="src/bestehorn_llmmanager/_version.py"
+   ruff format src/ test/ --check
    
-   # Linting
-   flake8 src/ test/ --exclude="src/bestehorn_llmmanager/_version.py"
+   # Linting (includes import sorting and security rules)
+   ruff check src/ test/
    
    # Type checking
    mypy --exclude="_version" src/
-   
-   # Security scanning
-   bandit -r src/ -x "src/bestehorn_llmmanager/_version.py"
    
    # Tests
    pytest test/ -v
    ```
 
 3. **CI Pipeline Stages**:
-   - Code quality checks (black, isort, flake8, mypy, bandit)
+   - Code quality checks (ruff format, ruff check, mypy)
    - Unit tests with coverage
    - Integration tests (if AWS credentials available)
    - Deprecation warning count check

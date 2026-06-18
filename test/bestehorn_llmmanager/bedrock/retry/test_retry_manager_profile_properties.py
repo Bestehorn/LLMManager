@@ -4,8 +4,7 @@ Property-based tests for RetryManager profile integration.
 Tests universal properties that must hold for profile retry behavior.
 """
 
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 
 from src.bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from src.bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConfig
@@ -168,9 +167,9 @@ class TestProfileRetryIdempotence:
             )
 
             # Property: The single attempt should be marked as successful
-            assert attempts[
-                0
-            ].success, "The attempt should be marked as successful after profile retry"
+            assert attempts[0].success, (
+                "The attempt should be marked as successful after profile retry"
+            )
 
             # Property: Result should be successful
             assert result is not None, "Result should not be None after successful profile retry"
@@ -238,9 +237,9 @@ class TestBackwardCompatibilityPreservation:
             )
 
             # Property: Should always use the same model ID on first attempt
-            assert (
-                len(used_model_ids) > 0
-            ), f"At least one model ID should have been used in iteration {i}"
+            assert len(used_model_ids) > 0, (
+                f"At least one model ID should have been used in iteration {i}"
+            )
             first_model_id = used_model_ids[0]
 
             # Store the first iteration's result for comparison
@@ -302,7 +301,7 @@ class TestBackwardCompatibilityPreservation:
 
         # Direct model ID should not be an ARN (profiles are ARNs)
         assert not first_model_id.startswith("arn:"), (
-            f"First attempt should use direct model ID, not profile ARN. " f"Got: {first_model_id}"
+            f"First attempt should use direct model ID, not profile ARN. Got: {first_model_id}"
         )
 
         # Should match the direct model ID from access info

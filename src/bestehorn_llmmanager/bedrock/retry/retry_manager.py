@@ -99,7 +99,7 @@ class RetryManager:
         # isolated from the global random state.
         self._region_order_call_counter: int = 0
         self._access_pref_call_counter: int = 0
-        self._region_shuffle_rng = random.Random()
+        self._region_shuffle_rng = random.Random()  # noqa: S311 - load-balancing, not crypto
 
     def _order_regions(self, regions: List[str]) -> List[str]:
         """

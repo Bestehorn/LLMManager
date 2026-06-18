@@ -9,15 +9,13 @@ Ported from `.kiro/steering/tech-stack.md` (Kiro `inclusion: always`).
 - pytest + hypothesis for testing
 
 ## Code Quality Tools
-- black (100 char line length — project-specific)
-- isort (black profile)
-- flake8 (E203, W503 ignored)
+- ruff format (100 char line length — project-specific)
+- ruff check (lint: E/F/W + isort I + bandit S + bugbear B)
 - mypy (strict type checking)
-- bandit (security scanning)
 
-> NOTE: this project intentionally uses the **black/isort/flake8** toolchain, not ruff.
-> Line length is **100** (not the 120 default). These are preserved per the migration's
-> merge rule — do not "upgrade" them to ruff/120.
+> NOTE: this project uses the **ruff** toolchain (`ruff format` + `ruff check`) at
+> line-length **100** (not the 120 default), plus mypy and pytest. Keep the line length
+> at 100 — do not "upgrade" it to 120.
 
 ## Preferred Libraries
 - dataclasses for models (not pydantic unless needed)

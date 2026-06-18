@@ -483,7 +483,8 @@ class TestLLMManagerErrorHandling:
         # With fail-fast initialization, this should raise ConfigurationError during initialization
         with pytest.raises(ConfigurationError) as exc_info:
             LLMManager(
-                models=[anthropic_model], regions=["invalid-region-name"]  # Use actual model ID
+                models=[anthropic_model],
+                regions=["invalid-region-name"],  # Use actual model ID
             )
 
         # Verify the error message contains expected information

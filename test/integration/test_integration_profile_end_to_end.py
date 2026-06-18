@@ -97,9 +97,9 @@ class TestProfileEndToEndFlow:
 
             # Verify profile was used
             warnings = response.get_warnings()
-            assert any(
-                "profile" in w.lower() for w in warnings
-            ), "Should have warning about profile usage"
+            assert any("profile" in w.lower() for w in warnings), (
+                "Should have warning about profile usage"
+            )
 
     def test_access_method_learning_across_multiple_requests(self, sample_messages):
         """
@@ -164,9 +164,9 @@ class TestProfileEndToEndFlow:
             # Verify second request used profile directly
             assert len(model_ids_used) == 3, "Should have 3 model IDs recorded"
             # Third call (second request) should use profile ARN
-            assert model_ids_used[2].startswith(
-                "arn:"
-            ), "Second request should use profile ARN directly"
+            assert model_ids_used[2].startswith("arn:"), (
+                "Second request should use profile ARN directly"
+            )
 
     def test_backward_compatibility_with_existing_code(self, sample_messages):
         """
@@ -207,9 +207,9 @@ class TestProfileEndToEndFlow:
 
             # Verify no profile-related warnings
             warnings = response.get_warnings()
-            assert not any(
-                "profile" in w.lower() for w in warnings
-            ), "Should not have profile warnings for direct access"
+            assert not any("profile" in w.lower() for w in warnings), (
+                "Should not have profile warnings for direct access"
+            )
 
             # Verify access method
             assert response.access_method_used == "direct", "Should use direct access"
@@ -518,6 +518,6 @@ class TestResponseMetadata:
                 "regional_cris",
                 "global_cris",
             ], "Should have valid access method"
-            assert isinstance(
-                response.inference_profile_used, bool
-            ), "inference_profile_used should be boolean"
+            assert isinstance(response.inference_profile_used, bool), (
+                "inference_profile_used should be boolean"
+            )

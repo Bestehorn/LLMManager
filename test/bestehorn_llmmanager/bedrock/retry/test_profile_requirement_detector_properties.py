@@ -10,8 +10,7 @@ Properties tested:
 1. Profile Requirement Detection Accuracy
 """
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.retry.profile_requirement_detector import (
     ProfileRequirementDetector,
@@ -202,8 +201,7 @@ class TestProperty1ProfileRequirementDetectionAccuracy:
         result = ProfileRequirementDetector.is_profile_requirement_error(error=error)
 
         assert result is False, (
-            f"Incorrectly detected profile requirement in empty error. "
-            f"Expected False, got {result}"
+            f"Incorrectly detected profile requirement in empty error. Expected False, got {result}"
         )
 
     @given(error_and_model_id=model_id_in_error_strategy())

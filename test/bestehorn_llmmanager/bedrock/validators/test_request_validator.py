@@ -658,7 +658,8 @@ class TestValidateBatchRequests:
                 request_id="valid-req",
             ),
             BedrockConverseRequest(
-                messages=[], request_id="invalid-req"  # Invalid: empty messages
+                messages=[],
+                request_id="invalid-req",  # Invalid: empty messages
             ),
         ]
 

@@ -8,8 +8,7 @@ import threading
 from typing import List
 
 import pytest
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from src.bestehorn_llmmanager.bedrock.retry.access_method_structures import AccessMethodNames
 from src.bestehorn_llmmanager.bedrock.tracking.access_method_tracker import AccessMethodTracker

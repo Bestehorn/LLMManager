@@ -422,7 +422,6 @@ class TestLLMManagerIntegration:
                 return_value=mock_components["retry_manager"],
             ),
         ):
-
             manager = LLMManager(models=["Claude Haiku 4 5 20251001"], regions=["us-east-1"])
 
             messages = [{"role": "user", "content": [{"text": "Hello"}]}]
@@ -462,7 +461,6 @@ class TestLLMManagerIntegration:
                 return_value=mock_components["retry_manager"],
             ),
         ):
-
             manager = LLMManager(models=["Claude Haiku 4 5 20251001"], regions=["us-east-1"])
 
             messages = [{"role": "user", "content": [{"text": "Hello"}]}]

@@ -8,8 +8,7 @@ optimization, and cross-instance persistence.
 import concurrent.futures
 from typing import Any, Dict
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.tracking.parameter_compatibility_tracker import (
     ParameterCompatibilityTracker,
@@ -41,11 +40,15 @@ parameters_strategy = st.dictionaries(
             st.floats(allow_nan=False, allow_infinity=False),
             st.booleans(),
         ),
-        lambda children: st.lists(children, max_size=5)
-        | st.dictionaries(
-            st.text(min_size=1, max_size=20, alphabet=st.characters(blacklist_categories=("Cs",))),
-            children,
-            max_size=5,
+        lambda children: (
+            st.lists(children, max_size=5)
+            | st.dictionaries(
+                st.text(
+                    min_size=1, max_size=20, alphabet=st.characters(blacklist_categories=("Cs",))
+                ),
+                children,
+                max_size=5,
+            )
         ),
         max_leaves=10,
     ),
@@ -261,12 +264,12 @@ class TestParameterCompatibilityTrackerUnitTests:
         expected_successes = sum(1 for _, _, _, success in test_data if success)
         expected_failures = len(test_data) - expected_successes
 
-        assert (
-            stats["compatible_count"] == expected_successes
-        ), "Should have correct number of successes"
-        assert (
-            stats["incompatible_count"] == expected_failures
-        ), "Should have correct number of failures"
+        assert stats["compatible_count"] == expected_successes, (
+            "Should have correct number of successes"
+        )
+        assert stats["incompatible_count"] == expected_failures, (
+            "Should have correct number of failures"
+        )
 
     def test_parameter_hashing_consistency(self) -> None:
         """
@@ -300,9 +303,9 @@ class TestParameterCompatibilityTrackerUnitTests:
 
         assert stats["total_combinations"] == 0, "New tracker should have no combinations"
         assert stats["compatible_count"] == 0, "New tracker should have no compatible combinations"
-        assert (
-            stats["incompatible_count"] == 0
-        ), "New tracker should have no incompatible combinations"
+        assert stats["incompatible_count"] == 0, (
+            "New tracker should have no incompatible combinations"
+        )
         assert len(stats["models_tracked"]) == 0, "New tracker should have no tracked models"
         assert len(stats["regions_tracked"]) == 0, "New tracker should have no tracked regions"
 
@@ -339,6 +342,6 @@ class TestParameterCompatibilityTrackerUnitTests:
         tracker.record_failure(model_id=model_id, region=region, parameters=params, error=error)
 
         # Verify it's tracked
-        assert tracker.is_known_incompatible(
-            model_id=model_id, region=region, parameters=params
-        ), "Nested parameters should be tracked correctly"
+        assert tracker.is_known_incompatible(model_id=model_id, region=region, parameters=params), (
+            "Nested parameters should be tracked correctly"
+        )

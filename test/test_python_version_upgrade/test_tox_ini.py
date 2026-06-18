@@ -31,9 +31,9 @@ def test_tox_envlist_includes_all_supported_versions():
     # Verify all supported Python versions are present
     expected_versions = ["py310", "py311", "py312", "py313", "py314"]
     for version in expected_versions:
-        assert (
-            version in envlist_items
-        ), f"Expected Python version {version} not found in tox envlist"
+        assert version in envlist_items, (
+            f"Expected Python version {version} not found in tox envlist"
+        )
 
 
 def test_tox_envlist_excludes_py38_and_py39():
@@ -56,9 +56,9 @@ def test_tox_envlist_excludes_py38_and_py39():
     # Verify removed Python versions are not present
     removed_versions = ["py38", "py39"]
     for version in removed_versions:
-        assert (
-            version not in envlist_items
-        ), f"Removed Python version {version} should not be in tox envlist"
+        assert version not in envlist_items, (
+            f"Removed Python version {version} should not be in tox envlist"
+        )
 
 
 def test_tox_envlist_includes_other_environments():
@@ -110,6 +110,6 @@ def test_tox_envlist_exact_order():
     # Expected complete envlist
     expected_envlist = ["py310", "py311", "py312", "py313", "py314", "lint", "type", "docs"]
 
-    assert (
-        envlist_items == expected_envlist
-    ), f"tox envlist does not match expected. Got: {envlist_items}, Expected: {expected_envlist}"
+    assert envlist_items == expected_envlist, (
+        f"tox envlist does not match expected. Got: {envlist_items}, Expected: {expected_envlist}"
+    )

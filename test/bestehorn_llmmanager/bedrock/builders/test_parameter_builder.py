@@ -4,8 +4,7 @@ Tests for ParameterBuilder class.
 
 import copy
 
-from hypothesis import HealthCheck, given, settings
-from hypothesis import strategies as st
+from hypothesis import HealthCheck, given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.builders.parameter_builder import (
     ParameterBuilder,

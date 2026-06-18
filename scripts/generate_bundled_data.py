@@ -34,7 +34,7 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-# flake8: noqa: E402 - imports must come after sys.path modification
+# ruff: noqa: E402 - imports must come after sys.path modification
 from bestehorn_llmmanager._version import __version__
 from bestehorn_llmmanager.bedrock.auth.auth_manager import AuthManager
 from bestehorn_llmmanager.bedrock.catalog.api_fetcher import BedrockAPIFetcher

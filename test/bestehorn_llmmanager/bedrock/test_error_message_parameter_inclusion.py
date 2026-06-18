@@ -8,8 +8,7 @@ the final error message includes the names of the incompatible parameters.
 from typing import Any, Dict
 
 import pytest
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import RetryExhaustedError
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo

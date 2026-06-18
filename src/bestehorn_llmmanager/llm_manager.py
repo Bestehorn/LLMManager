@@ -1154,7 +1154,7 @@ class LLMManager:
                     self._auth_manager.get_bedrock_client(region=test_region)
                     target_region = test_region
                     break
-                except Exception:
+                except Exception:  # noqa: S112 - probe each region; failure means try next
                     continue  # Try the next region
             else:
                 # This block executes if the loop completes without a break
@@ -1205,7 +1205,7 @@ class LLMManager:
                     self._auth_manager.get_bedrock_client(region=test_region)
                     target_region = test_region
                     break
-                except Exception:
+                except Exception:  # noqa: S112 - probe each region; failure means try next
                     continue  # Try the next region
             else:
                 # This block executes if the loop completes without a break

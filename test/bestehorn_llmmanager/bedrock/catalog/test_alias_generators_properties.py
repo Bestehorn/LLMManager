@@ -6,8 +6,7 @@ Tests universal properties that should hold for all alias generation strategies.
 
 from typing import Dict, List
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from src.bestehorn_llmmanager.bedrock.catalog.alias_generators import (
     AliasGenerator,

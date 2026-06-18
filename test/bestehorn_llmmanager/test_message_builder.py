@@ -921,9 +921,7 @@ class TestComplexScenarios:
             bytes=image_data, format=ImageFormatEnum.JPEG
         ).add_document_bytes(bytes=doc_data, format=DocumentFormatEnum.PDF).add_video_bytes(
             bytes=video_data, format=VideoFormatEnum.MP4
-        ).add_text(
-            "What insights can you provide?"
-        )
+        ).add_text("What insights can you provide?")
 
         message = builder.build()
 

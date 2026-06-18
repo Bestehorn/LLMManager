@@ -134,22 +134,22 @@ class TestConfigurationFileConsistency:
         expected_versions = set(EXPECTED_PYTHON_VERSIONS)
 
         # Verify all files have the same versions
-        assert (
-            pyproject_versions == expected_versions
-        ), f"pyproject.toml classifiers mismatch. Expected: {expected_versions}, Got: {pyproject_versions}"
+        assert pyproject_versions == expected_versions, (
+            f"pyproject.toml classifiers mismatch. Expected: {expected_versions}, Got: {pyproject_versions}"
+        )
 
-        assert (
-            ci_versions == expected_versions
-        ), f"CI workflow matrix mismatch. Expected: {expected_versions}, Got: {ci_versions}"
+        assert ci_versions == expected_versions, (
+            f"CI workflow matrix mismatch. Expected: {expected_versions}, Got: {ci_versions}"
+        )
 
-        assert (
-            tox_versions == expected_versions
-        ), f"tox.ini envlist mismatch. Expected: {expected_versions}, Got: {tox_versions}"
+        assert tox_versions == expected_versions, (
+            f"tox.ini envlist mismatch. Expected: {expected_versions}, Got: {tox_versions}"
+        )
 
         # Verify all three are synchronized
-        assert (
-            pyproject_versions == ci_versions == tox_versions
-        ), "Configuration files are not synchronized on Python versions"
+        assert pyproject_versions == ci_versions == tox_versions, (
+            "Configuration files are not synchronized on Python versions"
+        )
 
     def test_pyproject_and_ci_workflow_synchronized(
         self, pyproject_config: Dict[str, Any], ci_workflow: Dict[str, Any]
@@ -165,9 +165,9 @@ class TestConfigurationFileConsistency:
 
         ci_versions = set(ci_workflow["jobs"]["test"]["strategy"]["matrix"]["python-version"])
 
-        assert (
-            pyproject_versions == ci_versions
-        ), f"pyproject.toml and ci.yml are not synchronized. pyproject: {pyproject_versions}, ci: {ci_versions}"
+        assert pyproject_versions == ci_versions, (
+            f"pyproject.toml and ci.yml are not synchronized. pyproject: {pyproject_versions}, ci: {ci_versions}"
+        )
 
     def test_pyproject_and_tox_synchronized(
         self, pyproject_config: Dict[str, Any], tox_config: configparser.ConfigParser
@@ -184,9 +184,9 @@ class TestConfigurationFileConsistency:
         tox_envlist = tox_config["tox"]["envlist"]
         tox_versions = extract_python_versions_from_tox_envlist(tox_envlist)
 
-        assert (
-            pyproject_versions == tox_versions
-        ), f"pyproject.toml and tox.ini are not synchronized. pyproject: {pyproject_versions}, tox: {tox_versions}"
+        assert pyproject_versions == tox_versions, (
+            f"pyproject.toml and tox.ini are not synchronized. pyproject: {pyproject_versions}, tox: {tox_versions}"
+        )
 
     def test_ci_workflow_and_tox_synchronized(
         self, ci_workflow: Dict[str, Any], tox_config: configparser.ConfigParser
@@ -201,9 +201,9 @@ class TestConfigurationFileConsistency:
         tox_envlist = tox_config["tox"]["envlist"]
         tox_versions = extract_python_versions_from_tox_envlist(tox_envlist)
 
-        assert (
-            ci_versions == tox_versions
-        ), f"ci.yml and tox.ini are not synchronized. ci: {ci_versions}, tox: {tox_versions}"
+        assert ci_versions == tox_versions, (
+            f"ci.yml and tox.ini are not synchronized. ci: {ci_versions}, tox: {tox_versions}"
+        )
 
 
 class TestMinimumVersionConsistency:
@@ -229,9 +229,9 @@ class TestMinimumVersionConsistency:
         min_version = min(pyproject_versions)
 
         # Verify requires-python specifies the correct minimum
-        assert (
-            f">={min_version}" in requires_python
-        ), f"requires-python should specify >={min_version}, got {requires_python}"
+        assert f">={min_version}" in requires_python, (
+            f"requires-python should specify >={min_version}, got {requires_python}"
+        )
 
     def test_mypy_python_version_matches_minimum_supported(
         self, pyproject_config: Dict[str, Any]
@@ -252,29 +252,34 @@ class TestMinimumVersionConsistency:
         # Get minimum version from classifiers
         min_version = min(pyproject_versions)
 
-        assert (
-            mypy_version == min_version
-        ), f"mypy python_version should be {min_version}, got {mypy_version}"
+        assert mypy_version == min_version, (
+            f"mypy python_version should be {min_version}, got {mypy_version}"
+        )
 
-    def test_black_target_versions_match_supported_versions(
+    def test_ruff_target_version_matches_minimum_supported_version(
         self, pyproject_config: Dict[str, Any]
     ) -> None:
         """
-        Verify black target-version includes all supported Python versions.
+        Verify ruff target-version is the minimum supported Python version.
+
+        Ruff (replacing black) uses a single minimum-interpreter target rather than
+        black's list of every supported version, so this checks the lowest classifier
+        version maps to the ruff target.
 
         **Validates: Requirements 4.4**
         """
-        black_targets = pyproject_config["tool"]["black"]["target-version"]
+        ruff_target = pyproject_config["tool"]["ruff"]["target-version"]
         pyproject_versions = extract_python_versions_from_classifiers(
             pyproject_config["project"]["classifiers"]
         )
 
-        # Convert classifier versions to black format (e.g., "3.10" -> "py310")
-        expected_black_targets = [f"py{v.replace('.', '')}" for v in sorted(pyproject_versions)]
+        # Convert the minimum classifier version to ruff format (e.g., "3.10" -> "py310")
+        min_version = min(sorted(pyproject_versions))
+        expected_ruff_target = f"py{min_version.replace('.', '')}"
 
-        assert (
-            black_targets == expected_black_targets
-        ), f"black target-version should be {expected_black_targets}, got {black_targets}"
+        assert ruff_target == expected_ruff_target, (
+            f"ruff target-version should be {expected_ruff_target}, got {ruff_target}"
+        )
 
 
 class TestRemovedVersionsConsistency:
@@ -296,39 +301,39 @@ class TestRemovedVersionsConsistency:
             pyproject_config["project"]["classifiers"]
         )
         for removed_version in REMOVED_PYTHON_VERSIONS:
-            assert (
-                removed_version not in pyproject_versions
-            ), f"Removed version {removed_version} found in pyproject.toml classifiers"
+            assert removed_version not in pyproject_versions, (
+                f"Removed version {removed_version} found in pyproject.toml classifiers"
+            )
 
         # Check CI workflow matrix
         ci_versions = set(ci_workflow["jobs"]["test"]["strategy"]["matrix"]["python-version"])
         for removed_version in REMOVED_PYTHON_VERSIONS:
-            assert (
-                removed_version not in ci_versions
-            ), f"Removed version {removed_version} found in CI workflow matrix"
+            assert removed_version not in ci_versions, (
+                f"Removed version {removed_version} found in CI workflow matrix"
+            )
 
         # Check tox.ini envlist
         tox_envlist = tox_config["tox"]["envlist"]
         tox_envlist_items = [env.strip() for env in tox_envlist.split(",")]
         for removed_py_version in REMOVED_PY_VERSIONS:
-            assert (
-                removed_py_version not in tox_envlist_items
-            ), f"Removed version {removed_py_version} found in tox.ini envlist"
+            assert removed_py_version not in tox_envlist_items, (
+                f"Removed version {removed_py_version} found in tox.ini envlist"
+            )
 
-    def test_black_target_version_excludes_removed_versions(
+    def test_ruff_target_version_excludes_removed_versions(
         self, pyproject_config: Dict[str, Any]
     ) -> None:
         """
-        Verify black target-version does not include removed Python versions.
+        Verify ruff target-version is not a removed Python version.
 
         **Validates: Requirements 1.1, 4.4**
         """
-        black_targets = pyproject_config["tool"]["black"]["target-version"]
+        ruff_target = pyproject_config["tool"]["ruff"]["target-version"]
 
         for removed_py_version in REMOVED_PY_VERSIONS:
-            assert (
-                removed_py_version not in black_targets
-            ), f"Removed version {removed_py_version} found in black target-version"
+            assert ruff_target != removed_py_version, (
+                f"Removed version {removed_py_version} is set as the ruff target-version"
+            )
 
 
 class TestDocumentationConfigurationConsistency:
@@ -357,9 +362,9 @@ class TestDocumentationConfigurationConsistency:
         with open(readme_path, encoding="utf-8") as f:
             readme_content = f.read()
 
-        assert (
-            expected_doc_reference in readme_content
-        ), f"README.md should reference '{expected_doc_reference}'"
+        assert expected_doc_reference in readme_content, (
+            f"README.md should reference '{expected_doc_reference}'"
+        )
 
         # Check tech-stack.md
         tech_stack_path = (
@@ -368,9 +373,9 @@ class TestDocumentationConfigurationConsistency:
         with open(tech_stack_path, encoding="utf-8") as f:
             tech_stack_content = f.read()
 
-        assert (
-            expected_doc_reference in tech_stack_content
-        ), f"tech-stack.md should reference '{expected_doc_reference}'"
+        assert expected_doc_reference in tech_stack_content, (
+            f"tech-stack.md should reference '{expected_doc_reference}'"
+        )
 
     def test_documentation_does_not_reference_removed_versions(self) -> None:
         """
@@ -400,17 +405,17 @@ class TestDocumentationConfigurationConsistency:
             removed_reference = f"Python {removed_version}+"
             removed_runtime = f"python{removed_version}"
 
-            assert (
-                removed_reference not in readme_content
-            ), f"README.md should not reference '{removed_reference}'"
+            assert removed_reference not in readme_content, (
+                f"README.md should not reference '{removed_reference}'"
+            )
 
-            assert (
-                removed_runtime not in examples_content.lower()
-            ), f"examples/README.md should not reference '{removed_runtime}'"
+            assert removed_runtime not in examples_content.lower(), (
+                f"examples/README.md should not reference '{removed_runtime}'"
+            )
 
-            assert (
-                removed_reference not in tech_stack_content
-            ), f"tech-stack.md should not reference '{removed_reference}'"
+            assert removed_reference not in tech_stack_content, (
+                f"tech-stack.md should not reference '{removed_reference}'"
+            )
 
 
 class TestComprehensiveConsistency:
@@ -434,15 +439,15 @@ class TestComprehensiveConsistency:
         pyproject_versions = extract_python_versions_from_classifiers(
             pyproject_config["project"]["classifiers"]
         )
-        assert (
-            len(pyproject_versions) == 5
-        ), f"pyproject.toml should have 5 Python version classifiers, got {len(pyproject_versions)}"
+        assert len(pyproject_versions) == 5, (
+            f"pyproject.toml should have 5 Python version classifiers, got {len(pyproject_versions)}"
+        )
 
         # Check CI workflow matrix
         ci_versions = ci_workflow["jobs"]["test"]["strategy"]["matrix"]["python-version"]
-        assert (
-            len(ci_versions) == 5
-        ), f"CI workflow should test 5 Python versions, got {len(ci_versions)}"
+        assert len(ci_versions) == 5, (
+            f"CI workflow should test 5 Python versions, got {len(ci_versions)}"
+        )
 
         # Check tox.ini envlist (count only py3XX environments)
         tox_envlist = tox_config["tox"]["envlist"]
@@ -450,11 +455,15 @@ class TestComprehensiveConsistency:
         py3_envs = [env for env in tox_envlist_items if env.startswith("py3")]
         assert len(py3_envs) == 5, f"tox.ini should have 5 py3XX environments, got {len(py3_envs)}"
 
-        # Check black target-version
-        black_targets = pyproject_config["tool"]["black"]["target-version"]
-        assert (
-            len(black_targets) == 5
-        ), f"black target-version should have 5 versions, got {len(black_targets)}"
+        # Check ruff target-version: ruff (replacing black) targets the single minimum
+        # supported interpreter, not a list of all five, so it must equal the lowest
+        # of the five versions (py310).
+        ruff_target = pyproject_config["tool"]["ruff"]["target-version"]
+        min_version = min(sorted(pyproject_versions))
+        assert ruff_target == f"py{min_version.replace('.', '')}", (
+            f"ruff target-version should be the minimum supported version "
+            f"(py{min_version.replace('.', '')}), got {ruff_target}"
+        )
 
     def test_version_range_is_310_to_314(
         self,
@@ -473,19 +482,19 @@ class TestComprehensiveConsistency:
         pyproject_versions = extract_python_versions_from_classifiers(
             pyproject_config["project"]["classifiers"]
         )
-        assert (
-            pyproject_versions == expected_versions
-        ), f"pyproject.toml should specify versions {expected_versions}, got {pyproject_versions}"
+        assert pyproject_versions == expected_versions, (
+            f"pyproject.toml should specify versions {expected_versions}, got {pyproject_versions}"
+        )
 
         # Check CI workflow
         ci_versions = set(ci_workflow["jobs"]["test"]["strategy"]["matrix"]["python-version"])
-        assert (
-            ci_versions == expected_versions
-        ), f"CI workflow should test versions {expected_versions}, got {ci_versions}"
+        assert ci_versions == expected_versions, (
+            f"CI workflow should test versions {expected_versions}, got {ci_versions}"
+        )
 
         # Check tox.ini
         tox_envlist = tox_config["tox"]["envlist"]
         tox_versions = extract_python_versions_from_tox_envlist(tox_envlist)
-        assert (
-            tox_versions == expected_versions
-        ), f"tox.ini should specify versions {expected_versions}, got {tox_versions}"
+        assert tox_versions == expected_versions, (
+            f"tox.ini should specify versions {expected_versions}, got {tox_versions}"
+        )

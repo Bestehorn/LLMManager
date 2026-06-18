@@ -188,7 +188,6 @@ class CachePointManager:
                 and i < len(content_blocks) - 1  # Not the last block
                 and self._is_cacheable_block(block)
             ):
-
                 modified_blocks.append(self._create_cache_point_block())
                 accumulated_tokens = 0  # Reset counter
 
@@ -310,7 +309,7 @@ class CachePointManager:
 
         # Analyze patterns in conversation history
         # This is a placeholder for more sophisticated analysis
-        for i, message in enumerate(conversation_history):
+        for message in conversation_history:
             if ConverseAPIFields.CONTENT in message:
                 content_blocks = message[ConverseAPIFields.CONTENT]
                 for j, block in enumerate(content_blocks):

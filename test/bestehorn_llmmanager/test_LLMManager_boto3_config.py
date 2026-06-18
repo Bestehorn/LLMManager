@@ -10,8 +10,7 @@ Feature: boto3-timeout-config, Property 4: invalid type rejection
 from unittest.mock import Mock, patch
 
 import pytest
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import ConfigurationError
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import Boto3Config

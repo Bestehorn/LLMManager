@@ -6,8 +6,7 @@ access method selection across all inputs.
 """
 
 import pytest
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 
 from src.bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from src.bestehorn_llmmanager.bedrock.retry.access_method_selector import AccessMethodSelector
@@ -127,8 +126,7 @@ class TestConsistentPreferenceOrder:
         elif access_info.has_global_cris:
             # If only global CRIS available, it should be selected
             assert access_method == AccessMethodNames.GLOBAL_CRIS, (
-                f"With only global CRIS available, "
-                f"should select GLOBAL_CRIS. Got: {access_method}"
+                f"With only global CRIS available, should select GLOBAL_CRIS. Got: {access_method}"
             )
             assert model_id == access_info.global_cris_profile_id, (
                 f"With GLOBAL_CRIS selected, should use global_cris_profile_id. "
@@ -337,7 +335,7 @@ class TestLearnedPreferenceApplication:
             assert (
                 not model_id.startswith("arn:") is False
             ), (  # Model ID should be an ARN (profile)
-                f"With learned preference from error, should use profile ARN. " f"Got: {model_id}"
+                f"With learned preference from error, should use profile ARN. Got: {model_id}"
             )
 
         # Property: Should use CRIS (regional preferred over global)
@@ -444,44 +442,44 @@ class TestValidTestDataGeneration:
 
         # Property 2: model_id consistency with has_direct_access
         if access_info.has_direct_access:
-            assert (
-                access_info.model_id is not None
-            ), "model_id must be set when has_direct_access is True"
+            assert access_info.model_id is not None, (
+                "model_id must be set when has_direct_access is True"
+            )
         else:
-            assert (
-                access_info.model_id is None
-            ), "model_id must be None when has_direct_access is False"
+            assert access_info.model_id is None, (
+                "model_id must be None when has_direct_access is False"
+            )
 
         # Property 3: regional_cris_profile_id consistency with has_regional_cris
         if access_info.has_regional_cris:
-            assert (
-                access_info.regional_cris_profile_id is not None
-            ), "regional_cris_profile_id must be set when has_regional_cris is True"
+            assert access_info.regional_cris_profile_id is not None, (
+                "regional_cris_profile_id must be set when has_regional_cris is True"
+            )
         else:
-            assert (
-                access_info.regional_cris_profile_id is None
-            ), "regional_cris_profile_id must be None when has_regional_cris is False"
+            assert access_info.regional_cris_profile_id is None, (
+                "regional_cris_profile_id must be None when has_regional_cris is False"
+            )
 
         # Property 4: global_cris_profile_id consistency with has_global_cris
         if access_info.has_global_cris:
-            assert (
-                access_info.global_cris_profile_id is not None
-            ), "global_cris_profile_id must be set when has_global_cris is True"
+            assert access_info.global_cris_profile_id is not None, (
+                "global_cris_profile_id must be set when has_global_cris is True"
+            )
         else:
-            assert (
-                access_info.global_cris_profile_id is None
-            ), "global_cris_profile_id must be None when has_global_cris is False"
+            assert access_info.global_cris_profile_id is None, (
+                "global_cris_profile_id must be None when has_global_cris is False"
+            )
 
         # Property 5: Profile IDs should be ARNs when present
         if access_info.regional_cris_profile_id:
-            assert access_info.regional_cris_profile_id.startswith(
-                "arn:aws:bedrock:"
-            ), "regional_cris_profile_id should be an ARN"
+            assert access_info.regional_cris_profile_id.startswith("arn:aws:bedrock:"), (
+                "regional_cris_profile_id should be an ARN"
+            )
 
         if access_info.global_cris_profile_id:
-            assert access_info.global_cris_profile_id.startswith(
-                "arn:aws:bedrock:"
-            ), "global_cris_profile_id should be an ARN"
+            assert access_info.global_cris_profile_id.startswith("arn:aws:bedrock:"), (
+                "global_cris_profile_id should be an ARN"
+            )
 
         # Property 6: Region should be valid
         assert access_info.region in [
@@ -529,15 +527,15 @@ class TestValidTestDataGeneration:
                 assert not model_id.startswith("arn:"), "DIRECT model_id should not be an ARN"
 
             elif access_method == AccessMethodNames.REGIONAL_CRIS:
-                assert (
-                    model_id == access_info.regional_cris_profile_id
-                ), "REGIONAL_CRIS method should use regional_cris_profile_id"
+                assert model_id == access_info.regional_cris_profile_id, (
+                    "REGIONAL_CRIS method should use regional_cris_profile_id"
+                )
                 assert model_id.startswith("arn:"), "REGIONAL_CRIS model_id should be an ARN"
 
             elif access_method == AccessMethodNames.GLOBAL_CRIS:
-                assert (
-                    model_id == access_info.global_cris_profile_id
-                ), "GLOBAL_CRIS method should use global_cris_profile_id"
+                assert model_id == access_info.global_cris_profile_id, (
+                    "GLOBAL_CRIS method should use global_cris_profile_id"
+                )
                 assert model_id.startswith("arn:"), "GLOBAL_CRIS model_id should be an ARN"
 
         except Exception as e:
@@ -590,9 +588,9 @@ class TestValidTestDataGeneration:
                 ], f"Fallback access_method should be valid, got: {access_method}"
 
                 # Verify the fallback method is different from the failed method
-                assert (
-                    access_method != primary_method
-                ), f"Fallback should not include the failed method: {primary_method}"
+                assert access_method != primary_method, (
+                    f"Fallback should not include the failed method: {primary_method}"
+                )
 
             # Property: Number of fallbacks should be reasonable
             # Maximum 2 fallbacks (since we have 3 total methods)

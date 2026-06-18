@@ -5,8 +5,7 @@ Feature: inference-profile-support
 Tests universal properties of access method selection logic.
 """
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from src.bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from src.bestehorn_llmmanager.bedrock.retry.access_method_selector import AccessMethodSelector
@@ -143,20 +142,20 @@ class TestAccessMethodSelectorProperties:
             AccessMethodNames.REGIONAL_CRIS,
             AccessMethodNames.GLOBAL_CRIS,
         }
-        assert (
-            access_method_name in valid_methods
-        ), f"Access method '{access_method_name}' not in valid methods: {valid_methods}"
+        assert access_method_name in valid_methods, (
+            f"Access method '{access_method_name}' not in valid methods: {valid_methods}"
+        )
 
         # Verify the selected method is actually available
         if access_method_name == AccessMethodNames.DIRECT:
             assert access_info.has_direct_access, "Selected DIRECT but has_direct_access is False"
-            assert (
-                model_id_used == access_info.model_id
-            ), f"Selected DIRECT but model_id mismatch: {model_id_used} != {access_info.model_id}"
+            assert model_id_used == access_info.model_id, (
+                f"Selected DIRECT but model_id mismatch: {model_id_used} != {access_info.model_id}"
+            )
         elif access_method_name == AccessMethodNames.REGIONAL_CRIS:
-            assert (
-                access_info.has_regional_cris
-            ), "Selected REGIONAL_CRIS but has_regional_cris is False"
+            assert access_info.has_regional_cris, (
+                "Selected REGIONAL_CRIS but has_regional_cris is False"
+            )
             assert model_id_used == access_info.regional_cris_profile_id, (
                 f"Selected REGIONAL_CRIS but profile_id mismatch: "
                 f"{model_id_used} != {access_info.regional_cris_profile_id}"
@@ -194,9 +193,9 @@ class TestAccessMethodSelectorProperties:
         # Verify preference order is respected
         if access_info.has_direct_access:
             # Direct should be selected first if available
-            assert (
-                access_method_name == AccessMethodNames.DIRECT
-            ), f"Expected DIRECT to be selected when available, got {access_method_name}"
+            assert access_method_name == AccessMethodNames.DIRECT, (
+                f"Expected DIRECT to be selected when available, got {access_method_name}"
+            )
         elif access_info.has_regional_cris:
             # Regional CRIS should be selected if direct not available
             assert access_method_name == AccessMethodNames.REGIONAL_CRIS, (
@@ -239,19 +238,19 @@ class TestAccessMethodSelectorProperties:
         # Check if preferred method is available
         if preferred_method == AccessMethodNames.DIRECT and access_info.has_direct_access:
             # Preferred method is available, must be selected
-            assert (
-                access_method_name == AccessMethodNames.DIRECT
-            ), f"Learned preference for DIRECT not applied, got {access_method_name}"
+            assert access_method_name == AccessMethodNames.DIRECT, (
+                f"Learned preference for DIRECT not applied, got {access_method_name}"
+            )
         elif preferred_method == AccessMethodNames.REGIONAL_CRIS and access_info.has_regional_cris:
             # Preferred method is available, must be selected
-            assert (
-                access_method_name == AccessMethodNames.REGIONAL_CRIS
-            ), f"Learned preference for REGIONAL_CRIS not applied, got {access_method_name}"
+            assert access_method_name == AccessMethodNames.REGIONAL_CRIS, (
+                f"Learned preference for REGIONAL_CRIS not applied, got {access_method_name}"
+            )
         elif preferred_method == AccessMethodNames.GLOBAL_CRIS and access_info.has_global_cris:
             # Preferred method is available, must be selected
-            assert (
-                access_method_name == AccessMethodNames.GLOBAL_CRIS
-            ), f"Learned preference for GLOBAL_CRIS not applied, got {access_method_name}"
+            assert access_method_name == AccessMethodNames.GLOBAL_CRIS, (
+                f"Learned preference for GLOBAL_CRIS not applied, got {access_method_name}"
+            )
         # If preferred method not available, fallback to default order (tested elsewhere)
 
     @given(
@@ -287,9 +286,9 @@ class TestAccessMethodSelectorProperties:
         )
 
         # Verify fallback methods is a list
-        assert isinstance(
-            fallback_methods, list
-        ), f"Fallback methods must be list, got {type(fallback_methods)}"
+        assert isinstance(fallback_methods, list), (
+            f"Fallback methods must be list, got {type(fallback_methods)}"
+        )
 
         # Verify each fallback is a tuple of (model_id, access_method_name)
         for fallback in fallback_methods:
@@ -299,18 +298,18 @@ class TestAccessMethodSelectorProperties:
             model_id_used, access_method_name = fallback
 
             # Verify types
-            assert isinstance(
-                model_id_used, str
-            ), f"Model ID must be string, got {type(model_id_used)}"
-            assert isinstance(
-                access_method_name, str
-            ), f"Access method name must be string, got {type(access_method_name)}"
+            assert isinstance(model_id_used, str), (
+                f"Model ID must be string, got {type(model_id_used)}"
+            )
+            assert isinstance(access_method_name, str), (
+                f"Access method name must be string, got {type(access_method_name)}"
+            )
 
         # Verify failed method is not in fallback list
         fallback_method_names = [method_name for _, method_name in fallback_methods]
-        assert (
-            failed_method not in fallback_method_names
-        ), f"Failed method '{failed_method}' should not be in fallback list: {fallback_method_names}"
+        assert failed_method not in fallback_method_names, (
+            f"Failed method '{failed_method}' should not be in fallback list: {fallback_method_names}"
+        )
 
         # Verify fallback methods are ordered by preference
         # Expected order: direct → regional_cris → global_cris (excluding failed method)
@@ -342,24 +341,24 @@ class TestAccessMethodSelectorProperties:
         # Verify each fallback method is actually available
         for model_id_used, access_method_name in fallback_methods:
             if access_method_name == AccessMethodNames.DIRECT:
-                assert (
-                    access_info.has_direct_access
-                ), "Fallback includes DIRECT but has_direct_access is False"
-                assert (
-                    model_id_used == access_info.model_id
-                ), f"Fallback DIRECT model_id mismatch: {model_id_used} != {access_info.model_id}"
+                assert access_info.has_direct_access, (
+                    "Fallback includes DIRECT but has_direct_access is False"
+                )
+                assert model_id_used == access_info.model_id, (
+                    f"Fallback DIRECT model_id mismatch: {model_id_used} != {access_info.model_id}"
+                )
             elif access_method_name == AccessMethodNames.REGIONAL_CRIS:
-                assert (
-                    access_info.has_regional_cris
-                ), "Fallback includes REGIONAL_CRIS but has_regional_cris is False"
+                assert access_info.has_regional_cris, (
+                    "Fallback includes REGIONAL_CRIS but has_regional_cris is False"
+                )
                 assert model_id_used == access_info.regional_cris_profile_id, (
                     f"Fallback REGIONAL_CRIS profile_id mismatch: "
                     f"{model_id_used} != {access_info.regional_cris_profile_id}"
                 )
             elif access_method_name == AccessMethodNames.GLOBAL_CRIS:
-                assert (
-                    access_info.has_global_cris
-                ), "Fallback includes GLOBAL_CRIS but has_global_cris is False"
+                assert access_info.has_global_cris, (
+                    "Fallback includes GLOBAL_CRIS but has_global_cris is False"
+                )
                 assert model_id_used == access_info.global_cris_profile_id, (
                     f"Fallback GLOBAL_CRIS profile_id mismatch: "
                     f"{model_id_used} != {access_info.global_cris_profile_id}"

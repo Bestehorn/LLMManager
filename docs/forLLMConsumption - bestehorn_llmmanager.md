@@ -3105,7 +3105,7 @@ Use the MessageBuilder for all message construction needs to ensure proper forma
 
 This project uses GitHub Actions for continuous integration. The primary CI configuration is located at `.github/workflows/ci.yml` and includes the following jobs:
 
-1. **lint**: Code quality checks (black, isort, flake8, mypy)
+1. **lint**: Code quality checks (ruff format, ruff check, mypy)
 2. **test**: Unit tests with coverage across Python versions 3.8-3.12  
 3. **build**: Package building and validation
 4. **security**: CodeQL security analysis
@@ -3130,19 +3130,19 @@ When the CI workflow is updated, automatically update the Cline Workflow (`.clin
 - **Lint job commands**: Ensure the pre-commit workflow uses identical commands as the CI lint job
 - **Dependencies**: Match the exact versions and installation commands
 - **File exclusions**: Keep the same exclusion patterns for `_version.py` files
-- **Command flags**: Use identical flags and options for all tools (black, isort, flake8, mypy)
+- **Command flags**: Use identical flags and options for all tools (ruff format, ruff check, mypy)
 - **Directory paths**: Maintain consistent `src/` and `test/` directory references
 
 **Example mapping:**
 ```yaml
 # CI workflow lint job step:
-- name: Check code formatting with Black
-  run: black --check --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/
+- name: Check code formatting with Ruff
+  run: ruff format --check src/ test/
 
 # Should map to Cline workflow step:
-### Step 2: Code Formatting Check (Black)
+### Step 2: Code Formatting Check (Ruff format)
 ```bash
-black --check --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/
+ruff format --check src/ test/
 ```
 ```
 
@@ -3162,7 +3162,7 @@ When updating the Cline Workflow after CI changes, verify:
 #### 4. Configuration File Dependencies
 
 The Cline Workflow depends on these configuration files:
-- `pyproject.toml` - Contains tool configurations for black, isort, pytest, mypy
+- `pyproject.toml` - Contains tool configurations for ruff, pytest, mypy
 - `.github/workflows/ci.yml` - Source of truth for CI pipeline commands
 
 When these files change, review and update the Cline Workflow documentation accordingly.

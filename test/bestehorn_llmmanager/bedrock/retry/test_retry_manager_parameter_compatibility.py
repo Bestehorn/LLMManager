@@ -9,8 +9,7 @@ from typing import Any, Dict
 from unittest.mock import patch
 
 from botocore.exceptions import ClientError
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConfig

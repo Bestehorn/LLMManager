@@ -26,38 +26,38 @@ Run step: unit-tests
 ```bash
 # Upgrade pip and install linting tools
 python -m pip install --upgrade pip
-pip install black flake8 isort mypy
+pip install ruff mypy
 
 # Install the package in development mode
 pip install -e .
 ```
 
-### Step 2: Code Formatting Check (Black)
+### Step 2: Code Formatting Check (Ruff format)
 ```bash
-# Check code formatting with Black
-# Excludes automatically generated _version.py file
-black --check --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/
+# Check code formatting with Ruff
+# The auto-generated _version.py file is excluded via [tool.ruff] in pyproject.toml
+ruff format --check src/ test/
 ```
 
-**Expected Result**: All Python files should be properly formatted according to Black's standards.
+**Expected Result**: All Python files should be properly formatted according to Ruff's standards.
 
-### Step 3: Import Sorting Check (isort)
+### Step 3: Import Sorting Check (Ruff check, I rules)
 ```bash
-# Check import sorting with isort
-# Skips automatically generated _version.py file
-isort --check-only --skip="src/bestehorn_llmmanager/_version.py" src/ test/
+# Check import sorting with Ruff's isort (I) rules
+# The auto-generated _version.py file is excluded via [tool.ruff] in pyproject.toml
+ruff check --select I src/ test/
 ```
 
-**Expected Result**: All imports should be sorted according to isort configuration in pyproject.toml.
+**Expected Result**: All imports should be sorted according to the Ruff configuration in pyproject.toml.
 
-### Step 4: Linting Check (flake8)
+### Step 4: Linting Check (Ruff check)
 ```bash
-# Lint with flake8
-# Excludes automatically generated _version.py file
-flake8 --exclude="src/bestehorn_llmmanager/_version.py" src/ test/
+# Lint with Ruff (E/F/W lint, bugbear, and the S security rules that replace bandit)
+# The auto-generated _version.py file is excluded via [tool.ruff] in pyproject.toml
+ruff check src/ test/
 ```
 
-**Expected Result**: Code should pass all flake8 linting rules without errors.
+**Expected Result**: Code should pass all Ruff linting rules without errors.
 
 ### Step 5: Type Checking (mypy)
 ```bash
@@ -102,21 +102,22 @@ twine check dist/*
 
 ### Common Issues and Solutions
 
-#### Black Formatting Issues
+#### Ruff Formatting Issues
 ```bash
 # Fix formatting issues automatically
-black --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/
+ruff format src/ test/
 ```
 
 #### Import Sorting Issues
 ```bash
-# Fix import sorting automatically
-isort --skip="src/bestehorn_llmmanager/_version.py" src/ test/
+# Fix import sorting automatically (Ruff's isort I rules)
+ruff check --select I --fix src/ test/
 ```
 
-#### Flake8 Linting Issues
+#### Ruff Linting Issues
 - Review the specific error messages and fix code style issues
-- Common issues include line length, unused imports, undefined variables
+- Common issues include line length (100), unused imports, undefined variables, and
+  the S security rules (which replace bandit)
 
 #### MyPy Type Issues
 - Add missing type annotations
@@ -126,7 +127,8 @@ isort --skip="src/bestehorn_llmmanager/_version.py" src/ test/
 ## Configuration Files
 
 This workflow uses configuration from:
-- `pyproject.toml` - Black, isort, pytest, and mypy configuration
+- `pyproject.toml` - Ruff (`[tool.ruff]`: format, lint, isort I and security S rules,
+  line length 100, `_version.py` extend-exclude), pytest, and mypy configuration
 - `.github/workflows/ci.yml` - Source of truth for CI pipeline commands
 
 ## Synchronization Note
@@ -139,13 +141,12 @@ If any checks fail, you can use these commands to automatically fix common issue
 
 ```bash
 # Fix all formatting and import issues
-black --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/
-isort --skip="src/bestehorn_llmmanager/_version.py" src/ test/
+ruff format src/ test/
+ruff check --select I --fix src/ test/
 
 # Run a quick check after fixes
-black --check --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/ && \
-isort --check-only --skip="src/bestehorn_llmmanager/_version.py" src/ test/ && \
-flake8 --exclude="src/bestehorn_llmmanager/_version.py" src/ test/ && \
+ruff format --check src/ test/ && \
+ruff check src/ test/ && \
 mypy --exclude="_version" src/
 ```
 

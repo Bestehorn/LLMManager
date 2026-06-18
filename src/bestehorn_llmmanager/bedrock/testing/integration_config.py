@@ -311,8 +311,12 @@ def _has_aws_profile_credentials() -> bool:
     """
     try:
         # Try to use AWS CLI to check if credentials are configured
+        # S607: invoking the AWS CLI from PATH is intended for this dev/test helper.
         result = subprocess.run(
-            ["aws", "sts", "get-caller-identity"], capture_output=True, text=True, timeout=10
+            ["aws", "sts", "get-caller-identity"],  # noqa: S607
+            capture_output=True,
+            text=True,
+            timeout=10,
         )
         return result.returncode == 0
     except (subprocess.TimeoutExpired, FileNotFoundError, Exception):

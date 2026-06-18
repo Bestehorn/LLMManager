@@ -7,8 +7,7 @@ of the legacy name mapping system.
 **Validates: Requirements 1.4, 4.1, 4.2, 4.3**
 """
 
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 
 from bestehorn_llmmanager.bedrock.catalog.legacy_name_mapper import LegacyNameMapper
 from bestehorn_llmmanager.bedrock.catalog.legacy_name_mappings import LEGACY_NAME_MAPPINGS
@@ -44,14 +43,14 @@ class TestLegacyNameMapperProperties:
         catalog_name = legacy_mapper.resolve_legacy_name(user_name=legacy_name)
 
         # Property: Legacy name must resolve to a valid catalog name
-        assert (
-            catalog_name is not None
-        ), f"Legacy name '{legacy_name}' should resolve to a catalog name"
+        assert catalog_name is not None, (
+            f"Legacy name '{legacy_name}' should resolve to a catalog name"
+        )
 
         # Property: Resolved name must be a non-empty string
-        assert isinstance(
-            catalog_name, str
-        ), f"Resolved catalog name must be a string, got {type(catalog_name)}"
+        assert isinstance(catalog_name, str), (
+            f"Resolved catalog name must be a string, got {type(catalog_name)}"
+        )
         assert len(catalog_name) > 0, "Resolved catalog name must not be empty"
 
         # Property: The mapping must be consistent (same input → same output)
@@ -84,9 +83,9 @@ class TestLegacyNameMapperProperties:
         legacy_mapper = LegacyNameMapper()
 
         # Property: Legacy name must be recognized
-        assert legacy_mapper.is_legacy_name(
-            user_name=legacy_name
-        ), f"Legacy name '{legacy_name}' should be recognized as a legacy name"
+        assert legacy_mapper.is_legacy_name(user_name=legacy_name), (
+            f"Legacy name '{legacy_name}' should be recognized as a legacy name"
+        )
 
     @given(
         legacy_name=(
@@ -159,9 +158,9 @@ class TestLegacyNameMapperProperties:
         legacy_mapper = LegacyNameMapper()
 
         # Property: Active legacy names should not be deprecated
-        assert not legacy_mapper.is_deprecated(
-            user_name=legacy_name
-        ), f"Active legacy name '{legacy_name}' should not be marked as deprecated"
+        assert not legacy_mapper.is_deprecated(user_name=legacy_name), (
+            f"Active legacy name '{legacy_name}' should not be marked as deprecated"
+        )
 
         # Property: Active legacy names should not have deprecation info
         deprecation_info = legacy_mapper.get_deprecation_info(user_name=legacy_name)

@@ -26,9 +26,8 @@ VENV for all steps. Read complete output (no tail/head/Select-Object).
      for property-based testing where applicable.
 5. **Verify**: re-run with `--cov-fail-under=80` until coverage increases and all new tests pass.
 6. **Quality-check the new tests**:
-   `black test/ --check --extend-exclude="src/bestehorn_llmmanager/_version.py"`,
-   `isort test/ --check-only --skip="src/bestehorn_llmmanager/_version.py"`,
-   `flake8 test/ --max-line-length=100 --extend-ignore=E203,W503`.
+   `ruff check test/`,
+   `ruff format --check test/`.
 7. **Report**: initial vs final coverage, tests added (by category: unit / integration /
    property-based / edge), files created/modified, functions now covered, and any remaining
    gaps with justification.
