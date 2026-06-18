@@ -1,0 +1,4 @@
+# Shared git hooks must keep LF line endings on every platform — a CRLF
+# shell script fails to execute on Linux/macOS. Force LF regardless of
+# the developer's core.autocrlf setting.
+.githooks/** text eol=lf

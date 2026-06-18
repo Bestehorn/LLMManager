@@ -55,6 +55,11 @@
             "type": "command",
             "command": "bash",
             "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/spec-stop-gate.sh"]
+          },
+          {
+            "type": "command",
+            "command": "bash",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/issue-loop-gate.sh"]
           }
         ]
       }

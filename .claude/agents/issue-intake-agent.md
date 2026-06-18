@@ -503,6 +503,19 @@ server reference.>
 
 **Rationale:** <evidence-based rationale for the indicator>
 
+## Work Items
+
+<A structured checklist of the concrete steps a later session would take to resolve
+this issue, when the work naturally decomposes into more than one step. Use the host's
+task-list syntax so it renders as a trackable checklist (GitLab/GitHub `- [ ]` items,
+which surface as "0 of N completed"). These describe WHAT must be done (investigation,
+the change areas, tests to add, verification), NOT a prescribed implementation. A later
+session ticks these off and adds items as it works (per the issue-tracking rule). Omit
+this section only for a genuinely single-step issue.>
+
+- [ ] <work item 1>
+- [ ] <work item 2>
+
 ## Open Questions
 
 <Explicit list of items that remain undefined. Each item is framed as a
@@ -542,11 +555,20 @@ Draft validation checklist (run before filing):
     useful source and this is noted in the issue.
   - The Suggested Scope indicator is present with rationale.
   - Open Questions are phrased as questions, not as claims.
+  - A Work Items checklist is present (host task-list syntax) when the
+    work decomposes into more than one step; omitted only for a truly
+    single-step issue.
   - No content inside the drafted body describes planned fixes.
     Implementation approaches belong in a later spec session.
 
 If the checklist surfaces a defect, revise the draft in place and
 re-run the checklist.
+
+Per the **issue-tracking** rule (`.claude/rules/issue-tracking.md`), when filing also
+set the metadata the host supports: link the parent/epic if this observation belongs to
+one, and apply the project's conventional labels. (Assignee, start date, and
+time-tracking are set later by whoever WORKS the issue, not at intake.) If the host
+lacks a field, skip it cleanly.
 
 # Filing Phase
 

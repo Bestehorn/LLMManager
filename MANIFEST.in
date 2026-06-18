@@ -45,6 +45,7 @@ recursive-exclude .kiro *
 recursive-exclude .claude *
 recursive-exclude credentials *
 recursive-exclude .vscode *
+recursive-exclude .githooks *
 
 # Exclude development / assistant-tooling files (kept in repo, not shipped in the package)
 exclude .gitignore
@@ -62,6 +63,7 @@ exclude CLAUDE.md
 exclude .mcp.json
 exclude .pre-commit-config.yaml
 exclude scripts/setup-hooks.sh
+exclude .gitattributes
 
 # Exclude any build artifacts
 recursive-exclude build *

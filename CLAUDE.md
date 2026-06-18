@@ -60,6 +60,17 @@ non-negotiable essentials:
 ## Read complete command output; never truncate with tail/head/Select-Object.
   See `.claude/rules/no-output-shortening.md`.
 
-## Decision log
+## Shared conventions (all agents and the main session)
 - All agents follow `.claude/rules/agent-state-convention.md` for state directories and
   the append-only `DL-NNN` decision log.
+- All agents and the main session follow `.claude/rules/no-ai-attribution.md`: names
+  (branches, worktrees, tags) and messages (commits, PRs/MRs, issues, comments) describe
+  the work only — never include "claude"/AI/assistant/bot, and never add a
+  `Co-Authored-By` or `🤖 Generated with Claude Code` trailer.
+- All agents follow `.claude/rules/keep-git-clean.md`: commit source/config/docs/tests,
+  never auto-generated or temp files, leave no stale worktrees/branches, and keep the
+  working tree clean at every phase boundary and at issue closure.
+- All agents that touch the issue tracker follow `.claude/rules/issue-tracking.md`: use
+  and update issue checklists, set metadata (assignee, start/end date, time-spent, parent
+  link) best-effort per host, keep the issue updated live so any agent can resume, and
+  record every user question and its answer on the issue.

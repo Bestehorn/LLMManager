@@ -156,6 +156,10 @@ bandit_results.json
 .claude/agent-state/
 .claude/worktrees/
 
+# Sensitive config (templates are checked in; the real files are not)
+config/aws_accounts.json
+config/gitlab.json
+
 # Git host credentials (allow templates and README)
 credentials/*
 !credentials/*.template
