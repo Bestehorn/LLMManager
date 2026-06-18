@@ -10,11 +10,9 @@ Before marking any activity as complete:
 
 2. **Run CI Checks Locally** (all inside the venv):
 ```bash
-venv\Scripts\activate & black src/ test/ scripts/ --check --extend-exclude="src/bestehorn_llmmanager/_version.py"
-venv\Scripts\activate & isort src/ test/ scripts/ --check-only --skip="src/bestehorn_llmmanager/_version.py"
-venv\Scripts\activate & flake8 src/ test/ scripts/ --max-line-length=100 --extend-ignore=E203,W503 --exclude="src/bestehorn_llmmanager/_version.py"
+venv\Scripts\activate & ruff format src/ test/ scripts/ --check
+venv\Scripts\activate & ruff check src/ test/ scripts/
 venv\Scripts\activate & mypy --exclude="_version" src/
-venv\Scripts\activate & bandit -r src/ scripts/ -x "src/bestehorn_llmmanager/_version.py"
 ```
 
 Fix all issues before continuing.

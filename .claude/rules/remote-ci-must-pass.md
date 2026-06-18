@@ -9,7 +9,7 @@ Actions workflow (`.github/workflows/ci.yml`) to a terminal state and make it gr
   failure locally in the venv, fix the root cause, push again, and re-monitor.
 - Never abandon a red pipeline, never `--no-verify`, never disable or delete a CI check
   to make it green.
-- The CI workflow runs: lint (black --check, isort --check-only, flake8, mypy), the test
+- The CI workflow runs: lint (ruff format --check, ruff check, mypy), the test
   matrix (pytest with coverage across Python 3.10–3.14), build (check-manifest, twine),
   and CodeQL security analysis.
 

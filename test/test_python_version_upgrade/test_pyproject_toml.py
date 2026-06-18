@@ -4,7 +4,7 @@ Unit tests for pyproject.toml Python version configuration.
 This module validates that pyproject.toml has been correctly updated to:
 - Support Python 3.10-3.14
 - Remove Python 3.9 support
-- Update tool configurations (black, mypy) for Python 3.10+
+- Update tool configurations (ruff, mypy) for Python 3.10+
 
 **Validates: Requirements 1.1, 1.2, 2.1, 2.2, 3.1, 3.2, 4.1, 4.2, 4.3, 4.4, 4.5**
 """
@@ -43,9 +43,9 @@ class TestPyprojectRequiresPython:
         **Validates: Requirements 1.2, 4.1**
         """
         requires_python = pyproject_config["project"]["requires-python"]
-        assert (
-            requires_python == ">=3.10,<4.0"
-        ), f"Expected requires-python to be '>=3.10,<4.0', got '{requires_python}'"
+        assert requires_python == ">=3.10,<4.0", (
+            f"Expected requires-python to be '>=3.10,<4.0', got '{requires_python}'"
+        )
 
     def test_requires_python_excludes_python_39(self, pyproject_config: Dict[str, Any]) -> None:
         """
@@ -55,9 +55,9 @@ class TestPyprojectRequiresPython:
         """
         requires_python = pyproject_config["project"]["requires-python"]
         # The minimum version should be 3.10, which excludes 3.9
-        assert (
-            ">=3.10" in requires_python
-        ), f"requires-python should specify >=3.10 to exclude Python 3.9, got '{requires_python}'"
+        assert ">=3.10" in requires_python, (
+            f"requires-python should specify >=3.10 to exclude Python 3.9, got '{requires_python}'"
+        )
 
 
 class TestPyprojectClassifiers:
@@ -71,9 +71,9 @@ class TestPyprojectClassifiers:
         """
         classifiers = pyproject_config["project"]["classifiers"]
         python_39_classifier = "Programming Language :: Python :: 3.9"
-        assert (
-            python_39_classifier not in classifiers
-        ), "Python 3.9 classifier should be removed, but found in classifiers"
+        assert python_39_classifier not in classifiers, (
+            "Python 3.9 classifier should be removed, but found in classifiers"
+        )
 
     def test_python_310_classifier_present(self, pyproject_config: Dict[str, Any]) -> None:
         """
@@ -83,9 +83,9 @@ class TestPyprojectClassifiers:
         """
         classifiers = pyproject_config["project"]["classifiers"]
         python_310_classifier = "Programming Language :: Python :: 3.10"
-        assert (
-            python_310_classifier in classifiers
-        ), "Python 3.10 classifier should be present in classifiers"
+        assert python_310_classifier in classifiers, (
+            "Python 3.10 classifier should be present in classifiers"
+        )
 
     def test_python_311_classifier_present(self, pyproject_config: Dict[str, Any]) -> None:
         """
@@ -95,9 +95,9 @@ class TestPyprojectClassifiers:
         """
         classifiers = pyproject_config["project"]["classifiers"]
         python_311_classifier = "Programming Language :: Python :: 3.11"
-        assert (
-            python_311_classifier in classifiers
-        ), "Python 3.11 classifier should be present in classifiers"
+        assert python_311_classifier in classifiers, (
+            "Python 3.11 classifier should be present in classifiers"
+        )
 
     def test_python_312_classifier_present(self, pyproject_config: Dict[str, Any]) -> None:
         """
@@ -107,9 +107,9 @@ class TestPyprojectClassifiers:
         """
         classifiers = pyproject_config["project"]["classifiers"]
         python_312_classifier = "Programming Language :: Python :: 3.12"
-        assert (
-            python_312_classifier in classifiers
-        ), "Python 3.12 classifier should be present in classifiers"
+        assert python_312_classifier in classifiers, (
+            "Python 3.12 classifier should be present in classifiers"
+        )
 
     def test_python_313_classifier_present(self, pyproject_config: Dict[str, Any]) -> None:
         """
@@ -119,9 +119,9 @@ class TestPyprojectClassifiers:
         """
         classifiers = pyproject_config["project"]["classifiers"]
         python_313_classifier = "Programming Language :: Python :: 3.13"
-        assert (
-            python_313_classifier in classifiers
-        ), "Python 3.13 classifier should be present in classifiers"
+        assert python_313_classifier in classifiers, (
+            "Python 3.13 classifier should be present in classifiers"
+        )
 
     def test_python_314_classifier_present(self, pyproject_config: Dict[str, Any]) -> None:
         """
@@ -131,9 +131,9 @@ class TestPyprojectClassifiers:
         """
         classifiers = pyproject_config["project"]["classifiers"]
         python_314_classifier = "Programming Language :: Python :: 3.14"
-        assert (
-            python_314_classifier in classifiers
-        ), "Python 3.14 classifier should be present in classifiers"
+        assert python_314_classifier in classifiers, (
+            "Python 3.14 classifier should be present in classifiers"
+        )
 
     def test_all_supported_versions_present(self, pyproject_config: Dict[str, Any]) -> None:
         """
@@ -146,50 +146,49 @@ class TestPyprojectClassifiers:
 
         for version in expected_versions:
             classifier = f"Programming Language :: Python :: {version}"
-            assert (
-                classifier in classifiers
-            ), f"Python {version} classifier should be present in classifiers"
+            assert classifier in classifiers, (
+                f"Python {version} classifier should be present in classifiers"
+            )
 
 
-class TestBlackConfiguration:
-    """Test suite for Black tool configuration validation."""
+class TestRuffConfiguration:
+    """Test suite for Ruff tool configuration validation.
 
-    def test_black_target_version_includes_all_versions(
-        self, pyproject_config: Dict[str, Any]
-    ) -> None:
+    Ruff (which replaced black/isort/flake8) expresses ``target-version`` as a single
+    minimum-interpreter string (e.g. ``"py310"``), not black's list of every supported
+    version. These tests validate that the minimum is the lowest supported version.
+    """
+
+    def test_ruff_target_version_is_minimum_py310(self, pyproject_config: Dict[str, Any]) -> None:
         """
-        Verify black target-version includes all five Python versions.
+        Verify ruff target-version is the minimum supported version (py310).
 
         **Validates: Requirements 4.4**
         """
-        target_versions = pyproject_config["tool"]["black"]["target-version"]
-        expected_versions = ["py310", "py311", "py312", "py313", "py314"]
+        target_version = pyproject_config["tool"]["ruff"]["target-version"]
+        assert target_version == "py310", (
+            f"Expected ruff target-version to be 'py310', got {target_version!r}"
+        )
 
-        assert (
-            target_versions == expected_versions
-        ), f"Expected black target-version to be {expected_versions}, got {target_versions}"
-
-    def test_black_target_version_excludes_py39(self, pyproject_config: Dict[str, Any]) -> None:
+    def test_ruff_target_version_excludes_py39(self, pyproject_config: Dict[str, Any]) -> None:
         """
-        Verify black target-version does not include py39.
+        Verify ruff target-version is not the removed py39.
 
         **Validates: Requirements 1.1, 4.4**
         """
-        target_versions = pyproject_config["tool"]["black"]["target-version"]
-        assert (
-            "py39" not in target_versions
-        ), f"py39 should not be in black target-version, got {target_versions}"
+        target_version = pyproject_config["tool"]["ruff"]["target-version"]
+        assert target_version != "py39", (
+            f"py39 should not be the ruff target-version, got {target_version!r}"
+        )
 
-    def test_black_target_version_starts_with_py310(self, pyproject_config: Dict[str, Any]) -> None:
+    def test_ruff_line_length_is_100(self, pyproject_config: Dict[str, Any]) -> None:
         """
-        Verify black target-version starts with py310.
+        Verify ruff line-length is the project-specific 100 (not the 88/120 defaults).
 
         **Validates: Requirements 4.4**
         """
-        target_versions = pyproject_config["tool"]["black"]["target-version"]
-        assert (
-            target_versions[0] == "py310"
-        ), f"First black target-version should be py310, got {target_versions[0]}"
+        line_length = pyproject_config["tool"]["ruff"]["line-length"]
+        assert line_length == 100, f"ruff line-length should be 100, got {line_length}"
 
 
 class TestMypyConfiguration:
@@ -202,9 +201,9 @@ class TestMypyConfiguration:
         **Validates: Requirements 4.5**
         """
         python_version = pyproject_config["tool"]["mypy"]["python_version"]
-        assert (
-            python_version == "3.10"
-        ), f"Expected mypy python_version to be '3.10', got '{python_version}'"
+        assert python_version == "3.10", (
+            f"Expected mypy python_version to be '3.10', got '{python_version}'"
+        )
 
     def test_mypy_python_version_not_39(self, pyproject_config: Dict[str, Any]) -> None:
         """
@@ -213,6 +212,6 @@ class TestMypyConfiguration:
         **Validates: Requirements 1.1, 4.5**
         """
         python_version = pyproject_config["tool"]["mypy"]["python_version"]
-        assert (
-            python_version != "3.9"
-        ), f"mypy python_version should not be '3.9', got '{python_version}'"
+        assert python_version != "3.9", (
+            f"mypy python_version should not be '3.9', got '{python_version}'"
+        )

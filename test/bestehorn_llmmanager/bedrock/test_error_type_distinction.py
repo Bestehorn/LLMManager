@@ -1,4 +1,4 @@
-﻿"""
+"""
 Property-based tests for error type distinction in logs.
 
 Feature: additional-model-request-fields
@@ -6,8 +6,7 @@ Property 17: Error Type Distinction in Logs
 Validates: Requirements 9.5
 """
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RetryConfig
 from bestehorn_llmmanager.bedrock.retry.retry_manager import RetryManager
@@ -54,12 +53,12 @@ class TestErrorTypeDistinction:
         )
 
         # Verify distinct classification
-        assert (
-            is_param_error_1 is True and is_param_error_2 is False
-        ), "Parameter and content errors not distinguished"
-        assert (
-            should_fallback_1 is False and should_fallback_2 is True
-        ), "Parameter and content errors produce same fallback behavior"
+        assert is_param_error_1 is True and is_param_error_2 is False, (
+            "Parameter and content errors not distinguished"
+        )
+        assert should_fallback_1 is False and should_fallback_2 is True, (
+            "Parameter and content errors produce same fallback behavior"
+        )
         assert feature_2 is not None, "Content error should identify feature to disable"
 
     def test_parameter_error_includes_parameter_keyword_in_classification(self):
@@ -118,9 +117,9 @@ class TestErrorTypeDistinction:
 
         # Parameter errors should be classified as parameter errors, not feature fallback
         if is_param_1:
-            assert (
-                not should_fallback_1
-            ), f"Parameter error '{param_error_msg}' incorrectly triggers feature fallback"
+            assert not should_fallback_1, (
+                f"Parameter error '{param_error_msg}' incorrectly triggers feature fallback"
+            )
 
         # Test content error
         content_error = Exception(content_error_msg)
@@ -129,6 +128,6 @@ class TestErrorTypeDistinction:
 
         # Content errors should be classified as feature fallback, not parameter errors
         if should_fallback_2:
-            assert (
-                not is_param_2
-            ), f"Content error '{content_error_msg}' incorrectly classified as parameter error"
+            assert not is_param_2, (
+                f"Content error '{content_error_msg}' incorrectly classified as parameter error"
+            )

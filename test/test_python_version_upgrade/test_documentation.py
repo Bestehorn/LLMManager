@@ -42,14 +42,14 @@ class TestREADMEDocumentation:
             content = f.read()
 
         # Check that "Python 3.9+" is not present (indicating support)
-        assert (
-            "Python 3.9+" not in content
-        ), "README.md should not reference 'Python 3.9+' as supported"
+        assert "Python 3.9+" not in content, (
+            "README.md should not reference 'Python 3.9+' as supported"
+        )
 
         # Also check for other patterns that might indicate 3.9 support
-        assert (
-            "python 3.9+" not in content.lower()
-        ), "README.md should not reference 'python 3.9+' (case-insensitive)"
+        assert "python 3.9+" not in content.lower(), (
+            "README.md should not reference 'python 3.9+' (case-insensitive)"
+        )
 
     def test_readme_prerequisites_section_has_correct_version(self) -> None:
         """
@@ -76,9 +76,9 @@ class TestREADMEDocumentation:
                 found_python_version = True
                 break
 
-        assert (
-            found_python_version
-        ), "Prerequisites section should explicitly mention 'Python 3.10+'"
+        assert found_python_version, (
+            "Prerequisites section should explicitly mention 'Python 3.10+'"
+        )
 
 
 class TestExamplesDocumentation:
@@ -98,14 +98,14 @@ class TestExamplesDocumentation:
             content = f.read()
 
         # Check for python3.9 runtime references
-        assert (
-            "python3.9" not in content.lower()
-        ), "examples/README.md should not reference 'python3.9' runtime"
+        assert "python3.9" not in content.lower(), (
+            "examples/README.md should not reference 'python3.9' runtime"
+        )
 
         # Check for Python 3.9 version references
-        assert (
-            "python 3.9" not in content.lower()
-        ), "examples/README.md should not reference 'Python 3.9'"
+        assert "python 3.9" not in content.lower(), (
+            "examples/README.md should not reference 'Python 3.9'"
+        )
 
     def test_examples_readme_uses_python310_or_later_runtime(self) -> None:
         """
@@ -126,9 +126,9 @@ class TestExamplesDocumentation:
             or "python3.14" in content.lower()
         )
 
-        assert (
-            has_valid_runtime
-        ), "examples/README.md should reference Python 3.10+ runtime (e.g., python3.10)"
+        assert has_valid_runtime, (
+            "examples/README.md should reference Python 3.10+ runtime (e.g., python3.10)"
+        )
 
 
 class TestTechStackDocumentation:
@@ -147,9 +147,9 @@ class TestTechStackDocumentation:
             content = f.read()
 
         # Check for "Python 3.10+" in the document
-        assert (
-            "Python 3.10+" in content
-        ), "tech-stack.md should specify 'Python 3.10+' in Core Technologies"
+        assert "Python 3.10+" in content, (
+            "tech-stack.md should specify 'Python 3.10+' in Core Technologies"
+        )
 
     def test_tech_stack_does_not_reference_python_39(self) -> None:
         """
@@ -164,13 +164,13 @@ class TestTechStackDocumentation:
             content = f.read()
 
         # Check that Python 3.9 is not mentioned as a supported version
-        assert (
-            "Python 3.9+" not in content
-        ), "tech-stack.md should not reference 'Python 3.9+' as supported"
+        assert "Python 3.9+" not in content, (
+            "tech-stack.md should not reference 'Python 3.9+' as supported"
+        )
 
-        assert (
-            "python 3.9+" not in content.lower()
-        ), "tech-stack.md should not reference 'python 3.9+' (case-insensitive)"
+        assert "python 3.9+" not in content.lower(), (
+            "tech-stack.md should not reference 'python 3.9+' (case-insensitive)"
+        )
 
     def test_tech_stack_core_technologies_section_has_correct_version(self) -> None:
         """
@@ -199,9 +199,9 @@ class TestTechStackDocumentation:
                 found_python_version = True
                 break
 
-        assert (
-            found_python_version
-        ), "Core Technologies section should explicitly mention 'Python 3.10+'"
+        assert found_python_version, (
+            "Core Technologies section should explicitly mention 'Python 3.10+'"
+        )
 
 
 class TestDocumentationConsistency:
@@ -240,10 +240,10 @@ class TestDocumentationConsistency:
         # None should reference Python 3.9+ as supported
         assert "Python 3.9+" not in readme_content, "README.md should not reference 'Python 3.9+'"
 
-        assert (
-            "python3.9" not in examples_content.lower()
-        ), "examples/README.md should not reference 'python3.9'"
+        assert "python3.9" not in examples_content.lower(), (
+            "examples/README.md should not reference 'python3.9'"
+        )
 
-        assert (
-            "Python 3.9+" not in tech_stack_content
-        ), "tech-stack.md should not reference 'Python 3.9+'"
+        assert "Python 3.9+" not in tech_stack_content, (
+            "tech-stack.md should not reference 'Python 3.9+'"
+        )

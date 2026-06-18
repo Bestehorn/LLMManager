@@ -219,23 +219,25 @@ pytest test/ -v --cov=bestehorn_llmmanager --cov-report=term-missing --cov-fail-
 **Step 4.2.1: Install Dependencies**
 ```bash
 python -m pip install --upgrade pip
-pip install black flake8 isort mypy
+pip install ruff mypy
 pip install -e .
 ```
 
-**Step 4.2.2: Code Formatting Check**
+**Step 4.2.2: Code Formatting Check (Ruff format)**
 ```bash
-black --check --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/
+# The auto-generated _version.py file is excluded via [tool.ruff] in pyproject.toml
+ruff format --check src/ test/
 ```
 
-**Step 4.2.3: Import Sorting Check**
+**Step 4.2.3: Import Sorting Check (Ruff check, I rules)**
 ```bash
-isort --check-only --skip="src/bestehorn_llmmanager/_version.py" src/ test/
+ruff check --select I src/ test/
 ```
 
-**Step 4.2.4: Linting Check**
+**Step 4.2.4: Linting Check (Ruff check)**
 ```bash
-flake8 --exclude="src/bestehorn_llmmanager/_version.py" src/ test/
+# Ruff's E/F/W lint, bugbear, and the S security rules that replace bandit
+ruff check src/ test/
 ```
 
 **Step 4.2.5: Type Checking**
@@ -249,18 +251,18 @@ mypy --exclude="_version" src/
 
 1. **Formatting Issues**:
    ```bash
-   black --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/
+   ruff format src/ test/
    ```
 
 2. **Import Sorting Issues**:
    ```bash
-   isort --skip="src/bestehorn_llmmanager/_version.py" src/ test/
+   ruff check --select I --fix src/ test/
    ```
 
 3. **Linting Issues**:
    - Fix style violations, unused imports, undefined variables
-   - Ensure line length compliance
-   - Address code complexity issues
+   - Ensure line length compliance (100)
+   - Address code complexity issues and S security-rule findings (which replace bandit)
 
 4. **Type Checking Issues**:
    - Add missing type annotations
@@ -270,16 +272,14 @@ mypy --exclude="_version" src/
 #### 4.4: Verify Code Quality
 ```bash
 # Run all quality checks in sequence
-black --check --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/ && \
-isort --check-only --skip="src/bestehorn_llmmanager/_version.py" src/ test/ && \
-flake8 --exclude="src/bestehorn_llmmanager/_version.py" src/ test/ && \
+ruff format --check src/ test/ && \
+ruff check src/ test/ && \
 mypy --exclude="_version" src/
 ```
 
 **Step 4 Completion Criteria:**
-- All code formatting checks pass
-- All import sorting checks pass
-- All linting checks pass
+- All code formatting checks pass (ruff format)
+- All linting checks pass (ruff check, including import sorting and the S security rules)
 - All type checking passes
 - Code follows project conventions
 
@@ -374,9 +374,8 @@ find docs/ -name "*.md" -exec grep -l "http" {} \;
 pytest test/ -v --cov=bestehorn_llmmanager --cov-report=html:htmlcov --cov-report=term-missing --cov-report=json:coverage.json --html=test_results.html --self-contained-html --cov-fail-under=80
 
 # Run final code quality check
-black --check --extend-exclude="src/bestehorn_llmmanager/_version.py" src/ test/ && \
-isort --check-only --skip="src/bestehorn_llmmanager/_version.py" src/ test/ && \
-flake8 --exclude="src/bestehorn_llmmanager/_version.py" src/ test/ && \
+ruff format --check src/ test/ && \
+ruff check src/ test/ && \
 mypy --exclude="_version" src/
 
 # Generate final coverage report

@@ -550,7 +550,7 @@ class UnifiedModelManager:
                         data[UnifiedJSONFields.RETRIEVAL_TIMESTAMP]
                     )
                     result["age_hours"] = age_hours
-            except Exception:
+            except Exception:  # noqa: S110 - age is best-effort; status is already set
                 pass  # Age calculation failed, but status is already set
 
         return result
@@ -909,7 +909,7 @@ class UnifiedModelManager:
         deprecated_patterns_found = False
 
         # Check each model for deprecated access patterns
-        for model_name, model_info in self._cached_catalog.unified_models.items():
+        for model_info in self._cached_catalog.unified_models.values():
             # Check each region's access info
             for region in model_info.region_access.keys():
                 access_info = model_info.get_access_info_for_region(region)

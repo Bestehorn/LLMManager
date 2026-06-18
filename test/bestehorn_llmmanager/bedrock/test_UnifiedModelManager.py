@@ -159,7 +159,6 @@ class TestUnifiedModelManager:
                 return_value=mock_serializer,
             ),
         ):
-
             manager = UnifiedModelManager()
 
             # Execute
@@ -189,7 +188,6 @@ class TestUnifiedModelManager:
                 return_value=mock_cris_manager,
             ),
         ):
-
             manager = UnifiedModelManager()
 
             # Execute with force_download=False
@@ -233,7 +231,6 @@ class TestUnifiedModelManager:
                 return_value=mock_correlator,
             ),
         ):
-
             manager = UnifiedModelManager()
 
             # Model manager succeeds but CRIS manager fails (should be non-fatal)
@@ -744,10 +741,13 @@ class TestUnifiedModelManager:
 
         # Mock model info with availability in some regions
         model_info = unified_manager._cached_catalog.unified_models["Claude 3 Haiku"]
-        model_info.is_available_in_region.side_effect = lambda region: region in [
-            "us-east-1",
-            "eu-west-1",
-        ]
+        model_info.is_available_in_region.side_effect = lambda region: (
+            region
+            in [
+                "us-east-1",
+                "eu-west-1",
+            ]
+        )
 
         result = unified_manager.get_regions_for_model("Claude 3 Haiku")
 
@@ -1014,7 +1014,6 @@ class TestUnifiedModelManagerCacheManagement:
             ) as mock_serializer_class,
             patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
         ):
-
             mock_serializer = Mock()
             mock_serializer.load_from_file.return_value = {
                 "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 1 hour ago
@@ -1054,7 +1053,6 @@ class TestUnifiedModelManagerCacheManagement:
             ) as mock_serializer_class,
             patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
         ):
-
             mock_serializer = Mock()
             mock_serializer.load_from_file.return_value = {
                 "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 1 hour ago - fresh enough
@@ -1104,7 +1102,6 @@ class TestUnifiedModelManagerCacheManagement:
             ) as mock_serializer_class,
             patch.object(UnifiedModelCatalog, "from_dict", return_value=mock_catalog),
         ):
-
             mock_serializer = Mock()
             mock_serializer.load_from_file.return_value = {
                 "retrieval_timestamp": "2023-01-01T12:00:00.000000Z",  # 2.5 hours ago
@@ -1149,7 +1146,6 @@ class TestUnifiedModelManagerCacheManagement:
                 cache_manager, "refresh_unified_data", return_value=mock_catalog
             ) as mock_refresh,
         ):
-
             result = cache_manager.ensure_data_available()
 
         assert result == mock_catalog
@@ -1169,7 +1165,6 @@ class TestUnifiedModelManagerCacheManagement:
                 cache_manager, "refresh_unified_data", return_value=mock_catalog
             ) as mock_refresh,
         ):
-
             result = cache_manager.ensure_data_available()
 
         assert result == mock_catalog
@@ -1189,7 +1184,6 @@ class TestUnifiedModelManagerCacheManagement:
                 cache_manager, "refresh_unified_data", return_value=mock_catalog
             ) as mock_refresh,
         ):
-
             result = cache_manager.ensure_data_available()
 
         assert result == mock_catalog
@@ -1207,7 +1201,6 @@ class TestUnifiedModelManagerCacheManagement:
                 cache_manager, "refresh_unified_data", side_effect=Exception("Network error")
             ),
         ):
-
             with pytest.raises(
                 UnifiedModelManagerError, match="Automatic cache refresh failed: Network error"
             ):
@@ -1218,7 +1211,6 @@ class TestUnifiedModelManagerCacheManagement:
         with patch.object(
             cache_manager, "_validate_cache", side_effect=Exception("Critical error")
         ):
-
             with pytest.raises(
                 UnifiedModelManagerError, match="Critical error in data availability check"
             ):
@@ -1236,7 +1228,6 @@ class TestUnifiedModelManagerCacheManagement:
             ),
             patch.object(cache_manager, "refresh_unified_data", side_effect=original_error),
         ):
-
             with pytest.raises(
                 UnifiedModelManagerError, match="Automatic cache refresh failed: Original error"
             ):

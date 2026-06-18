@@ -10,21 +10,16 @@ The CI pipeline ensures code quality through automated checks. All checks must p
 
 ### 1. Code Formatting
 
-**Black** (line length: 100 characters):
+**Ruff Format** (line length: 100 characters):
 ```bash
-black src/ test/ --check --extend-exclude="src/bestehorn_llmmanager/_version.py"
-```
-
-**isort** (import sorting):
-```bash
-isort src/ test/ --check-only --skip="src/bestehorn_llmmanager/_version.py"
+ruff format --check src/ test/
 ```
 
 ### 2. Linting
 
-**flake8**:
+**Ruff Check** (linting, including import sorting and security rules):
 ```bash
-flake8 src/ test/ --exclude="src/bestehorn_llmmanager/_version.py"
+ruff check src/ test/
 ```
 
 ### 3. Type Checking
@@ -34,14 +29,7 @@ flake8 src/ test/ --exclude="src/bestehorn_llmmanager/_version.py"
 mypy --exclude="_version" src/
 ```
 
-### 4. Security Scanning
-
-**bandit**:
-```bash
-bandit -r src/ -x "src/bestehorn_llmmanager/_version.py"
-```
-
-### 5. Testing
+### 4. Testing
 
 **pytest** (with coverage):
 ```bash
@@ -156,17 +144,13 @@ venv\Scripts\activate  # Windows
 source venv/bin/activate  # Linux/Mac
 
 # Code formatting
-black src/ test/ --check --extend-exclude="src/bestehorn_llmmanager/_version.py"
-isort src/ test/ --check-only --skip="src/bestehorn_llmmanager/_version.py"
+ruff format --check src/ test/
 
-# Linting
-flake8 src/ test/ --exclude="src/bestehorn_llmmanager/_version.py"
+# Linting (includes import sorting and security rules)
+ruff check src/ test/
 
 # Type checking
 mypy --exclude="_version" src/
-
-# Security scanning
-bandit -r src/ -x "src/bestehorn_llmmanager/_version.py"
 
 # Tests
 pytest test/ -v
@@ -182,11 +166,12 @@ pytest test/ -v
 
 ### Common Failures
 
-**Black/isort failures**:
-- Run formatters to fix: `black src/ test/` and `isort src/ test/`
+**Ruff Format failures**:
+- Run the formatter to fix: `ruff format src/ test/`
 
-**Flake8 failures**:
-- Fix linting issues manually
+**Ruff Check failures**:
+- Auto-fix what can be fixed: `ruff check --fix src/ test/`
+- Fix remaining linting issues manually
 - Check for unused imports, long lines, etc.
 
 **Mypy failures**:

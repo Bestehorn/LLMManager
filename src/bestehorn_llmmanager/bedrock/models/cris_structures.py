@@ -261,17 +261,17 @@ class CRISModelInfo:
             Primary inference profile ID
         """
         # Try to find a US profile first (preferred)
-        for profile_id, profile_info in self.inference_profiles.items():
+        for profile_id in self.inference_profiles:
             if profile_id.startswith("us."):
                 return profile_id
 
         # Fallback to EU profile
-        for profile_id, profile_info in self.inference_profiles.items():
+        for profile_id in self.inference_profiles:
             if profile_id.startswith("eu."):
                 return profile_id
 
         # Fallback to APAC profile
-        for profile_id, profile_info in self.inference_profiles.items():
+        for profile_id in self.inference_profiles:
             if profile_id.startswith("apac.") or profile_id.startswith("ap."):
                 return profile_id
 

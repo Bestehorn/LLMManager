@@ -9,25 +9,14 @@
     "test/"
   ],
   "editor.formatOnSave": true,
-  "python.formatting.provider": "black",
-  "python.formatting.blackArgs": [
-    "--line-length",
-    "100",
-    "--extend-exclude",
-    "src/bestehorn_llmmanager/_version.py"
-  ],
-  "python.sortImports.args": [
-    "--profile",
-    "black",
-    "--line-length",
-    "100",
-    "--skip",
-    "src/bestehorn_llmmanager/_version.py"
-  ],
   "[python]": {
     "editor.rulers": [
       100
     ],
-    "editor.defaultFormatter": "ms-python.black-formatter"
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
   }
 }

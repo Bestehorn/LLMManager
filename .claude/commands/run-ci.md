@@ -1,5 +1,5 @@
 ---
-description: Run the full CI workflow locally (black, isort, flake8, mypy, bandit, pytest) and fix every issue until green.
+description: Run the full CI workflow locally (ruff format, ruff check, mypy, pytest) and fix every issue until green.
 allowed-tools: Bash, Read, Edit, Grep, Glob
 ---
 Ported from `.kiro/hooks/run-ci-workflow.kiro.hook`. USE THE VENV FOR ALL STEPS —
@@ -22,11 +22,9 @@ steps until the CI workflow for this project executes successfully:
    There are NO exceptions. Only proceed to step 5 when there are ZERO errors.
 5. Locally execute the linting / formatting / type / security checks of CI (everything that
    is not unit/integration tests):
-   - `venv\Scripts\activate & black src/ test/ scripts/ --check --extend-exclude="src/bestehorn_llmmanager/_version.py"`
-   - `venv\Scripts\activate & isort src/ test/ scripts/ --check-only --skip="src/bestehorn_llmmanager/_version.py"`
-   - `venv\Scripts\activate & flake8 src/ test/ scripts/ --max-line-length=100 --extend-ignore=E203,W503 --exclude="src/bestehorn_llmmanager/_version.py"`
+   - `venv\Scripts\activate & ruff format --check src/ test/ scripts/`
+   - `venv\Scripts\activate & ruff check src/ test/ scripts/`
    - `venv\Scripts\activate & mypy --exclude="_version" src/`
-   - `venv\Scripts\activate & bandit -r src/ scripts/ -x "src/bestehorn_llmmanager/_version.py"`
    Only if there are ZERO issues may you proceed to step 7.
 6. Fix all issues identified in step 5. No exceptions, no intermediate summaries.
 7. Create a summary of the skipped tests and warnings collected in step 3. For each class,

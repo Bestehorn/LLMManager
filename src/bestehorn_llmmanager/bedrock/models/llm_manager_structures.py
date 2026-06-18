@@ -11,8 +11,11 @@ from typing import Any, Callable, Dict, Final, List, Optional, Union
 
 import botocore.config
 
-from .llm_manager_constants import ConverseAPIFields, LLMManagerConfig
-from .llm_manager_constants import ResponseValidationConfig as ValidationConstants
+from .llm_manager_constants import (
+    ConverseAPIFields,
+    LLMManagerConfig,
+    ResponseValidationConfig as ValidationConstants,
+)
 
 
 class AuthenticationType(Enum):
@@ -156,8 +159,7 @@ class RetryConfig:
             raise ValueError("max_retry_delay must be positive")
         if self.region_order not in RegionOrder.ALL:
             raise ValueError(
-                f"region_order must be one of {sorted(RegionOrder.ALL)}, "
-                f"got {self.region_order!r}"
+                f"region_order must be one of {sorted(RegionOrder.ALL)}, got {self.region_order!r}"
             )
         if (
             self.access_method_preference is not None
@@ -170,8 +172,7 @@ class RetryConfig:
             )
         if self.global_cris_fraction is not None and not (0.0 <= self.global_cris_fraction <= 1.0):
             raise ValueError(
-                f"global_cris_fraction must be between 0.0 and 1.0, "
-                f"got {self.global_cris_fraction}"
+                f"global_cris_fraction must be between 0.0 and 1.0, got {self.global_cris_fraction}"
             )
 
 
@@ -209,8 +210,7 @@ class Boto3Config:
             )
         if self.max_pool_connections <= 0:
             raise ValueError(
-                f"max_pool_connections must be a positive integer, "
-                f"got {self.max_pool_connections}"
+                f"max_pool_connections must be a positive integer, got {self.max_pool_connections}"
             )
         if self.retries_max_attempts < 0:
             raise ValueError(

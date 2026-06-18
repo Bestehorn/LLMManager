@@ -166,7 +166,8 @@ class TestCRISManagerRefreshData:
     def test_refresh_cris_data_parsing_error(self, temp_dir: Any) -> None:
         """Test refresh handling of parsing errors."""
         manager = CRISManager(
-            html_output_path=temp_dir / "cris.html", use_api=False  # Use HTML parsing path
+            html_output_path=temp_dir / "cris.html",
+            use_api=False,  # Use HTML parsing path
         )
 
         # Create HTML file

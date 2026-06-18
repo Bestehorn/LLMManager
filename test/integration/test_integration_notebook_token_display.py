@@ -196,20 +196,20 @@ class TestNotebookTokenDisplay:
         # Verify displayed values match actual API response (Requirement 1.5)
         usage = response.get_usage()
         assert usage is not None, "Usage data should be available"
-        assert input_tokens == usage.get(
-            "input_tokens", 0
-        ), "Accessor method should match usage dictionary"
-        assert output_tokens == usage.get(
-            "output_tokens", 0
-        ), "Accessor method should match usage dictionary"
-        assert total_tokens == usage.get(
-            "total_tokens", 0
-        ), "Accessor method should match usage dictionary"
+        assert input_tokens == usage.get("input_tokens", 0), (
+            "Accessor method should match usage dictionary"
+        )
+        assert output_tokens == usage.get("output_tokens", 0), (
+            "Accessor method should match usage dictionary"
+        )
+        assert total_tokens == usage.get("total_tokens", 0), (
+            "Accessor method should match usage dictionary"
+        )
 
         # Verify token arithmetic
-        assert (
-            total_tokens == input_tokens + output_tokens
-        ), "Total tokens should equal input + output"
+        assert total_tokens == input_tokens + output_tokens, (
+            "Total tokens should equal input + output"
+        )
 
     def test_notebook_example1_large_text_shows_token_usage(self) -> None:
         """
@@ -272,9 +272,9 @@ class TestNotebookTokenDisplay:
 
         # Verify input tokens are substantial (should be close to estimated)
         # Allow for some variance due to tokenization differences
-        assert (
-            input_tokens > estimated_tokens * 0.5
-        ), f"Input tokens ({input_tokens}) should be substantial for large text (estimated: {estimated_tokens})"
+        assert input_tokens > estimated_tokens * 0.5, (
+            f"Input tokens ({input_tokens}) should be substantial for large text (estimated: {estimated_tokens})"
+        )
 
         # Verify the display condition from notebook works correctly
         # The notebook checks: if total_tokens > 0
@@ -283,15 +283,15 @@ class TestNotebookTokenDisplay:
         # Verify displayed values match actual API response (Requirement 1.5)
         usage = response.get_usage()
         assert usage is not None, "Usage data should be available"
-        assert input_tokens == usage.get(
-            "input_tokens", 0
-        ), "Accessor method should match usage dictionary"
-        assert output_tokens == usage.get(
-            "output_tokens", 0
-        ), "Accessor method should match usage dictionary"
-        assert total_tokens == usage.get(
-            "total_tokens", 0
-        ), "Accessor method should match usage dictionary"
+        assert input_tokens == usage.get("input_tokens", 0), (
+            "Accessor method should match usage dictionary"
+        )
+        assert output_tokens == usage.get("output_tokens", 0), (
+            "Accessor method should match usage dictionary"
+        )
+        assert total_tokens == usage.get("total_tokens", 0), (
+            "Accessor method should match usage dictionary"
+        )
 
     def test_notebook_example3_token_tracking(self) -> None:
         """
@@ -354,24 +354,24 @@ class TestNotebookTokenDisplay:
         assert result["total"] > 0, "Total tokens should be greater than 0"
 
         # Verify token arithmetic
-        assert (
-            result["total"] == result["actual_input"] + result["output"]
-        ), "Total should equal input + output"
+        assert result["total"] == result["actual_input"] + result["output"], (
+            "Total should equal input + output"
+        )
 
         # Verify actual input is reasonable compared to estimate
-        assert (
-            result["actual_input"] > estimated_tokens * 0.5
-        ), f"Actual input ({result['actual_input']}) should be close to estimate ({estimated_tokens})"
+        assert result["actual_input"] > estimated_tokens * 0.5, (
+            f"Actual input ({result['actual_input']}) should be close to estimate ({estimated_tokens})"
+        )
 
         # Verify displayed values match actual API response (Requirement 1.5)
         usage = response.get_usage()
         assert usage is not None, "Usage data should be available"
-        assert result["actual_input"] == usage.get(
-            "input_tokens", 0
-        ), "Accessor method should match usage dictionary"
-        assert result["output"] == usage.get(
-            "output_tokens", 0
-        ), "Accessor method should match usage dictionary"
-        assert result["total"] == usage.get(
-            "total_tokens", 0
-        ), "Accessor method should match usage dictionary"
+        assert result["actual_input"] == usage.get("input_tokens", 0), (
+            "Accessor method should match usage dictionary"
+        )
+        assert result["output"] == usage.get("output_tokens", 0), (
+            "Accessor method should match usage dictionary"
+        )
+        assert result["total"] == usage.get("total_tokens", 0), (
+            "Accessor method should match usage dictionary"
+        )

@@ -8,8 +8,7 @@ using the Hypothesis property-based testing framework.
 from datetime import datetime
 from typing import Dict, List
 
-from hypothesis import HealthCheck, given, settings
-from hypothesis import strategies as st
+from hypothesis import HealthCheck, given, settings, strategies as st
 
 from src.bestehorn_llmmanager.bedrock.catalog.name_resolver import ModelNameResolver
 from src.bestehorn_llmmanager.bedrock.models.catalog_structures import (
@@ -160,9 +159,9 @@ class TestAliasResolutionConsistency:
                 match = resolver.resolve_name(user_name=alias, strict=False)
 
                 # The alias must resolve to the original canonical name
-                assert (
-                    match is not None
-                ), f"Alias '{alias}' for model '{canonical_name}' failed to resolve"
+                assert match is not None, (
+                    f"Alias '{alias}' for model '{canonical_name}' failed to resolve"
+                )
                 assert match.canonical_name == canonical_name, (
                     f"Alias '{alias}' resolved to '{match.canonical_name}' "
                     f"instead of '{canonical_name}'"

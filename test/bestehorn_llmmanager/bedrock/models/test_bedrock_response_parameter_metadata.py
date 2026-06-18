@@ -8,8 +8,7 @@ Validates Requirements 10.4, 10.5
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import RequestAttempt

@@ -6,8 +6,7 @@ Tests parallel request field independence, model-specific filtering, and respons
 
 from unittest.mock import MagicMock, patch
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.models.bedrock_response import BedrockResponse
 from bestehorn_llmmanager.bedrock.models.model_specific_structures import ModelSpecificConfig
@@ -291,9 +290,9 @@ class TestParallelModelSpecificFiltering:
 
             # Verify independent filtering: each request should be processed
             # according to its target model's capabilities
-            assert (
-                response.success or len(response.get_successful_responses()) > 0
-            ), "At least some requests should succeed"
+            assert response.success or len(response.get_successful_responses()) > 0, (
+                "At least some requests should succeed"
+            )
 
             # Verify that different models were used (if we have multiple models)
             if len(models) > 1 and len(request_models) > 1:
@@ -400,9 +399,9 @@ class TestParallelResponseMetadata:
         removed_params_map = response.get_requests_with_removed_parameters()
 
         # Should have entries for requests with removed parameters
-        assert (
-            len(removed_params_map) == num_with_removed_params
-        ), f"Expected {num_with_removed_params} requests with removed params, got {len(removed_params_map)}"
+        assert len(removed_params_map) == num_with_removed_params, (
+            f"Expected {num_with_removed_params} requests with removed params, got {len(removed_params_map)}"
+        )
 
         # Verify each entry has parameter names
         for req_id, params in removed_params_map.items():
@@ -412,25 +411,25 @@ class TestParallelResponseMetadata:
         # Verify compatibility summary
         summary = response.get_parameter_compatibility_summary()
 
-        assert (
-            "total_requests_with_parameters" in summary
-        ), "Summary should include total_requests_with_parameters"
-        assert (
-            "requests_with_removed_parameters" in summary
-        ), "Summary should include requests_with_removed_parameters"
-        assert (
-            "most_common_incompatible_parameters" in summary
-        ), "Summary should include most_common_incompatible_parameters"
+        assert "total_requests_with_parameters" in summary, (
+            "Summary should include total_requests_with_parameters"
+        )
+        assert "requests_with_removed_parameters" in summary, (
+            "Summary should include requests_with_removed_parameters"
+        )
+        assert "most_common_incompatible_parameters" in summary, (
+            "Summary should include most_common_incompatible_parameters"
+        )
         assert "affected_request_ids" in summary, "Summary should include affected_request_ids"
 
         # Verify counts match
-        assert (
-            summary["requests_with_removed_parameters"] == num_with_removed_params
-        ), "Summary count should match actual removals"
+        assert summary["requests_with_removed_parameters"] == num_with_removed_params, (
+            "Summary count should match actual removals"
+        )
 
-        assert (
-            len(summary["affected_request_ids"]) == num_with_removed_params
-        ), "Affected request IDs count should match removals"
+        assert len(summary["affected_request_ids"]) == num_with_removed_params, (
+            "Affected request IDs count should match removals"
+        )
 
 
 class TestParallelParameterIncompatibility:
@@ -534,14 +533,14 @@ class TestParallelParameterIncompatibility:
         response = manager.converse_parallel(requests=requests)
 
         # Verify both requests eventually succeeded
-        assert (
-            response.success or len(response.get_successful_responses()) > 0
-        ), "At least some requests should succeed"
+        assert response.success or len(response.get_successful_responses()) > 0, (
+            "At least some requests should succeed"
+        )
 
         # Verify we had multiple calls (initial + retry)
-        assert (
-            call_count[0] >= 2
-        ), f"Should have at least 2 calls (initial + retry), got {call_count[0]}"
+        assert call_count[0] >= 2, (
+            f"Should have at least 2 calls (initial + retry), got {call_count[0]}"
+        )
 
         # Verify parameter removal metadata
         removed_params_map = response.get_requests_with_removed_parameters()

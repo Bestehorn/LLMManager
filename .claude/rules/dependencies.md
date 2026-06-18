@@ -25,8 +25,7 @@ venv\Scripts\activate & pip install -e ".[dev]"
 
 5. **Project Dependencies**:
    - Core: boto3, botocore, beautifulsoup4, lxml, requests, tenacity
-   - Dev: pytest, pytest-cov, pytest-mock, black, isort, flake8, mypy, bandit,
-     pre-commit, hypothesis
+   - Dev: pytest, pytest-cov, pytest-mock, ruff, mypy, pre-commit, hypothesis
    - Docs: sphinx, sphinx-rtd-theme, sphinx-autodoc-typehints
 
 6. **Version Constraints**: Preserve existing version pins unless explicitly updating

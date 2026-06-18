@@ -119,45 +119,50 @@ def clean_build_artifacts() -> None:
 
 
 def validate_code_formatting() -> bool:
-    """Validate code formatting with Black.
+    """Validate code formatting with Ruff.
 
     Returns:
         True if formatting is correct, False otherwise
     """
     success, stdout, stderr = run_command(
-        f"python -m black --check {SOURCE_DIR}/ {TEST_DIR}/", "Checking code formatting with Black"
+        f"python -m ruff format --check {SOURCE_DIR}/ {TEST_DIR}/",
+        "Checking code formatting with Ruff",
     )
     if not success:
-        logger.warning("Code formatting issues found. Run 'python -m black src/ test/' to fix.")
+        logger.warning(
+            "Code formatting issues found. Run 'python -m ruff format src/ test/' to fix."
+        )
     return success
 
 
 def validate_import_sorting() -> bool:
-    """Validate import sorting with isort.
+    """Validate import sorting with Ruff (isort `I` rules).
 
     Returns:
         True if imports are sorted correctly, False otherwise
     """
     success, stdout, stderr = run_command(
-        f"python -m isort --check-only {SOURCE_DIR}/ {TEST_DIR}/",
-        "Checking import sorting with isort",
+        f"python -m ruff check --select I {SOURCE_DIR}/ {TEST_DIR}/",
+        "Checking import sorting with Ruff",
     )
     if not success:
-        logger.warning("Import sorting issues found. Run 'python -m isort src/ test/' to fix.")
+        logger.warning(
+            "Import sorting issues found. Run 'python -m ruff check --select I --fix src/ test/' to fix."
+        )
     return success
 
 
 def validate_linting() -> bool:
-    """Validate code with flake8.
+    """Validate code with Ruff.
 
     Returns:
         True if linting passes, False otherwise
     """
     success, stdout, stderr = run_command(
-        f"python -m flake8 {SOURCE_DIR}/ {TEST_DIR}/", "Running flake8 linting"
+        f"python -m ruff check {SOURCE_DIR}/ {TEST_DIR}/", "Running Ruff linting"
     )
     if not success:
-        logger.warning("Linting issues found. Check flake8 output above.")
+        logger.warning("Linting issues found. Check ruff output above.")
     return success
 
 
@@ -357,9 +362,9 @@ def main() -> int:
 
     # Run validation checks
     validation_steps = [
-        ("Code formatting (Black)", validate_code_formatting),
-        ("Import sorting (isort)", validate_import_sorting),
-        ("Linting (flake8)", validate_linting),
+        ("Code formatting (Ruff)", validate_code_formatting),
+        ("Import sorting (Ruff, I rules)", validate_import_sorting),
+        ("Linting (Ruff)", validate_linting),
         ("Type checking (mypy)", validate_type_checking),
         ("Unit tests", run_tests),
         ("MANIFEST.in validation", validate_manifest),

@@ -155,7 +155,9 @@ class RetryingStreamIterator:
 
                 # No more targets or non-retryable error
                 self._stream_completed = True
-                raise StopIteration
+                # The mid-stream error was handled above; signal end-of-iteration without
+                # chaining it onto StopIteration.
+                raise StopIteration from None
 
         # No more retry targets available
         self._stream_completed = True

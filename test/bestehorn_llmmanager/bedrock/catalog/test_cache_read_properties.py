@@ -8,8 +8,7 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.catalog.cache_manager import CacheManager
 from bestehorn_llmmanager.bedrock.models.catalog_constants import CatalogCacheFields

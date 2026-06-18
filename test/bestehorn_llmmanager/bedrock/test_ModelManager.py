@@ -407,7 +407,6 @@ class TestModelManagerIntegration:
             patch.object(ModelManager, "_parser", mock_parser, create=True),
             patch.object(ModelManager, "_serializer", mock_serializer, create=True),
         ):
-
             manager = ModelManager(html_output_path=html_path, json_output_path=json_path)
 
             # Manually assign the mocks to ensure they're used

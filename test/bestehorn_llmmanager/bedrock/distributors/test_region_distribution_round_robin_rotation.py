@@ -33,9 +33,9 @@ class TestRoundRobinFullSetRotation:
 
         # ...but the STARTING region must not be constant; over 2n calls every region
         # must appear as the first-attempted region at least once (uniform spread).
-        assert (
-            len(set(first_regions)) == n
-        ), f"expected all {n} regions to appear as first attempt, got {set(first_regions)}"
+        assert len(set(first_regions)) == n, (
+            f"expected all {n} regions to appear as first attempt, got {set(first_regions)}"
+        )
         assert first_regions[0] != first_regions[1], "first region did not rotate between calls"
 
     def test_full_set_first_region_sequence_is_rotation(self) -> None:

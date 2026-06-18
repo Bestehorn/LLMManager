@@ -17,8 +17,7 @@ Validates: Requirements 2.5
 
 import warnings
 
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 
 from bestehorn_llmmanager.bedrock.models.access_method import ModelAccessInfo, ModelAccessMethod
 from bestehorn_llmmanager.bedrock.models.deprecation import DeprecatedEnumValueWarning

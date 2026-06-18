@@ -50,8 +50,12 @@ from .bedrock.tracking.parameter_compatibility_tracker import ParameterCompatibi
 from .llm_manager import LLMManager
 
 # MessageBuilder - Direct imports for easy access
-from .message_builder import ConverseMessageBuilder as MessageBuilder
-from .message_builder import create_assistant_message, create_message, create_user_message
+from .message_builder import (
+    ConverseMessageBuilder as MessageBuilder,
+    create_assistant_message,
+    create_message,
+    create_user_message,
+)
 from .message_builder_enums import (
     DetectionMethodEnum,
     DocumentFormatEnum,

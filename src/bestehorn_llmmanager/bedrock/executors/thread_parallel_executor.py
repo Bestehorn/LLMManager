@@ -163,7 +163,7 @@ class ThreadParallelExecutor:
         )
 
         # Create timeout responses for in-flight requests
-        for future, request_id in in_flight_futures.items():
+        for request_id in in_flight_futures.values():
             if request_id not in responses:
                 responses[request_id] = self._create_timeout_response(request_id=request_id)
 
@@ -367,10 +367,8 @@ class ThreadParallelExecutor:
         with concurrent.futures.ThreadPoolExecutor(
             max_workers=self._config.max_concurrent_requests, thread_name_prefix="LLMParallel"
         ) as executor:
-
             # Process retry queue until empty
             while retry_queue or in_flight_assignments:
-
                 # Submit new tasks up to max_concurrent limit
                 while (
                     retry_queue
@@ -688,7 +686,7 @@ class ThreadParallelExecutor:
                 response = future.result(timeout=self._config.request_timeout_seconds)
                 return cast(BedrockResponse, response)
 
-            except concurrent.futures.TimeoutError:
+            except concurrent.futures.TimeoutError as exc:
                 # Request timed out
                 elapsed_time = (
                     self._execution_context.get_elapsed_time_ms() / 1000.0
@@ -704,7 +702,7 @@ class ThreadParallelExecutor:
                     request_id=assignment.request_id,
                     timeout_seconds=self._config.request_timeout_seconds,
                     elapsed_seconds=elapsed_time,
-                )
+                ) from exc
 
     def _create_timeout_response(self, request_id: str) -> BedrockResponse:
         """

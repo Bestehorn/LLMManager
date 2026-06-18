@@ -10,8 +10,7 @@ Properties tested:
 1. Normalization Idempotence
 """
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.catalog.name_normalizer import normalize_model_name
 
@@ -106,13 +105,13 @@ class TestProperty2NormalizationIdempotence:
         normalized_thrice = normalize_model_name(name=normalized_twice)
 
         # Property: All normalizations should produce the same result
-        assert (
-            normalized_once == normalized_twice
-        ), f"Normalization not idempotent: '{normalized_once}' != '{normalized_twice}'"
+        assert normalized_once == normalized_twice, (
+            f"Normalization not idempotent: '{normalized_once}' != '{normalized_twice}'"
+        )
 
-        assert (
-            normalized_twice == normalized_thrice
-        ), f"Normalization not idempotent: '{normalized_twice}' != '{normalized_thrice}'"
+        assert normalized_twice == normalized_thrice, (
+            f"Normalization not idempotent: '{normalized_twice}' != '{normalized_thrice}'"
+        )
 
     @given(
         model_name=st.one_of(
@@ -141,9 +140,9 @@ class TestProperty2NormalizationIdempotence:
         assert normalized_twice == "", f"Expected empty string, got '{normalized_twice}'"
 
         # Property: Idempotence holds
-        assert (
-            normalized_once == normalized_twice
-        ), f"Normalization not idempotent for empty input: '{normalized_once}' != '{normalized_twice}'"
+        assert normalized_once == normalized_twice, (
+            f"Normalization not idempotent for empty input: '{normalized_once}' != '{normalized_twice}'"
+        )
 
     @given(
         model_name=st.text(
@@ -170,6 +169,6 @@ class TestProperty2NormalizationIdempotence:
         normalized_twice = normalize_model_name(name=normalized_once)
 
         # Property: Idempotence holds
-        assert (
-            normalized_once == normalized_twice
-        ), f"Normalization not idempotent: '{normalized_once}' != '{normalized_twice}'"
+        assert normalized_once == normalized_twice, (
+            f"Normalization not idempotent: '{normalized_once}' != '{normalized_twice}'"
+        )

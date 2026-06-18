@@ -777,7 +777,9 @@ class StreamingResponse:
             self._stream_completed = True
             # Don't automatically set success=False here - let _finalize_streaming determine final status
             self._finalize_streaming()
-            raise StopIteration
+            # The error is recorded via add_stream_error; surface end-of-iteration to the
+            # caller without chaining the original error onto StopIteration.
+            raise StopIteration from None
 
     def _process_streaming_event(self, event: Dict[str, Any]) -> Optional[str]:
         """

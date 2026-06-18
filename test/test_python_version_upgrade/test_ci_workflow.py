@@ -37,9 +37,9 @@ class TestCIWorkflowMatrix:
         matrix = ci_workflow["jobs"]["test"]["strategy"]["matrix"]["python-version"]
         expected_versions = ["3.10", "3.11", "3.12", "3.13", "3.14"]
 
-        assert (
-            matrix == expected_versions
-        ), f"Expected CI matrix to be {expected_versions}, got {matrix}"
+        assert matrix == expected_versions, (
+            f"Expected CI matrix to be {expected_versions}, got {matrix}"
+        )
 
     def test_matrix_excludes_python_39(self, ci_workflow: Dict[str, Any]) -> None:
         """
@@ -125,9 +125,9 @@ class TestCIWorkflowTestJob:
                 break
 
         assert setup_python_step is not None, "Could not find 'Set up Python' step in test job"
-        assert (
-            setup_python_step["with"]["python-version"] == "${{ matrix.python-version }}"
-        ), "Test job should use matrix.python-version variable"
+        assert setup_python_step["with"]["python-version"] == "${{ matrix.python-version }}", (
+            "Test job should use matrix.python-version variable"
+        )
 
     def test_test_job_has_strategy_matrix(self, ci_workflow: Dict[str, Any]) -> None:
         """
@@ -138,9 +138,9 @@ class TestCIWorkflowTestJob:
         test_job = ci_workflow["jobs"]["test"]
         assert "strategy" in test_job, "Test job should have a strategy defined"
         assert "matrix" in test_job["strategy"], "Test job strategy should have a matrix"
-        assert (
-            "python-version" in test_job["strategy"]["matrix"]
-        ), "Test job matrix should have python-version"
+        assert "python-version" in test_job["strategy"]["matrix"], (
+            "Test job matrix should have python-version"
+        )
 
 
 class TestCIWorkflowOtherJobs:
@@ -167,9 +167,9 @@ class TestCIWorkflowOtherJobs:
 
         # Lint job should use a fixed version that's in our supported range
         supported_versions = ["3.10", "3.11", "3.12", "3.13", "3.14"]
-        assert (
-            python_version in supported_versions
-        ), f"Lint job should use a supported Python version, got {python_version}"
+        assert python_version in supported_versions, (
+            f"Lint job should use a supported Python version, got {python_version}"
+        )
 
     def test_build_job_uses_supported_python_version(self, ci_workflow: Dict[str, Any]) -> None:
         """
@@ -192,6 +192,6 @@ class TestCIWorkflowOtherJobs:
 
         # Build job should use a fixed version that's in our supported range
         supported_versions = ["3.10", "3.11", "3.12", "3.13", "3.14"]
-        assert (
-            python_version in supported_versions
-        ), f"Build job should use a supported Python version, got {python_version}"
+        assert python_version in supported_versions, (
+            f"Build job should use a supported Python version, got {python_version}"
+        )

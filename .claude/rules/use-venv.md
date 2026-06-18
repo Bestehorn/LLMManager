@@ -1,7 +1,7 @@
 # Always Work Inside the Virtual Environment
 
-ALWAYS run Python, pip, pytest, and the quality tools (black, isort, flake8, mypy,
-bandit) inside the project venv at `venv/`. No execution outside an activated venv.
+ALWAYS run Python, pip, pytest, and the quality tools (ruff, mypy) inside the project
+venv at `venv/`. No execution outside an activated venv.
 
 - Windows cmd: `venv\Scripts\activate`
 - PowerShell: `venv\Scripts\Activate.ps1`

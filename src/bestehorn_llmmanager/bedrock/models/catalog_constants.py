@@ -27,7 +27,7 @@ class CatalogAPIParameters:
 
     # Common parameters
     MAX_RESULTS: Final[str] = "maxResults"
-    NEXT_TOKEN: Final[str] = "nextToken"
+    NEXT_TOKEN: Final[str] = "nextToken"  # noqa: S105 - AWS API field name, not a secret
 
 
 class CatalogAPIResponseFields:
@@ -47,7 +47,7 @@ class CatalogAPIResponseFields:
     MODEL_LIFECYCLE: Final[str] = "modelLifecycle"
 
     # Pagination token returned by list APIs (present when more pages remain)
-    NEXT_TOKEN: Final[str] = "nextToken"
+    NEXT_TOKEN: Final[str] = "nextToken"  # noqa: S105 - AWS API field name, not a secret
 
     # list-inference-profiles response fields
     INFERENCE_PROFILE_SUMMARIES: Final[str] = "inferenceProfileSummaries"
@@ -129,7 +129,8 @@ class CatalogFilePaths:
         Returns:
             Path to /tmp/bestehorn-llmmanager-cache/
         """
-        return Path("/tmp") / "bestehorn-llmmanager-cache"
+        # /tmp is the writable location in AWS Lambda; this is the documented fallback.
+        return Path("/tmp") / "bestehorn-llmmanager-cache"  # noqa: S108
 
     @staticmethod
     def get_all_cache_locations() -> List[Path]:

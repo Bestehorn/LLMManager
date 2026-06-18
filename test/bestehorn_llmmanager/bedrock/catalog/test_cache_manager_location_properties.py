@@ -13,8 +13,7 @@ Properties tested:
 from pathlib import Path
 from typing import Optional
 
-from hypothesis import given, settings
-from hypothesis import strategies as st
+from hypothesis import given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.catalog.cache_manager import CacheManager
 from bestehorn_llmmanager.bedrock.models.catalog_constants import CatalogFilePaths
@@ -97,17 +96,17 @@ class TestProperty1CacheWriteLocationPriority:
         # Property only applies to FILE mode
         if mode == CacheMode.FILE:
             # Verify _cache_locations exists and is a list
-            assert hasattr(
-                cache_manager, "_cache_locations"
-            ), "CacheManager should have _cache_locations attribute"
-            assert isinstance(
-                cache_manager._cache_locations, list
-            ), "_cache_locations should be a list"
+            assert hasattr(cache_manager, "_cache_locations"), (
+                "CacheManager should have _cache_locations attribute"
+            )
+            assert isinstance(cache_manager._cache_locations, list), (
+                "_cache_locations should be a list"
+            )
 
             # Verify list has at least 2 elements (primary + fallback)
-            assert (
-                len(cache_manager._cache_locations) >= 2
-            ), "FILE mode should have at least 2 cache locations"
+            assert len(cache_manager._cache_locations) >= 2, (
+                "FILE mode should have at least 2 cache locations"
+            )
 
             # Determine expected primary location
             if directory is not None:
@@ -119,15 +118,15 @@ class TestProperty1CacheWriteLocationPriority:
 
             # Property: Primary location is first in list
             actual_primary = cache_manager._cache_locations[0]
-            assert (
-                actual_primary == expected_primary
-            ), f"Primary location should be first: expected {expected_primary}, got {actual_primary}"
+            assert actual_primary == expected_primary, (
+                f"Primary location should be first: expected {expected_primary}, got {actual_primary}"
+            )
 
         else:
             # For MEMORY and NONE modes, _cache_locations should be empty
-            assert (
-                cache_manager._cache_locations == []
-            ), f"Non-FILE modes should have empty _cache_locations, got {cache_manager._cache_locations}"
+            assert cache_manager._cache_locations == [], (
+                f"Non-FILE modes should have empty _cache_locations, got {cache_manager._cache_locations}"
+            )
 
     @given(config=cache_configuration_strategy())
     @settings(max_examples=100, deadline=None)
@@ -159,9 +158,9 @@ class TestProperty1CacheWriteLocationPriority:
 
             # Property: Fallback location is second in list
             actual_fallback = cache_manager._cache_locations[1]
-            assert (
-                actual_fallback == expected_fallback
-            ), f"Fallback location should be second: expected {expected_fallback}, got {actual_fallback}"
+            assert actual_fallback == expected_fallback, (
+                f"Fallback location should be second: expected {expected_fallback}, got {actual_fallback}"
+            )
 
     @given(config=cache_configuration_strategy())
     @settings(max_examples=100, deadline=None)
@@ -182,20 +181,20 @@ class TestProperty1CacheWriteLocationPriority:
         # Property only applies to FILE mode
         if mode == CacheMode.FILE:
             # Property: Exactly 2 locations
-            assert (
-                len(cache_manager._cache_locations) == 2
-            ), f"FILE mode should have exactly 2 cache locations, got {len(cache_manager._cache_locations)}"
+            assert len(cache_manager._cache_locations) == 2, (
+                f"FILE mode should have exactly 2 cache locations, got {len(cache_manager._cache_locations)}"
+            )
 
             # Verify both are Path objects
-            assert all(
-                isinstance(loc, Path) for loc in cache_manager._cache_locations
-            ), "All cache locations should be Path objects"
+            assert all(isinstance(loc, Path) for loc in cache_manager._cache_locations), (
+                "All cache locations should be Path objects"
+            )
 
         else:
             # For MEMORY and NONE modes, should be empty
-            assert (
-                len(cache_manager._cache_locations) == 0
-            ), f"Non-FILE modes should have 0 cache locations, got {len(cache_manager._cache_locations)}"
+            assert len(cache_manager._cache_locations) == 0, (
+                f"Non-FILE modes should have 0 cache locations, got {len(cache_manager._cache_locations)}"
+            )
 
     @given(config=cache_configuration_strategy())
     @settings(max_examples=100, deadline=None)
@@ -219,9 +218,9 @@ class TestProperty1CacheWriteLocationPriority:
             fallback = cache_manager._cache_locations[1]
 
             # Property: Primary and fallback are different
-            assert (
-                primary != fallback
-            ), f"Primary and fallback locations should be different: {primary} vs {fallback}"
+            assert primary != fallback, (
+                f"Primary and fallback locations should be different: {primary} vs {fallback}"
+            )
 
     @given(
         mode=st.just(CacheMode.FILE),
@@ -247,9 +246,9 @@ class TestProperty1CacheWriteLocationPriority:
 
         # Property: Primary location is platform default
         actual_primary = cache_manager._cache_locations[0]
-        assert (
-            actual_primary == expected_primary
-        ), f"Default primary location should be platform default: expected {expected_primary}, got {actual_primary}"
+        assert actual_primary == expected_primary, (
+            f"Default primary location should be platform default: expected {expected_primary}, got {actual_primary}"
+        )
 
     @given(
         mode=st.just(CacheMode.FILE),
@@ -276,18 +275,18 @@ class TestProperty1CacheWriteLocationPriority:
 
         # Property: Primary location is custom directory
         actual_primary = cache_manager._cache_locations[0]
-        assert (
-            actual_primary == expected_primary
-        ), f"Custom primary location should be used: expected {expected_primary}, got {actual_primary}"
+        assert actual_primary == expected_primary, (
+            f"Custom primary location should be used: expected {expected_primary}, got {actual_primary}"
+        )
 
         # Property: Fallback is still /tmp
         expected_fallback = (
             CatalogFilePaths.get_fallback_cache_directory() / CatalogFilePaths.CACHE_FILENAME
         )
         actual_fallback = cache_manager._cache_locations[1]
-        assert (
-            actual_fallback == expected_fallback
-        ), f"Fallback should always be /tmp: expected {expected_fallback}, got {actual_fallback}"
+        assert actual_fallback == expected_fallback, (
+            f"Fallback should always be /tmp: expected {expected_fallback}, got {actual_fallback}"
+        )
 
     @given(config=cache_configuration_strategy())
     @settings(max_examples=100, deadline=None)
@@ -310,14 +309,14 @@ class TestProperty1CacheWriteLocationPriority:
             expected = cache_manager._cache_locations[0]
             actual = cache_manager.cache_file_path
 
-            assert (
-                actual == expected
-            ), f"cache_file_path should return primary location: expected {expected}, got {actual}"
+            assert actual == expected, (
+                f"cache_file_path should return primary location: expected {expected}, got {actual}"
+            )
         else:
             # For non-FILE modes, should return None
-            assert (
-                cache_manager.cache_file_path is None
-            ), f"Non-FILE modes should return None for cache_file_path, got {cache_manager.cache_file_path}"
+            assert cache_manager.cache_file_path is None, (
+                f"Non-FILE modes should return None for cache_file_path, got {cache_manager.cache_file_path}"
+            )
 
     @given(config=cache_configuration_strategy())
     @settings(max_examples=100, deadline=None)
@@ -343,11 +342,11 @@ class TestProperty1CacheWriteLocationPriority:
 
             # Property: Fallback is always /tmp
             actual_fallback = cache_manager._cache_locations[1]
-            assert (
-                actual_fallback == expected_fallback
-            ), f"Fallback should always be /tmp: expected {expected_fallback}, got {actual_fallback}"
+            assert actual_fallback == expected_fallback, (
+                f"Fallback should always be /tmp: expected {expected_fallback}, got {actual_fallback}"
+            )
 
             # Verify fallback parent is /tmp
-            assert actual_fallback.parent.parent == Path(
-                "/tmp"
-            ), f"Fallback parent should be under /tmp, got {actual_fallback.parent}"
+            assert actual_fallback.parent.parent == Path("/tmp"), (
+                f"Fallback parent should be under /tmp, got {actual_fallback.parent}"
+            )

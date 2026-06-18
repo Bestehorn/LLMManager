@@ -83,9 +83,9 @@ class TestRealBedrockProfileSupport:
             # Check if profile was used
             if response.inference_profile_used:
                 # Profile was used - verify metadata
-                assert (
-                    response.inference_profile_id is not None
-                ), "Should have profile ID when profile used"
+                assert response.inference_profile_id is not None, (
+                    "Should have profile ID when profile used"
+                )
                 assert response.access_method_used in [
                     "regional_cris",
                     "global_cris",
@@ -201,15 +201,15 @@ class TestRealBedrockProfileSupport:
 
             # Verify access method metadata is present
             assert response.access_method_used is not None, "Should have access method"
-            assert isinstance(
-                response.inference_profile_used, bool
-            ), "Should have profile usage flag"
+            assert isinstance(response.inference_profile_used, bool), (
+                "Should have profile usage flag"
+            )
 
             # If profile was used, verify profile ID
             if response.inference_profile_used:
-                assert (
-                    response.inference_profile_id is not None
-                ), "Should have profile ID when profile used"
+                assert response.inference_profile_id is not None, (
+                    "Should have profile ID when profile used"
+                )
 
         except RetryExhaustedError as e:
             if "AccessDeniedException" in str(e) or "don't have access" in str(e):
@@ -263,14 +263,14 @@ class TestRealBedrockProfileSupport:
             stats2 = tracker.get_statistics()
 
             # Verify learning occurred (tracked count should be same or higher)
-            assert (
-                stats2["total_tracked"] >= initial_tracked
-            ), "Should maintain or increase tracked combinations"
+            assert stats2["total_tracked"] >= initial_tracked, (
+                "Should maintain or increase tracked combinations"
+            )
 
             # Verify both requests used same access method (due to learning)
-            assert (
-                response1.access_method_used == response2.access_method_used
-            ), "Should use same access method due to learning"
+            assert response1.access_method_used == response2.access_method_used, (
+                "Should use same access method due to learning"
+            )
 
         except ConfigurationError as e:
             pytest.skip(f"Claude 3 Haiku not available in test account: {str(e)}")

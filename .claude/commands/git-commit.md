@@ -13,9 +13,9 @@ Shared git workflow — COMMIT stage. USE THE VENV for any check you run. Read c
 3. **Stage deliberately**: stage only the files belonging to this change (`git add <paths>`),
    not `git add -A` blindly.
 4. **Commit**: write a clear message. The repo's pre-commit hook (`.git/hooks/pre-commit`, installed
-   by `scripts/setup-hooks.sh`) runs black + isort + flake8 on commit.
-   - NEVER use `--no-verify` / `-n`. If the hook fails, FIX the reported issues (run black/isort to
-     auto-format, fix flake8 findings) and re-commit.
+   by `scripts/setup-hooks.sh`) runs ruff-check and ruff-format on commit.
+   - NEVER use `--no-verify` / `-n`. If the hook fails, FIX the reported issues (run `ruff format` /
+     `ruff check --fix` to auto-fix) and re-commit.
 5. Report the commit SHA and what was committed.
 
 Do not push here — use `/git-push` for that. Line length 100; exclude

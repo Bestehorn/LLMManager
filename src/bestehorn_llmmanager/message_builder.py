@@ -153,12 +153,12 @@ class ConverseMessageBuilder:
             # Convert string format to enum
             try:
                 format = ImageFormatEnum(detected_format)
-            except ValueError:
+            except ValueError as exc:
                 raise RequestValidationError(
                     MessageBuilderErrorMessages.UNSUPPORTED_FORMAT.format(
                         content_type="image", format=detected_format
                     )
-                )
+                ) from exc
 
         # Validate format is supported
         if format.value not in SupportedFormats.IMAGE_FORMATS:
@@ -239,7 +239,9 @@ class ConverseMessageBuilder:
             with open(file_path, "rb") as image_file:
                 image_bytes = image_file.read()
         except Exception as e:
-            raise RequestValidationError(f"Failed to read image file {path_to_local_file}: {e}")
+            raise RequestValidationError(
+                f"Failed to read image file {path_to_local_file}: {e}"
+            ) from e
 
         # Use the existing add_image_bytes method
         return self.add_image_bytes(bytes=image_bytes, format=format, filename=file_path.name)
@@ -306,12 +308,12 @@ class ConverseMessageBuilder:
             # Convert string format to enum
             try:
                 format = DocumentFormatEnum(detected_format)
-            except ValueError:
+            except ValueError as exc:
                 raise RequestValidationError(
                     MessageBuilderErrorMessages.UNSUPPORTED_FORMAT.format(
                         content_type="document", format=detected_format
                     )
-                )
+                ) from exc
 
         # Validate format is supported
         if format.value not in SupportedFormats.DOCUMENT_FORMATS:
@@ -401,7 +403,9 @@ class ConverseMessageBuilder:
             with open(file_path, "rb") as document_file:
                 document_bytes = document_file.read()
         except Exception as e:
-            raise RequestValidationError(f"Failed to read document file {path_to_local_file}: {e}")
+            raise RequestValidationError(
+                f"Failed to read document file {path_to_local_file}: {e}"
+            ) from e
 
         # Use the existing add_document_bytes method
         return self.add_document_bytes(
@@ -465,12 +469,12 @@ class ConverseMessageBuilder:
             # Convert string format to enum
             try:
                 format = VideoFormatEnum(detected_format)
-            except ValueError:
+            except ValueError as exc:
                 raise RequestValidationError(
                     MessageBuilderErrorMessages.UNSUPPORTED_FORMAT.format(
                         content_type="video", format=detected_format
                     )
-                )
+                ) from exc
 
         # Validate format is supported
         if format.value not in SupportedFormats.VIDEO_FORMATS:
@@ -549,7 +553,9 @@ class ConverseMessageBuilder:
             with open(file_path, "rb") as video_file:
                 video_bytes = video_file.read()
         except Exception as e:
-            raise RequestValidationError(f"Failed to read video file {path_to_local_file}: {e}")
+            raise RequestValidationError(
+                f"Failed to read video file {path_to_local_file}: {e}"
+            ) from e
 
         # Use the existing add_video_bytes method
         return self.add_video_bytes(bytes=video_bytes, format=format, filename=file_path.name)

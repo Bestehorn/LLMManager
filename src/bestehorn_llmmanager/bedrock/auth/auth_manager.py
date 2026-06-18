@@ -147,18 +147,18 @@ class AuthManager:
 
             return session
 
-        except ProfileNotFound:
+        except ProfileNotFound as exc:
             raise AuthenticationError(
                 message=LLMManagerErrorMessages.INVALID_PROFILE.format(
                     profile=self._auth_config.profile_name
                 ),
                 auth_type=self._auth_config.auth_type.value,
-            )
-        except NoCredentialsError:
+            ) from exc
+        except NoCredentialsError as exc:
             raise AuthenticationError(
                 message=LLMManagerErrorMessages.CREDENTIALS_NOT_FOUND,
                 auth_type=self._auth_config.auth_type.value,
-            )
+            ) from exc
 
     def _create_credentials_session(self, region: Optional[str] = None) -> boto3.Session:
         """Create session using direct credentials."""
@@ -177,11 +177,11 @@ class AuthManager:
 
             return session
 
-        except NoCredentialsError:
+        except NoCredentialsError as exc:
             raise AuthenticationError(
                 message=LLMManagerErrorMessages.CREDENTIALS_NOT_FOUND,
                 auth_type=self._auth_config.auth_type.value,
-            )
+            ) from exc
 
     def _create_iam_role_session(self, region: Optional[str] = None) -> boto3.Session:
         """Create session using IAM role (for EC2/SageMaker environments)."""
@@ -195,11 +195,11 @@ class AuthManager:
 
             return session
 
-        except NoCredentialsError:
+        except NoCredentialsError as exc:
             raise AuthenticationError(
                 message=LLMManagerErrorMessages.CREDENTIALS_NOT_FOUND,
                 auth_type=self._auth_config.auth_type.value,
-            )
+            ) from exc
 
     def _create_auto_session(self, region: Optional[str] = None) -> boto3.Session:
         """Create session using automatic detection."""

@@ -6,8 +6,7 @@ Tests ModelSpecificConfig extraction and backward compatibility.
 from unittest.mock import Mock, patch
 
 import pytest
-from hypothesis import HealthCheck, given, settings
-from hypothesis import strategies as st
+from hypothesis import HealthCheck, given, settings, strategies as st
 
 from bestehorn_llmmanager.bedrock.models.model_specific_structures import ModelSpecificConfig
 from bestehorn_llmmanager.llm_manager import LLMManager

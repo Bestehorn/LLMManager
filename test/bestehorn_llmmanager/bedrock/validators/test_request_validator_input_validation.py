@@ -7,8 +7,7 @@ Validates: Requirements 9.1, 9.2
 """
 
 import pytest
-from hypothesis import given
-from hypothesis import strategies as st
+from hypothesis import given, strategies as st
 
 from src.bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
     RequestValidationError,

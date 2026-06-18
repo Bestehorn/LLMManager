@@ -198,9 +198,9 @@ class TestAccessMethodSelection:
         # Assertions
         assert len(used_model_ids) == 1, "Should make one call"
         # Should use profile instead of direct due to learned preference
-        assert (
-            used_model_ids[0] == access_info.regional_cris_profile_id
-        ), "Should use regional CRIS profile due to learned preference"
+        assert used_model_ids[0] == access_info.regional_cris_profile_id, (
+            "Should use regional CRIS profile due to learned preference"
+        )
 
 
 class TestPreferenceLearning:
@@ -452,12 +452,12 @@ class TestGracefulDegradation:
         # Check error message content
         error_message = str(exc_info.value)
         assert "inference profiles" in error_message.lower(), "Should mention inference profiles"
-        assert (
-            "refresh" in error_message.lower() or "catalog" in error_message.lower()
-        ), "Should suggest refreshing catalog"
-        assert (
-            "Claude Sonnet 4.5" in error_message or "claude-sonnet-4" in error_message.lower()
-        ), "Should list models that require profiles"
+        assert "refresh" in error_message.lower() or "catalog" in error_message.lower(), (
+            "Should suggest refreshing catalog"
+        )
+        assert "Claude Sonnet 4.5" in error_message or "claude-sonnet-4" in error_message.lower(), (
+            "Should list models that require profiles"
+        )
 
     def test_partial_profile_failures_error_message(self):
         """
@@ -518,9 +518,9 @@ class TestGracefulDegradation:
         # Check error message content
         error_message = str(exc_info.value)
         assert "inference profiles" in error_message.lower(), "Should mention inference profiles"
-        assert (
-            "1 of 2" in error_message or "some" in error_message.lower()
-        ), "Should indicate partial profile failures"
+        assert "1 of 2" in error_message or "some" in error_message.lower(), (
+            "Should indicate partial profile failures"
+        )
 
     def test_profile_unavailable_logs_warning(self, caplog):
         """
