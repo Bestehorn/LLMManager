@@ -5,6 +5,8 @@ Defines field names, event types, and configuration values for AWS Bedrock strea
 
 from enum import Enum
 
+from ..models.stop_reason import StopReasonEnum
+
 
 class StreamingEventTypes(str, Enum):
     """Enumeration of AWS Bedrock Converse Stream event types."""
@@ -65,13 +67,18 @@ class StreamingConstants:
     FIELD_ORIGINAL_STATUS_CODE = "originalStatusCode"
     FIELD_ORIGINAL_MESSAGE = "originalMessage"
 
-    # Stop Reasons
-    STOP_REASON_END_TURN = "end_turn"
-    STOP_REASON_TOOL_USE = "tool_use"
-    STOP_REASON_MAX_TOKENS = "max_tokens"
-    STOP_REASON_STOP_SEQUENCE = "stop_sequence"
-    STOP_REASON_GUARDRAIL_INTERVENED = "guardrail_intervened"
-    STOP_REASON_CONTENT_FILTERED = "content_filtered"
+    # Stop Reasons — the complete Bedrock Converse stopReason set (issue #37), derived
+    # from the canonical StopReasonEnum so streaming and core (ConverseAPIFields) stay in
+    # lockstep.
+    STOP_REASON_END_TURN = StopReasonEnum.END_TURN.value
+    STOP_REASON_TOOL_USE = StopReasonEnum.TOOL_USE.value
+    STOP_REASON_MAX_TOKENS = StopReasonEnum.MAX_TOKENS.value
+    STOP_REASON_STOP_SEQUENCE = StopReasonEnum.STOP_SEQUENCE.value
+    STOP_REASON_GUARDRAIL_INTERVENED = StopReasonEnum.GUARDRAIL_INTERVENED.value
+    STOP_REASON_CONTENT_FILTERED = StopReasonEnum.CONTENT_FILTERED.value
+    STOP_REASON_MALFORMED_MODEL_OUTPUT = StopReasonEnum.MALFORMED_MODEL_OUTPUT.value
+    STOP_REASON_MALFORMED_TOOL_USE = StopReasonEnum.MALFORMED_TOOL_USE.value
+    STOP_REASON_MODEL_CONTEXT_WINDOW_EXCEEDED = StopReasonEnum.MODEL_CONTEXT_WINDOW_EXCEEDED.value
 
     # Configuration
     DEFAULT_STREAM_TIMEOUT = 300  # seconds
