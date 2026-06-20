@@ -16,11 +16,22 @@ from botocore.exceptions import ClientError
 
 from bestehorn_llmmanager.bedrock.auth.auth_manager import AuthManager
 from bestehorn_llmmanager.bedrock.catalog.api_fetcher import BedrockAPIFetcher, RawCatalogData
-from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import APIFetchError
+from bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions import (
+    APIFetchError,
+    APIThrottleError,
+)
 from bestehorn_llmmanager.bedrock.models.llm_manager_structures import (
     AuthConfig,
     AuthenticationType,
 )
+
+
+def _client_error(code: str, operation: str = "ListFoundationModels") -> ClientError:
+    """Build a botocore ClientError with the given AWS error code."""
+    return ClientError(
+        error_response={"Error": {"Code": code, "Message": f"{code} occurred"}},
+        operation_name=operation,
+    )
 
 
 @pytest.fixture
@@ -106,12 +117,16 @@ class TestBedrockAPIFetcherInit:
 
     def test_init_with_defaults(self, mock_auth_manager):
         """Test initialization with default parameters."""
+        from bestehorn_llmmanager.bedrock.models.catalog_constants import CatalogDefaults
+
         fetcher = BedrockAPIFetcher(auth_manager=mock_auth_manager)
 
         assert fetcher._auth_manager == mock_auth_manager
         assert fetcher._timeout == 30
         assert fetcher._max_workers == 10
-        assert fetcher._max_retries == 3
+        # Discovery retry budget raised for fan-out cold-start bursts (issue #30).
+        assert fetcher._max_retries == CatalogDefaults.DEFAULT_MAX_RETRIES
+        assert fetcher._max_retries >= 5
 
 
 class TestBedrockAPIFetcherFetchFoundationModels:
@@ -410,3 +425,151 @@ class TestBedrockAPIFetcherParallelExecution:
                         pass
 
             mock_executor_class.assert_called_once_with(max_workers=3)
+
+
+class TestBedrockAPIFetcherThrottleRetry:
+    """Tests for issue #30: throttled control-plane discovery must RETRY (not fail-fast).
+
+    Acceptance criteria from the change request:
+    1. ThrottlingException on the first N calls then success -> discovery RETRIES and
+       returns the catalog; no APIFetchError escapes.
+    2. ThrottlingException is retried (predicate matches) while AccessDeniedException is
+       NOT retried (fails fast).
+    3. Backoff is jittered (the fetcher uses a jittered wait strategy).
+    4. A partial-region throttle does not become a fatal failure: a model present in a
+       successfully-fetched region is returned even if another region is throttle-exhausted.
+    5. "Throttled, retries exhausted" is distinguishable from "genuinely not found"
+       (a dedicated retryable APIThrottleError type, subclass of APIFetchError).
+    """
+
+    def _patch_client(self, mock_auth_manager, mock_client):
+        return patch.object(
+            mock_auth_manager, "get_bedrock_control_client", return_value=mock_client
+        )
+
+    def test_throttle_is_retried_then_succeeds_foundation_models(
+        self, mock_auth_manager, sample_foundation_models
+    ):
+        """AC#1: a ThrottlingException on the first calls is retried until success."""
+        mock_client = MagicMock()
+        mock_client.list_foundation_models.side_effect = [
+            _client_error("ThrottlingException"),
+            _client_error("ThrottlingException"),
+            {"modelSummaries": sample_foundation_models},
+        ]
+        with self._patch_client(mock_auth_manager, mock_client):
+            fetcher = BedrockAPIFetcher(auth_manager=mock_auth_manager, max_retries=5)
+            result = fetcher._fetch_foundation_models(region="us-east-1")
+
+        assert result == sample_foundation_models
+        assert mock_client.list_foundation_models.call_count == 3
+
+    def test_throttle_is_retried_then_succeeds_inference_profiles(
+        self, mock_auth_manager, sample_inference_profiles
+    ):
+        """AC#1: throttled inference-profile discovery is retried until success."""
+        mock_client = MagicMock()
+        mock_client.list_inference_profiles.side_effect = [
+            _client_error("ThrottlingException", operation="ListInferenceProfiles"),
+            {"inferenceProfileSummaries": sample_inference_profiles},
+        ]
+        with self._patch_client(mock_auth_manager, mock_client):
+            fetcher = BedrockAPIFetcher(auth_manager=mock_auth_manager, max_retries=5)
+            result = fetcher._fetch_inference_profiles(region="us-east-1")
+
+        assert result == sample_inference_profiles
+        assert mock_client.list_inference_profiles.call_count == 2
+
+    def test_throttle_retries_exhausted_raises_throttle_error(self, mock_auth_manager):
+        """AC#1/#5: when throttling never clears, a retryable APIThrottleError surfaces.
+
+        APIThrottleError is a subclass of APIFetchError so existing `except APIFetchError`
+        callers still catch it, but the type distinguishes "throttled" from "not found".
+        """
+        mock_client = MagicMock()
+        mock_client.list_foundation_models.side_effect = _client_error("ThrottlingException")
+        with self._patch_client(mock_auth_manager, mock_client):
+            fetcher = BedrockAPIFetcher(auth_manager=mock_auth_manager, max_retries=3)
+            with pytest.raises(APIThrottleError):
+                fetcher._fetch_foundation_models(region="us-east-1")
+
+        assert mock_client.list_foundation_models.call_count == 3
+        assert issubclass(APIThrottleError, APIFetchError)
+
+    def test_access_denied_is_not_retried(self, mock_auth_manager):
+        """AC#2: AccessDeniedException is non-retryable -> fails fast on the first call."""
+        mock_client = MagicMock()
+        mock_client.list_foundation_models.side_effect = _client_error("AccessDeniedException")
+        with self._patch_client(mock_auth_manager, mock_client):
+            fetcher = BedrockAPIFetcher(auth_manager=mock_auth_manager, max_retries=5)
+            with pytest.raises(APIFetchError) as exc_info:
+                fetcher._fetch_foundation_models(region="us-east-1")
+
+        # Exactly one call: not retried.
+        assert mock_client.list_foundation_models.call_count == 1
+        # And it is NOT the retryable throttle subtype.
+        assert not isinstance(exc_info.value, APIThrottleError)
+
+    def test_configurable_retry_budget_is_honored(self, mock_auth_manager):
+        """AC (point 3): the per-instance max_retries actually bounds the attempts.
+
+        Regression guard: previously the @retry decorator hardcoded the default, so the
+        constructor max_retries argument was dead. A higher budget must mean more attempts.
+        """
+        mock_client = MagicMock()
+        mock_client.list_foundation_models.side_effect = _client_error("ThrottlingException")
+        with self._patch_client(mock_auth_manager, mock_client):
+            fetcher = BedrockAPIFetcher(auth_manager=mock_auth_manager, max_retries=6)
+            with pytest.raises(APIThrottleError):
+                fetcher._fetch_foundation_models(region="us-east-1")
+
+        assert mock_client.list_foundation_models.call_count == 6
+
+    def test_default_retry_budget_raised_for_fanout(self):
+        """AC (point 3): the default discovery retry budget is raised for fan-out bursts."""
+        from bestehorn_llmmanager.bedrock.models.catalog_constants import CatalogDefaults
+
+        assert CatalogDefaults.DEFAULT_MAX_RETRIES >= 5
+
+    def test_backoff_uses_jitter(self, mock_auth_manager):
+        """AC#3: the fetcher wait strategy is jittered (de-correlated), not plain exponential.
+
+        A synchronized cold-start fleet must not retry in lockstep. We assert the
+        configured tenacity wait strategy is a jittered variant.
+        """
+        from tenacity import wait_exponential_jitter, wait_random_exponential
+
+        fetcher = BedrockAPIFetcher(auth_manager=mock_auth_manager, max_retries=5)
+        wait_strategy = fetcher._build_retrying().wait
+        assert isinstance(wait_strategy, (wait_exponential_jitter, wait_random_exponential))
+
+    def test_partial_region_throttle_not_fatal_when_model_present_elsewhere(
+        self, mock_auth_manager, sample_foundation_models, sample_inference_profiles
+    ):
+        """AC#4: throttle-exhausted on one region, success on another -> partial catalog.
+
+        fetch_all_data must return data for the region(s) that succeeded rather than
+        failing the whole sweep when at least one region was fetched.
+        """
+        good_client = MagicMock()
+        good_client.list_foundation_models.return_value = {
+            "modelSummaries": sample_foundation_models
+        }
+        good_client.list_inference_profiles.return_value = {
+            "inferenceProfileSummaries": sample_inference_profiles
+        }
+        throttled_client = MagicMock()
+        throttled_client.list_foundation_models.side_effect = _client_error("ThrottlingException")
+        throttled_client.list_inference_profiles.side_effect = _client_error("ThrottlingException")
+
+        def pick_client(region):
+            return good_client if region == "us-east-1" else throttled_client
+
+        with patch.object(mock_auth_manager, "get_bedrock_control_client", side_effect=pick_client):
+            fetcher = BedrockAPIFetcher(auth_manager=mock_auth_manager, max_retries=3)
+            result = fetcher.fetch_all_data(regions=["us-east-1", "us-west-2"])
+
+        assert result.has_data is True
+        assert "us-east-1" in result.successful_regions
+        assert "us-west-2" in result.failed_regions
+        assert len(result.foundation_models["us-east-1"]) == 2

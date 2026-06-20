@@ -464,6 +464,22 @@ class APIFetchError(LLMManagerError):
         return None
 
 
+class APIThrottleError(APIFetchError):
+    """Raised when an AWS control-plane discovery call is throttled (rate-limited).
+
+    This is a *retryable* subclass of :class:`APIFetchError`: control-plane discovery
+    throttling (``ThrottlingException`` from ``list_foundation_models`` /
+    ``list_inference_profiles``) is transient, so the catalog fetcher's retry controller
+    retries it with jittered exponential backoff. It is kept distinct from a
+    non-retryable ``APIFetchError`` (e.g. ``AccessDeniedException``) so callers can tell
+    "throttled, retries exhausted" apart from "genuinely not found" (issue #30). Because
+    it subclasses ``APIFetchError``, existing ``except APIFetchError`` handlers continue
+    to catch it.
+    """
+
+    pass
+
+
 class CatalogError(LLMManagerError):
     """Base exception for catalog operations."""
 

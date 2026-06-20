@@ -11,10 +11,15 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Dict, List, Optional, Tuple
 
 from botocore.exceptions import BotoCoreError, ClientError
-from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential
+from tenacity import (
+    Retrying,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential_jitter,
+)
 
 from ..auth.auth_manager import AuthManager
-from ..exceptions.llm_manager_exceptions import APIFetchError
+from ..exceptions.llm_manager_exceptions import APIFetchError, APIThrottleError
 from ..models.aws_regions import get_commercial_regions
 from ..models.catalog_constants import (
     CatalogAPIParameters,
@@ -120,6 +125,38 @@ class BedrockAPIFetcher:
         self._logger.debug(
             f"BedrockAPIFetcher initialized: timeout={timeout}s, "
             f"max_workers={max_workers}, max_retries={max_retries}"
+        )
+
+    def _build_retrying(self) -> Retrying:
+        """
+        Build a tenacity retry controller for a single discovery API call.
+
+        The controller is built per call from instance state so the configured
+        ``max_retries`` is actually honored (issue #30 — previously the retry budget was
+        hardcoded at class-definition time via a ``@retry`` decorator, leaving the
+        constructor argument dead). It:
+
+        - retries transient control-plane failures: ``ClientError``/``BotoCoreError`` and
+          the retryable ``APIThrottleError`` (raised for ``ThrottlingException``), while a
+          non-retryable ``APIFetchError`` (e.g. ``AccessDeniedException``) is NOT matched
+          and so fails fast;
+        - waits with **jittered** exponential backoff (``wait_exponential_jitter``) so a
+          synchronized fleet of cold-starting workers does not retry in lockstep and
+          re-collide on the throttled discovery API;
+        - reraises the final exception (so the caller sees the real error, not a
+          ``RetryError`` wrapper).
+
+        Returns:
+            A configured ``Retrying`` controller for one discovery call.
+        """
+        return Retrying(
+            stop=stop_after_attempt(self._max_retries),
+            wait=wait_exponential_jitter(
+                initial=CatalogDefaults.DEFAULT_RETRY_INITIAL_WAIT_SECONDS,
+                max=CatalogDefaults.DEFAULT_RETRY_MAX_WAIT_SECONDS,
+            ),
+            retry=retry_if_exception_type((ClientError, BotoCoreError, APIThrottleError)),
+            reraise=True,
         )
 
     def fetch_all_data(
@@ -228,22 +265,15 @@ class BedrockAPIFetcher:
 
         return models, profiles
 
-    @retry(
-        stop=stop_after_attempt(CatalogDefaults.DEFAULT_MAX_RETRIES),
-        wait=wait_exponential(
-            multiplier=CatalogDefaults.DEFAULT_RETRY_MULTIPLIER,
-            min=CatalogDefaults.DEFAULT_RETRY_MIN_WAIT_SECONDS,
-            max=CatalogDefaults.DEFAULT_RETRY_MAX_WAIT_SECONDS,
-        ),
-        retry=retry_if_exception_type((ClientError, BotoCoreError)),
-        reraise=True,
-    )
     def _fetch_foundation_models(self, region: str) -> List[Dict[str, Any]]:
         """
-        Fetch foundation models from a single region with retry logic.
+        Fetch foundation models from a single region with jittered-backoff retry.
 
-        Uses the AWS Bedrock list-foundation-models API with exponential backoff
-        retry for transient errors.
+        Uses the AWS Bedrock list-foundation-models API. Transient failures — including
+        control-plane ``ThrottlingException`` (raised as the retryable
+        :class:`APIThrottleError`) — are retried with jittered exponential backoff via the
+        instance retry controller (issue #30). ``AccessDeniedException`` is non-retryable
+        and fails fast.
 
         Args:
             region: AWS region identifier
@@ -252,8 +282,22 @@ class BedrockAPIFetcher:
             List of foundation model summaries
 
         Raises:
-            ClientError: If API call fails after retries
-            BotoCoreError: If boto3 client error occurs
+            APIThrottleError: If discovery stays throttled after the retry budget
+            APIFetchError: For non-retryable fetch failures (e.g. access denied)
+            ClientError: If a non-throttle API call fails after retries
+            BotoCoreError: If a boto3 client error persists after retries
+        """
+        return self._build_retrying()(self._fetch_foundation_models_once, region)
+
+    def _fetch_foundation_models_once(self, region: str) -> List[Dict[str, Any]]:
+        """
+        Perform one list-foundation-models call (no retry; invoked by the controller).
+
+        Args:
+            region: AWS region identifier
+
+        Returns:
+            List of foundation model summaries
         """
         try:
             # Get Bedrock control plane client for this region
@@ -280,12 +324,15 @@ class BedrockAPIFetcher:
 
             # Handle specific error cases
             if error_code == "AccessDeniedException":
+                # Non-retryable: a denied permission will not clear on retry.
                 raise APIFetchError(
                     message=CatalogErrorMessages.API_FETCH_AUTH_ERROR.format(error=str(e)),
                     region=region,
                 ) from e
             elif error_code == "ThrottlingException":
-                raise APIFetchError(
+                # Retryable: surface as APIThrottleError so the retry controller retries it
+                # with jittered backoff instead of failing fast (issue #30).
+                raise APIThrottleError(
                     message=CatalogErrorMessages.API_FETCH_THROTTLED.format(error=str(e)),
                     region=region,
                 ) from e
@@ -303,22 +350,15 @@ class BedrockAPIFetcher:
                 region=region,
             ) from e
 
-    @retry(
-        stop=stop_after_attempt(CatalogDefaults.DEFAULT_MAX_RETRIES),
-        wait=wait_exponential(
-            multiplier=CatalogDefaults.DEFAULT_RETRY_MULTIPLIER,
-            min=CatalogDefaults.DEFAULT_RETRY_MIN_WAIT_SECONDS,
-            max=CatalogDefaults.DEFAULT_RETRY_MAX_WAIT_SECONDS,
-        ),
-        retry=retry_if_exception_type((ClientError, BotoCoreError)),
-        reraise=True,
-    )
     def _fetch_inference_profiles(self, region: str) -> List[Dict[str, Any]]:
         """
-        Fetch inference profiles from a single region with retry logic.
+        Fetch inference profiles from a single region with jittered-backoff retry.
 
-        Uses the AWS Bedrock list-inference-profiles API with exponential backoff
-        retry for transient errors. Filters for SYSTEM_DEFINED profiles only.
+        Uses the AWS Bedrock list-inference-profiles API (SYSTEM_DEFINED filter,
+        nextToken-paginated). Transient failures — including control-plane
+        ``ThrottlingException`` (raised as the retryable :class:`APIThrottleError`) — are
+        retried with jittered exponential backoff via the instance retry controller
+        (issue #30). ``AccessDeniedException`` is non-retryable and fails fast.
 
         Args:
             region: AWS region identifier
@@ -327,8 +367,22 @@ class BedrockAPIFetcher:
             List of inference profile summaries (SYSTEM_DEFINED only)
 
         Raises:
-            ClientError: If API call fails after retries
-            BotoCoreError: If boto3 client error occurs
+            APIThrottleError: If discovery stays throttled after the retry budget
+            APIFetchError: For non-retryable fetch failures (e.g. access denied)
+            ClientError: If a non-throttle API call fails after retries
+            BotoCoreError: If a boto3 client error persists after retries
+        """
+        return self._build_retrying()(self._fetch_inference_profiles_once, region)
+
+    def _fetch_inference_profiles_once(self, region: str) -> List[Dict[str, Any]]:
+        """
+        Perform one paginated list-inference-profiles sweep (no retry; controller-invoked).
+
+        Args:
+            region: AWS region identifier
+
+        Returns:
+            List of inference profile summaries (SYSTEM_DEFINED only)
         """
         try:
             # Get Bedrock control plane client for this region
@@ -373,12 +427,15 @@ class BedrockAPIFetcher:
 
             # Handle specific error cases
             if error_code == "AccessDeniedException":
+                # Non-retryable: a denied permission will not clear on retry.
                 raise APIFetchError(
                     message=CatalogErrorMessages.API_FETCH_AUTH_ERROR.format(error=str(e)),
                     region=region,
                 ) from e
             elif error_code == "ThrottlingException":
-                raise APIFetchError(
+                # Retryable: surface as APIThrottleError so the retry controller retries it
+                # with jittered backoff instead of failing fast (issue #30).
+                raise APIThrottleError(
                     message=CatalogErrorMessages.API_FETCH_THROTTLED.format(error=str(e)),
                     region=region,
                 ) from e
