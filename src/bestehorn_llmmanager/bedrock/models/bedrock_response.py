@@ -10,6 +10,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from .llm_manager_constants import ConverseAPIFields
 from .llm_manager_structures import RequestAttempt, ValidationAttempt
+from .stop_reason import StopReasonCategory, StopReasonClassifier
 
 
 @dataclass
@@ -206,6 +207,22 @@ class BedrockResponse:
             return self.response_data.get(ConverseAPIFields.STOP_REASON)
         except (KeyError, TypeError, AttributeError):
             return None
+
+    def get_stop_reason_category(self) -> StopReasonCategory:
+        """
+        Get the canonical retry/failover category of this response's stop reason.
+
+        Classifies the raw ``stopReason`` (see :meth:`get_stop_reason`) into a
+        :class:`StopReasonCategory` so callers can branch on intent rather than on raw
+        strings — e.g. ``model_context_window_exceeded`` and ``malformed_*`` are
+        retryable (the former only against a different model/region), while ``end_turn`` /
+        ``tool_use`` / ``stop_sequence`` / ``max_tokens`` are terminal (issue #37). An
+        absent or unrecognized reason maps to ``StopReasonCategory.UNKNOWN``.
+
+        Returns:
+            The :class:`StopReasonCategory` for this response's stop reason.
+        """
+        return StopReasonClassifier.categorize(self.get_stop_reason())
 
     def get_additional_model_response_fields(self) -> Optional[Dict[str, Any]]:
         """

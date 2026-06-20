@@ -6,6 +6,8 @@ Contains string constants for JSON field access and configuration values.
 import logging
 from typing import Final
 
+from .stop_reason import StopReasonEnum
+
 
 class ConverseAPIFields:
     """JSON field constants for AWS Bedrock Converse API requests and responses."""
@@ -87,12 +89,20 @@ class ConverseAPIFields:
     ROLE_USER: Final[str] = "user"
     ROLE_ASSISTANT: Final[str] = "assistant"
 
-    # Stop reason values
-    STOP_REASON_END_TURN: Final[str] = "end_turn"
-    STOP_REASON_MAX_TOKENS: Final[str] = "max_tokens"
-    STOP_REASON_STOP_SEQUENCE: Final[str] = "stop_sequence"
-    STOP_REASON_TOOL_USE: Final[str] = "tool_use"
-    STOP_REASON_CONTENT_FILTERED: Final[str] = "content_filtered"
+    # Stop reason values — the complete Bedrock Converse stopReason set (issue #37).
+    # These derive from the canonical StopReasonEnum (single source of truth shared with
+    # StreamingConstants), so core and streaming can never drift.
+    STOP_REASON_END_TURN: Final[str] = StopReasonEnum.END_TURN.value
+    STOP_REASON_MAX_TOKENS: Final[str] = StopReasonEnum.MAX_TOKENS.value
+    STOP_REASON_STOP_SEQUENCE: Final[str] = StopReasonEnum.STOP_SEQUENCE.value
+    STOP_REASON_TOOL_USE: Final[str] = StopReasonEnum.TOOL_USE.value
+    STOP_REASON_CONTENT_FILTERED: Final[str] = StopReasonEnum.CONTENT_FILTERED.value
+    STOP_REASON_GUARDRAIL_INTERVENED: Final[str] = StopReasonEnum.GUARDRAIL_INTERVENED.value
+    STOP_REASON_MALFORMED_MODEL_OUTPUT: Final[str] = StopReasonEnum.MALFORMED_MODEL_OUTPUT.value
+    STOP_REASON_MALFORMED_TOOL_USE: Final[str] = StopReasonEnum.MALFORMED_TOOL_USE.value
+    STOP_REASON_MODEL_CONTEXT_WINDOW_EXCEEDED: Final[str] = (
+        StopReasonEnum.MODEL_CONTEXT_WINDOW_EXCEEDED.value
+    )
 
 
 class LLMManagerConfig:
