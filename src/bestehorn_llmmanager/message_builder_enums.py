@@ -58,14 +58,20 @@ class VideoFormatEnum(str, Enum):
     """
     Enumeration of supported video formats for the Converse API.
 
-    These formats are compatible with AWS Bedrock video processing capabilities.
+    These values match the AWS Bedrock Converse ``VideoBlock`` ``format`` enum exactly
+    (mkv, mov, mp4, webm, flv, mpeg, mpg, wmv, three_gp). ``avi`` is intentionally absent:
+    Bedrock does not accept it, so sending it always produced a rejected request.
     """
 
     MP4 = "mp4"
     MOV = "mov"
-    AVI = "avi"
     WEBM = "webm"
     MKV = "mkv"
+    FLV = "flv"
+    MPEG = "mpeg"
+    MPG = "mpg"
+    WMV = "wmv"
+    THREE_GP = "three_gp"
 
 
 class DetectionMethodEnum(str, Enum):

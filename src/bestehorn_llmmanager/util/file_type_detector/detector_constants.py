@@ -46,8 +46,8 @@ class MagicBytesConstants:
     ]
 
     MOV_SIGNATURE: Final[bytes] = b"\x00\x00\x00\x14ftypqt"
-    AVI_SIGNATURE: Final[bytes] = b"RIFF"
-    AVI_FORMAT_SIGNATURE: Final[bytes] = b"AVI "
+    # AVI magic-byte constants intentionally removed (issue #33): Bedrock does not accept
+    # "avi", so the detector no longer recognizes it as a supported video format.
     WEBM_SIGNATURE: Final[bytes] = b"\x1a\x45\xdf\xa3"
     MKV_SIGNATURE: Final[bytes] = b"\x1a\x45\xdf\xa3"
 
@@ -77,12 +77,19 @@ class FileExtensionConstants:
         ".markdown": "md",
     }
 
+    # Extension → Bedrock video format token. Matches the VideoFormatEnum / Bedrock set
+    # (issue #33): no ".avi" (Bedrock rejects avi); ".3gp" maps to the Bedrock token
+    # "three_gp".
     VIDEO_EXTENSIONS: Final[Dict[str, str]] = {
         ".mp4": "mp4",
         ".mov": "mov",
-        ".avi": "avi",
         ".webm": "webm",
         ".mkv": "mkv",
+        ".flv": "flv",
+        ".mpeg": "mpeg",
+        ".mpg": "mpg",
+        ".wmv": "wmv",
+        ".3gp": "three_gp",
     }
 
     @classmethod

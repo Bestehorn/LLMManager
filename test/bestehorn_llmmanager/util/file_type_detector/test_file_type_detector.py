@@ -315,15 +315,17 @@ class TestVideoDetection:
         assert result.is_successful
         assert result.detected_format == "mov"
 
-    def test_detect_avi_by_content(self):
-        """Test AVI detection by content."""
+    def test_avi_is_not_detected_as_supported_video(self):
+        """AVI is not a Bedrock-supported video format (issue #33): it must NOT be
+        detected. AVI content falls through to an unsuccessful (unsupported) result
+        rather than producing a request Bedrock would reject."""
         detector = FileTypeDetector()
         avi_content = b"RIFF\x1c\x00\x00\x00AVI "
 
         result = detector.detect_video_format(content=avi_content, filename="test.avi")
 
-        assert result.is_successful
-        assert result.detected_format == "avi"
+        assert not result.is_successful
+        assert result.detected_format != "avi"
 
     def test_detect_webm_by_content(self):
         """Test WEBM detection by content."""

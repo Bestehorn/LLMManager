@@ -278,9 +278,13 @@ from bestehorn_llmmanager import VideoFormatEnum
 class VideoFormatEnum(str, Enum):
     MP4 = "mp4"
     MOV = "mov"
-    AVI = "avi"
     WEBM = "webm"
     MKV = "mkv"
+    FLV = "flv"
+    MPEG = "mpeg"
+    MPG = "mpg"
+    WMV = "wmv"
+    THREE_GP = "three_gp"
 ```
 
 ### MessageBuilder Properties and Utilities
@@ -2980,9 +2984,13 @@ class DocumentFormatEnum(str, Enum):
 class VideoFormatEnum(str, Enum):
     MP4 = "mp4"
     MOV = "mov"
-    AVI = "avi"
     WEBM = "webm"
     MKV = "mkv"
+    FLV = "flv"
+    MPEG = "mpeg"
+    MPG = "mpg"
+    WMV = "wmv"
+    THREE_GP = "three_gp"
 
 # File type detection methods
 class DetectionMethodEnum(str, Enum):

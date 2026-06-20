@@ -292,7 +292,7 @@ message = create_user_message()\
 # Supported formats:
 # Images: JPEG, PNG, GIF, WEBP
 # Documents: PDF, CSV, DOC, DOCX, XLS, XLSX, HTML, TXT, MD  
-# Videos: MP4, MOV, AVI, WEBM, MKV
+# Videos: MP4, MOV, WEBM, MKV, FLV, MPEG, MPG, WMV, 3GP
 ```
 
 ### 🌊 Streaming Responses
