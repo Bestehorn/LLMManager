@@ -33,3 +33,24 @@ Entry format:
   (`ruff format` + `ruff check`, with ruff's `S` rules replacing bandit) under issue
   #15; the tool names above have been updated to reflect the migration. The underlying
   lessons (line-length 100, exclude `_version.py` everywhere) are unchanged.
+
+## 2026-06-20 — A class-level tenacity @retry decorator ignores per-instance config (issue #30)
+- **Context**: Fixing throttled control-plane discovery (`list_foundation_models` /
+  `list_inference_profiles`) in `bedrock/catalog/api_fetcher.py` so a fan-out
+  cold-start retries instead of failing fast.
+- **Lesson**: Two non-obvious traps. (1) The `@retry(...)` decorator bound
+  `stop_after_attempt(CatalogDefaults.DEFAULT_MAX_RETRIES)` at **class-definition
+  time**, so `BedrockAPIFetcher.__init__(max_retries=...)` was a **dead argument** — the
+  budget could never be configured per instance. (2) The `except ClientError` body
+  re-raised `ThrottlingException` **wrapped** as `APIFetchError`, but the retry predicate
+  was `retry_if_exception_type((ClientError, BotoCoreError))` — `APIFetchError` matches
+  neither, so the wrap silently **defeated the very retry it was meant to feed**, and a
+  throttle failed immediately. Plain `wait_exponential` (no jitter) also makes a
+  synchronized fleet retry in lockstep and re-collide.
+- **Action**: Replace the static decorator with a per-call instance controller
+  (`self._build_retrying()` → `tenacity.Retrying`) built from `self._max_retries`, so the
+  budget is honored and configurable; add a retryable `APIThrottleError(APIFetchError)`
+  and put it in the predicate (`(ClientError, BotoCoreError, APIThrottleError)`) so
+  `ThrottlingException` retries while `AccessDeniedException` stays fast-fail; use
+  `wait_exponential_jitter` to de-correlate the herd. When you see a tenacity `@retry`
+  whose `wait`/`stop` reference instance config, suspect the dead-decorator trap.

@@ -159,12 +159,20 @@ class CatalogDefaults:
     # API settings
     DEFAULT_API_TIMEOUT_SECONDS: Final[int] = 30
     DEFAULT_MAX_WORKERS: Final[int] = 10
-    DEFAULT_MAX_RETRIES: Final[int] = 3
+    # Discovery retry budget (issue #30): a lone caller needs only a couple of attempts,
+    # but a synchronized fan-out cold-start (e.g. ~1000 workers) trivially exceeds the
+    # low control-plane RPM limit, so the default is raised to give jittered backoff room
+    # to clear the throttle before a worker fails init.
+    DEFAULT_MAX_RETRIES: Final[int] = 6
 
     # Retry settings
     DEFAULT_RETRY_MIN_WAIT_SECONDS: Final[float] = 1.0
     DEFAULT_RETRY_MAX_WAIT_SECONDS: Final[float] = 10.0
     DEFAULT_RETRY_MULTIPLIER: Final[float] = 1.0
+    # Initial backoff for the jittered exponential wait (wait_exponential_jitter). Jitter
+    # de-correlates a synchronized fleet so cold-starting workers do not retry in lockstep
+    # and re-collide on the throttled discovery API (issue #30).
+    DEFAULT_RETRY_INITIAL_WAIT_SECONDS: Final[float] = 1.0
 
     # AWS regions to query (comprehensive list as of 2025)
     DEFAULT_AWS_REGIONS: Final[List[str]] = [

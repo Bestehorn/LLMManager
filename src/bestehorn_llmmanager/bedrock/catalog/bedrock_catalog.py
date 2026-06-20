@@ -68,6 +68,7 @@ class BedrockModelCatalog:
         force_refresh: bool = CatalogDefaults.DEFAULT_FORCE_REFRESH,
         timeout: int = CatalogDefaults.DEFAULT_API_TIMEOUT_SECONDS,
         max_workers: int = CatalogDefaults.DEFAULT_MAX_WORKERS,
+        max_retries: int = CatalogDefaults.DEFAULT_MAX_RETRIES,
         fallback_to_bundled: bool = CatalogDefaults.DEFAULT_FALLBACK_TO_BUNDLED,
         enable_fuzzy_matching: Optional[bool] = None,
     ) -> None:
@@ -83,6 +84,9 @@ class BedrockModelCatalog:
             force_refresh: Force API refresh even if cache is valid
             timeout: API call timeout in seconds
             max_workers: Parallel workers for multi-region API calls
+            max_retries: Retry attempts per discovery API call. Throttled control-plane
+                         calls retry with jittered backoff up to this budget (issue #30);
+                         the default is sized for a fan-out cold-start burst.
             fallback_to_bundled: Use bundled data if API fails
             enable_fuzzy_matching: Enable fuzzy matching in model-CRIS correlation
 
@@ -119,6 +123,7 @@ class BedrockModelCatalog:
             auth_manager=self._auth_manager,
             timeout=timeout,
             max_workers=max_workers,
+            max_retries=max_retries,
         )
 
         self._transformer = CatalogTransformer(
