@@ -207,8 +207,20 @@ class RequestValidator:
                 errors.append(f"Message {message_index}, block {i} must be a dictionary")
                 continue
 
-            # Check that block has at least one content type
-            content_types = ["text", "image", "document", "video", "toolUse", "toolResult"]
+            # Check that block has at least one content type. "cachePoint" is a valid
+            # Converse content block (a caller-placed prompt-caching checkpoint built via
+            # ConverseMessageBuilder.add_cache_point()); the parallel path must accept it
+            # so caller-placed cache points survive submission, not reject them as empty
+            # blocks (issue #29, CR-2).
+            content_types = [
+                "text",
+                "image",
+                "document",
+                "video",
+                "toolUse",
+                "toolResult",
+                "cachePoint",
+            ]
             if not any(content_type in block for content_type in content_types):
                 errors.append(
                     f"Message {message_index}, block {i} must have at least one content type"

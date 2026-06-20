@@ -526,9 +526,23 @@ ParallelLLMManager(
     parallel_config: Optional[ParallelProcessingConfig] = None,  # Optional: Parallel processing config
     default_inference_config: Optional[Dict] = None,     # Optional: Default inference parameters
     timeout: int = 300,                                   # Optional: Request timeout in seconds
-    log_level: Union[int, str] = logging.WARNING         # Optional: Logging level (default: WARNING)
+    log_level: Union[int, str] = logging.WARNING,        # Optional: Logging level (default: WARNING)
+    cache_config: Optional[CacheConfig] = None           # Optional: Bedrock prompt caching (forwarded to internal LLMManager)
 )
 ```
+
+**Prompt caching on the parallel path:** pass `cache_config=CacheConfig(enabled=True, ...)`
+to enable Bedrock prompt caching for parallel requests. It is forwarded to the internal
+single-call manager, so the existing cache-point injection/validation applies to every
+`converse_parallel` request. Build messages with a stable prefix and a cache point at its
+end (`ConverseMessageBuilder.add_cache_point()`); caller-placed cache points are preserved
+through the parallel submission path. After a batch, read per-request cache tokens via
+`response.get_cache_read_tokens()`/`get_cache_write_tokens()`, or the batch aggregate via
+`ParallelResponse.get_cache_metrics()` (hit ratio + cache-served tokens) and
+`get_total_tokens_used()`. With `cache_config=None` (default) the parallel path is
+unchanged. Note: caching only takes effect when the stable prefix meets the model's
+minimum checkpoint size (e.g. 4,096 tokens for Claude Opus 4.x); a sub-minimum prefix is
+not cached.
 
 #### Core Methods
 

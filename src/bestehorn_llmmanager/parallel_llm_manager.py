@@ -17,6 +17,7 @@ from .bedrock.exceptions.parallel_exceptions import (
 )
 from .bedrock.executors.thread_parallel_executor import ThreadParallelExecutor
 from .bedrock.models.bedrock_response import BedrockResponse
+from .bedrock.models.cache_structures import CacheConfig
 from .bedrock.models.llm_manager_constants import LLMManagerConfig
 from .bedrock.models.llm_manager_structures import (
     AuthConfig,
@@ -93,6 +94,7 @@ class ParallelLLMManager:
         region_order: Optional[str] = None,
         access_method_preference: Optional[str] = None,
         global_cris_fraction: Optional[float] = None,
+        cache_config: Optional[CacheConfig] = None,
     ) -> None:
         """
         Initialize the Parallel LLM Manager.
@@ -129,6 +131,13 @@ class ParallelLLMManager:
                 approximately this share of requests is routed to the global CRIS profile,
                 the rest follow the default order. None (default) disables interleaving.
                 Forwarded to the underlying LLMManager.
+            cache_config: Prompt-caching configuration (issue #29). Forwarded to the
+                internal LLMManager so the existing cache-point injection/validation
+                applies to parallel requests too (each parallel request executes via
+                that manager's converse()). None (default) => caching disabled, i.e. the
+                parallel path is byte-identical to before. To enable, pass
+                CacheConfig(enabled=True, ...) and build messages with cacheable blocks /
+                an explicit cache point at the end of the stable prefix.
 
         Raises:
             ParallelConfigurationError: If configuration is invalid
@@ -161,6 +170,7 @@ class ParallelLLMManager:
             region_order=region_order,
             access_method_preference=access_method_preference,
             global_cris_fraction=global_cris_fraction,
+            cache_config=cache_config,
         )
 
         # Initialize parallel processing components

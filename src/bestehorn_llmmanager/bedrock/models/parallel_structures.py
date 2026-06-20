@@ -13,6 +13,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
 from .bedrock_response import BedrockResponse
+from .cache_structures import CacheMetrics
 from .parallel_constants import ParallelConfig, ParallelProcessingFields
 
 
@@ -524,6 +525,49 @@ class ParallelResponse:
                     total_usage[key] += usage.get(key, 0)
 
         return total_usage
+
+    def get_cache_metrics(self) -> CacheMetrics:
+        """
+        Derive aggregate prompt-caching metrics across the batch (issue #29, CR-3).
+
+        Each successful response carries the Bedrock Converse ``usage`` cache fields
+        (``cache_read_tokens`` / ``cache_write_tokens``); this aggregates them so callers
+        can measure the realized cache effectiveness of a parallel fan-out:
+
+        - a request with ``cache_read_tokens > 0`` is counted as a cache **hit** (it read
+          a previously-written prefix at the reduced cached rate);
+        - a request with no cache reads is counted as a cache **miss** (it either wrote
+          the cache or did not cache at all);
+        - ``cache_savings_tokens`` is the total input tokens served from cache (the sum of
+          cache-read tokens), and ``cache_hit_ratio`` is hits / total successful requests.
+
+        With caching disabled (no cache tokens on any response) every field is zero, so a
+        batch run without ``cache_config`` reports exactly as before.
+
+        Returns:
+            A :class:`CacheMetrics` with the read-derived hit ratio, hit/miss counts, and
+            cache-served token savings for this batch.
+        """
+        successful = self.get_successful_responses()
+        total = len(successful)
+
+        cache_read_total = 0
+        hits = 0
+        for response in successful.values():
+            read_tokens = response.get_cache_read_tokens()
+            cache_read_total += read_tokens
+            if read_tokens > 0:
+                hits += 1
+
+        misses = total - hits
+        hit_ratio = (hits / total) if total else 0.0
+
+        return CacheMetrics(
+            cache_hit_ratio=hit_ratio,
+            cache_savings_tokens=cache_read_total,
+            total_cache_hits=hits,
+            total_cache_misses=misses,
+        )
 
     def get_average_latency(self) -> Optional[float]:
         """
