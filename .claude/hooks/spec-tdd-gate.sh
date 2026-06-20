@@ -41,13 +41,26 @@ if grep -qE '(--no-verify|[[:space:]]-n([[:space:]]|$))' <<<"$cmd"; then
   exit 2
 fi
 
-# Locate the active spec workflow's state. Any agent that drives the spec/TDD
-# engine writes a workflow_state.md under its own agent-state dir (the
-# spec-conductor, the issue-work-orchestrator, etc.). Pick the most recently
-# modified one as the active workflow.
+# Locate the active spec workflow's state, SESSION-AWARE so concurrent runs don't
+# cross-talk. Preferred: map this session_id -> its run via the orchestrator
+# registry and use that run's runs/<run-id>/workflow_state.md. Fallback (e.g. a
+# spec-conductor run, which has no registry entry): most-recently-modified
+# workflow_state.md under any agent-state dir, including per-run subtrees.
 base=".claude/agent-state"
 [[ -n "${CLAUDE_PROJECT_DIR:-}" && -d "$CLAUDE_PROJECT_DIR/$base" ]] && base="$CLAUDE_PROJECT_DIR/$base"
-state_file="$(ls -t "$base"/*/workflow_state.md 2>/dev/null | head -1)"
+
+state_file=""
+sid="$(printf '%s' "$input" | { command -v jq >/dev/null 2>&1 && jq -r '.session_id // empty' 2>/dev/null; } )"
+[[ -z "$sid" ]] && sid="$(printf '%s' "$input" | grep -oE '"session_id"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed -E 's/.*"([^"]*)"$/\1/')"
+reg="$base/issue-work-orchestrator/registry.json"
+if [[ -n "$sid" && -f "$reg" ]] && command -v jq >/dev/null 2>&1; then
+  sd="$(jq -r --arg s "$sid" '.[$s].state_dir // empty' "$reg" 2>/dev/null)"
+  [[ -n "$sd" && -f "$base/issue-work-orchestrator/$sd/workflow_state.md" ]] && \
+    state_file="$base/issue-work-orchestrator/$sd/workflow_state.md"
+fi
+if [[ -z "$state_file" ]]; then
+  state_file="$( { ls -t "$base"/*/workflow_state.md "$base"/*/runs/*/workflow_state.md 2>/dev/null; } | head -1)"
+fi
 
 if [[ -z "$state_file" || ! -f "$state_file" ]]; then
   # No active spec workflow — nothing more to enforce here.

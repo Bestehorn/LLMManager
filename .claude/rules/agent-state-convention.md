@@ -31,6 +31,32 @@ delete history. `.claude/agent-state/` is gitignored (per-run runtime state).
 The spec-workflow master state lives at
 `.claude/agent-state/spec-conductor/workflow_state.md`.
 
+### 1a. Per-run namespacing when multiple runs share one clone
+
+A single-run agent uses the flat layout above. But an agent of which **multiple
+instances may run concurrently in one clone** (notably `issue-work-orchestrator`) MUST
+namespace its state per run so runs never share a `resume_state.md`/`workflow_state.md`
+slot:
+
+```
+.claude/agent-state/<agent-name>/
+  registry.json                 # session_id -> { run_id, session_id, cwd, state_dir,
+                                #                 current_issue, status, started_at, last_heartbeat }
+  .locks/<resource>.lock        # per-resource mkdir locks (atomic create-or-fail; NTFS-safe)
+  runs/<run-id>/                # ONE run's private state subtree
+    resume_state.md  workflow_state.md  environment.md  issue_queue.md  iteration_log.md
+```
+
+Run identity is established by a **SessionStart hook** that writes `registry.json` keyed
+by the harness `session_id` (stable per run); `run_id` is derived from it. The agent and
+the gate hooks both resolve "which run owns this session" via that registry — no
+environment variable carries identity (consistent with `no-environment-vars`). A LIVE run
+= an entry with active `status` and a fresh `last_heartbeat`; stale entries/locks are
+reclaimed only when the heartbeat is past its declared bound AND the worktree pointer no
+longer resolves AND the run's status is terminal (archive, never delete). The gate hooks
+(`spec-tdd-gate.sh`, `spec-stop-gate.sh`, `issue-loop-gate.sh`) read THIS session's
+`runs/<run-id>/workflow_state.md`/`resume_state.md`, not a globally-most-recent file.
+
 ## 2. The decision log (mandatory for all agents)
 
 Whenever an agent makes a **non-trivial decision** — a design choice, a
@@ -69,7 +95,13 @@ Create the file with an `# Decision Log` header on first use.
    write a NEW entry whose `Supersedes:` points at the old `DL-mmm`.
 2. **Monotonic IDs.** `DL-001`, `DL-002`, … never reused, never rewound. The next
    number is `max(existing DL-NNN) + 1` — scan the file to determine it (the file is
-   authoritative; do not restart at 001 on a resumed session).
+   authoritative; do not restart at 001 on a resumed session). **Under concurrency:**
+   when multiple runs could append to the SAME decision log, two runs computing
+   `max+1` independently produce duplicate IDs. Either serialize appends to the shared
+   log behind the registry lock, OR (simpler and preferred) give each run its OWN
+   `runs/<run-id>/decision-log.md` and reserve the agent-root `decision-log.md` for
+   cross-run notes. Spec-context decisions still go to the spec's
+   `decisions/decision-log.md`.
 3. **Evidence required.** Every entry cites concrete evidence (this reuses the
    project's No-Guessing rule). A decision with no citable driver/evidence is itself
    a defect — gather the evidence or do not record the decision as made.

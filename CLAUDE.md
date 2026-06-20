@@ -74,3 +74,27 @@ non-negotiable essentials:
   and update issue checklists, set metadata (assignee, start/end date, time-spent, parent
   link) best-effort per host, keep the issue updated live so any agent can resume, and
   record every user question and its answer on the issue.
+
+## Parallel work in isolated worktrees (concurrency model)
+Multiple agent runs (notably `issue-work-orchestrator`) may work this **one clone**
+concurrently on the same machine, each in its own git worktree, without colliding. The
+machinery lives in the always-loaded rules and the hooks:
+- **Per-run state, not shared slots**: each run owns
+  `.claude/agent-state/<agent>/runs/<run-id>/` (its own `resume_state.md` /
+  `workflow_state.md` / decision log). Run identity flows from the harness `session_id`
+  via `registry.json` — written by the `SessionStart` hook `session-register.sh` and read
+  by the session-identity-aware gate hooks (`spec-tdd-gate.sh`, `spec-stop-gate.sh`,
+  `issue-loop-gate.sh`) — never an environment variable. See
+  `.claude/rules/agent-state-convention.md` §1a.
+- **Never move the shared local `main`**: a run fetches and branches off `origin/<main>`
+  and verifies merges with `git merge-base` instead of checking out / fast-forwarding the
+  developer's `main`. Cleanliness and `.locks/issue-<N>.lock` are scoped per run, and
+  shared-object-store gc is made concurrency-safe (`gc.auto 0`, `--no-auto-gc`). See
+  `.claude/rules/keep-git-clean.md`.
+- **Per-worktree venv (conditional)**: `.claude/rules/per-worktree-venv.md` (`paths:`
+  -scoped to `cdk/**`, `**/app.py`, `**/cdk.json`) requires each worktree that *runs*
+  code/CDK to get its own venv so it never imports another checkout's `src/`. It is
+  currently **inert** for this pure-library project (no `cdk/`/`app.py`), but applies
+  automatically if such code is ever added.
+- Rule of thumb: **one orchestrator per launch directory** — runs launched from the same
+  directory share session storage; distinct launch dirs keep them cleanly separate.

@@ -47,11 +47,36 @@ Decision procedure before any commit:
   (`git worktree remove <path>`) and delete the local branch (`git branch -d/-D`),
   and verify with `git worktree list` and a directory check that nothing is left
   behind. A merged fix must not leave its worktree directory or branch lingering.
-- After cleanup, the main checkout is on the main branch, synced with the remote, and
-  `git status` is clean.
+- The clean end-state is **per run**: each run leaves no worktree, branch, or lock of
+  its own behind. Assert cleanliness on the run's OWN working area.
+- **Do NOT move the shared local `main` branch.** When multiple runs may share one clone
+  (e.g. the issue-work-orchestrator), a run NEVER `git checkout main`s or fast-forwards
+  the shared local `main` — the developer and sibling runs depend on it. Fetch and base
+  new worktrees on `origin/<main>`, and verify merges with
+  `git merge-base --is-ancestor <sha> origin/<main>` instead of advancing local `main`.
+  (A solo workflow with no concurrent runs may sync local `main`, but the
+  fetch-and-branch-off-origin pattern is always safe and is the default.)
 - Never leave a detached HEAD, a half-finished rebase/merge, or an orphaned worktree.
   If a git operation is interrupted, the next action is to bring the tree back to a
   clean, known state before doing anything else.
+
+## Concurrency-safe maintenance (avoid the one real git-corruption hazard)
+
+The single genuine corruption risk when several worktrees/runs share one object store is
+concurrent auto-gc/maintenance, which `git fetch` can trigger by default. Set this ONCE
+on the clone (idempotent) before running concurrent work, and it applies clone-wide:
+
+```
+git config gc.auto 0
+git config maintenance.auto false
+git config gc.autoDetach false
+```
+
+Pass `--no-auto-gc` on every fetch (`git fetch origin --prune --no-auto-gc`). NEVER use
+`--prune=now` or a manual `git gc` while any worktree operation may be in flight. (Note:
+`--no-auto-maintenance` is NOT a valid `git fetch` flag on git ≥ 2.51 — use `--no-auto-gc`
+plus the persistent config.) Run a single quiescent `git gc` only between backlog passes
+with no run active.
 
 ## Stay up-to-date
 

@@ -16,14 +16,27 @@
 
 set -u
 
-cat >/dev/null   # drain stdin (hook JSON); decisions are file-based below.
+input="$(cat)"   # hook JSON on stdin; used to resolve THIS session's run
 
-# Any agent driving the spec/TDD engine writes a workflow_state.md under its own
-# agent-state dir (spec-conductor, issue-work-orchestrator, ...). Use the most
-# recently modified one as the active workflow.
+# Loop-safety: never re-block a turn already continued by a Stop hook.
+sa="$(printf '%s' "$input" | { command -v jq >/dev/null 2>&1 && jq -r '.stop_hook_active // empty' 2>/dev/null; })"
+[[ "$sa" == "true" ]] && exit 0
+
+# Resolve the active workflow state, SESSION-AWARE (see spec-tdd-gate for the rationale):
+# prefer this session_id's run via the orchestrator registry; else fall back to the
+# most-recently-modified workflow_state.md under any agent-state dir (incl. per-run).
 base=".claude/agent-state"
 [[ -n "${CLAUDE_PROJECT_DIR:-}" && -d "$CLAUDE_PROJECT_DIR/$base" ]] && base="$CLAUDE_PROJECT_DIR/$base"
-state_file="$(ls -t "$base"/*/workflow_state.md 2>/dev/null | head -1)"
+state_file=""
+sid="$(printf '%s' "$input" | { command -v jq >/dev/null 2>&1 && jq -r '.session_id // empty' 2>/dev/null; })"
+[[ -z "$sid" ]] && sid="$(printf '%s' "$input" | grep -oE '"session_id"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 | sed -E 's/.*"([^"]*)"$/\1/')"
+reg="$base/issue-work-orchestrator/registry.json"
+if [[ -n "$sid" && -f "$reg" ]] && command -v jq >/dev/null 2>&1; then
+  sd="$(jq -r --arg s "$sid" '.[$s].state_dir // empty' "$reg" 2>/dev/null)"
+  [[ -n "$sd" && -f "$base/issue-work-orchestrator/$sd/workflow_state.md" ]] && \
+    state_file="$base/issue-work-orchestrator/$sd/workflow_state.md"
+fi
+[[ -z "$state_file" ]] && state_file="$( { ls -t "$base"/*/workflow_state.md "$base"/*/runs/*/workflow_state.md 2>/dev/null; } | head -1)"
 [[ -n "$state_file" && -f "$state_file" ]] || exit 0   # no active workflow
 
 phase="$(grep -iE '^[*-]?[[:space:]]*Phase:' "$state_file" | tail -1 | sed -E 's/.*Phase:[[:space:]]*//')"
