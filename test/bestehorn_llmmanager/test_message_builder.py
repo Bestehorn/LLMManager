@@ -556,18 +556,18 @@ class TestAddVideoBytesMethod:
         mock_detector_class.return_value = mock_detector
 
         mock_result = DetectionResult(
-            detected_format="flv",  # Unsupported format
+            detected_format="avi",  # Unsupported format (Bedrock rejects avi; issue #33)
             confidence=0.95,
             detection_method=DetectionMethodEnum.CONTENT,
-            filename="test.flv",
+            filename="test.avi",
         )
         mock_detector.detect_video_format.return_value = mock_result
 
         builder = ConverseMessageBuilder(role=RolesEnum.USER)
-        video_data = b"flv data"
+        video_data = b"avi data"
 
         with pytest.raises(RequestValidationError, match="Unsupported format"):
-            builder.add_video_bytes(bytes=video_data, filename="test.flv")
+            builder.add_video_bytes(bytes=video_data, filename="test.avi")
 
 
 class TestAddLocalVideoMethod:

@@ -466,19 +466,9 @@ class FileTypeDetector(BaseDetector):
                 metadata={"magic_bytes": MagicBytesConstants.MOV_SIGNATURE.hex()},
             )
 
-        # Check AVI signature (RIFF + AVI)
-        if (
-            header.startswith(MagicBytesConstants.AVI_SIGNATURE)
-            and len(content) >= 12
-            and MagicBytesConstants.AVI_FORMAT_SIGNATURE in content[:12]
-        ):
-            return self._create_success_result(
-                detected_format="avi",
-                confidence=DetectionConstants.HIGH_CONFIDENCE,
-                detection_method=DetectionMethodEnum.CONTENT,
-                filename=filename,
-                metadata={"magic_bytes": header[:12].hex()},
-            )
+        # NOTE: AVI is intentionally NOT detected. Bedrock does not accept "avi" as a
+        # video format (issue #33), so detecting it would only produce a request the API
+        # rejects. AVI content therefore falls through to "unsupported format".
 
         # Check WEBM/MKV signature (same signature, differentiate by extension if available)
         if header.startswith(MagicBytesConstants.WEBM_SIGNATURE):

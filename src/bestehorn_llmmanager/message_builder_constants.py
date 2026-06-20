@@ -117,7 +117,18 @@ class SupportedFormats:
         "txt",
         "md",
     ]
-    VIDEO_FORMATS: Final[List[str]] = ["mp4", "mov", "avi", "webm", "mkv"]
+    # Matches the Bedrock VideoBlock format enum exactly (issue #33): no "avi".
+    VIDEO_FORMATS: Final[List[str]] = [
+        "mp4",
+        "mov",
+        "webm",
+        "mkv",
+        "flv",
+        "mpeg",
+        "mpg",
+        "wmv",
+        "three_gp",
+    ]
 
     @classmethod
     def get_all_supported_formats(cls) -> Dict[str, List[str]]:
