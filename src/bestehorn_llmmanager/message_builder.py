@@ -778,6 +778,68 @@ class ConverseMessageBuilder:
                 f"Invalid tool_result status '{status}'. Valid values are: {valid}"
             ) from exc
 
+    def add_reasoning_content(
+        self,
+        text: Optional[str] = None,
+        signature: Optional[str] = None,
+        redacted_content: Optional[Any] = None,
+    ) -> "ConverseMessageBuilder":
+        """
+        Add a ``reasoningContent`` block (extended-thinking / Chain-of-Thought).
+
+        Use this to echo a model's reasoning back into a multi-turn request. For a
+        textual reasoning block, pass ``text`` and the ``signature`` returned by the
+        model **unmodified** — the signature verifies the reasoning was model-generated
+        and must be preserved. For an encrypted block, pass ``redacted_content`` instead.
+
+        Args:
+            text: The reasoning text (``reasoningText.text``). Required unless
+                ``redacted_content`` is given.
+            signature: The verification token to echo back unmodified
+                (``reasoningText.signature``). Only meaningful with ``text``.
+            redacted_content: Encrypted reasoning bytes (the ``redactedContent`` member),
+                used instead of ``text``.
+
+        Returns:
+            Self for method chaining.
+
+        Raises:
+            RequestValidationError: If neither ``text`` nor ``redacted_content`` is
+                provided, or ``text`` is empty/whitespace.
+        """
+        if text is None and redacted_content is None:
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.EMPTY_CONTENT.format(
+                    content_type="reasoning_content (text or redacted_content required)"
+                )
+            )
+        if text is not None and not text.strip():
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="reasoning text")
+            )
+
+        self._validate_content_block_limit()
+
+        reasoning_inner: Dict[str, Any] = {}
+        if text is not None:
+            reasoning_text: Dict[str, Any] = {ConverseAPIFields.TEXT: text}
+            if signature is not None:
+                reasoning_text[ConverseAPIFields.REASONING_SIGNATURE] = signature
+            reasoning_inner[ConverseAPIFields.REASONING_TEXT] = reasoning_text
+        else:
+            reasoning_inner[ConverseAPIFields.REASONING_REDACTED_CONTENT] = redacted_content
+
+        self._content_blocks.append({ConverseAPIFields.REASONING_CONTENT: reasoning_inner})
+        self._cacheable_blocks.append(False)
+
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type="reasoning_content", size=len(str(reasoning_inner))
+            )
+        )
+
+        return self
+
     def build(self) -> Dict[str, Any]:
         """
         Build and return the complete message dictionary.

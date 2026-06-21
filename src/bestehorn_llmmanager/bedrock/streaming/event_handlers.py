@@ -100,12 +100,22 @@ class StreamEventHandler:
 
         processed_delta = self._process_delta_content(delta=delta)
 
-        return {
+        result = {
             StreamingConstants.FIELD_DELTA: processed_delta,
             StreamingConstants.FIELD_CONTENT_BLOCK_INDEX: content_block_index,
             "event_type": StreamingEventTypes.CONTENT_BLOCK_DELTA,
             "content": processed_delta.get("content", ""),
         }
+        # Surface reasoning fields at the top level (like "content") so the
+        # StreamingResponse can accumulate them for echo-back reconstruction (issue #32).
+        for reasoning_key in (
+            "reasoning_text",
+            "reasoning_signature",
+            "reasoning_redacted_content",
+        ):
+            if reasoning_key in processed_delta:
+                result[reasoning_key] = processed_delta[reasoning_key]
+        return result
 
     def handle_content_block_stop(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -264,13 +274,21 @@ class StreamEventHandler:
             tool_input = tool_use[StreamingConstants.FIELD_INPUT]
             processed_delta["tool_input"] = tool_input
 
-        # Extract reasoning content
+        # Extract reasoning content (text, the verification signature, and any redacted
+        # bytes), so the final signed reasoningContent block can be reconstructed for
+        # multi-turn echo-back (issue #32).
         reasoning = delta.get(StreamingConstants.FIELD_REASONING_CONTENT)
         if reasoning:
             reasoning_text = reasoning.get(StreamingConstants.FIELD_TEXT)
             if reasoning_text:
                 content_parts.append(reasoning_text)
                 processed_delta["reasoning_text"] = reasoning_text
+            reasoning_signature = reasoning.get(StreamingConstants.FIELD_SIGNATURE)
+            if reasoning_signature:
+                processed_delta["reasoning_signature"] = reasoning_signature
+            reasoning_redacted = reasoning.get(StreamingConstants.FIELD_REDACTED_CONTENT)
+            if reasoning_redacted is not None:
+                processed_delta["reasoning_redacted_content"] = reasoning_redacted
 
         # Extract citation content
         citation = delta.get(StreamingConstants.FIELD_CITATION)

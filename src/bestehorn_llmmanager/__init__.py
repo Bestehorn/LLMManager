@@ -48,6 +48,9 @@ from .bedrock.models.llm_manager_structures import Boto3Config
 # Model-specific configuration and tracking
 from .bedrock.models.model_specific_structures import ModelSpecificConfig
 
+# Reasoning / extended-thinking typed content
+from .bedrock.models.reasoning_content import ReasoningContent
+
 # Tool use (function calling) typed request object
 from .bedrock.models.tool_use import ToolUse
 from .bedrock.tracking.parameter_compatibility_tracker import ParameterCompatibilityTracker
@@ -111,6 +114,8 @@ __all__ = [
     "ResponseContentType",
     # Tool use (function calling)
     "ToolUse",
+    # Reasoning / extended thinking
+    "ReasoningContent",
     # Region utilities
     "BedrockRegionDiscovery",
     "get_all_regions",
