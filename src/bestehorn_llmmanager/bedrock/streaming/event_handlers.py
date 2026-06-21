@@ -115,6 +115,10 @@ class StreamEventHandler:
         ):
             if reasoning_key in processed_delta:
                 result[reasoning_key] = processed_delta[reasoning_key]
+        # Surface the full citation object so the StreamingResponse can reconstruct
+        # typed Citation references for get_citations() (issue #40).
+        if "citation" in processed_delta:
+            result["citation"] = processed_delta["citation"]
         return result
 
     def handle_content_block_stop(self, event: Dict[str, Any]) -> Dict[str, Any]:
@@ -290,7 +294,10 @@ class StreamEventHandler:
             if reasoning_redacted is not None:
                 processed_delta["reasoning_redacted_content"] = reasoning_redacted
 
-        # Extract citation content
+        # Extract citation content. Keep the title shortcut for backward compatibility;
+        # the full citation object already flows through via `processed_delta = delta.copy()`
+        # above and is surfaced to the top level by handle_content_block_delta so the
+        # StreamingResponse can reconstruct typed Citation references (issue #40).
         citation = delta.get(StreamingConstants.FIELD_CITATION)
         if citation:
             citation_title = citation.get(StreamingConstants.FIELD_TITLE)

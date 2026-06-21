@@ -40,6 +40,9 @@ class TestPackageInit:
         # Test reasoning / extended-thinking type
         assert hasattr(bestehorn_llmmanager, "ReasoningContent")
 
+        # Test document-citation type
+        assert hasattr(bestehorn_llmmanager, "Citation")
+
     def test_version_handling_with_version_import_success(self):
         """Test version handling when _version import succeeds."""
         # This will use the actual _version.py file which should exist
@@ -109,6 +112,7 @@ class TestPackageInit:
             "ToolResultStatusEnum",
             "ToolUse",
             "ReasoningContent",
+            "Citation",
         ]
 
         assert hasattr(bestehorn_llmmanager, "__all__")

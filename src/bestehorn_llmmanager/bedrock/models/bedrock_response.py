@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
+from .citation import Citation
 from .content_block_types import ResponseContentType
 from .llm_manager_constants import ConverseAPIFields
 from .llm_manager_structures import RequestAttempt, ValidationAttempt
@@ -216,6 +217,30 @@ class BedrockResponse:
         return ReasoningContent.from_reasoning_block(
             reasoning_block=reasoning_blocks[0][ConverseAPIFields.REASONING_CONTENT]
         )
+
+    def get_citations(self) -> List[Citation]:
+        """
+        Get the document citations from the response, in order.
+
+        When document citations are enabled (via the document builder's
+        ``citations_enabled``), the model returns ``citationsContent`` blocks whose
+        ``citations`` arrays reference the source spans. This flattens every
+        ``citationsContent`` block's citations into typed :class:`Citation` objects
+        (source title / location / referenced spans), built on
+        :meth:`get_content_blocks_by_type`.
+
+        Returns:
+            The ordered list of :class:`Citation`; an empty list if the response
+            contains no citations.
+        """
+        citations: List[Citation] = []
+        for block in self.get_content_blocks_by_type(
+            content_type=ResponseContentType.CITATIONS_CONTENT
+        ):
+            citations_content = block[ConverseAPIFields.CITATIONS_CONTENT]
+            for raw_citation in citations_content.get(ConverseAPIFields.CITATIONS, []) or []:
+                citations.append(Citation.from_citation(citation=raw_citation))
+        return citations
 
     def get_content(self) -> Optional[str]:
         """
@@ -855,6 +880,8 @@ class StreamingResponse:
     reasoning_text_parts: List[str] = field(default_factory=list)
     reasoning_signature: Optional[str] = None
     reasoning_redacted_content: Optional[Any] = None
+    # Document citations accumulated across citation deltas (issue #40).
+    citation_blocks: List[Dict[str, Any]] = field(default_factory=list)
 
     # Internal fields for iterator protocol
     _event_stream: Optional[Any] = field(default=None, init=False, repr=False)
@@ -1031,6 +1058,12 @@ class StreamingResponse:
             if reasoning_redacted is not None:
                 self.reasoning_redacted_content = reasoning_redacted
 
+            # Accumulate document citations so get_citations() can return typed
+            # Citation references after streaming (issue #40).
+            citation = processed_event.get("citation")
+            if citation:
+                self.citation_blocks.append(citation)
+
             # Add content chunk and return it for real-time display
             content = processed_event.get("content", "")
             if content and isinstance(content, str):
@@ -1160,6 +1193,19 @@ class StreamingResponse:
         if self.reasoning_redacted_content is not None:
             return ReasoningContent(redacted_content=self.reasoning_redacted_content)
         return None
+
+    def get_citations(self) -> List[Citation]:
+        """
+        Get the document citations accumulated from the stream, in order.
+
+        Each citation object captured from the ``citation`` deltas is parsed into a typed
+        :class:`~bestehorn_llmmanager.bedrock.models.citation.Citation` (issue #40).
+
+        Returns:
+            The ordered list of :class:`Citation`; an empty list if the stream carried
+            no citations.
+        """
+        return [Citation.from_citation(citation=block) for block in self.citation_blocks]
 
     def get_content_parts(self) -> List[str]:
         """
