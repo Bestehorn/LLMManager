@@ -1289,3 +1289,101 @@ class TestDocumentCitations:
             document = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.DOCUMENT]
             assert document[ConverseAPIFields.CITATIONS] == {ConverseAPIFields.ENABLED: True}
             assert document[ConverseAPIFields.CONTEXT] == "local ctx"
+
+
+class TestS3MediaSources:
+    """S3-sourced image/document/video builder methods (issue #34)."""
+
+    def test_add_image_s3_builds_block(self):
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_image_s3(uri="s3://my-bucket/photo.png", format=ImageFormatEnum.PNG)
+            .build()
+        )
+        image = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.IMAGE]
+        assert image[ConverseAPIFields.FORMAT] == "png"
+        s3 = image[ConverseAPIFields.SOURCE][ConverseAPIFields.S3_LOCATION]
+        assert s3[ConverseAPIFields.URI] == "s3://my-bucket/photo.png"
+        assert ConverseAPIFields.BUCKET_OWNER not in s3
+        # No bytes source for an S3-sourced block.
+        assert ConverseAPIFields.BYTES not in image[ConverseAPIFields.SOURCE]
+
+    def test_add_image_s3_with_bucket_owner(self):
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_image_s3(
+                uri="s3://other/photo.jpg",
+                format=ImageFormatEnum.JPEG,
+                bucket_owner="123456789012",
+            )
+            .build()
+        )
+        s3 = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.IMAGE][
+            ConverseAPIFields.SOURCE
+        ][ConverseAPIFields.S3_LOCATION]
+        assert s3[ConverseAPIFields.BUCKET_OWNER] == "123456789012"
+
+    def test_add_document_s3_builds_block(self):
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_document_s3(
+                uri="s3://my-bucket/report.pdf",
+                format=DocumentFormatEnum.PDF,
+                name="Report",
+            )
+            .build()
+        )
+        document = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.DOCUMENT]
+        assert document[ConverseAPIFields.FORMAT] == "pdf"
+        assert document[ConverseAPIFields.NAME] == "Report"
+        s3 = document[ConverseAPIFields.SOURCE][ConverseAPIFields.S3_LOCATION]
+        assert s3[ConverseAPIFields.URI] == "s3://my-bucket/report.pdf"
+
+    def test_add_document_s3_with_citations(self):
+        """S3 documents also support citations/context (consistency with bytes path)."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_document_s3(
+                uri="s3://b/r.pdf",
+                format=DocumentFormatEnum.PDF,
+                citations_enabled=True,
+                context="ctx",
+            )
+            .build()
+        )
+        document = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.DOCUMENT]
+        assert document[ConverseAPIFields.CITATIONS] == {ConverseAPIFields.ENABLED: True}
+        assert document[ConverseAPIFields.CONTEXT] == "ctx"
+
+    def test_add_video_s3_builds_block(self):
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_video_s3(uri="s3://my-bucket/clip.mp4", format=VideoFormatEnum.MP4)
+            .build()
+        )
+        video = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.VIDEO]
+        assert video[ConverseAPIFields.FORMAT] == "mp4"
+        s3 = video[ConverseAPIFields.SOURCE][ConverseAPIFields.S3_LOCATION]
+        assert s3[ConverseAPIFields.URI] == "s3://my-bucket/clip.mp4"
+
+    def test_s3_uri_must_start_with_scheme(self):
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_image_s3(
+                uri="https://not-s3/photo.png", format=ImageFormatEnum.PNG
+            )
+
+    def test_s3_uri_empty_rejected(self):
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_image_s3(
+                uri="", format=ImageFormatEnum.PNG
+            )
+
+    def test_s3_bucket_owner_must_be_12_digits(self):
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_image_s3(
+                uri="s3://b/p.png", format=ImageFormatEnum.PNG, bucket_owner="abc"
+            )
+
+    def test_add_image_s3_returns_self(self):
+        builder = ConverseMessageBuilder(role=RolesEnum.USER)
+        assert builder.add_image_s3(uri="s3://b/p.png", format=ImageFormatEnum.PNG) is builder
