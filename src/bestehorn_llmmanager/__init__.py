@@ -39,6 +39,9 @@ For detailed documentation, see the documentation in the docs/ directory.
 from .bedrock.discovery import BedrockRegionDiscovery
 from .bedrock.models.aws_regions import AWSRegions, get_all_regions
 
+# Document citations typed reference
+from .bedrock.models.citation import Citation
+
 # Response content-block typing (typed iteration over response modalities)
 from .bedrock.models.content_block_types import ResponseContentType
 
@@ -116,6 +119,8 @@ __all__ = [
     "ToolUse",
     # Reasoning / extended thinking
     "ReasoningContent",
+    # Document citations
+    "Citation",
     # Region utilities
     "BedrockRegionDiscovery",
     "get_all_regions",

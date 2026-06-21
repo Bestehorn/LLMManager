@@ -258,6 +258,8 @@ class ConverseMessageBuilder:
         format: Optional[DocumentFormatEnum] = None,
         filename: Optional[str] = None,
         name: Optional[str] = None,
+        citations_enabled: bool = False,
+        context: Optional[str] = None,
     ) -> "ConverseMessageBuilder":
         """
         Add a document content block to the message.
@@ -267,6 +269,11 @@ class ConverseMessageBuilder:
             format: Optional document format (auto-detected if not provided)
             filename: Optional filename for format detection and logging
             name: Optional document name for the API
+            citations_enabled: When True, adds ``citations: {"enabled": True}`` so the
+                model returns ``citationsContent`` referencing the source spans (read it
+                with :meth:`BedrockResponse.get_citations`).
+            context: Optional contextual string telling the model how to process the
+                document when generating citations (the ``context`` field).
 
         Returns:
             Self for method chaining
@@ -348,6 +355,14 @@ class ConverseMessageBuilder:
             # Use filename as document name if no explicit name provided
             document_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.NAME] = filename
 
+        # Enable document citations and/or attach citation context (issue #40).
+        if citations_enabled:
+            document_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.CITATIONS] = {
+                ConverseAPIFields.ENABLED: True
+            }
+        if context is not None:
+            document_block[ConverseAPIFields.DOCUMENT][ConverseAPIFields.CONTEXT] = context
+
         self._content_blocks.append(document_block)
 
         self._logger.debug(
@@ -364,6 +379,8 @@ class ConverseMessageBuilder:
         format: Optional[DocumentFormatEnum] = None,
         name: Optional[str] = None,
         max_size_mb: float = 4.5,
+        citations_enabled: bool = False,
+        context: Optional[str] = None,
     ) -> "ConverseMessageBuilder":
         """
         Add a document content block from a local file path.
@@ -373,6 +390,9 @@ class ConverseMessageBuilder:
             format: Optional document format (auto-detected if not provided)
             name: Optional document name for the API
             max_size_mb: Maximum allowed size in MB
+            citations_enabled: When True, enables document citations (see
+                :meth:`add_document_bytes`).
+            context: Optional citation context string (see :meth:`add_document_bytes`).
 
         Returns:
             Self for method chaining
@@ -415,7 +435,12 @@ class ConverseMessageBuilder:
 
         # Use the existing add_document_bytes method
         return self.add_document_bytes(
-            bytes=document_bytes, format=format, filename=file_path.name, name=name
+            bytes=document_bytes,
+            format=format,
+            filename=file_path.name,
+            name=name,
+            citations_enabled=citations_enabled,
+            context=context,
         )
 
     def add_video_bytes(

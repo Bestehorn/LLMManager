@@ -651,6 +651,8 @@ class TestAddLocalDocumentMethod:
                     format=None,
                     filename=Path(tmp_file_path).name,
                     name="Test Document",
+                    citations_enabled=False,
+                    context=None,
                 )
         finally:
             Path(tmp_file_path).unlink(missing_ok=True)
@@ -1199,3 +1201,91 @@ class TestAddReasoningContentMethod:
         """An empty/whitespace text is rejected."""
         with pytest.raises(RequestValidationError):
             ConverseMessageBuilder(role=RolesEnum.ASSISTANT).add_reasoning_content(text="   ")
+
+
+class TestDocumentCitations:
+    """Document builder citations / context support (issue #40)."""
+
+    def test_citations_enabled_adds_citations_config(self):
+        """citations_enabled=True adds a citations.enabled=True config to the doc block."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_document_bytes(
+                bytes=b"%PDF-1.4", format=DocumentFormatEnum.PDF, citations_enabled=True
+            )
+            .build()
+        )
+        document = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.DOCUMENT]
+        assert document[ConverseAPIFields.CITATIONS] == {ConverseAPIFields.ENABLED: True}
+
+    def test_context_adds_context_field(self):
+        """A context string is added to the document block."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_document_bytes(
+                bytes=b"%PDF-1.4",
+                format=DocumentFormatEnum.PDF,
+                context="Summarize the financials.",
+            )
+            .build()
+        )
+        document = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.DOCUMENT]
+        assert document[ConverseAPIFields.CONTEXT] == "Summarize the financials."
+
+    def test_citations_and_context_together(self):
+        """Both citations and context can be set on the same document."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_document_bytes(
+                bytes=b"%PDF-1.4",
+                format=DocumentFormatEnum.PDF,
+                citations_enabled=True,
+                context="ctx",
+            )
+            .build()
+        )
+        document = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.DOCUMENT]
+        assert document[ConverseAPIFields.CITATIONS] == {ConverseAPIFields.ENABLED: True}
+        assert document[ConverseAPIFields.CONTEXT] == "ctx"
+
+    def test_no_citations_by_default(self):
+        """By default neither citations nor context is added (backward compatible)."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_document_bytes(bytes=b"%PDF-1.4", format=DocumentFormatEnum.PDF)
+            .build()
+        )
+        document = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.DOCUMENT]
+        assert ConverseAPIFields.CITATIONS not in document
+        assert ConverseAPIFields.CONTEXT not in document
+
+    def test_citations_disabled_explicitly_omitted(self):
+        """citations_enabled=False does not add a citations config."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_document_bytes(
+                bytes=b"%PDF-1.4", format=DocumentFormatEnum.PDF, citations_enabled=False
+            )
+            .build()
+        )
+        document = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.DOCUMENT]
+        assert ConverseAPIFields.CITATIONS not in document
+
+    def test_local_document_forwards_citations(self):
+        """add_local_document forwards citations_enabled / context to add_document_bytes."""
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "report.pdf"
+            path.write_bytes(b"%PDF-1.4 test")
+            message = (
+                ConverseMessageBuilder(role=RolesEnum.USER)
+                .add_local_document(
+                    path_to_local_file=str(path),
+                    format=DocumentFormatEnum.PDF,
+                    citations_enabled=True,
+                    context="local ctx",
+                )
+                .build()
+            )
+            document = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.DOCUMENT]
+            assert document[ConverseAPIFields.CITATIONS] == {ConverseAPIFields.ENABLED: True}
+            assert document[ConverseAPIFields.CONTEXT] == "local ctx"

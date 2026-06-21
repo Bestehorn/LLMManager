@@ -52,6 +52,15 @@ class ConverseAPIFields:
 
     # Document block fields
     NAME: Final[str] = "name"
+    CITATIONS: Final[str] = "citations"
+    CONTEXT: Final[str] = "context"
+    ENABLED: Final[str] = "enabled"
+
+    # Citations content block fields (citationsContent + Citation)
+    CITATION_TITLE: Final[str] = "title"
+    CITATION_SOURCE: Final[str] = "source"
+    CITATION_SOURCE_CONTENT: Final[str] = "sourceContent"
+    CITATION_LOCATION: Final[str] = "location"
 
     # Reasoning content block fields (reasoningContent union)
     REASONING_TEXT: Final[str] = "reasoningText"

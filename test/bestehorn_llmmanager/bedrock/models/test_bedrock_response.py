@@ -591,6 +591,78 @@ class TestBedrockResponse:
         assert "FAILED" in repr_str
 
 
+class TestBedrockResponseCitations:
+    """Tests for the document-citation response accessor (issue #40, non-streaming)."""
+
+    def _citations_response(self):
+        response_data = {
+            "output": {
+                "message": {
+                    "role": "assistant",
+                    "content": [
+                        {"text": "Revenue grew 12% year over year."},
+                        {
+                            "citationsContent": {
+                                "content": [{"text": "Revenue grew 12% year over year."}],
+                                "citations": [
+                                    {
+                                        "title": "Annual Report",
+                                        "source": "doc-1",
+                                        "sourceContent": [{"text": "Revenue +12%."}],
+                                        "location": {"documentChar": {"start": 10, "end": 23}},
+                                    }
+                                ],
+                            }
+                        },
+                    ],
+                }
+            }
+        }
+        return BedrockResponse(success=True, response_data=response_data)
+
+    def test_get_citations_returns_typed_objects(self):
+        from bestehorn_llmmanager.bedrock.models.citation import Citation
+
+        citations = self._citations_response().get_citations()
+        assert len(citations) == 1
+        assert isinstance(citations[0], Citation)
+        assert citations[0].title == "Annual Report"
+        assert citations[0].source == "doc-1"
+        assert citations[0].source_content == [{"text": "Revenue +12%."}]
+        assert citations[0].location == {"documentChar": {"start": 10, "end": 23}}
+
+    def test_get_citations_flattens_multiple_blocks(self):
+        """Citations from multiple citationsContent blocks are returned in order."""
+        response_data = {
+            "output": {
+                "message": {
+                    "content": [
+                        {"citationsContent": {"citations": [{"title": "A"}]}},
+                        {"citationsContent": {"citations": [{"title": "B"}, {"title": "C"}]}},
+                    ]
+                }
+            }
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert [c.title for c in response.get_citations()] == ["A", "B", "C"]
+
+    def test_get_citations_empty_when_absent(self):
+        response_data = {"output": {"message": {"content": [{"text": "no citations"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_citations() == []
+
+    def test_get_citations_empty_when_no_data(self):
+        assert BedrockResponse(success=True, response_data=None).get_citations() == []
+
+    def test_get_citations_block_without_citations_key(self):
+        """A citationsContent block with no citations array yields no citations."""
+        response_data = {
+            "output": {"message": {"content": [{"citationsContent": {"content": []}}]}}
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_citations() == []
+
+
 class TestBedrockResponseReasoning:
     """Tests for the reasoning response accessor (issue #32, non-streaming)."""
 
@@ -2083,3 +2155,47 @@ class TestStreamingResponseReasoning:
         # The reconstructed block is a re-submittable redactedContent block.
         block = reasoning.to_content_block()
         assert block["reasoningContent"]["redactedContent"] == b"\x10\x20"
+
+
+class TestStreamingResponseCitations:
+    """Reconstruct typed citations from streaming citation deltas (issue #40)."""
+
+    def _drive(self, response, events):
+        response._stream_iterator = iter(events)
+        list(response)
+
+    def test_streaming_collects_citations(self):
+        from bestehorn_llmmanager.bedrock.models.citation import Citation
+
+        response = StreamingResponse(success=True)
+        events = [
+            {"contentBlockDelta": {"delta": {"text": "Revenue grew."}}},
+            {
+                "contentBlockDelta": {
+                    "delta": {
+                        "citation": {
+                            "title": "Annual Report",
+                            "source": "doc-1",
+                            "sourceContent": [{"text": "Revenue +12%."}],
+                        }
+                    }
+                }
+            },
+            {"messageStop": {"stopReason": "end_turn"}},
+        ]
+        self._drive(response=response, events=events)
+
+        citations = response.get_citations()
+        assert len(citations) == 1
+        assert isinstance(citations[0], Citation)
+        assert citations[0].title == "Annual Report"
+        assert citations[0].source == "doc-1"
+
+    def test_streaming_no_citations_returns_empty(self):
+        response = StreamingResponse(success=True)
+        events = [
+            {"contentBlockDelta": {"delta": {"text": "no citations"}}},
+            {"messageStop": {"stopReason": "end_turn"}},
+        ]
+        self._drive(response=response, events=events)
+        assert response.get_citations() == []

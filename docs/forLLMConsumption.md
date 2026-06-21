@@ -315,6 +315,40 @@ Response/StreamingResponse accessor:
 def get_reasoning(self) -> Optional[ReasoningContent]   # text + signature (+ redacted bytes), or None
 ```
 
+#### Document Citations
+
+Enable citations on a document so the model returns `citationsContent` linking its
+answer back to the source spans, then read them with `get_citations()`:
+
+```python
+def add_document_bytes(
+    self, bytes: bytes, format=None, filename=None, name=None,
+    citations_enabled: bool = False, context: Optional[str] = None,
+) -> 'ConverseMessageBuilder'
+# (add_local_document forwards citations_enabled / context too)
+```
+
+```python
+message = create_user_message()\
+    .add_text("Summarize the revenue trend, citing the source.")\
+    .add_local_document(
+        "annual_report.pdf",
+        citations_enabled=True,
+        context="Financial report for fiscal year 2025.",
+    )\
+    .build()
+response = manager.converse(messages=[message])
+
+for c in response.get_citations():     # List[Citation]
+    print(c.title, c.source, c.source_content, c.location)
+```
+
+Response/StreamingResponse accessor:
+
+```python
+def get_citations(self) -> List[Citation]   # typed (title, source, source_content, location)
+```
+
 #### Building Messages
 
 ```python
