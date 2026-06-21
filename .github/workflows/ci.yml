@@ -99,7 +99,22 @@ jobs:
       run: |
         twine check dist/*
         ls -la dist/
-    
+
+    - name: Smoke-test the built wheel (clean env)
+      # Install the freshly-built wheel into a clean venv (no editable install, repo src/
+      # not on sys.path) and run the release smoke test, so packaging regressions —
+      # a missing runtime dependency, a dropped package-data file, or an import error
+      # only seen from an installed wheel — are caught on PRs, not only at release
+      # (issue #46).
+      run: |
+        set -euo pipefail
+        cp scripts/release_smoke_test.py "$RUNNER_TEMP/release_smoke_test.py"
+        python -m venv "$RUNNER_TEMP/smoke-env"
+        "$RUNNER_TEMP/smoke-env/bin/python" -m pip install --upgrade pip
+        "$RUNNER_TEMP/smoke-env/bin/python" -m pip install dist/*.whl
+        cd "$RUNNER_TEMP"
+        ./smoke-env/bin/python release_smoke_test.py
+
     - name: Upload artifacts
       uses: actions/upload-artifact@v7
       with:

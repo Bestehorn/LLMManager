@@ -11,26 +11,26 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
-    
+
     steps:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0  # Required for setuptools-scm to access git history and tags
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v6
       with:
         python-version: ${{ matrix.python-version }}
-    
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -e .[dev]
-    
+
     - name: Run tests
       run: |
         pytest test/bestehorn_llmmanager/ -v --cov=bestehorn_llmmanager --cov-report=xml --ignore=test/integration/
-    
+
     - name: Upload coverage to Codecov
       if: matrix.python-version == '3.11'
       uses: codecov/codecov-action@v7
@@ -40,30 +40,30 @@ jobs:
         fail_ci_if_error: false
         verbose: true
 
-  build-and-publish:
+  build:
     needs: test
     runs-on: ubuntu-latest
-    permissions:
-      # Required for PyPI Trusted Publishing
-      id-token: write
-      # Required for creating GitHub releases
-      contents: write
-    
+    outputs:
+      # Whether setuptools-scm produced a clean (publishable) release version. The
+      # publish job reads this to decide Test PyPI / PyPI publication.
+      is_release_version: ${{ steps.version-check.outputs.is_release_version }}
+      version: ${{ steps.version-check.outputs.version }}
+
     steps:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0  # Required for setuptools-scm to access git history and tags
-    
+
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
         python-version: '3.11'
-    
+
     - name: Install build dependencies
       run: |
         python -m pip install --upgrade pip
         pip install --upgrade build twine pkginfo setuptools-scm
-    
+
     - name: Verify setuptools-scm before build
       run: |
         echo "=== setuptools-scm Diagnostics ==="
@@ -71,7 +71,7 @@ jobs:
         git status
         git log --oneline -5
         git tag --list | tail -10
-        
+
         echo "--- setuptools-scm version detection ---"
         python -c "
         try:
@@ -83,26 +83,26 @@ jobs:
             import traceback
             traceback.print_exc()
         "
-    
+
     - name: Build package with diagnostics
       run: |
         echo "=== Build Process Diagnostics ==="
         echo "Building package..."
         python -m build --verbose
         echo "=== Build completed ==="
-    
+
     - name: Inspect built package metadata
       run: |
         echo "=== Package Metadata Investigation ==="
         echo "--- Contents of dist/ directory ---"
         ls -la dist/
-        
+
         echo "--- Wheel file contents ---"
         python -c "
         import os
         import zipfile
         import glob
-        
+
         wheel_files = glob.glob('dist/*.whl')
         if wheel_files:
             wheel_file = wheel_files[0]
@@ -111,11 +111,11 @@ jobs:
                 print('Wheel contents:')
                 for name in sorted(zf.namelist()):
                     print(f'  {name}')
-                
+
                 # Look for metadata files
                 metadata_files = [n for n in zf.namelist() if 'METADATA' in n or 'metadata' in n.lower()]
                 print(f'Metadata files found: {metadata_files}')
-                
+
                 for meta_file in metadata_files:
                     print(f'--- Contents of {meta_file} ---')
                     try:
@@ -128,12 +128,12 @@ jobs:
         else:
             print('No wheel files found!')
         "
-        
+
         echo "--- Testing pkginfo on built wheel ---"
         python -c "
         import pkginfo
         import glob
-        
+
         wheel_files = glob.glob('dist/*.whl')
         if wheel_files:
             wheel_file = wheel_files[0]
@@ -150,13 +150,13 @@ jobs:
                 import traceback
                 traceback.print_exc()
         "
-    
+
     - name: Check package
       run: |
         echo "=== Final Package Check ==="
-        twine check dist/* || echo "Twine check failed as expected"
+        twine check dist/*
         ls -la dist/
-    
+
     - name: Check if version is clean release (no dev/local identifiers)
       id: version-check
       run: |
@@ -164,7 +164,7 @@ jobs:
         # Get the version from setuptools-scm
         VERSION=$(python -c "from setuptools_scm import get_version; print(get_version())")
         echo "Generated version: $VERSION"
-        
+
         # Check if version contains dev or local identifiers
         if [[ "$VERSION" == *"dev"* ]] || [[ "$VERSION" == *"+"* ]]; then
           echo "❌ Development version detected: $VERSION"
@@ -176,36 +176,125 @@ jobs:
           echo "is_release_version=true" >> $GITHUB_OUTPUT
           echo "version=$VERSION" >> $GITHUB_OUTPUT
         fi
-    
+
+    - name: Upload built distributions
+      uses: actions/upload-artifact@v7
+      with:
+        name: release-dist
+        path: dist/
+
+  # Install the built artifact into a CLEAN environment (no editable install, repo src/
+  # not on sys.path) and run the smoke test, for both the wheel and the sdist, across a
+  # representative Python subset (min + max supported). Gates the publish job (issue #46):
+  # a broken-but-installable artifact (missing runtime dep, dropped package-data, import
+  # error only seen from an installed wheel) cannot reach PyPI.
+  smoke-test:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ['3.10', '3.14']
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        # Sparse: we only need the smoke-test script, NOT the package src/ (which must
+        # not shadow the installed artifact). The script is copied out before running.
+        sparse-checkout: |
+          scripts/release_smoke_test.py
+        sparse-checkout-cone-mode: false
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Download built distributions
+      uses: actions/download-artifact@v7
+      with:
+        name: release-dist
+        path: dist/
+
+    - name: Smoke-test the built wheel (clean env)
+      run: |
+        set -euo pipefail
+        # Move the smoke script out of the repo so the working dir has no src/ on sys.path.
+        cp scripts/release_smoke_test.py "$RUNNER_TEMP/release_smoke_test.py"
+        python -m venv "$RUNNER_TEMP/wheel-env"
+        "$RUNNER_TEMP/wheel-env/bin/python" -m pip install --upgrade pip
+        "$RUNNER_TEMP/wheel-env/bin/python" -m pip install dist/*.whl
+        VERSION="${{ needs.build.outputs.version }}"
+        cd "$RUNNER_TEMP"
+        if [ "${{ needs.build.outputs.is_release_version }}" = "true" ]; then
+          ./wheel-env/bin/python release_smoke_test.py --expected-version "$VERSION"
+        else
+          ./wheel-env/bin/python release_smoke_test.py
+        fi
+
+    - name: Smoke-test the built sdist (clean env)
+      run: |
+        set -euo pipefail
+        cp scripts/release_smoke_test.py "$RUNNER_TEMP/release_smoke_test.py"
+        python -m venv "$RUNNER_TEMP/sdist-env"
+        "$RUNNER_TEMP/sdist-env/bin/python" -m pip install --upgrade pip
+        "$RUNNER_TEMP/sdist-env/bin/python" -m pip install dist/*.tar.gz
+        VERSION="${{ needs.build.outputs.version }}"
+        cd "$RUNNER_TEMP"
+        if [ "${{ needs.build.outputs.is_release_version }}" = "true" ]; then
+          ./sdist-env/bin/python release_smoke_test.py --expected-version "$VERSION"
+        else
+          ./sdist-env/bin/python release_smoke_test.py
+        fi
+
+  publish:
+    needs: [build, smoke-test]
+    runs-on: ubuntu-latest
+    permissions:
+      # Required for PyPI Trusted Publishing
+      id-token: write
+      # Required for creating GitHub releases
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Download built distributions
+      uses: actions/download-artifact@v7
+      with:
+        name: release-dist
+        path: dist/
+
     - name: Publish to Test PyPI
-      if: steps.version-check.outputs.is_release_version == 'true'
+      if: needs.build.outputs.is_release_version == 'true'
       uses: pypa/gh-action-pypi-publish@v1.12.2
       with:
         repository-url: https://test.pypi.org/legacy/
         skip-existing: true
         attestations: false
         verbose: true
-    
+
     - name: Skip Test PyPI (Development Version)
-      if: steps.version-check.outputs.is_release_version == 'false'
+      if: needs.build.outputs.is_release_version == 'false'
       run: |
-        echo "⚠️ Skipping Test PyPI publication for development version: ${{ steps.version-check.outputs.version }}"
+        echo "⚠️ Skipping Test PyPI publication for development version: ${{ needs.build.outputs.version }}"
         echo "This is likely because the workflow is running on a commit after the tag."
         echo "To publish a release, ensure the workflow runs exactly on the tagged commit."
-    
+
     - name: Publish to PyPI
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && steps.version-check.outputs.is_release_version == 'true'
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && needs.build.outputs.is_release_version == 'true'
       uses: pypa/gh-action-pypi-publish@v1.12.2
       with:
         attestations: false
         verbose: true
-    
+
     - name: Skip PyPI (Development Version)
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && steps.version-check.outputs.is_release_version == 'false'
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags') && needs.build.outputs.is_release_version == 'false'
       run: |
-        echo "⚠️ Skipping PyPI publication for development version: ${{ steps.version-check.outputs.version }}"
+        echo "⚠️ Skipping PyPI publication for development version: ${{ needs.build.outputs.version }}"
         echo "This suggests a problem with git tag detection or the workflow trigger."
-    
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
