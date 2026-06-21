@@ -53,6 +53,11 @@ class ConverseAPIFields:
     # Document block fields
     NAME: Final[str] = "name"
 
+    # Reasoning content block fields (reasoningContent union)
+    REASONING_TEXT: Final[str] = "reasoningText"
+    REASONING_SIGNATURE: Final[str] = "signature"
+    REASONING_REDACTED_CONTENT: Final[str] = "redactedContent"
+
     # Tool use / tool result block fields
     TOOL_USE_ID: Final[str] = "toolUseId"
     TOOL_NAME: Final[str] = "name"

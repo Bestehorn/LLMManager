@@ -273,6 +273,48 @@ if resp.has_tool_use():
     print(final.get_content())
 ```
 
+#### Reasoning / Extended Thinking Round-Trip
+
+```python
+def add_reasoning_content(
+    self, text: Optional[str] = None, signature: Optional[str] = None,
+    redacted_content: Optional[Any] = None,
+) -> 'ConverseMessageBuilder'
+```
+
+Reasoning-capable models (Claude extended thinking, Nova reasoning, DeepSeek-R1) return a
+`reasoningContent` block. The signed reasoning block must be echoed back **unmodified**
+(text + `signature`) in later turns of a multi-turn conversation. Read it with
+`BedrockResponse.get_reasoning()` (also on `StreamingResponse`, reconstructed from the
+streamed deltas), and replay it with `add_reasoning_content`:
+
+```python
+# Enable extended thinking via additional_model_request_fields (already supported).
+thinking = {"thinking": {"type": "enabled", "budget_tokens": 1024}}
+resp = manager.converse(messages=[msg], additional_model_request_fields=thinking)
+
+reasoning = resp.get_reasoning()          # ReasoningContent(text, signature, redacted_content) | None
+if reasoning is not None:
+    assistant_turn = create_assistant_message()\
+        .add_reasoning_content(text=reasoning.text, signature=reasoning.signature)\
+        .add_text("...assistant's visible answer...")\
+        .build()
+    # The signature is preserved verbatim, so the next turn validates.
+    follow_up = create_user_message().add_text("Now continue.").build()
+    nxt = manager.converse(
+        messages=[msg, assistant_turn, follow_up],
+        additional_model_request_fields=thinking,
+    )
+
+# ReasoningContent.to_content_block() also rebuilds the re-submittable block directly.
+```
+
+Response/StreamingResponse accessor:
+
+```python
+def get_reasoning(self) -> Optional[ReasoningContent]   # text + signature (+ redacted bytes), or None
+```
+
 #### Building Messages
 
 ```python

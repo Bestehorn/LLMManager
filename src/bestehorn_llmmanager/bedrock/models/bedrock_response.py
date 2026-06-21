@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Union
 from .content_block_types import ResponseContentType
 from .llm_manager_constants import ConverseAPIFields
 from .llm_manager_structures import RequestAttempt, ValidationAttempt
+from .reasoning_content import ReasoningContent
 from .stop_reason import StopReasonCategory, StopReasonClassifier
 from .tool_use import ToolUse
 
@@ -192,6 +193,29 @@ class BedrockResponse:
         if self.get_tool_uses():
             return True
         return self.get_stop_reason() == ConverseAPIFields.STOP_REASON_TOOL_USE
+
+    def get_reasoning(self) -> Optional["ReasoningContent"]:
+        """
+        Get the reasoning / extended-thinking content from the response, if any.
+
+        Parses the first ``reasoningContent`` block into a typed
+        :class:`~bestehorn_llmmanager.bedrock.models.reasoning_content.ReasoningContent`
+        (text + signature, or redacted bytes), so the reasoning can be read and echoed
+        back into a multi-turn request with its signature preserved. Built on
+        :meth:`get_content_blocks_by_type`.
+
+        Returns:
+            The :class:`ReasoningContent`, or ``None`` if the response contains no
+            reasoning block.
+        """
+        reasoning_blocks = self.get_content_blocks_by_type(
+            content_type=ResponseContentType.REASONING_CONTENT
+        )
+        if not reasoning_blocks:
+            return None
+        return ReasoningContent.from_reasoning_block(
+            reasoning_block=reasoning_blocks[0][ConverseAPIFields.REASONING_CONTENT]
+        )
 
     def get_content(self) -> Optional[str]:
         """
@@ -826,6 +850,11 @@ class StreamingResponse:
     current_message_role: Optional[str] = None
     request_attempt: Optional[RequestAttempt] = None
     warnings: List[str] = field(default_factory=list)
+    # Reasoning / extended-thinking accumulated across reasoningContent deltas (issue #32),
+    # so the final signed block can be reconstructed for multi-turn echo-back.
+    reasoning_text_parts: List[str] = field(default_factory=list)
+    reasoning_signature: Optional[str] = None
+    reasoning_redacted_content: Optional[Any] = None
 
     # Internal fields for iterator protocol
     _event_stream: Optional[Any] = field(default=None, init=False, repr=False)
@@ -990,6 +1019,18 @@ class StreamingResponse:
             self.current_message_role = processed_event.get(StreamingConstants.FIELD_ROLE)
 
         elif event_type == StreamingEventTypes.CONTENT_BLOCK_DELTA:
+            # Accumulate reasoning text / signature / redacted bytes so the final signed
+            # reasoningContent block can be reconstructed for echo-back (issue #32).
+            reasoning_text = processed_event.get("reasoning_text")
+            if reasoning_text:
+                self.reasoning_text_parts.append(reasoning_text)
+            reasoning_signature = processed_event.get("reasoning_signature")
+            if reasoning_signature:
+                self.reasoning_signature = reasoning_signature
+            reasoning_redacted = processed_event.get("reasoning_redacted_content")
+            if reasoning_redacted is not None:
+                self.reasoning_redacted_content = reasoning_redacted
+
             # Add content chunk and return it for real-time display
             content = processed_event.get("content", "")
             if content and isinstance(content, str):
@@ -1096,6 +1137,29 @@ class StreamingResponse:
             Complete content string
         """
         return "".join(self.content_parts)
+
+    def get_reasoning(self) -> Optional[ReasoningContent]:
+        """
+        Get the reasoning / extended-thinking content reconstructed from the stream.
+
+        Joins the ``reasoningContent`` text deltas and pairs them with the verification
+        signature (and any redacted bytes) captured during streaming, into a typed
+        :class:`~bestehorn_llmmanager.bedrock.models.reasoning_content.ReasoningContent`.
+        Its :meth:`ReasoningContent.to_content_block` rebuilds a re-submittable signed
+        block for multi-turn echo-back (issue #32).
+
+        Returns:
+            The :class:`ReasoningContent`, or ``None`` if the stream carried no reasoning.
+        """
+        if self.reasoning_text_parts:
+            return ReasoningContent(
+                text="".join(self.reasoning_text_parts),
+                signature=self.reasoning_signature,
+                redacted_content=self.reasoning_redacted_content,
+            )
+        if self.reasoning_redacted_content is not None:
+            return ReasoningContent(redacted_content=self.reasoning_redacted_content)
+        return None
 
     def get_content_parts(self) -> List[str]:
         """

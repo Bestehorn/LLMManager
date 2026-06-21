@@ -1144,3 +1144,58 @@ class TestAddToolResultMethod:
         assert ConverseAPIFields.TOOL_USE in assistant[ConverseAPIFields.CONTENT][1]
         assert user[ConverseAPIFields.ROLE] == "user"
         assert ConverseAPIFields.TOOL_RESULT in user[ConverseAPIFields.CONTENT][0]
+
+
+class TestAddReasoningContentMethod:
+    """Test cases for MessageBuilder.add_reasoning_content (issue #32)."""
+
+    def test_add_reasoning_content_text_and_signature(self):
+        """A reasoningText block is built with the signature preserved."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.ASSISTANT)
+            .add_reasoning_content(text="step by step", signature="sig-abc")
+            .build()
+        )
+        block = message[ConverseAPIFields.CONTENT][0]
+        reasoning = block[ConverseAPIFields.REASONING_CONTENT]
+        reasoning_text = reasoning[ConverseAPIFields.REASONING_TEXT]
+        assert reasoning_text[ConverseAPIFields.TEXT] == "step by step"
+        assert reasoning_text[ConverseAPIFields.REASONING_SIGNATURE] == "sig-abc"
+
+    def test_add_reasoning_content_text_without_signature(self):
+        """The signature key is omitted when no signature is supplied."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.ASSISTANT)
+            .add_reasoning_content(text="thinking")
+            .build()
+        )
+        reasoning_text = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.REASONING_CONTENT][
+            ConverseAPIFields.REASONING_TEXT
+        ]
+        assert reasoning_text[ConverseAPIFields.TEXT] == "thinking"
+        assert ConverseAPIFields.REASONING_SIGNATURE not in reasoning_text
+
+    def test_add_reasoning_content_redacted(self):
+        """A redactedContent block is built when only redacted_content is supplied."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.ASSISTANT)
+            .add_reasoning_content(redacted_content=b"\x01\x02")
+            .build()
+        )
+        reasoning = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.REASONING_CONTENT]
+        assert reasoning[ConverseAPIFields.REASONING_REDACTED_CONTENT] == b"\x01\x02"
+
+    def test_add_reasoning_content_returns_self(self):
+        """add_reasoning_content returns the builder for chaining."""
+        builder = ConverseMessageBuilder(role=RolesEnum.ASSISTANT)
+        assert builder.add_reasoning_content(text="x") is builder
+
+    def test_add_reasoning_content_requires_text_or_redacted(self):
+        """Calling with neither text nor redacted_content is rejected."""
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.ASSISTANT).add_reasoning_content()
+
+    def test_add_reasoning_content_empty_text_rejected(self):
+        """An empty/whitespace text is rejected."""
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.ASSISTANT).add_reasoning_content(text="   ")

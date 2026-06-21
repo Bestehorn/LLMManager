@@ -591,6 +591,63 @@ class TestBedrockResponse:
         assert "FAILED" in repr_str
 
 
+class TestBedrockResponseReasoning:
+    """Tests for the reasoning response accessor (issue #32, non-streaming)."""
+
+    def _reasoning_response(self):
+        response_data = {
+            "output": {
+                "message": {
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "reasoningContent": {
+                                "reasoningText": {"text": "I deduce X", "signature": "sig-99"}
+                            }
+                        },
+                        {"text": "The answer is X."},
+                    ],
+                }
+            },
+            "stopReason": "end_turn",
+        }
+        return BedrockResponse(success=True, response_data=response_data)
+
+    def test_get_reasoning_returns_typed_object(self):
+        from bestehorn_llmmanager.bedrock.models.reasoning_content import ReasoningContent
+
+        reasoning = self._reasoning_response().get_reasoning()
+        assert isinstance(reasoning, ReasoningContent)
+        assert reasoning.text == "I deduce X"
+        assert reasoning.signature == "sig-99"
+
+    def test_get_reasoning_round_trips_to_resubmittable_block(self):
+        """The parsed reasoning rebuilds a block preserving text + signature."""
+        reasoning = self._reasoning_response().get_reasoning()
+        block = reasoning.to_content_block()
+        assert block["reasoningContent"]["reasoningText"]["signature"] == "sig-99"
+
+    def test_get_reasoning_none_when_absent(self):
+        response_data = {"output": {"message": {"content": [{"text": "no reasoning"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_reasoning() is None
+
+    def test_get_reasoning_none_when_no_data(self):
+        assert BedrockResponse(success=True, response_data=None).get_reasoning() is None
+
+    def test_get_reasoning_redacted(self):
+        response_data = {
+            "output": {
+                "message": {"content": [{"reasoningContent": {"redactedContent": b"\x07\x08"}}]}
+            }
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        reasoning = response.get_reasoning()
+        assert reasoning is not None
+        assert reasoning.text is None
+        assert reasoning.redacted_content == b"\x07\x08"
+
+
 class TestBedrockResponseToolUse:
     """Tests for the tool-use response accessors (issue #31)."""
 
@@ -1958,3 +2015,71 @@ class TestBedrockResponseTokenAccessorProperties:
             == response.get_input_tokens() + response.get_output_tokens()
         )
         assert response.get_total_tokens() == input_tokens + output_tokens
+
+
+class TestStreamingResponseReasoning:
+    """Reconstruct reasoning from streaming deltas, preserving the signature (issue #32)."""
+
+    def _drive(self, response, events):
+        """Run the real iterator over the given raw EventStream events to completion."""
+        response._stream_iterator = iter(events)
+        list(response)  # exhausts the iterator, exercising the real event handler
+
+    def test_streaming_reconstructs_reasoning_with_signature(self):
+        """reasoningContent text deltas + a signature delta rebuild a signed block."""
+        from bestehorn_llmmanager.bedrock.models.reasoning_content import ReasoningContent
+
+        response = StreamingResponse(success=True)
+        events = [
+            {"messageStart": {"role": "assistant"}},
+            {"contentBlockDelta": {"delta": {"reasoningContent": {"text": "I think "}}}},
+            {"contentBlockDelta": {"delta": {"reasoningContent": {"text": "carefully"}}}},
+            {"contentBlockDelta": {"delta": {"reasoningContent": {"signature": "sig-stream"}}}},
+            {"contentBlockDelta": {"delta": {"text": "Final answer."}}},
+            {"messageStop": {"stopReason": "end_turn"}},
+        ]
+        self._drive(response=response, events=events)
+
+        reasoning = response.get_reasoning()
+        assert isinstance(reasoning, ReasoningContent)
+        assert reasoning.text == "I think carefully"
+        assert reasoning.signature == "sig-stream"
+
+        # The reconstructed block is re-submittable with the signature preserved.
+        block = reasoning.to_content_block()
+        assert block["reasoningContent"]["reasoningText"]["signature"] == "sig-stream"
+        assert block["reasoningContent"]["reasoningText"]["text"] == "I think carefully"
+
+    def test_streaming_no_reasoning_returns_none(self):
+        """A text-only stream yields no reasoning."""
+        response = StreamingResponse(success=True)
+        events = [
+            {"contentBlockDelta": {"delta": {"text": "just text"}}},
+            {"messageStop": {"stopReason": "end_turn"}},
+        ]
+        self._drive(response=response, events=events)
+        assert response.get_reasoning() is None
+
+    def test_streaming_reconstructs_redacted_reasoning(self):
+        """A redactedContent reasoning delta reconstructs a redacted ReasoningContent."""
+        from bestehorn_llmmanager.bedrock.models.reasoning_content import ReasoningContent
+
+        response = StreamingResponse(success=True)
+        events = [
+            {
+                "contentBlockDelta": {
+                    "delta": {"reasoningContent": {"redactedContent": b"\x10\x20"}}
+                }
+            },
+            {"contentBlockDelta": {"delta": {"text": "Visible answer."}}},
+            {"messageStop": {"stopReason": "end_turn"}},
+        ]
+        self._drive(response=response, events=events)
+
+        reasoning = response.get_reasoning()
+        assert isinstance(reasoning, ReasoningContent)
+        assert reasoning.text is None
+        assert reasoning.redacted_content == b"\x10\x20"
+        # The reconstructed block is a re-submittable redactedContent block.
+        block = reasoning.to_content_block()
+        assert block["reasoningContent"]["redactedContent"] == b"\x10\x20"
