@@ -591,6 +591,147 @@ class TestBedrockResponse:
         assert "FAILED" in repr_str
 
 
+class TestBedrockResponseContentBlocks:
+    """Tests for the typed content-block iterator and accessors (issue #41)."""
+
+    def _mixed_modality_response(self):
+        """A response whose message mixes text, toolUse, reasoning, and image blocks."""
+        response_data = {
+            "output": {
+                "message": {
+                    "role": "assistant",
+                    "content": [
+                        {"text": "First"},
+                        {"reasoningContent": {"reasoningText": {"text": "thinking"}}},
+                        {
+                            "toolUse": {
+                                "toolUseId": "tool-1",
+                                "name": "get_weather",
+                                "input": {"city": "Berlin"},
+                            }
+                        },
+                        {"image": {"format": "png", "source": {"bytes": b"\x89PNG"}}},
+                        {"text": "Second"},
+                    ],
+                }
+            }
+        }
+        return BedrockResponse(success=True, response_data=response_data)
+
+    def test_get_content_blocks_returns_all_in_order(self):
+        """get_content_blocks() returns every block in the original order."""
+        response = self._mixed_modality_response()
+        blocks = response.get_content_blocks()
+        assert blocks is not None
+        assert len(blocks) == 5
+        # Order preserved.
+        assert blocks[0] == {"text": "First"}
+        assert "reasoningContent" in blocks[1]
+        assert "toolUse" in blocks[2]
+        assert "image" in blocks[3]
+        assert blocks[4] == {"text": "Second"}
+
+    def test_get_content_blocks_is_a_copy(self):
+        """Mutating the returned list does not mutate the underlying response_data."""
+        response = self._mixed_modality_response()
+        blocks = response.get_content_blocks()
+        assert blocks is not None
+        original_len = len(response.response_data["output"]["message"]["content"])
+        blocks.append({"text": "injected"})
+        assert len(response.response_data["output"]["message"]["content"]) == original_len
+
+    def test_get_content_blocks_no_data(self):
+        """get_content_blocks() returns None when there is no usable response."""
+        assert BedrockResponse(success=True, response_data=None).get_content_blocks() is None
+        assert (
+            BedrockResponse(success=False, response_data={"output": {}}).get_content_blocks()
+            is None
+        )
+
+    def test_get_content_blocks_malformed(self):
+        """Malformed structures yield None rather than raising."""
+        assert (
+            BedrockResponse(success=True, response_data={"output": None}).get_content_blocks()
+            is None
+        )
+        assert (
+            BedrockResponse(
+                success=True, response_data={"output": {"message": {}}}
+            ).get_content_blocks()
+            is None
+        )
+
+    def test_get_content_blocks_by_type_enum(self):
+        """Filtering by ResponseContentType returns only matching blocks."""
+        from bestehorn_llmmanager.bedrock.models.content_block_types import (
+            ResponseContentType,
+        )
+
+        response = self._mixed_modality_response()
+        text_blocks = response.get_content_blocks_by_type(content_type=ResponseContentType.TEXT)
+        assert text_blocks == [{"text": "First"}, {"text": "Second"}]
+
+        tool_blocks = response.get_content_blocks_by_type(content_type=ResponseContentType.TOOL_USE)
+        assert len(tool_blocks) == 1
+        assert tool_blocks[0]["toolUse"]["name"] == "get_weather"
+
+    def test_get_content_blocks_by_type_string(self):
+        """Filtering accepts the raw string discriminating key too."""
+        response = self._mixed_modality_response()
+        image_blocks = response.get_content_blocks_by_type(content_type="image")
+        assert len(image_blocks) == 1
+        assert image_blocks[0]["image"]["format"] == "png"
+
+    def test_get_content_blocks_by_type_no_match(self):
+        """Filtering for an absent type returns an empty list."""
+        response = self._mixed_modality_response()
+        assert response.get_content_blocks_by_type(content_type="video") == []
+
+    def test_get_content_blocks_by_type_no_data(self):
+        """Filtering with no response data returns an empty list (not None)."""
+        response = BedrockResponse(success=True, response_data=None)
+        assert response.get_content_blocks_by_type(content_type="text") == []
+
+    def test_get_text_blocks(self):
+        """get_text_blocks() returns the ordered text strings only."""
+        response = self._mixed_modality_response()
+        assert response.get_text_blocks() == ["First", "Second"]
+
+    def test_get_text_blocks_no_data(self):
+        """get_text_blocks() returns an empty list when unavailable."""
+        assert BedrockResponse(success=True, response_data=None).get_text_blocks() == []
+
+    def test_get_image_blocks(self):
+        """get_image_blocks() returns the image payloads (value under 'image')."""
+        response = self._mixed_modality_response()
+        images = response.get_image_blocks()
+        assert len(images) == 1
+        assert images[0] == {"format": "png", "source": {"bytes": b"\x89PNG"}}
+
+    def test_get_image_blocks_none_present(self):
+        """get_image_blocks() returns an empty list for a text-only response."""
+        response_data = {"output": {"message": {"content": [{"text": "only text"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_image_blocks() == []
+
+    def test_get_content_uses_iterator_and_is_unchanged(self):
+        """get_content() still joins text blocks, now via the shared iterator."""
+        response = self._mixed_modality_response()
+        # The two text blocks join with newline; non-text blocks are ignored.
+        assert response.get_content() == "First\nSecond"
+
+    def test_get_content_blocks_skips_non_dict_entries(self):
+        """Non-dict entries in the content list are tolerated and skipped by accessors."""
+        response_data = {"output": {"message": {"content": ["not_a_dict", {"text": "valid"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        # The raw iterator returns the list as-is (including the junk entry)...
+        blocks = response.get_content_blocks()
+        assert blocks == ["not_a_dict", {"text": "valid"}]
+        # ...but the typed accessors classify only the well-formed block.
+        assert response.get_text_blocks() == ["valid"]
+        assert response.get_content() == "valid"
+
+
 class TestStreamingResponse:
     """Test StreamingResponse functionality."""
 

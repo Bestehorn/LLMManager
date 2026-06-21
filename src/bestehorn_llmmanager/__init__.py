@@ -39,6 +39,9 @@ For detailed documentation, see the documentation in the docs/ directory.
 from .bedrock.discovery import BedrockRegionDiscovery
 from .bedrock.models.aws_regions import AWSRegions, get_all_regions
 
+# Response content-block typing (typed iteration over response modalities)
+from .bedrock.models.content_block_types import ResponseContentType
+
 # Configuration dataclasses
 from .bedrock.models.llm_manager_structures import Boto3Config
 
@@ -99,6 +102,8 @@ __all__ = [
     "DocumentFormatEnum",
     "VideoFormatEnum",
     "DetectionMethodEnum",
+    # Response content-block typing
+    "ResponseContentType",
     # Region utilities
     "BedrockRegionDiscovery",
     "get_all_regions",
