@@ -7,7 +7,7 @@ validation, and multi-modal support.
 
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 from .bedrock.exceptions.llm_manager_exceptions import RequestValidationError
 from .bedrock.models.cache_structures import CacheConfig
@@ -18,7 +18,13 @@ from .message_builder_constants import (
     MessageBuilderLogMessages,
     SupportedFormats,
 )
-from .message_builder_enums import DocumentFormatEnum, ImageFormatEnum, RolesEnum, VideoFormatEnum
+from .message_builder_enums import (
+    DocumentFormatEnum,
+    ImageFormatEnum,
+    RolesEnum,
+    ToolResultStatusEnum,
+    VideoFormatEnum,
+)
 from .util.file_type_detector import FileTypeDetector
 
 
@@ -593,6 +599,184 @@ class ConverseMessageBuilder:
         )
 
         return self
+
+    def add_tool_use(
+        self, tool_use_id: str, name: str, input: Dict[str, Any]
+    ) -> "ConverseMessageBuilder":
+        """
+        Add a ``toolUse`` content block (an assistant tool-call request).
+
+        Use this to replay an assistant turn in which the model requested a tool, so the
+        conversation can continue after you run the tool and return its result via
+        :meth:`add_tool_result`.
+
+        Args:
+            tool_use_id: The tool request ID (echoed back on the matching tool result).
+            name: The name of the tool the model wants to use.
+            input: The input arguments to pass to the tool (a JSON object).
+
+        Returns:
+            Self for method chaining.
+
+        Raises:
+            RequestValidationError: If ``tool_use_id`` or ``name`` is empty, or ``input``
+                is not a dict.
+        """
+        if not tool_use_id or not tool_use_id.strip():
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="tool_use_id")
+            )
+        if not name or not name.strip():
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="tool name")
+            )
+        if not isinstance(input, dict):
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.INVALID_CONTENT_TYPE.format(
+                    content_type=f"tool input (expected a JSON object, got {type(input).__name__})"
+                )
+            )
+
+        self._validate_content_block_limit()
+
+        tool_use_block = {
+            ConverseAPIFields.TOOL_USE: {
+                ConverseAPIFields.TOOL_USE_ID: tool_use_id,
+                ConverseAPIFields.TOOL_NAME: name,
+                ConverseAPIFields.TOOL_INPUT: input,
+            }
+        }
+
+        self._content_blocks.append(tool_use_block)
+        self._cacheable_blocks.append(False)
+
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type=f"tool_use ({name})", size=len(str(input))
+            )
+        )
+
+        return self
+
+    def add_tool_result(
+        self,
+        tool_use_id: str,
+        content: Union[str, Dict[str, Any], List[Dict[str, Any]]],
+        status: Optional[Union[ToolResultStatusEnum, str]] = None,
+    ) -> "ConverseMessageBuilder":
+        """
+        Add a ``toolResult`` content block (a user turn carrying a tool's result).
+
+        Args:
+            tool_use_id: The ID of the tool request this result is for (must match the
+                ``toolUse`` it answers).
+            content: The tool result. A ``str`` becomes a single ``text``
+                ToolResultContentBlock; a ``dict`` becomes a single ``json`` block; a
+                ``list`` is treated as pre-built ToolResultContentBlocks and passed
+                through verbatim.
+            status: Optional result status — a :class:`ToolResultStatusEnum` or the raw
+                string ``"success"``/``"error"`` (supported by Nova and Claude 3/4).
+
+        Returns:
+            Self for method chaining.
+
+        Raises:
+            RequestValidationError: If ``tool_use_id`` is empty, ``content`` is an
+                unsupported type, or ``status`` is not a valid value.
+        """
+        if not tool_use_id or not tool_use_id.strip():
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="tool_use_id")
+            )
+
+        result_content = self._build_tool_result_content(content=content)
+
+        self._validate_content_block_limit()
+
+        # Typed as Dict[str, Any] so the optional status string can be added below without
+        # mypy narrowing the value type from the content list.
+        tool_result: Dict[str, Any] = {
+            ConverseAPIFields.TOOL_USE_ID: tool_use_id,
+            ConverseAPIFields.TOOL_RESULT_CONTENT: result_content,
+        }
+
+        if status is not None:
+            tool_result[ConverseAPIFields.TOOL_RESULT_STATUS] = self._normalize_tool_status(
+                status=status
+            )
+
+        self._content_blocks.append({ConverseAPIFields.TOOL_RESULT: tool_result})
+        self._cacheable_blocks.append(False)
+
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type="tool_result", size=len(str(result_content))
+            )
+        )
+
+        return self
+
+    def _build_tool_result_content(
+        self, content: Union[str, Dict[str, Any], List[Dict[str, Any]]]
+    ) -> List[Dict[str, Any]]:
+        """
+        Normalize a tool-result ``content`` argument into a ToolResultContentBlock list.
+
+        Args:
+            content: A ``str`` (-> text block), a ``dict`` (-> json block), or a ``list``
+                of pre-built ToolResultContentBlocks (passed through).
+
+        Returns:
+            The list of ToolResultContentBlocks.
+
+        Raises:
+            RequestValidationError: If ``content`` is empty or an unsupported type.
+        """
+        if isinstance(content, str):
+            if not content.strip():
+                raise RequestValidationError(
+                    MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="tool_result")
+                )
+            return [{ConverseAPIFields.TEXT: content}]
+        if isinstance(content, list):
+            if not content:
+                raise RequestValidationError(
+                    MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="tool_result")
+                )
+            return content
+        if isinstance(content, dict):
+            return [{ConverseAPIFields.TOOL_RESULT_JSON: content}]
+        raise RequestValidationError(
+            MessageBuilderErrorMessages.INVALID_CONTENT_TYPE.format(
+                content_type=(
+                    f"tool_result content (expected str, dict, or list, "
+                    f"got {type(content).__name__})"
+                )
+            )
+        )
+
+    def _normalize_tool_status(self, status: Union[ToolResultStatusEnum, str]) -> str:
+        """
+        Validate a tool-result status and return its string value.
+
+        Args:
+            status: A :class:`ToolResultStatusEnum` or the raw string value.
+
+        Returns:
+            The validated status string (``"success"`` or ``"error"``).
+
+        Raises:
+            RequestValidationError: If the status is not a valid value.
+        """
+        if isinstance(status, ToolResultStatusEnum):
+            return status.value
+        try:
+            return ToolResultStatusEnum(status).value
+        except ValueError as exc:
+            valid = ", ".join(member.value for member in ToolResultStatusEnum)
+            raise RequestValidationError(
+                f"Invalid tool_result status '{status}'. Valid values are: {valid}"
+            ) from exc
 
     def build(self) -> Dict[str, Any]:
         """

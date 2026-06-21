@@ -12,6 +12,7 @@ from .content_block_types import ResponseContentType
 from .llm_manager_constants import ConverseAPIFields
 from .llm_manager_structures import RequestAttempt, ValidationAttempt
 from .stop_reason import StopReasonCategory, StopReasonClassifier
+from .tool_use import ToolUse
 
 
 @dataclass
@@ -159,6 +160,38 @@ class BedrockResponse:
             block[ConverseAPIFields.IMAGE]
             for block in self.get_content_blocks_by_type(content_type=ResponseContentType.IMAGE)
         ]
+
+    def get_tool_uses(self) -> List[ToolUse]:
+        """
+        Get the tool-use (function-call) requests from the response, in order.
+
+        Parses every ``toolUse`` content block into a typed :class:`ToolUse`
+        (id, name, parsed input), so a tool-use turn is reachable without touching the
+        raw response dict. Built on :meth:`get_content_blocks_by_type`.
+
+        Returns:
+            The ordered list of :class:`ToolUse`; an empty list if the response contains
+            no tool-use blocks.
+        """
+        return [
+            ToolUse.from_tool_use_block(tool_use_block=block[ConverseAPIFields.TOOL_USE])
+            for block in self.get_content_blocks_by_type(content_type=ResponseContentType.TOOL_USE)
+        ]
+
+    def has_tool_use(self) -> bool:
+        """
+        Check whether the model requested a tool call.
+
+        True if the response contains a ``toolUse`` content block OR its stop reason is
+        ``tool_use`` (the model may signal a tool turn via the stop reason even before
+        the blocks are inspected).
+
+        Returns:
+            True if a tool call was requested, False otherwise.
+        """
+        if self.get_tool_uses():
+            return True
+        return self.get_stop_reason() == ConverseAPIFields.STOP_REASON_TOOL_USE
 
     def get_content(self) -> Optional[str]:
         """

@@ -47,6 +47,9 @@ from .bedrock.models.llm_manager_structures import Boto3Config
 
 # Model-specific configuration and tracking
 from .bedrock.models.model_specific_structures import ModelSpecificConfig
+
+# Tool use (function calling) typed request object
+from .bedrock.models.tool_use import ToolUse
 from .bedrock.tracking.parameter_compatibility_tracker import ParameterCompatibilityTracker
 
 # Package metadata
@@ -64,6 +67,7 @@ from .message_builder_enums import (
     DocumentFormatEnum,
     ImageFormatEnum,
     RolesEnum,
+    ToolResultStatusEnum,
     VideoFormatEnum,
 )
 from .parallel_llm_manager import ParallelLLMManager
@@ -102,8 +106,11 @@ __all__ = [
     "DocumentFormatEnum",
     "VideoFormatEnum",
     "DetectionMethodEnum",
+    "ToolResultStatusEnum",
     # Response content-block typing
     "ResponseContentType",
+    # Tool use (function calling)
+    "ToolUse",
     # Region utilities
     "BedrockRegionDiscovery",
     "get_all_regions",

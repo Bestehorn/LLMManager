@@ -85,3 +85,20 @@ class DetectionMethodEnum(str, Enum):
     CONTENT = "content"
     COMBINED = "combined"
     MANUAL = "manual"
+
+
+class ToolResultStatusEnum(str, Enum):
+    """
+    Enumeration of valid tool-result statuses for the Converse API.
+
+    Set on a ``toolResult`` block to tell the model whether the tool call succeeded or
+    failed. Values map directly to the Converse ``ToolResultBlock.status`` valid values
+    (``success`` | ``error``). Supported by Amazon Nova and Anthropic Claude 3/4 models.
+    """
+
+    SUCCESS = ConverseAPIFields.TOOL_RESULT_STATUS_SUCCESS
+    ERROR = ConverseAPIFields.TOOL_RESULT_STATUS_ERROR
+
+    def __str__(self) -> str:
+        """Return the string value of the enum."""
+        return self.value

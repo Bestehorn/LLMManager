@@ -591,6 +591,98 @@ class TestBedrockResponse:
         assert "FAILED" in repr_str
 
 
+class TestBedrockResponseToolUse:
+    """Tests for the tool-use response accessors (issue #31)."""
+
+    def _tool_use_response(self):
+        """A response whose assistant message contains a toolUse block + tool_use stop."""
+        response_data = {
+            "output": {
+                "message": {
+                    "role": "assistant",
+                    "content": [
+                        {"text": "Let me look that up."},
+                        {
+                            "toolUse": {
+                                "toolUseId": "tool-42",
+                                "name": "get_weather",
+                                "input": {"city": "Paris"},
+                            }
+                        },
+                    ],
+                }
+            },
+            "stopReason": "tool_use",
+        }
+        return BedrockResponse(success=True, response_data=response_data)
+
+    def test_get_tool_uses_returns_typed_objects(self):
+        """get_tool_uses() returns typed ToolUse objects parsed from the response."""
+        from bestehorn_llmmanager.bedrock.models.tool_use import ToolUse
+
+        response = self._tool_use_response()
+        tool_uses = response.get_tool_uses()
+        assert len(tool_uses) == 1
+        assert isinstance(tool_uses[0], ToolUse)
+        assert tool_uses[0].tool_use_id == "tool-42"
+        assert tool_uses[0].name == "get_weather"
+        assert tool_uses[0].input == {"city": "Paris"}
+
+    def test_get_tool_uses_multiple(self):
+        """Multiple toolUse blocks all parse, in order."""
+        response_data = {
+            "output": {
+                "message": {
+                    "content": [
+                        {"toolUse": {"toolUseId": "a", "name": "one", "input": {}}},
+                        {"toolUse": {"toolUseId": "b", "name": "two", "input": {"x": 1}}},
+                    ]
+                }
+            },
+            "stopReason": "tool_use",
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        tool_uses = response.get_tool_uses()
+        assert [t.tool_use_id for t in tool_uses] == ["a", "b"]
+        assert tool_uses[1].input == {"x": 1}
+
+    def test_get_tool_uses_none_present(self):
+        """A text-only response yields no tool uses."""
+        response_data = {"output": {"message": {"content": [{"text": "hi"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_tool_uses() == []
+
+    def test_get_tool_uses_no_data(self):
+        """No response data yields an empty list."""
+        assert BedrockResponse(success=True, response_data=None).get_tool_uses() == []
+
+    def test_has_tool_use_true_when_block_present(self):
+        """has_tool_use() is True when a toolUse block exists."""
+        assert self._tool_use_response().has_tool_use() is True
+
+    def test_has_tool_use_true_on_stop_reason_only(self):
+        """has_tool_use() is True when stopReason is tool_use even before blocks parse."""
+        response_data = {
+            "output": {"message": {"content": [{"text": "thinking"}]}},
+            "stopReason": "tool_use",
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.has_tool_use() is True
+
+    def test_has_tool_use_false_for_plain_text(self):
+        """has_tool_use() is False for a plain end_turn text response."""
+        response_data = {
+            "output": {"message": {"content": [{"text": "done"}]}},
+            "stopReason": "end_turn",
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.has_tool_use() is False
+
+    def test_has_tool_use_false_no_data(self):
+        """has_tool_use() is False when there is no usable response."""
+        assert BedrockResponse(success=False, response_data=None).has_tool_use() is False
+
+
 class TestBedrockResponseContentBlocks:
     """Tests for the typed content-block iterator and accessors (issue #41)."""
 

@@ -208,6 +208,71 @@ message = create_user_message()\
     .build()
 ```
 
+#### Tool Use (Function Calling) Round-Trip
+
+```python
+def add_tool_use(self, tool_use_id: str, name: str, input: Dict[str, Any]) -> 'ConverseMessageBuilder'
+def add_tool_result(
+    self,
+    tool_use_id: str,
+    content: Union[str, Dict[str, Any], List[Dict[str, Any]]],
+    status: Optional[Union[ToolResultStatusEnum, str]] = None,
+) -> 'ConverseMessageBuilder'
+```
+
+Build the two turns of a tool-use loop. `add_tool_use` replays the assistant turn in
+which the model requested a tool; `add_tool_result` carries the tool's output back as a
+user turn. `content` may be a `str` (→ a `text` result block), a `dict` (→ a `json`
+result block), or a pre-built list of `ToolResultContentBlock`s. `status` is
+`ToolResultStatusEnum.SUCCESS` / `.ERROR` (or the raw string), supported by Nova and
+Claude 3/4 models.
+
+Read a model's tool request out of a response with the typed accessors:
+
+```python
+def get_tool_uses(self) -> List[ToolUse]   # typed (tool_use_id, name, input) objects
+def has_tool_use(self) -> bool             # True if a toolUse block OR stopReason == tool_use
+```
+
+```python
+from bestehorn_llmmanager import (
+    create_user_message, create_assistant_message, ToolResultStatusEnum,
+)
+
+tool_config = {"tools": [{"toolSpec": {
+    "name": "get_weather",
+    "description": "Get the weather for a city.",
+    "inputSchema": {"json": {
+        "type": "object",
+        "properties": {"city": {"type": "string"}},
+        "required": ["city"],
+    }},
+}}]}
+
+# Turn 1: the model asks for the tool.
+first = create_user_message().add_text("Weather in Paris?").build()
+resp = manager.converse(messages=[first], tool_config=tool_config)
+
+if resp.has_tool_use():
+    call = resp.get_tool_uses()[0]            # ToolUse(tool_use_id, name, input)
+    result = run_my_tool(call.name, call.input)   # your tool execution
+
+    # Turn 2: replay the assistant tool-call turn + the tool result, then continue.
+    assistant_turn = create_assistant_message()\
+        .add_tool_use(tool_use_id=call.tool_use_id, name=call.name, input=call.input)\
+        .build()
+    result_turn = create_user_message()\
+        .add_tool_result(
+            tool_use_id=call.tool_use_id, content=result,
+            status=ToolResultStatusEnum.SUCCESS,
+        )\
+        .build()
+    final = manager.converse(
+        messages=[first, assistant_turn, result_turn], tool_config=tool_config
+    )
+    print(final.get_content())
+```
+
 #### Building Messages
 
 ```python
@@ -710,6 +775,10 @@ tool_blocks = response.get_content_blocks_by_type(       # List[dict]: blocks of
 )
 text_parts = response.get_text_blocks()                  # List[str]: the text strings, in order
 images = response.get_image_blocks()                     # List[dict]: ImageBlock payloads ({"format","source"})
+
+# Tool use (function calling) — see the MessageBuilder tool-use round-trip section
+tool_uses = response.get_tool_uses()                     # List[ToolUse]: typed (tool_use_id, name, input)
+asked_for_tool = response.has_tool_use()                 # bool: toolUse block present OR stopReason == tool_use
 
 # Token usage accessor methods (recommended)
 input_tokens = response.get_input_tokens()               # Int: Input tokens used

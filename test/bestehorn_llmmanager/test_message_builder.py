@@ -973,3 +973,174 @@ class TestComplexScenarios:
 
         with pytest.raises(RequestValidationError, match="Unsupported format"):
             builder.add_image_bytes(bytes=image_data, filename="test.unk")
+
+
+class TestAddToolUseMethod:
+    """Test cases for MessageBuilder.add_tool_use (issue #31)."""
+
+    def test_add_tool_use_builds_block(self):
+        """add_tool_use produces a toolUse content block with id/name/input."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.ASSISTANT)
+            .add_tool_use(tool_use_id="t-1", name="get_weather", input={"city": "Berlin"})
+            .build()
+        )
+        blocks = message[ConverseAPIFields.CONTENT]
+        assert len(blocks) == 1
+        tool_use = blocks[0][ConverseAPIFields.TOOL_USE]
+        assert tool_use[ConverseAPIFields.TOOL_USE_ID] == "t-1"
+        assert tool_use[ConverseAPIFields.TOOL_NAME] == "get_weather"
+        assert tool_use[ConverseAPIFields.TOOL_INPUT] == {"city": "Berlin"}
+
+    def test_add_tool_use_returns_self_for_chaining(self):
+        """add_tool_use returns the builder for fluent chaining."""
+        builder = ConverseMessageBuilder(role=RolesEnum.ASSISTANT)
+        result = builder.add_tool_use(tool_use_id="t-1", name="calc", input={})
+        assert result is builder
+
+    def test_add_tool_use_empty_id_rejected(self):
+        """An empty tool_use_id is rejected."""
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.ASSISTANT).add_tool_use(
+                tool_use_id="", name="calc", input={}
+            )
+
+    def test_add_tool_use_empty_name_rejected(self):
+        """An empty tool name is rejected."""
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.ASSISTANT).add_tool_use(
+                tool_use_id="t-1", name="", input={}
+            )
+
+    def test_add_tool_use_non_dict_input_rejected(self):
+        """A non-dict input is rejected (toolUse.input must be a JSON object)."""
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.ASSISTANT).add_tool_use(
+                tool_use_id="t-1",
+                name="calc",
+                input="not-a-dict",  # type: ignore[arg-type]
+            )
+
+
+class TestAddToolResultMethod:
+    """Test cases for MessageBuilder.add_tool_result (issue #31)."""
+
+    def test_add_tool_result_text(self):
+        """A string result becomes a single text ToolResultContentBlock."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_tool_result(tool_use_id="t-1", content="22 degrees")
+            .build()
+        )
+        tool_result = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.TOOL_RESULT]
+        assert tool_result[ConverseAPIFields.TOOL_USE_ID] == "t-1"
+        assert tool_result[ConverseAPIFields.TOOL_RESULT_CONTENT] == [
+            {ConverseAPIFields.TEXT: "22 degrees"}
+        ]
+        # status omitted when not provided
+        assert ConverseAPIFields.TOOL_RESULT_STATUS not in tool_result
+
+    def test_add_tool_result_json(self):
+        """A dict result becomes a single json ToolResultContentBlock."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_tool_result(tool_use_id="t-1", content={"temp_c": 22})
+            .build()
+        )
+        tool_result = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.TOOL_RESULT]
+        assert tool_result[ConverseAPIFields.TOOL_RESULT_CONTENT] == [
+            {ConverseAPIFields.TOOL_RESULT_JSON: {"temp_c": 22}}
+        ]
+
+    def test_add_tool_result_status_enum(self):
+        """The status accepts a ToolResultStatusEnum and serializes its value."""
+        from bestehorn_llmmanager.message_builder_enums import ToolResultStatusEnum
+
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_tool_result(tool_use_id="t-1", content="boom", status=ToolResultStatusEnum.ERROR)
+            .build()
+        )
+        tool_result = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.TOOL_RESULT]
+        assert tool_result[ConverseAPIFields.TOOL_RESULT_STATUS] == "error"
+
+    def test_add_tool_result_status_string(self):
+        """The status accepts the raw string 'success'/'error'."""
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_tool_result(tool_use_id="t-1", content="ok", status="success")
+            .build()
+        )
+        tool_result = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.TOOL_RESULT]
+        assert tool_result[ConverseAPIFields.TOOL_RESULT_STATUS] == "success"
+
+    def test_add_tool_result_invalid_status_rejected(self):
+        """An out-of-range status string is rejected."""
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_tool_result(
+                tool_use_id="t-1", content="x", status="maybe"
+            )
+
+    def test_add_tool_result_prebuilt_content_list(self):
+        """A pre-built list of ToolResultContentBlocks is passed through verbatim."""
+        prebuilt = [
+            {ConverseAPIFields.TEXT: "line 1"},
+            {ConverseAPIFields.TOOL_RESULT_JSON: {"k": "v"}},
+        ]
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_tool_result(tool_use_id="t-1", content=prebuilt)
+            .build()
+        )
+        tool_result = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.TOOL_RESULT]
+        assert tool_result[ConverseAPIFields.TOOL_RESULT_CONTENT] == prebuilt
+
+    def test_add_tool_result_empty_id_rejected(self):
+        """An empty tool_use_id is rejected."""
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_tool_result(tool_use_id="", content="x")
+
+    def test_add_tool_result_returns_self(self):
+        """add_tool_result returns the builder for chaining."""
+        builder = ConverseMessageBuilder(role=RolesEnum.USER)
+        assert builder.add_tool_result(tool_use_id="t-1", content="x") is builder
+
+    def test_add_tool_result_empty_string_content_rejected(self):
+        """An empty/whitespace string result is rejected."""
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_tool_result(
+                tool_use_id="t-1", content="   "
+            )
+
+    def test_add_tool_result_empty_list_content_rejected(self):
+        """An empty pre-built content list is rejected."""
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_tool_result(
+                tool_use_id="t-1", content=[]
+            )
+
+    def test_add_tool_result_unsupported_content_type_rejected(self):
+        """A content type that is not str/dict/list is rejected."""
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_tool_result(
+                tool_use_id="t-1",
+                content=42,  # type: ignore[arg-type]
+            )
+
+    def test_tool_round_trip_chaining(self):
+        """An assistant toolUse turn and a user toolResult turn build correctly."""
+        assistant = (
+            ConverseMessageBuilder(role=RolesEnum.ASSISTANT)
+            .add_text("Let me check the weather.")
+            .add_tool_use(tool_use_id="t-9", name="get_weather", input={"city": "Paris"})
+            .build()
+        )
+        user = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_tool_result(tool_use_id="t-9", content={"temp_c": 18}, status="success")
+            .build()
+        )
+        assert assistant[ConverseAPIFields.ROLE] == "assistant"
+        assert ConverseAPIFields.TOOL_USE in assistant[ConverseAPIFields.CONTENT][1]
+        assert user[ConverseAPIFields.ROLE] == "user"
+        assert ConverseAPIFields.TOOL_RESULT in user[ConverseAPIFields.CONTENT][0]
