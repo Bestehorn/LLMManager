@@ -692,10 +692,24 @@ response = manager.converse(messages=[...])
 
 # Basic response information
 success = response.success                                # Boolean: Request success status
-content = response.get_content()                          # String: Main text content
+content = response.get_content()                          # String: Main text content (joins text blocks)
 usage = response.get_usage()                             # Dict: Token usage information
 metrics = response.get_metrics()                         # Dict: Performance metrics
 stop_reason = response.get_stop_reason()                 # String: Why generation stopped
+
+# Typed content-block iteration (all modalities)
+# get_content_blocks() is the general accessor: it returns the ordered list of typed
+# content blocks (text, toolUse, reasoningContent, image, citationsContent, ...) so you
+# can handle any modality without touching the raw response dict. get_content() and the
+# type-specific accessors below are all built on top of it.
+blocks = response.get_content_blocks()                   # Optional[List[dict]]: all blocks in order (None if unavailable)
+
+from bestehorn_llmmanager import ResponseContentType
+tool_blocks = response.get_content_blocks_by_type(       # List[dict]: blocks of one type
+    content_type=ResponseContentType.TOOL_USE            # accepts the enum or the raw key "toolUse"
+)
+text_parts = response.get_text_blocks()                  # List[str]: the text strings, in order
+images = response.get_image_blocks()                     # List[dict]: ImageBlock payloads ({"format","source"})
 
 # Token usage accessor methods (recommended)
 input_tokens = response.get_input_tokens()               # Int: Input tokens used

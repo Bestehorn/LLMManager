@@ -38,6 +38,9 @@ class ConverseAPIFields:
     REASONING_CONTENT: Final[str] = "reasoningContent"
     TOOL_USE: Final[str] = "toolUse"
     TOOL_RESULT: Final[str] = "toolResult"
+    CITATIONS_CONTENT: Final[str] = "citationsContent"
+    AUDIO: Final[str] = "audio"
+    SEARCH_RESULT: Final[str] = "searchResult"
 
     # Image block fields
     FORMAT: Final[str] = "format"

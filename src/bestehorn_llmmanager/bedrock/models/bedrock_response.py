@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
+from .content_block_types import ResponseContentType
 from .llm_manager_constants import ConverseAPIFields
 from .llm_manager_structures import RequestAttempt, ValidationAttempt
 from .stop_reason import StopReasonCategory, StopReasonClassifier
@@ -59,12 +60,28 @@ class BedrockResponse:
     original_additional_fields: Optional[Dict[str, Any]] = None
     final_additional_fields: Optional[Dict[str, Any]] = None
 
-    def get_content(self) -> Optional[str]:
+    def get_content_blocks(self) -> Optional[List[Any]]:
         """
-        Extract the main text content from the response.
+        Get the ordered list of typed content blocks from the response message.
+
+        This is the general response-content accessor: it returns every content block
+        from the assistant's message — text, ``toolUse``, ``reasoningContent``,
+        ``image``, ``citationsContent``, and any other ``ContentBlock`` union member —
+        in the order the model produced them, so callers can handle any modality
+        without hand-navigating the raw response dictionary. The type-specific
+        accessors (:meth:`get_text_blocks`, :meth:`get_image_blocks`,
+        :meth:`get_content_blocks_by_type`) and the text convenience
+        :meth:`get_content` are all built on top of this iterator.
+
+        The returned list is a shallow copy, so mutating it does not affect the
+        underlying ``response_data``. Individual block dicts are not copied.
 
         Returns:
-            The text content from the assistant's response, None if not available
+            The ordered list of content blocks, or ``None`` if the response was
+            unsuccessful, has no response data, or has no content list.
+
+        Reference:
+            https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ContentBlock.html
         """
         if not self.success or not self.response_data:
             return None
@@ -72,18 +89,90 @@ class BedrockResponse:
         try:
             output = self.response_data.get(ConverseAPIFields.OUTPUT, {})
             message = output.get(ConverseAPIFields.MESSAGE, {})
-            content_blocks = message.get(ConverseAPIFields.CONTENT, [])
-
-            # Extract text from all content blocks
-            text_parts = []
-            for block in content_blocks:
-                if isinstance(block, dict) and ConverseAPIFields.TEXT in block:
-                    text_parts.append(block[ConverseAPIFields.TEXT])
-
-            return "\n".join(text_parts) if text_parts else None
-
+            content_blocks = message.get(ConverseAPIFields.CONTENT, None)
         except (KeyError, TypeError, AttributeError):
             return None
+
+        if not isinstance(content_blocks, list):
+            return None
+
+        return list(content_blocks)
+
+    def get_content_blocks_by_type(
+        self, content_type: Union[ResponseContentType, str]
+    ) -> List[Any]:
+        """
+        Get all content blocks of a single type, in order.
+
+        Filters the result of :meth:`get_content_blocks` to the blocks whose
+        discriminating union key matches ``content_type``.
+
+        Args:
+            content_type: The block type to keep, either a :class:`ResponseContentType`
+                or its raw string key (e.g. ``"text"``, ``"toolUse"``, ``"image"``).
+
+        Returns:
+            The matching blocks in order; an empty list if there are none or if the
+            response has no content blocks.
+        """
+        target = (
+            content_type
+            if isinstance(content_type, ResponseContentType)
+            else ResponseContentType.from_block(block={str(content_type): None})
+        )
+
+        blocks = self.get_content_blocks()
+        if not blocks:
+            return []
+
+        return [
+            block
+            for block in blocks
+            if isinstance(block, dict) and ResponseContentType.from_block(block=block) is target
+        ]
+
+    def get_text_blocks(self) -> List[str]:
+        """
+        Get the text strings from all text content blocks, in order.
+
+        Returns:
+            The ordered list of text strings; an empty list if the response has no
+            text blocks.
+        """
+        return [
+            block[ConverseAPIFields.TEXT]
+            for block in self.get_content_blocks_by_type(content_type=ResponseContentType.TEXT)
+        ]
+
+    def get_image_blocks(self) -> List[Dict[str, Any]]:
+        """
+        Get the image payloads from all image content blocks, in order.
+
+        Each returned item is the value under the block's ``image`` key — an
+        ``ImageBlock`` (``{"format": ..., "source": ...}``) — not the wrapping block.
+
+        Returns:
+            The ordered list of image payloads; an empty list if the response has no
+            image blocks.
+        """
+        return [
+            block[ConverseAPIFields.IMAGE]
+            for block in self.get_content_blocks_by_type(content_type=ResponseContentType.IMAGE)
+        ]
+
+    def get_content(self) -> Optional[str]:
+        """
+        Extract the main text content from the response.
+
+        Joins every text content block with newlines. Built on
+        :meth:`get_text_blocks` (and thus :meth:`get_content_blocks`), so non-text
+        modalities are ignored here but reachable through the typed accessors.
+
+        Returns:
+            The joined text content from the assistant's response, None if not available
+        """
+        text_parts = self.get_text_blocks()
+        return "\n".join(text_parts) if text_parts else None
 
     def get_usage(self) -> Optional[Dict[str, int]]:
         """
