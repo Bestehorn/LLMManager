@@ -208,6 +208,34 @@ message = create_user_message()\
     .build()
 ```
 
+#### S3-sourced Media (image / document / video)
+
+Attach media stored in Amazon S3 instead of inlining bytes — useful for large files
+that would exceed the inlined-bytes request-size limits. `format` is **required** (no
+bytes are read locally to sniff it), and no local size/format check is performed.
+
+```python
+def add_image_s3(self, uri: str, format: ImageFormatEnum, bucket_owner: Optional[str] = None)
+def add_document_s3(self, uri: str, format: DocumentFormatEnum, name=None,
+                    bucket_owner=None, citations_enabled=False, context=None)
+def add_video_s3(self, uri: str, format: VideoFormatEnum, bucket_owner: Optional[str] = None)
+```
+
+```python
+from bestehorn_llmmanager.message_builder_enums import ImageFormatEnum
+
+message = create_user_message()\
+    .add_text("Describe this image.")\
+    .add_image_s3(uri="s3://my-bucket/photo.png", format=ImageFormatEnum.PNG)\
+    .build()
+# Produces source: {"s3Location": {"uri": "s3://my-bucket/photo.png"}}
+```
+
+- `uri` must start with `s3://`; `bucket_owner` (optional) is the **12-digit AWS account
+  ID** of the bucket owner — required when the bucket belongs to another account.
+- **IAM**: the model's execution role needs `s3:GetObject` on the referenced object (and
+  `s3:GetObject` is evaluated against `bucket_owner` for cross-account buckets).
+
 #### Tool Use (Function Calling) Round-Trip
 
 ```python

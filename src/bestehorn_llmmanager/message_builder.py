@@ -591,6 +591,183 @@ class ConverseMessageBuilder:
         # Use the existing add_video_bytes method
         return self.add_video_bytes(bytes=video_bytes, format=format, filename=file_path.name)
 
+    def _build_s3_source(
+        self, uri: str, bucket_owner: Optional[str], content_type: str
+    ) -> Dict[str, Any]:
+        """
+        Validate an S3 URI / bucket owner and build the ``source.s3Location`` payload.
+
+        Args:
+            uri: An object URI starting with ``s3://``.
+            bucket_owner: Optional 12-digit AWS account ID of the bucket owner (required
+                when the bucket belongs to another account; the caller's role needs
+                ``s3:GetObject`` on the object).
+            content_type: The media type, for error messages.
+
+        Returns:
+            A ``{"s3Location": {"uri": ..., "bucketOwner"?: ...}}`` source dict.
+
+        Raises:
+            RequestValidationError: If ``uri`` is empty / not an ``s3://`` URI, or
+                ``bucket_owner`` is not a 12-digit account ID.
+        """
+        if not uri or not uri.startswith("s3://"):
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.INVALID_CONTENT_TYPE.format(
+                    content_type=(f"{content_type} S3 URI (must start with 's3://', got {uri!r})")
+                )
+            )
+        if bucket_owner is not None and not (len(bucket_owner) == 12 and bucket_owner.isdigit()):
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.INVALID_CONTENT_TYPE.format(
+                    content_type=(
+                        f"bucket_owner (must be a 12-digit AWS account ID, got {bucket_owner!r})"
+                    )
+                )
+            )
+
+        s3_location: Dict[str, Any] = {ConverseAPIFields.URI: uri}
+        if bucket_owner is not None:
+            s3_location[ConverseAPIFields.BUCKET_OWNER] = bucket_owner
+        return {ConverseAPIFields.S3_LOCATION: s3_location}
+
+    def add_image_s3(
+        self,
+        uri: str,
+        format: ImageFormatEnum,
+        bucket_owner: Optional[str] = None,
+    ) -> "ConverseMessageBuilder":
+        """
+        Add an image content block sourced from Amazon S3.
+
+        Unlike :meth:`add_image_bytes`, no bytes are read or size-checked locally; the
+        model fetches the object from S3 at request time, so ``format`` is required (it
+        cannot be auto-detected from content).
+
+        Args:
+            uri: An ``s3://`` object URI for the image.
+            format: The image format (required for S3 sources).
+            bucket_owner: Optional 12-digit AWS account ID, required when the bucket
+                belongs to another account. The model's execution role needs
+                ``s3:GetObject`` on the object.
+
+        Returns:
+            Self for method chaining.
+
+        Raises:
+            RequestValidationError: If the URI or bucket owner is invalid.
+        """
+        self._validate_content_block_limit()
+
+        image_block = {
+            ConverseAPIFields.IMAGE: {
+                ConverseAPIFields.FORMAT: format.value,
+                ConverseAPIFields.SOURCE: self._build_s3_source(
+                    uri=uri, bucket_owner=bucket_owner, content_type="image"
+                ),
+            }
+        }
+        self._content_blocks.append(image_block)
+        self._cacheable_blocks.append(False)
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type=f"image-s3 ({format.value})", size=len(uri)
+            )
+        )
+        return self
+
+    def add_document_s3(
+        self,
+        uri: str,
+        format: DocumentFormatEnum,
+        name: Optional[str] = None,
+        bucket_owner: Optional[str] = None,
+        citations_enabled: bool = False,
+        context: Optional[str] = None,
+    ) -> "ConverseMessageBuilder":
+        """
+        Add a document content block sourced from Amazon S3.
+
+        Args:
+            uri: An ``s3://`` object URI for the document.
+            format: The document format (required for S3 sources).
+            name: Optional document name for the API.
+            bucket_owner: Optional 12-digit AWS account ID for a cross-account bucket
+                (the model's role needs ``s3:GetObject``).
+            citations_enabled: When True, enables document citations (see
+                :meth:`add_document_bytes`).
+            context: Optional citation context string.
+
+        Returns:
+            Self for method chaining.
+
+        Raises:
+            RequestValidationError: If the URI or bucket owner is invalid.
+        """
+        self._validate_content_block_limit()
+
+        document_inner: Dict[str, Any] = {
+            ConverseAPIFields.FORMAT: format.value,
+            ConverseAPIFields.SOURCE: self._build_s3_source(
+                uri=uri, bucket_owner=bucket_owner, content_type="document"
+            ),
+        }
+        if name:
+            document_inner[ConverseAPIFields.NAME] = name
+        if citations_enabled:
+            document_inner[ConverseAPIFields.CITATIONS] = {ConverseAPIFields.ENABLED: True}
+        if context is not None:
+            document_inner[ConverseAPIFields.CONTEXT] = context
+
+        self._content_blocks.append({ConverseAPIFields.DOCUMENT: document_inner})
+        self._cacheable_blocks.append(False)
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type=f"document-s3 ({format.value})", size=len(uri)
+            )
+        )
+        return self
+
+    def add_video_s3(
+        self,
+        uri: str,
+        format: VideoFormatEnum,
+        bucket_owner: Optional[str] = None,
+    ) -> "ConverseMessageBuilder":
+        """
+        Add a video content block sourced from Amazon S3.
+
+        Args:
+            uri: An ``s3://`` object URI for the video.
+            format: The video format (required for S3 sources).
+            bucket_owner: Optional 12-digit AWS account ID for a cross-account bucket
+                (the model's role needs ``s3:GetObject``).
+
+        Returns:
+            Self for method chaining.
+
+        Raises:
+            RequestValidationError: If the URI or bucket owner is invalid.
+        """
+        self._validate_content_block_limit()
+
+        video_block = {
+            ConverseAPIFields.VIDEO: {
+                ConverseAPIFields.FORMAT: format.value,
+                ConverseAPIFields.SOURCE: self._build_s3_source(
+                    uri=uri, bucket_owner=bucket_owner, content_type="video"
+                ),
+            }
+        }
+        self._content_blocks.append(video_block)
+        self._cacheable_blocks.append(False)
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type=f"video-s3 ({format.value})", size=len(uri)
+            )
+        )
+        return self
+
     def add_cache_point(self, cache_type: str = "default") -> "ConverseMessageBuilder":
         """
         Add an explicit cache point at the current position.
