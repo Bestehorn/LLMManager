@@ -33,6 +33,10 @@ class TestPackageInit:
         # Test response content-block typing
         assert hasattr(bestehorn_llmmanager, "ResponseContentType")
 
+        # Test tool-use round-trip types
+        assert hasattr(bestehorn_llmmanager, "ToolResultStatusEnum")
+        assert hasattr(bestehorn_llmmanager, "ToolUse")
+
     def test_version_handling_with_version_import_success(self):
         """Test version handling when _version import succeeds."""
         # This will use the actual _version.py file which should exist
@@ -99,6 +103,8 @@ class TestPackageInit:
             "VideoFormatEnum",
             "DetectionMethodEnum",
             "ResponseContentType",
+            "ToolResultStatusEnum",
+            "ToolUse",
         ]
 
         assert hasattr(bestehorn_llmmanager, "__all__")

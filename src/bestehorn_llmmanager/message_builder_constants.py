@@ -78,6 +78,7 @@ class MessageBuilderErrorMessages:
     # Configuration errors
     INVALID_ROLE: Final[str] = "Invalid role specified: {role}. Must be one of: {valid_roles}"
     EMPTY_CONTENT: Final[str] = "Content cannot be empty for {content_type}"
+    INVALID_CONTENT_TYPE: Final[str] = "Invalid content type: {content_type}"
     INVALID_FORMAT: Final[str] = (
         "Invalid {content_type} format: {format}. Supported formats: {supported_formats}"
     )

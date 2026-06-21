@@ -53,6 +53,16 @@ class ConverseAPIFields:
     # Document block fields
     NAME: Final[str] = "name"
 
+    # Tool use / tool result block fields
+    TOOL_USE_ID: Final[str] = "toolUseId"
+    TOOL_NAME: Final[str] = "name"
+    TOOL_INPUT: Final[str] = "input"
+    TOOL_RESULT_CONTENT: Final[str] = "content"
+    TOOL_RESULT_STATUS: Final[str] = "status"
+    TOOL_RESULT_JSON: Final[str] = "json"
+    TOOL_RESULT_STATUS_SUCCESS: Final[str] = "success"
+    TOOL_RESULT_STATUS_ERROR: Final[str] = "error"
+
     # Inference configuration fields
     MAX_TOKENS: Final[str] = "maxTokens"
     STOP_SEQUENCES: Final[str] = "stopSequences"
