@@ -54,6 +54,9 @@ from .bedrock.models.model_specific_structures import ModelSpecificConfig
 # Reasoning / extended-thinking typed content
 from .bedrock.models.reasoning_content import ReasoningContent
 
+# Structured output (outputConfig.textFormat json_schema) helper
+from .bedrock.models.structured_output import build_json_schema_output_config
+
 # Tool use (function calling) typed request object
 from .bedrock.models.tool_use import ToolUse
 from .bedrock.tracking.parameter_compatibility_tracker import ParameterCompatibilityTracker
@@ -121,6 +124,8 @@ __all__ = [
     "ReasoningContent",
     # Document citations
     "Citation",
+    # Structured output
+    "build_json_schema_output_config",
     # Region utilities
     "BedrockRegionDiscovery",
     "get_all_regions",

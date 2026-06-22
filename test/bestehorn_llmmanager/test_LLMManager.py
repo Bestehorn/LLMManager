@@ -300,6 +300,48 @@ class TestLLMManager:
         for field in expected_fields:
             assert field in request_args
 
+    def test_build_converse_request_with_output_config(self, basic_llm_manager):
+        """output_config is forwarded to the request as outputConfig (issue #35)."""
+        messages = [{"role": "user", "content": [{"text": "Hello"}]}]
+        output_config = {
+            "textFormat": {
+                "type": "json_schema",
+                "structure": {"type": "object", "properties": {"x": {"type": "number"}}},
+            }
+        }
+
+        request_args = basic_llm_manager._build_converse_request(
+            messages=messages, output_config=output_config
+        )
+
+        assert request_args[ConverseAPIFields.OUTPUT_CONFIG] == output_config
+
+    def test_build_converse_request_without_output_config_omits_field(self, basic_llm_manager):
+        """outputConfig is absent when output_config is not provided (backward compatible)."""
+        messages = [{"role": "user", "content": [{"text": "Hello"}]}]
+        request_args = basic_llm_manager._build_converse_request(messages=messages)
+        assert ConverseAPIFields.OUTPUT_CONFIG not in request_args
+
+    def test_converse_forwards_output_config_to_api(self, basic_llm_manager):
+        """converse(output_config=...) reaches the boto3 client call as outputConfig."""
+        output_config = {"textFormat": {"type": "json_schema", "structure": {"type": "object"}}}
+        mock_client = Mock()
+        mock_client.converse.return_value = {
+            "output": {"message": {"content": [{"text": "{}"}]}},
+            "stopReason": "end_turn",
+        }
+        with patch.object(
+            basic_llm_manager._auth_manager, "get_bedrock_client", return_value=mock_client
+        ):
+            basic_llm_manager.converse(
+                messages=[{"role": "user", "content": [{"text": "Hi"}]}],
+                output_config=output_config,
+            )
+        assert mock_client.converse.called
+        assert mock_client.converse.call_args.kwargs[ConverseAPIFields.OUTPUT_CONFIG] == (
+            output_config
+        )
+
     def test_get_model_access_info_success(self, basic_llm_manager):
         """Test successful retrieval of model access information."""
         result = basic_llm_manager.get_model_access_info("Claude Haiku 4 5 20251001", "us-east-1")

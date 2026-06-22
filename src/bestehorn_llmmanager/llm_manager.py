@@ -628,6 +628,7 @@ class LLMManager:
         request_metadata: Optional[Dict[str, Any]] = None,
         prompt_variables: Optional[Dict[str, Any]] = None,
         response_validation_config: Optional[ResponseValidationConfig] = None,
+        output_config: Optional[Dict[str, Any]] = None,
     ) -> BedrockResponse:
         """
         Send a conversation request to available models with retry logic.
@@ -645,6 +646,9 @@ class LLMManager:
             request_metadata: Metadata for the request
             prompt_variables: Variables for prompt templates
             response_validation_config: Configuration for response validation and retry
+            output_config: Structured-output config (outputConfig.textFormat) to constrain
+                the model's output to a JSON schema; build one with
+                ``bedrock.models.structured_output.build_json_schema_output_config``
 
         Returns:
             BedrockResponse with the conversation result
@@ -678,6 +682,7 @@ class LLMManager:
             tool_config=tool_config,
             request_metadata=request_metadata,
             prompt_variables=prompt_variables,
+            output_config=output_config,
         )
 
         # Generate retry targets
@@ -796,6 +801,7 @@ class LLMManager:
         tool_config: Optional[Dict[str, Any]] = None,
         request_metadata: Optional[Dict[str, Any]] = None,
         prompt_variables: Optional[Dict[str, Any]] = None,
+        output_config: Optional[Dict[str, Any]] = None,
     ) -> StreamingResponse:
         """
         Send a streaming conversation request to available models with retry logic and recovery.
@@ -816,6 +822,8 @@ class LLMManager:
             tool_config: Tool use configuration
             request_metadata: Metadata for the request
             prompt_variables: Variables for prompt templates
+            output_config: Structured-output config (outputConfig.textFormat) to constrain
+                the model's output to a JSON schema
 
         Returns:
             StreamingResponse with the streaming conversation result
@@ -849,6 +857,7 @@ class LLMManager:
             tool_config=tool_config,
             request_metadata=request_metadata,
             prompt_variables=prompt_variables,
+            output_config=output_config,
         )
 
         # Generate retry targets using the regular retry manager
@@ -1038,6 +1047,7 @@ class LLMManager:
         tool_config: Optional[Dict[str, Any]] = None,
         request_metadata: Optional[Dict[str, Any]] = None,
         prompt_variables: Optional[Dict[str, Any]] = None,
+        output_config: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Build the request arguments for the Converse API.
@@ -1053,6 +1063,7 @@ class LLMManager:
             tool_config: Tool configuration
             request_metadata: Request metadata
             prompt_variables: Prompt variables
+            output_config: Structured-output configuration (outputConfig.textFormat)
 
         Returns:
             Dictionary of request arguments for the Converse API
@@ -1124,6 +1135,9 @@ class LLMManager:
 
         if prompt_variables:
             request_args[ConverseAPIFields.PROMPT_VARIABLES] = prompt_variables
+
+        if output_config:
+            request_args[ConverseAPIFields.OUTPUT_CONFIG] = output_config
 
         return request_args
 

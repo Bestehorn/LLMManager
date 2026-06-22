@@ -256,6 +256,31 @@ class BedrockResponse:
         text_parts = self.get_text_blocks()
         return "\n".join(text_parts) if text_parts else None
 
+    def get_structured_output(self) -> Optional[Any]:
+        """
+        Parse the response text content as a structured JSON object or array.
+
+        When a request is made with structured output (``output_config`` /
+        ``outputConfig.textFormat`` with ``type="json_schema"``), the model returns
+        schema-valid JSON as its text content. This parses :meth:`get_content` as JSON
+        and returns the resulting object/array.
+
+        Returns:
+            The parsed JSON value when the text content is a JSON object or array;
+            ``None`` if there is no content, the content is not valid JSON, or it parses
+            to a non-structured scalar (string/number/bool/null).
+        """
+        content = self.get_content()
+        if not content:
+            return None
+        try:
+            parsed = json.loads(content)
+        except (ValueError, TypeError):
+            return None
+        if isinstance(parsed, (dict, list)):
+            return parsed
+        return None
+
     def get_usage(self) -> Optional[Dict[str, int]]:
         """
         Get token usage information from the response.
