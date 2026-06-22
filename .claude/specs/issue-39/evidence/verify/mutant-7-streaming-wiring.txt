@@ -1,0 +1,22 @@
+    
+        assert result["input_tokens"] == 100
+        assert result["output_tokens"] == 50
+        assert result["total_tokens"] == 150
+        assert result["cache_read_tokens"] == 10
+        assert result["cache_write_tokens"] == 5
+>       assert result["cache_details"] == [{"inputTokens": 5, "ttl": "5m"}]
+E       AssertionError: assert [] == [{'inputToken... 'ttl': '5m'}]
+E         
+E         Right contains one more item: {'inputTokens': 5, 'ttl': '5m'}
+E         
+E         Full diff:
+E         + []
+E         - [
+E         -     {...
+E         
+E         ...Full output truncated (4 lines hidden), use '-vv' to show
+
+test\bestehorn_llmmanager\bedrock\streaming\test_event_handlers.py:464: AssertionError
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/bedrock/streaming/test_event_handlers.py::TestStreamEventHandler::test_extract_token_usage_full
+============================== 1 failed in 0.94s ==============================

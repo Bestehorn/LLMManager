@@ -104,6 +104,24 @@ class ToolResultStatusEnum(str, Enum):
         return self.value
 
 
+class CachePointTTLEnum(str, Enum):
+    """
+    Enumeration of valid TTL durations for a prompt-cache ``cachePoint``.
+
+    Values map to the Converse ``CachePointBlock.ttl`` valid values: ``5m`` (five
+    minutes) and ``1h`` (one hour). When a ``cachePoint`` omits ``ttl``, Bedrock uses the
+    default caching behavior implied by ``type``; supplying one of these enables extended
+    TTL caching for the cached prefix.
+    """
+
+    FIVE_MINUTES = "5m"
+    ONE_HOUR = "1h"
+
+    def __str__(self) -> str:
+        """Return the string value of the enum."""
+        return self.value
+
+
 class GuardContentQualifierEnum(str, Enum):
     """
     Enumeration of valid qualifiers for a guardrail ``guardContent`` text block.

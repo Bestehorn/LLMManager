@@ -326,6 +326,7 @@ class StreamEventHandler:
             "total_tokens": usage.get(StreamingConstants.FIELD_TOTAL_TOKENS, 0),
             "cache_read_tokens": usage.get(StreamingConstants.FIELD_CACHE_READ_INPUT_TOKENS, 0),
             "cache_write_tokens": usage.get(StreamingConstants.FIELD_CACHE_WRITE_INPUT_TOKENS, 0),
+            "cache_details": usage.get(StreamingConstants.FIELD_CACHE_DETAILS, []),
         }
 
     def get_event_handler(self, event_type: StreamingEventTypes) -> Any:

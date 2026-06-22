@@ -1,0 +1,30 @@
+    
+        Returns:
+            A ``{"cachePoint": {"type": <type>[, "ttl": <ttl>]}}`` dict. This shape is valid
+            both as a message content block and as a ``Tool`` union member in
+            ``toolConfig.tools``.
+    
+        Raises:
+            RequestValidationError: If ``cache_type`` is not ``"default"`` or ``ttl`` is a
+                value other than ``"5m"`` / ``"1h"``.
+        """
+        if cache_type not in _VALID_CACHE_TYPES:
+            raise RequestValidationError(
+                f"Invalid cache point type {cache_type!r}; valid values: {sorted(_VALID_CACHE_TYPES)}"
+            )
+    
+        cache_point: Dict[str, Any] = {ConverseAPIFields.CACHE_TYPE: cache_type}
+    
+        if True:  # MUTANT 4: backward-compat guard removed (always add ttl)
+            ttl_value = ttl.value if isinstance(ttl, CachePointTTLEnum) else ttl
+            if ttl_value not in _VALID_CACHE_TTLS:
+>               raise RequestValidationError(
+                    f"Invalid cache point ttl {ttl!r}; valid values: {sorted(_VALID_CACHE_TTLS)}"
+                )
+E               bestehorn_llmmanager.bedrock.exceptions.llm_manager_exceptions.RequestValidationError: Invalid cache point ttl None; valid values: ['1h', '5m']
+
+src\bestehorn_llmmanager\bedrock\models\cache_point.py:62: RequestValidationError
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/bedrock/models/test_cache_point.py::TestBuildCachePoint::test_default_without_ttl_omits_ttl_key
+FAILED test/bestehorn_llmmanager/test_message_builder.py::TestAddCachePointTTL::test_default_cache_point_unchanged_without_ttl
+============================== 2 failed in 2.04s ==============================

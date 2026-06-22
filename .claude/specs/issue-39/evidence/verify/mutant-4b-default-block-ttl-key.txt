@@ -1,0 +1,22 @@
+self = <test.bestehorn_llmmanager.test_message_builder.TestAddCachePointTTL object at 0x00000223465E2710>
+
+    def test_default_cache_point_unchanged_without_ttl(self):
+        """Backward-compatible: omitting ttl emits the original {type: default} block."""
+        block = self._content_block()
+>       assert block == {ConverseAPIFields.CACHE_POINT: {ConverseAPIFields.CACHE_TYPE: "default"}}
+E       AssertionError: assert {'cachePoint'... 'ttl': None}} == {'cachePoint'...': 'default'}}
+E         
+E         Differing items:
+E         {'cachePoint': {'type': 'default', 'ttl': None}} != {'cachePoint': {'type': 'default'}}
+E         
+E         Full diff:
+E           {
+E               'cachePoint': {...
+E         
+E         ...Full output truncated (4 lines hidden), use '-vv' to show
+
+test\bestehorn_llmmanager\test_message_builder.py:1464: AssertionError
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/bedrock/models/test_cache_point.py::TestBuildCachePoint::test_default_without_ttl_omits_ttl_key
+FAILED test/bestehorn_llmmanager/test_message_builder.py::TestAddCachePointTTL::test_default_cache_point_unchanged_without_ttl
+============================== 2 failed in 2.20s ==============================

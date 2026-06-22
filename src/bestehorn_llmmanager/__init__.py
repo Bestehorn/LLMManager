@@ -39,6 +39,10 @@ For detailed documentation, see the documentation in the docs/ directory.
 from .bedrock.discovery import BedrockRegionDiscovery
 from .bedrock.models.aws_regions import AWSRegions, get_all_regions
 
+# Prompt-cache typed reference + cache-point factory (issue #39)
+from .bedrock.models.cache_detail import CacheDetail
+from .bedrock.models.cache_point import build_cache_point
+
 # Document citations typed reference
 from .bedrock.models.citation import Citation
 
@@ -72,6 +76,7 @@ from .message_builder import (
     create_user_message,
 )
 from .message_builder_enums import (
+    CachePointTTLEnum,
     DetectionMethodEnum,
     DocumentFormatEnum,
     GuardContentQualifierEnum,
@@ -118,6 +123,7 @@ __all__ = [
     "DetectionMethodEnum",
     "ToolResultStatusEnum",
     "GuardContentQualifierEnum",
+    "CachePointTTLEnum",
     # Response content-block typing
     "ResponseContentType",
     # Tool use (function calling)
@@ -126,6 +132,9 @@ __all__ = [
     "ReasoningContent",
     # Document citations
     "Citation",
+    # Prompt caching (TTL cache points + per-segment cache detail)
+    "CacheDetail",
+    "build_cache_point",
     # Structured output
     "build_json_schema_output_config",
     # Region utilities

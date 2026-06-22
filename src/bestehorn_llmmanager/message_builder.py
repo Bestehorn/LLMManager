@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from .bedrock.exceptions.llm_manager_exceptions import RequestValidationError
+from .bedrock.models.cache_point import build_cache_point
 from .bedrock.models.cache_structures import CacheConfig
 from .bedrock.models.llm_manager_constants import ConverseAPIFields
 from .message_builder_constants import (
@@ -769,7 +770,11 @@ class ConverseMessageBuilder:
         )
         return self
 
-    def add_cache_point(self, cache_type: str = "default") -> "ConverseMessageBuilder":
+    def add_cache_point(
+        self,
+        cache_type: str = ConverseAPIFields.CACHE_TYPE_DEFAULT,
+        ttl: Optional[str] = None,
+    ) -> "ConverseMessageBuilder":
         """
         Add an explicit cache point at the current position.
 
@@ -777,13 +782,17 @@ class ConverseMessageBuilder:
         Content before a cache point can be reused in subsequent requests.
 
         Args:
-            cache_type: Type of cache point (default: "default")
+            cache_type: Type of cache point. Only ``"default"`` is valid.
+            ttl: Optional cache TTL. When provided it must be ``"5m"`` or ``"1h"``
+                (a :class:`CachePointTTLEnum` value); when omitted Bedrock uses the
+                default caching behavior for ``cache_type``.
 
         Returns:
             Self for method chaining
 
         Raises:
-            RequestValidationError: If no content blocks exist before the cache point
+            RequestValidationError: If no content blocks exist before the cache point,
+                or ``cache_type`` / ``ttl`` is not an allowed value.
         """
         if not self._content_blocks:
             raise RequestValidationError(
@@ -792,13 +801,15 @@ class ConverseMessageBuilder:
 
         self._validate_content_block_limit()
 
-        cache_point_block = {ConverseAPIFields.CACHE_POINT: {"type": cache_type}}
+        cache_point_block = build_cache_point(cache_type=cache_type, ttl=ttl)
 
         self._content_blocks.append(cache_point_block)
         self._cacheable_blocks.append(False)  # Cache points themselves are not cacheable
 
         self._logger.debug(
-            f"Added cache point of type '{cache_type}' at position {len(self._content_blocks)}"
+            f"Added cache point of type '{cache_type}'"
+            + (f" with ttl '{ttl}'" if ttl is not None else "")
+            + f" at position {len(self._content_blocks)}"
         )
 
         return self

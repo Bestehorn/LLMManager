@@ -1,0 +1,25 @@
+            messages=[{"role": "user", "content": [{"text": "Hi"}]}],
+            tool_config=tool_config,
+        )
+        forwarded_tools = request_args[ConverseAPIFields.TOOL_CONFIG][ConverseAPIFields.TOOLS]
+>       assert forwarded_tools[-1] == {
+            ConverseAPIFields.CACHE_POINT: {
+                ConverseAPIFields.CACHE_TYPE: "default",
+                ConverseAPIFields.CACHE_TTL: "1h",
+            }
+        }
+E       AssertionError: assert {'toolSpec': ...{'json': {}}}} == {'cachePoint'... 'ttl': '1h'}}
+E         
+E         Left contains 1 more item:
+E         {'toolSpec': {'inputSchema': {'json': {}}, 'name': 'get_weather'}}
+E         Right contains 1 more item:
+E         {'cachePoint': {'ttl': '1h', 'type': 'default'}}
+E         
+E         Full diff:...
+E         
+E         ...Full output truncated (11 lines hidden), use '-vv' to show
+
+test\bestehorn_llmmanager\test_LLMManager.py:460: AssertionError
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/test_LLMManager.py::TestLLMManager::test_build_converse_request_tool_config_with_cache_point
+============================== 1 failed in 0.95s ==============================

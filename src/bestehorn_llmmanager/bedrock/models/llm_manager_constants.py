@@ -43,6 +43,10 @@ class ConverseAPIFields:
     DOCUMENT: Final[str] = "document"
     VIDEO: Final[str] = "video"
     CACHE_POINT: Final[str] = "cachePoint"
+    # CachePointBlock fields (issue #39): type (only "default" is valid) + optional ttl.
+    CACHE_TYPE: Final[str] = "type"
+    CACHE_TTL: Final[str] = "ttl"
+    CACHE_TYPE_DEFAULT: Final[str] = "default"
     GUARD_CONTENT: Final[str] = "guardContent"
     REASONING_CONTENT: Final[str] = "reasoningContent"
     TOOL_USE: Final[str] = "toolUse"
@@ -113,6 +117,14 @@ class ConverseAPIFields:
     TOTAL_TOKENS: Final[str] = "totalTokens"
     CACHE_READ_INPUT_TOKENS_COUNT: Final[str] = "cacheReadInputTokens"
     CACHE_WRITE_INPUT_TOKENS_COUNT: Final[str] = "cacheWriteInputTokens"
+    # Per-segment cache-write breakdown (issue #39): usage.cacheDetails[] of CacheDetail
+    # objects, each {inputTokens: int, ttl: "5m"|"1h"}.
+    CACHE_DETAILS: Final[str] = "cacheDetails"
+    CACHE_DETAIL_INPUT_TOKENS: Final[str] = "inputTokens"
+    CACHE_DETAIL_TTL: Final[str] = "ttl"
+
+    # toolConfig.tools key (issue #39: cache points are appended to this list)
+    TOOLS: Final[str] = "tools"
 
     # Metrics fields
     LATENCY_MS: Final[str] = "latencyMs"

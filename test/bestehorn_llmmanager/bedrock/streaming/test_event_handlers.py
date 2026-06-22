@@ -307,6 +307,7 @@ class TestStreamEventHandler:
             "total_tokens": 0,
             "cache_read_tokens": 0,
             "cache_write_tokens": 0,
+            "cache_details": [],
         }
         assert result[StreamingConstants.FIELD_USAGE] == expected_usage
         assert result[StreamingConstants.FIELD_METRICS] == {}
@@ -451,6 +452,7 @@ class TestStreamEventHandler:
             StreamingConstants.FIELD_TOTAL_TOKENS: 150,
             StreamingConstants.FIELD_CACHE_READ_INPUT_TOKENS: 10,
             StreamingConstants.FIELD_CACHE_WRITE_INPUT_TOKENS: 5,
+            StreamingConstants.FIELD_CACHE_DETAILS: [{"inputTokens": 5, "ttl": "5m"}],
         }
         result = handler._extract_token_usage(usage)
 
@@ -459,6 +461,7 @@ class TestStreamEventHandler:
         assert result["total_tokens"] == 150
         assert result["cache_read_tokens"] == 10
         assert result["cache_write_tokens"] == 5
+        assert result["cache_details"] == [{"inputTokens": 5, "ttl": "5m"}]
 
     def test_extract_token_usage_minimal(self, handler):
         """Test extracting token usage with missing fields."""
