@@ -629,6 +629,9 @@ class LLMManager:
         prompt_variables: Optional[Dict[str, Any]] = None,
         response_validation_config: Optional[ResponseValidationConfig] = None,
         output_config: Optional[Dict[str, Any]] = None,
+        performance_config: Optional[Dict[str, Any]] = None,
+        service_tier: Optional[Dict[str, Any]] = None,
+        extra_request_fields: Optional[Dict[str, Any]] = None,
     ) -> BedrockResponse:
         """
         Send a conversation request to available models with retry logic.
@@ -683,6 +686,9 @@ class LLMManager:
             request_metadata=request_metadata,
             prompt_variables=prompt_variables,
             output_config=output_config,
+            performance_config=performance_config,
+            service_tier=service_tier,
+            extra_request_fields=extra_request_fields,
         )
 
         # Generate retry targets
@@ -802,6 +808,9 @@ class LLMManager:
         request_metadata: Optional[Dict[str, Any]] = None,
         prompt_variables: Optional[Dict[str, Any]] = None,
         output_config: Optional[Dict[str, Any]] = None,
+        performance_config: Optional[Dict[str, Any]] = None,
+        service_tier: Optional[Dict[str, Any]] = None,
+        extra_request_fields: Optional[Dict[str, Any]] = None,
     ) -> StreamingResponse:
         """
         Send a streaming conversation request to available models with retry logic and recovery.
@@ -858,6 +867,9 @@ class LLMManager:
             request_metadata=request_metadata,
             prompt_variables=prompt_variables,
             output_config=output_config,
+            performance_config=performance_config,
+            service_tier=service_tier,
+            extra_request_fields=extra_request_fields,
         )
 
         # Generate retry targets using the regular retry manager
@@ -1048,6 +1060,9 @@ class LLMManager:
         request_metadata: Optional[Dict[str, Any]] = None,
         prompt_variables: Optional[Dict[str, Any]] = None,
         output_config: Optional[Dict[str, Any]] = None,
+        performance_config: Optional[Dict[str, Any]] = None,
+        service_tier: Optional[Dict[str, Any]] = None,
+        extra_request_fields: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Build the request arguments for the Converse API.
@@ -1138,6 +1153,18 @@ class LLMManager:
 
         if output_config:
             request_args[ConverseAPIFields.OUTPUT_CONFIG] = output_config
+
+        if performance_config:
+            request_args[ConverseAPIFields.PERFORMANCE_CONFIG] = performance_config
+
+        if service_tier:
+            request_args[ConverseAPIFields.SERVICE_TIER] = service_tier
+
+        # Forward-compatible escape hatch: merge any caller-supplied top-level Converse
+        # fields LAST so future API parameters can be used without a library release
+        # (and so an explicit override wins over a first-class param on key conflict).
+        if extra_request_fields:
+            request_args.update(extra_request_fields)
 
         return request_args
 

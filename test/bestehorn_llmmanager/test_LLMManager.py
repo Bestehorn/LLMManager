@@ -342,6 +342,68 @@ class TestLLMManager:
             output_config
         )
 
+    def test_build_converse_request_with_performance_config(self, basic_llm_manager):
+        """performance_config is forwarded as performanceConfig (issue #36)."""
+        messages = [{"role": "user", "content": [{"text": "Hello"}]}]
+        request_args = basic_llm_manager._build_converse_request(
+            messages=messages, performance_config={"latency": "optimized"}
+        )
+        assert request_args[ConverseAPIFields.PERFORMANCE_CONFIG] == {"latency": "optimized"}
+
+    def test_build_converse_request_with_service_tier(self, basic_llm_manager):
+        """service_tier is forwarded as serviceTier (issue #36)."""
+        messages = [{"role": "user", "content": [{"text": "Hello"}]}]
+        request_args = basic_llm_manager._build_converse_request(
+            messages=messages, service_tier={"type": "flex"}
+        )
+        assert request_args[ConverseAPIFields.SERVICE_TIER] == {"type": "flex"}
+
+    def test_build_converse_request_omits_perf_and_tier_by_default(self, basic_llm_manager):
+        """Neither field is added when not provided (backward compatible)."""
+        request_args = basic_llm_manager._build_converse_request(
+            messages=[{"role": "user", "content": [{"text": "Hi"}]}]
+        )
+        assert ConverseAPIFields.PERFORMANCE_CONFIG not in request_args
+        assert ConverseAPIFields.SERVICE_TIER not in request_args
+
+    def test_build_converse_request_extra_request_fields_passthrough(self, basic_llm_manager):
+        """extra_request_fields are merged into the request (forward-compatible escape hatch)."""
+        request_args = basic_llm_manager._build_converse_request(
+            messages=[{"role": "user", "content": [{"text": "Hi"}]}],
+            extra_request_fields={"someFutureField": {"k": "v"}},
+        )
+        assert request_args["someFutureField"] == {"k": "v"}
+
+    def test_build_converse_request_extra_fields_merged_last(self, basic_llm_manager):
+        """extra_request_fields are merged LAST, overriding first-class params on conflict."""
+        request_args = basic_llm_manager._build_converse_request(
+            messages=[{"role": "user", "content": [{"text": "Hi"}]}],
+            service_tier={"type": "default"},
+            extra_request_fields={ConverseAPIFields.SERVICE_TIER: {"type": "flex"}},
+        )
+        assert request_args[ConverseAPIFields.SERVICE_TIER] == {"type": "flex"}
+
+    def test_converse_forwards_performance_and_tier_to_api(self, basic_llm_manager):
+        """converse(performance_config=..., service_tier=...) reach the boto3 call."""
+        mock_client = Mock()
+        mock_client.converse.return_value = {
+            "output": {"message": {"content": [{"text": "ok"}]}},
+            "stopReason": "end_turn",
+        }
+        with patch.object(
+            basic_llm_manager._auth_manager, "get_bedrock_client", return_value=mock_client
+        ):
+            basic_llm_manager.converse(
+                messages=[{"role": "user", "content": [{"text": "Hi"}]}],
+                performance_config={"latency": "optimized"},
+                service_tier={"type": "flex"},
+                extra_request_fields={"futureField": 1},
+            )
+        kwargs = mock_client.converse.call_args.kwargs
+        assert kwargs[ConverseAPIFields.PERFORMANCE_CONFIG] == {"latency": "optimized"}
+        assert kwargs[ConverseAPIFields.SERVICE_TIER] == {"type": "flex"}
+        assert kwargs["futureField"] == 1
+
     def test_get_model_access_info_success(self, basic_llm_manager):
         """Test successful retrieval of model access information."""
         result = basic_llm_manager.get_model_access_info("Claude Haiku 4 5 20251001", "us-east-1")

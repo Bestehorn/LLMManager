@@ -24,6 +24,8 @@ class ConverseAPIFields:
     REQUEST_METADATA: Final[str] = "requestMetadata"
     PROMPT_VARIABLES: Final[str] = "promptVariables"
     OUTPUT_CONFIG: Final[str] = "outputConfig"
+    PERFORMANCE_CONFIG: Final[str] = "performanceConfig"
+    SERVICE_TIER: Final[str] = "serviceTier"
 
     # Structured output (outputConfig.textFormat) fields
     TEXT_FORMAT: Final[str] = "textFormat"
