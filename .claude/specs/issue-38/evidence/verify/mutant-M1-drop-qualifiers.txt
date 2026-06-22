@@ -1,0 +1,16 @@
+.F...F                                                                   [100%]
+================================== FAILURES ===================================
+______ TestAddGuardContentMethod.test_add_guard_content_with_qualifiers _______
+test\bestehorn_llmmanager\test_message_builder.py:1419: in test_add_guard_content_with_qualifiers
+    assert text_block[ConverseAPIFields.GUARD_CONTENT_QUALIFIERS] == ["grounding_source"]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'qualifiers'
+______ TestAddGuardContentMethod.test_add_guard_content_valid_qualifiers ______
+test\bestehorn_llmmanager\test_message_builder.py:1446: in test_add_guard_content_valid_qualifiers
+    assert text_block[ConverseAPIFields.GUARD_CONTENT_QUALIFIERS] == [qualifier]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'qualifiers'
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/test_message_builder.py::TestAddGuardContentMethod::test_add_guard_content_with_qualifiers
+FAILED test/bestehorn_llmmanager/test_message_builder.py::TestAddGuardContentMethod::test_add_guard_content_valid_qualifiers
+2 failed, 4 passed in 0.91s

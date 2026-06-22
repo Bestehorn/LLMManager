@@ -404,6 +404,39 @@ class TestLLMManager:
         assert kwargs[ConverseAPIFields.SERVICE_TIER] == {"type": "flex"}
         assert kwargs["futureField"] == 1
 
+    def test_build_converse_request_stream_processing_mode_into_guardrail(self, basic_llm_manager):
+        """stream_processing_mode is injected into guardrailConfig (issue #38)."""
+        request_args = basic_llm_manager._build_converse_request(
+            messages=[{"role": "user", "content": [{"text": "Hi"}]}],
+            guardrail_config={"guardrailIdentifier": "gr-1", "guardrailVersion": "1"},
+            stream_processing_mode="async",
+        )
+        guardrail = request_args[ConverseAPIFields.GUARDRAIL_CONFIG]
+        assert guardrail[ConverseAPIFields.STREAM_PROCESSING_MODE] == "async"
+        # The existing guardrail fields are preserved.
+        assert guardrail["guardrailIdentifier"] == "gr-1"
+
+    def test_build_converse_request_stream_mode_creates_guardrail_config(self, basic_llm_manager):
+        """stream_processing_mode works even without an existing guardrail_config."""
+        request_args = basic_llm_manager._build_converse_request(
+            messages=[{"role": "user", "content": [{"text": "Hi"}]}],
+            stream_processing_mode="sync",
+        )
+        assert request_args[ConverseAPIFields.GUARDRAIL_CONFIG] == {
+            ConverseAPIFields.STREAM_PROCESSING_MODE: "sync"
+        }
+
+    def test_build_converse_request_no_stream_mode_by_default(self, basic_llm_manager):
+        """No streamProcessingMode is added when not provided (backward compatible)."""
+        request_args = basic_llm_manager._build_converse_request(
+            messages=[{"role": "user", "content": [{"text": "Hi"}]}],
+            guardrail_config={"guardrailIdentifier": "gr-1"},
+        )
+        assert (
+            ConverseAPIFields.STREAM_PROCESSING_MODE
+            not in (request_args[ConverseAPIFields.GUARDRAIL_CONFIG])
+        )
+
     def test_get_model_access_info_success(self, basic_llm_manager):
         """Test successful retrieval of model access information."""
         result = basic_llm_manager.get_model_access_info("Claude Haiku 4 5 20251001", "us-east-1")

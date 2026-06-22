@@ -20,6 +20,7 @@ from .message_builder_constants import (
 )
 from .message_builder_enums import (
     DocumentFormatEnum,
+    GuardContentQualifierEnum,
     ImageFormatEnum,
     RolesEnum,
     ToolResultStatusEnum,
@@ -798,6 +799,62 @@ class ConverseMessageBuilder:
 
         self._logger.debug(
             f"Added cache point of type '{cache_type}' at position {len(self._content_blocks)}"
+        )
+
+        return self
+
+    def add_guard_content(
+        self,
+        text: str,
+        qualifiers: Optional[List[str]] = None,
+    ) -> "ConverseMessageBuilder":
+        """
+        Add a ``guardContent`` block for selective guardrail evaluation (issue #38).
+
+        Marks specific text within the message for assessment by the configured
+        guardrail, optionally tagged with contextual-grounding qualifiers.
+
+        Args:
+            text: The text to guard / assess.
+            qualifiers: Optional list of qualifier strings — each must be one of
+                ``grounding_source``, ``query``, ``guard_content`` (see
+                :class:`GuardContentQualifierEnum`).
+
+        Returns:
+            Self for method chaining.
+
+        Raises:
+            RequestValidationError: If ``text`` is empty/whitespace or any qualifier is
+                not a valid value.
+        """
+        if not text or not text.strip():
+            raise RequestValidationError(
+                MessageBuilderErrorMessages.EMPTY_CONTENT.format(content_type="guard_content")
+            )
+
+        text_block: Dict[str, Any] = {ConverseAPIFields.TEXT: text}
+        if qualifiers is not None:
+            valid = {member.value for member in GuardContentQualifierEnum}
+            invalid = [q for q in qualifiers if q not in valid]
+            if invalid:
+                raise RequestValidationError(
+                    f"Invalid guard_content qualifier(s) {invalid}. "
+                    f"Valid values are: {', '.join(sorted(valid))}"
+                )
+            text_block[ConverseAPIFields.GUARD_CONTENT_QUALIFIERS] = list(qualifiers)
+
+        self._validate_content_block_limit()
+
+        guard_block = {
+            ConverseAPIFields.GUARD_CONTENT: {ConverseAPIFields.GUARD_CONTENT_TEXT: text_block}
+        }
+        self._content_blocks.append(guard_block)
+        self._cacheable_blocks.append(False)
+
+        self._logger.debug(
+            MessageBuilderLogMessages.CONTENT_BLOCK_ADDED.format(
+                content_type="guard_content", size=len(text)
+            )
         )
 
         return self

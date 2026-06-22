@@ -1,0 +1,10 @@
+Python path setup in conftest.py:
+  Project root: D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-38
+  Src path: D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-38\src
+  sys.path[0]: D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-38\src
+  PYTHONPATH: D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-38\src;
+  bestehorn_llmmanager location: D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-38\src\bestehorn_llmmanager\__init__.py
+ERROR: file or directory not found: test/bestehorn_llmmanager/test_streaming_integration.py
+
+
+no tests ran in 0.22s

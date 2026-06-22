@@ -591,6 +591,61 @@ class TestBedrockResponse:
         assert "FAILED" in repr_str
 
 
+class TestBedrockResponseGuardrailTrace:
+    """Tests for get_guardrail_trace (issue #38, non-streaming + streaming)."""
+
+    _ASSESSMENT = {
+        "inputAssessment": {
+            "gr-1": {
+                "contentPolicy": {"filters": [{"type": "HATE", "action": "BLOCKED"}]},
+            }
+        },
+        "guardrailCoverage": {"textCharacters": {"guarded": 10, "total": 10}},
+    }
+
+    def test_get_guardrail_trace_non_streaming(self):
+        response_data = {
+            "output": {"message": {"content": [{"text": "ok"}]}},
+            "trace": {"guardrail": self._ASSESSMENT},
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_guardrail_trace() == self._ASSESSMENT
+
+    def test_get_guardrail_trace_absent(self):
+        response = BedrockResponse(
+            success=True, response_data={"output": {"message": {"content": [{"text": "ok"}]}}}
+        )
+        assert response.get_guardrail_trace() is None
+
+    def test_get_guardrail_trace_trace_without_guardrail(self):
+        response_data = {
+            "output": {"message": {"content": [{"text": "ok"}]}},
+            "trace": {"promptRouter": {}},
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_guardrail_trace() is None
+
+    def test_get_guardrail_trace_no_data(self):
+        assert BedrockResponse(success=True, response_data=None).get_guardrail_trace() is None
+
+    def test_get_guardrail_trace_failed_response(self):
+        """A failed response returns None even if it carries trace data."""
+        response = BedrockResponse(
+            success=False, response_data={"trace": {"guardrail": self._ASSESSMENT}}
+        )
+        assert response.get_guardrail_trace() is None
+
+    def test_get_guardrail_trace_streaming(self):
+        """StreamingResponse exposes the guardrail trace from its trace_info."""
+        stream = StreamingResponse(success=True)
+        stream.trace_info = {"guardrail": self._ASSESSMENT}
+        assert stream.get_guardrail_trace() == self._ASSESSMENT
+
+    def test_get_guardrail_trace_streaming_none(self):
+        stream = StreamingResponse(success=True)
+        assert stream.get_guardrail_trace() is None
+
+
 class TestBedrockResponsePerformanceAndServiceTier:
     """Tests for get_performance_config / get_service_tier accessors (issue #36)."""
 
