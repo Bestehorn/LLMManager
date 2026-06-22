@@ -377,6 +377,38 @@ Response/StreamingResponse accessor:
 def get_citations(self) -> List[Citation]   # typed (title, source, source_content, location)
 ```
 
+#### Structured Output (JSON schema)
+
+Force the model to return schema-valid JSON natively via `output_config` on
+`converse()` / `converse_stream()` (the Converse `outputConfig.textFormat`
+`json_schema` feature). Build the config with the helper, and read the parsed object
+back with `get_structured_output()`:
+
+```python
+from bestehorn_llmmanager import build_json_schema_output_config
+
+schema = {
+    "type": "object",
+    "properties": {"sentiment": {"type": "string"}, "score": {"type": "number"}},
+    "required": ["sentiment", "score"],
+}
+output_config = build_json_schema_output_config(schema=schema)
+# -> {"textFormat": {"type": "json_schema", "structure": schema}}
+
+response = manager.converse(
+    messages=[{"role": "user", "content": [{"text": "Classify: 'I love it!'"}]}],
+    output_config=output_config,
+)
+data = response.get_structured_output()   # dict/list, or None if content isn't JSON
+```
+
+**Structured output vs. response-validation-retry:** structured output constrains
+generation at the API level (one call, guaranteed-shape JSON) and is preferred when the
+model/region supports it. The existing `response_validation_config` retry approach
+re-calls the model when a validator rejects output — a more general but more expensive
+fallback for models without structured-output support or for semantic (not just
+schema) validation.
+
 #### Building Messages
 
 ```python

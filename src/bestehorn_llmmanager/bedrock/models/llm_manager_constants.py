@@ -23,6 +23,13 @@ class ConverseAPIFields:
     TOOL_CONFIG: Final[str] = "toolConfig"
     REQUEST_METADATA: Final[str] = "requestMetadata"
     PROMPT_VARIABLES: Final[str] = "promptVariables"
+    OUTPUT_CONFIG: Final[str] = "outputConfig"
+
+    # Structured output (outputConfig.textFormat) fields
+    TEXT_FORMAT: Final[str] = "textFormat"
+    OUTPUT_FORMAT_TYPE: Final[str] = "type"
+    OUTPUT_FORMAT_STRUCTURE: Final[str] = "structure"
+    OUTPUT_FORMAT_JSON_SCHEMA: Final[str] = "json_schema"
 
     # Message fields
     ROLE: Final[str] = "role"

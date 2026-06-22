@@ -591,6 +591,43 @@ class TestBedrockResponse:
         assert "FAILED" in repr_str
 
 
+class TestBedrockResponseStructuredOutput:
+    """Tests for get_structured_output (issue #35)."""
+
+    def test_parses_json_object(self):
+        response_data = {
+            "output": {"message": {"content": [{"text": '{"name": "Ada", "age": 36}'}]}}
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_structured_output() == {"name": "Ada", "age": 36}
+
+    def test_parses_json_across_multiple_text_blocks(self):
+        """Text blocks are joined before parsing (get_content semantics)."""
+        response_data = {"output": {"message": {"content": [{"text": '{"a":'}, {"text": " 1}"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        # get_content joins with newline; JSON tolerates the whitespace.
+        assert response.get_structured_output() == {"a": 1}
+
+    def test_returns_none_for_non_json_content(self):
+        response_data = {"output": {"message": {"content": [{"text": "not json"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_structured_output() is None
+
+    def test_returns_none_when_no_content(self):
+        assert BedrockResponse(success=True, response_data=None).get_structured_output() is None
+
+    def test_returns_none_for_json_scalar(self):
+        """A bare JSON scalar is not a structured object/array; return None."""
+        response_data = {"output": {"message": {"content": [{"text": "42"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_structured_output() is None
+
+    def test_parses_json_array(self):
+        response_data = {"output": {"message": {"content": [{"text": "[1, 2, 3]"}]}}}
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_structured_output() == [1, 2, 3]
+
+
 class TestBedrockResponseCitations:
     """Tests for the document-citation response accessor (issue #40, non-streaming)."""
 
