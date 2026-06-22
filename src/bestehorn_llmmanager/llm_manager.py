@@ -811,6 +811,7 @@ class LLMManager:
         performance_config: Optional[Dict[str, Any]] = None,
         service_tier: Optional[Dict[str, Any]] = None,
         extra_request_fields: Optional[Dict[str, Any]] = None,
+        stream_processing_mode: Optional[str] = None,
     ) -> StreamingResponse:
         """
         Send a streaming conversation request to available models with retry logic and recovery.
@@ -870,6 +871,7 @@ class LLMManager:
             performance_config=performance_config,
             service_tier=service_tier,
             extra_request_fields=extra_request_fields,
+            stream_processing_mode=stream_processing_mode,
         )
 
         # Generate retry targets using the regular retry manager
@@ -1063,6 +1065,7 @@ class LLMManager:
         performance_config: Optional[Dict[str, Any]] = None,
         service_tier: Optional[Dict[str, Any]] = None,
         extra_request_fields: Optional[Dict[str, Any]] = None,
+        stream_processing_mode: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Build the request arguments for the Converse API.
@@ -1141,6 +1144,17 @@ class LLMManager:
 
         if guardrail_config:
             request_args[ConverseAPIFields.GUARDRAIL_CONFIG] = guardrail_config
+
+        # streamProcessingMode (sync|async) is a guardrailConfig field used by streaming
+        # guardrails (issue #38). Inject it into the guardrail config, creating one if the
+        # caller supplied a mode without an explicit guardrail_config.
+        if stream_processing_mode is not None:
+            existing_guardrail = request_args.get(ConverseAPIFields.GUARDRAIL_CONFIG, {})
+            merged_guardrail = {
+                **existing_guardrail,
+                ConverseAPIFields.STREAM_PROCESSING_MODE: stream_processing_mode,
+            }
+            request_args[ConverseAPIFields.GUARDRAIL_CONFIG] = merged_guardrail
 
         if tool_config:
             request_args[ConverseAPIFields.TOOL_CONFIG] = tool_config

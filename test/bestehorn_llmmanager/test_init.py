@@ -46,6 +46,9 @@ class TestPackageInit:
         # Test structured-output helper
         assert hasattr(bestehorn_llmmanager, "build_json_schema_output_config")
 
+        # Test guardrail guard-content qualifier enum
+        assert hasattr(bestehorn_llmmanager, "GuardContentQualifierEnum")
+
     def test_version_handling_with_version_import_success(self):
         """Test version handling when _version import succeeds."""
         # This will use the actual _version.py file which should exist
@@ -117,6 +120,7 @@ class TestPackageInit:
             "ReasoningContent",
             "Citation",
             "build_json_schema_output_config",
+            "GuardContentQualifierEnum",
         ]
 
         assert hasattr(bestehorn_llmmanager, "__all__")

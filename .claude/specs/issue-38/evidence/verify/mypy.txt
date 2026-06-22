@@ -1,0 +1,2 @@
+Success: no issues found in 106 source files
+EXIT=0

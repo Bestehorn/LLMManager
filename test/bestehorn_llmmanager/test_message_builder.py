@@ -1387,3 +1387,60 @@ class TestS3MediaSources:
     def test_add_image_s3_returns_self(self):
         builder = ConverseMessageBuilder(role=RolesEnum.USER)
         assert builder.add_image_s3(uri="s3://b/p.png", format=ImageFormatEnum.PNG) is builder
+
+
+class TestAddGuardContentMethod:
+    """Test cases for MessageBuilder.add_guard_content (issue #38)."""
+
+    def test_add_guard_content_text(self):
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_guard_content(text="Evaluate this text")
+            .build()
+        )
+        guard = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.GUARD_CONTENT]
+        assert guard[ConverseAPIFields.GUARD_CONTENT_TEXT][ConverseAPIFields.TEXT] == (
+            "Evaluate this text"
+        )
+        assert (
+            ConverseAPIFields.GUARD_CONTENT_QUALIFIERS
+            not in (guard[ConverseAPIFields.GUARD_CONTENT_TEXT])
+        )
+
+    def test_add_guard_content_with_qualifiers(self):
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_guard_content(text="grounding text", qualifiers=["grounding_source"])
+            .build()
+        )
+        text_block = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.GUARD_CONTENT][
+            ConverseAPIFields.GUARD_CONTENT_TEXT
+        ]
+        assert text_block[ConverseAPIFields.GUARD_CONTENT_QUALIFIERS] == ["grounding_source"]
+
+    def test_add_guard_content_returns_self(self):
+        builder = ConverseMessageBuilder(role=RolesEnum.USER)
+        assert builder.add_guard_content(text="x") is builder
+
+    def test_add_guard_content_empty_text_rejected(self):
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_guard_content(text="   ")
+
+    def test_add_guard_content_invalid_qualifier_rejected(self):
+        with pytest.raises(RequestValidationError):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_guard_content(
+                text="x", qualifiers=["not_a_valid_qualifier"]
+            )
+
+    def test_add_guard_content_valid_qualifiers(self):
+        """All three documented qualifier values are accepted."""
+        for qualifier in ("grounding_source", "query", "guard_content"):
+            message = (
+                ConverseMessageBuilder(role=RolesEnum.USER)
+                .add_guard_content(text="x", qualifiers=[qualifier])
+                .build()
+            )
+            text_block = message[ConverseAPIFields.CONTENT][0][ConverseAPIFields.GUARD_CONTENT][
+                ConverseAPIFields.GUARD_CONTENT_TEXT
+            ]
+            assert text_block[ConverseAPIFields.GUARD_CONTENT_QUALIFIERS] == [qualifier]

@@ -74,6 +74,7 @@ from .message_builder import (
 from .message_builder_enums import (
     DetectionMethodEnum,
     DocumentFormatEnum,
+    GuardContentQualifierEnum,
     ImageFormatEnum,
     RolesEnum,
     ToolResultStatusEnum,
@@ -116,6 +117,7 @@ __all__ = [
     "VideoFormatEnum",
     "DetectionMethodEnum",
     "ToolResultStatusEnum",
+    "GuardContentQualifierEnum",
     # Response content-block typing
     "ResponseContentType",
     # Tool use (function calling)

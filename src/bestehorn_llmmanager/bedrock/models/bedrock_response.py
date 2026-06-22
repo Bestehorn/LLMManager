@@ -464,6 +464,29 @@ class BedrockResponse:
         except (KeyError, TypeError, AttributeError):
             return None
 
+    def get_guardrail_trace(self) -> Optional[Dict[str, Any]]:
+        """
+        Get the guardrail trace assessment from the response, if present (issue #38).
+
+        When a guardrail is configured with tracing enabled, the response carries a
+        ``trace.guardrail`` assessment (content/topic/word/sensitiveInformation/
+        contextualGrounding policy results, ``invocationMetrics``, ``guardrailCoverage``).
+        This returns that assessment dict so callers can see which policy fired without
+        hand-navigating the raw response.
+
+        Returns:
+            The ``trace.guardrail`` assessment dict if present, None otherwise.
+        """
+        if not self.success or not self.response_data:
+            return None
+        try:
+            trace = self.response_data.get(ConverseAPIFields.TRACE)
+            if not isinstance(trace, dict):
+                return None
+            return trace.get(ConverseAPIFields.GUARDRAIL)
+        except (KeyError, TypeError, AttributeError):
+            return None
+
     def was_successful(self) -> bool:
         """
         Check if the request was successful.
@@ -1224,6 +1247,20 @@ class StreamingResponse:
             Complete content string
         """
         return "".join(self.content_parts)
+
+    def get_guardrail_trace(self) -> Optional[Dict[str, Any]]:
+        """
+        Get the guardrail trace assessment captured during streaming (issue #38).
+
+        The streaming metadata event carries the trace into ``trace_info``; this returns
+        its ``guardrail`` assessment, mirroring ``BedrockResponse.get_guardrail_trace``.
+
+        Returns:
+            The ``guardrail`` assessment dict if present, None otherwise.
+        """
+        if not isinstance(self.trace_info, dict):
+            return None
+        return self.trace_info.get(ConverseAPIFields.GUARDRAIL)
 
     def get_reasoning(self) -> Optional[ReasoningContent]:
         """

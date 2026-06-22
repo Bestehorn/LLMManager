@@ -1,0 +1,16 @@
+FF.                                                                      [100%]
+================================== FAILURES ===================================
+_ TestLLMManager.test_build_converse_request_stream_processing_mode_into_guardrail _
+test\bestehorn_llmmanager\test_LLMManager.py:415: in test_build_converse_request_stream_processing_mode_into_guardrail
+    assert guardrail[ConverseAPIFields.STREAM_PROCESSING_MODE] == "async"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'streamProcessingMode'
+_ TestLLMManager.test_build_converse_request_stream_mode_creates_guardrail_config _
+test\bestehorn_llmmanager\test_LLMManager.py:425: in test_build_converse_request_stream_mode_creates_guardrail_config
+    assert request_args[ConverseAPIFields.GUARDRAIL_CONFIG] == {
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'guardrailConfig'
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/test_LLMManager.py::TestLLMManager::test_build_converse_request_stream_processing_mode_into_guardrail
+FAILED test/bestehorn_llmmanager/test_LLMManager.py::TestLLMManager::test_build_converse_request_stream_mode_creates_guardrail_config
+2 failed, 1 passed in 0.91s

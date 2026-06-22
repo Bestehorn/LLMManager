@@ -1,0 +1,10 @@
+...F..                                                                   [100%]
+================================== FAILURES ===================================
+____ TestAddGuardContentMethod.test_add_guard_content_empty_text_rejected _____
+test\bestehorn_llmmanager\test_message_builder.py:1426: in test_add_guard_content_empty_text_rejected
+    with pytest.raises(RequestValidationError):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   Failed: DID NOT RAISE RequestValidationError
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/test_message_builder.py::TestAddGuardContentMethod::test_add_guard_content_empty_text_rejected
+1 failed, 5 passed in 0.84s

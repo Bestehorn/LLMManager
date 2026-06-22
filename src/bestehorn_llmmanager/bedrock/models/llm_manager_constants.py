@@ -71,6 +71,13 @@ class ConverseAPIFields:
     CITATION_SOURCE_CONTENT: Final[str] = "sourceContent"
     CITATION_LOCATION: Final[str] = "location"
 
+    # Guardrail content block + trace fields (issue #38)
+    GUARD_CONTENT_TEXT: Final[str] = "text"
+    GUARD_CONTENT_QUALIFIERS: Final[str] = "qualifiers"
+    TRACE: Final[str] = "trace"
+    GUARDRAIL: Final[str] = "guardrail"
+    STREAM_PROCESSING_MODE: Final[str] = "streamProcessingMode"
+
     # Reasoning content block fields (reasoningContent union)
     REASONING_TEXT: Final[str] = "reasoningText"
     REASONING_SIGNATURE: Final[str] = "signature"

@@ -1,0 +1,18 @@
+....F.                                                                   [100%]
+================================== FAILURES ===================================
+____ TestBedrockResponseGuardrailTrace.test_get_guardrail_trace_streaming _____
+test\bestehorn_llmmanager\bedrock\models\test_bedrock_response.py:635: in test_get_guardrail_trace_streaming
+    assert stream.get_guardrail_trace() == self._ASSESSMENT
+E   AssertionError: assert {'guardrail':...total': 10}}}} == {'inputAssess...'total': 10}}}
+E     
+E     Left contains 1 more item:
+E     {'guardrail': {'guardrailCoverage': {'textCharacters': {'guarded': 10,
+E                                                             'total': 10}},
+E                    'inputAssessment': {'gr-1': {'contentPolicy': {'filters': [{'action': 'BLOCKED',
+E                                                                                'type': 'HATE'}]}}}}}
+E     Right contains 2 more items:...
+E     
+E     ...Full output truncated (4 lines hidden), use '-vv' to show
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/bedrock/models/test_bedrock_response.py::TestBedrockResponseGuardrailTrace::test_get_guardrail_trace_streaming
+1 failed, 5 passed in 0.88s

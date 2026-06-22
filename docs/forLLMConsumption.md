@@ -409,6 +409,38 @@ re-calls the model when a validator rejects output — a more general but more e
 fallback for models without structured-output support or for semantic (not just
 schema) validation.
 
+#### Guardrails (targeting, trace, stream mode)
+
+Three guardrail capabilities beyond `guardrail_config` passthrough:
+
+```python
+# 1. Selective guardrail targeting — guard specific text within a message.
+from bestehorn_llmmanager import GuardContentQualifierEnum
+
+message = create_user_message()\
+    .add_text("Answer using only the source below.")\
+    .add_guard_content(text="<source document>", qualifiers=["grounding_source"])\
+    .build()
+# qualifiers values: grounding_source | query | guard_content (GuardContentQualifierEnum)
+
+# 2. Typed guardrail trace assessment (which policy fired, action, coverage, usage).
+response = manager.converse(messages=[message], guardrail_config={
+    "guardrailIdentifier": "gr-123", "guardrailVersion": "1", "trace": "enabled",
+})
+trace = response.get_guardrail_trace()   # dict | None (also on StreamingResponse)
+
+# 3. streamProcessingMode (sync|async) for streaming guardrails.
+stream = manager.converse_stream(
+    messages=[message],
+    guardrail_config={"guardrailIdentifier": "gr-123", "guardrailVersion": "1"},
+    stream_processing_mode="async",   # injected into guardrailConfig.streamProcessingMode
+)
+```
+
+`get_guardrail_trace()` returns the raw `trace.guardrail` assessment (content/topic/word/
+sensitiveInformation/contextualGrounding policy results, `invocationMetrics`,
+`guardrailCoverage`) on both `BedrockResponse` and `StreamingResponse`.
+
 #### Building Messages
 
 ```python

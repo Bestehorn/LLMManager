@@ -1,0 +1,118 @@
+........................................................................ [ 42%]
+........................................................................ [ 85%]
+........................                                                 [100%]
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.14.2-final-0 _______________
+
+Name                                                                           Stmts   Miss  Cover   Missing
+------------------------------------------------------------------------------------------------------------
+src\bestehorn_llmmanager\__init__.py                                              26      6    77%   92-99
+src\bestehorn_llmmanager\_version.py                                              11      0   100%
+src\bestehorn_llmmanager\bedrock\CRISManager.py                                  138    104    25%   140-175, 193-208, 220-246, 261-279, 288-300, 315-318, 333-336, 353-356, 368-371, 383-386, 398-401, 413-416, 431-434, 452-459, 469-471, 485, 498-507, 521-529
+src\bestehorn_llmmanager\bedrock\ModelManager.py                                  79     53    33%   133-154, 177-198, 207-219, 234-237, 252-255, 267-270, 282-285, 295, 307, 320, 332-340
+src\bestehorn_llmmanager\bedrock\UnifiedModelManager.py                          276    232    16%   164-205, 228-278, 295-370, 382-394, 408-466, 484-519, 534-556, 576-583, 604-658, 674-681, 696-699, 714-717, 732-735, 750-753, 765-768, 780-783, 795-798, 810-813, 828-831, 846-860, 869, 878, 891, 905-936, 957-964, 977-986
+src\bestehorn_llmmanager\bedrock\__init__.py                                      11      0   100%
+src\bestehorn_llmmanager\bedrock\auth\__init__.py                                  2      0   100%
+src\bestehorn_llmmanager\bedrock\auth\auth_manager.py                            126     97    23%   58-59, 77-89, 108-128, 136-158, 165-181, 188-199, 207-238, 254-267, 282-298, 321-333, 350-358
+src\bestehorn_llmmanager\bedrock\builders\__init__.py                              2      0   100%
+src\bestehorn_llmmanager\bedrock\builders\parameter_builder.py                    55     36    35%   73-112, 134-159, 171
+src\bestehorn_llmmanager\bedrock\cache\__init__.py                                 2      0   100%
+src\bestehorn_llmmanager\bedrock\cache\cache_point_manager.py                    151    131    13%   35-37, 58-76, 89-107, 111, 124-164, 176-194, 206-239, 252-269, 282-290, 294, 308-329, 335, 350-381, 395-412, 416
+src\bestehorn_llmmanager\bedrock\catalog\__init__.py                              10      0   100%
+src\bestehorn_llmmanager\bedrock\catalog\alias_generators.py                     154    122    21%   36, 74-84, 96, 109-115, 130-139, 155-156, 191, 205-256, 268-272, 284-288, 311-314, 326-351, 398-403, 418-470, 503-508, 520-544
+src\bestehorn_llmmanager\bedrock\catalog\api_fetcher.py                          119     91    24%   46-49, 65-67, 77, 82, 87, 92, 119-125, 152, 182-245, 260-266, 290, 302-348, 375, 387-451
+src\bestehorn_llmmanager\bedrock\catalog\bedrock_catalog.py                      163    132    19%   96-139, 163-187, 202-208, 229-325, 358-401, 428-447, 469-480, 497-499, 514-519, 534-550, 560, 565, 570, 593
+src\bestehorn_llmmanager\bedrock\catalog\bundled_loader.py                        68     51    25%   17-19, 51-74, 91-144, 169-188
+src\bestehorn_llmmanager\bedrock\catalog\cache_manager.py                        179    158    12%   51-79, 84, 93-95, 109-149, 174-233, 250-261, 275-317, 329-351, 365-392, 403-418
+src\bestehorn_llmmanager\bedrock\catalog\legacy_name_mapper.py                    36     24    33%   34, 46-53, 68-77, 90-98, 110, 122, 131, 140
+src\bestehorn_llmmanager\bedrock\catalog\legacy_name_mappings.py                  13      5    62%   112, 125, 138, 148, 158
+src\bestehorn_llmmanager\bedrock\catalog\name_normalizer.py                       11      8    27%   49-71
+src\bestehorn_llmmanager\bedrock\catalog\name_resolution_structures.py            55     25    55%   54-55, 84-85, 132-134, 145-166
+src\bestehorn_llmmanager\bedrock\catalog\name_resolver.py                        157    135    14%   62-77, 86-88, 102-122, 132-147, 172-217, 229-240, 256-303, 316-359, 382-419, 446-477, 492-506, 520-530, 540-551
+src\bestehorn_llmmanager\bedrock\catalog\transformer.py                          202    180    11%   44-47, 75-140, 160-191, 215-271, 297-319, 339-411, 431-477, 499-538, 562-581, 611-639, 657-678, 706-715
+src\bestehorn_llmmanager\bedrock\correlators\__init__.py                           2      0   100%
+src\bestehorn_llmmanager\bedrock\correlators\model_cris_correlator.py            368    330    10%   45-62, 88-92, 110-252, 264-275, 306-315, 338-384, 403-435, 450-523, 538-545, 560-816, 836-863, 884-895, 910-922, 934-937, 950-954, 966-993, 1015-1044, 1057-1064, 1090-1099, 1105, 1118-1123, 1129-1152, 1160, 1176, 1185, 1194-1195
+src\bestehorn_llmmanager\bedrock\discovery\__init__.py                             2      0   100%
+src\bestehorn_llmmanager\bedrock\discovery\region_discovery.py                   120    101    16%   53-67, 85-102, 117-136, 145-180, 189-202, 214-231, 239-247, 256-278
+src\bestehorn_llmmanager\bedrock\distributors\__init__.py                          2      0   100%
+src\bestehorn_llmmanager\bedrock\distributors\region_distribution_manager.py     138    113    18%   40-45, 68-87, 107-131, 146-149, 168-184, 203-215, 230-253, 266-273, 289-300, 312-337, 346, 350-352, 379-405, 418, 427-428, 444-471, 491-524
+src\bestehorn_llmmanager\bedrock\downloaders\__init__.py                           0      0   100%
+src\bestehorn_llmmanager\bedrock\downloaders\base_downloader.py                   28     16    43%   29, 60-65, 77-94
+src\bestehorn_llmmanager\bedrock\downloaders\html_downloader.py                   47     34    28%   34-37, 52-70, 85-107, 120-124, 133
+src\bestehorn_llmmanager\bedrock\exceptions\__init__.py                            2      0   100%
+src\bestehorn_llmmanager\bedrock\exceptions\llm_manager_exceptions.py            171     67    61%   98, 138-143, 170-176, 192-201, 266, 272, 320, 345-350, 365-372, 398-404, 423-432, 448-450, 462-464, 508-510, 522-524, 559-561
+src\bestehorn_llmmanager\bedrock\exceptions\parallel_exceptions.py                84     52    38%   16, 32-49, 58, 67, 76, 93-109, 118, 127-129, 138, 156-167, 176, 194-201, 210, 219, 237-249, 258, 267, 276, 294-305, 314, 323, 332
+src\bestehorn_llmmanager\bedrock\executors\__init__.py                             2      0   100%
+src\bestehorn_llmmanager\bedrock\executors\parallel_executor.py                  113     93    18%   40-44, 67-107, 121-130, 151-171, 195-259, 280-292, 307-331, 346-365, 374-386, 397, 406
+src\bestehorn_llmmanager\bedrock\executors\thread_parallel_executor.py           237    198    16%   41-46, 50-51, 55-57, 61-63, 67-68, 72-79, 83, 104-108, 129-139, 161-177, 197-216, 247-271, 285-294, 321-523, 544-562, 579-604, 623-656, 679-697, 717, 735, 752-765, 774-786, 797, 806
+src\bestehorn_llmmanager\bedrock\fetchers\__init__.py                              2      0   100%
+src\bestehorn_llmmanager\bedrock\fetchers\cris_api_fetcher.py                    135    119    12%   54-56, 74-151, 168-195, 211-289, 302-316, 331-346
+src\bestehorn_llmmanager\bedrock\filters\__init__.py                               0      0   100%
+src\bestehorn_llmmanager\bedrock\filters\content_filter.py                       106     86    19%   76-110, 126-142, 157-214, 226-258, 277-289, 301-314
+src\bestehorn_llmmanager\bedrock\models\__init__.py                                0      0   100%
+src\bestehorn_llmmanager\bedrock\models\access_method.py                          86     54    37%   37-47, 90-111, 125-142, 156-168, 196-226, 235-243, 247, 256-261
+src\bestehorn_llmmanager\bedrock\models\aws_regions.py                            37      4    89%   66, 79, 89, 125
+src\bestehorn_llmmanager\bedrock\models\bedrock_response.py                      490    342    30%   89-102, 121-131, 145, 161, 178, 194-196, 212-217, 236-243, 256-257, 273-282, 291-306, 315-316, 325-326, 335-336, 345-346, 355-356, 365-390, 399-405, 421, 430-436, 446-451, 460-465, 487-488, 497, 506, 515, 524-527, 536, 545, 554-555, 564-572, 586-614, 631, 640, 649, 658-660, 669-682, 691, 700-719, 728, 737, 746, 760, 775, 825, 838-869, 983-984, 993-994, 1003, 1018-1054, 1067-1082, 1095-1103, 1119-1176, 1180-1217, 1229-1237, 1249, 1278-1286, 1299, 1308, 1317-1327, 1336, 1345, 1356-1369, 1378-1379, 1388-1389, 1398-1399, 1408-1409, 1418-1419, 1430-1460, 1469, 1478-1495, 1504-1507, 1516-1527
+src\bestehorn_llmmanager\bedrock\models\cache_structures.py                       78     26    67%   78, 81, 84, 128, 153-155, 168-183, 193-198, 208-213, 217, 226
+src\bestehorn_llmmanager\bedrock\models\catalog_constants.py                     167     12    93%   100-112, 122, 133, 145
+src\bestehorn_llmmanager\bedrock\models\catalog_structures.py                     74     40    46%   73, 95-111, 137, 158-174, 186, 205-216, 221, 230-233, 242-243
+src\bestehorn_llmmanager\bedrock\models\citation.py                               13      2    85%   56-57
+src\bestehorn_llmmanager\bedrock\models\constants.py                              44      0   100%
+src\bestehorn_llmmanager\bedrock\models\content_block_types.py                    34     11    68%   52, 72-79, 89, 103-105
+src\bestehorn_llmmanager\bedrock\models\cris_constants.py                         86      0   100%
+src\bestehorn_llmmanager\bedrock\models\cris_regional_structures.py              138    138     0%   6-468
+src\bestehorn_llmmanager\bedrock\models\cris_structures.py                       226    160    29%   40-41, 50-56, 66-87, 96, 105, 114-117, 129, 141, 154, 169-178, 193-194, 215-216, 225-229, 240-248, 264-279, 292-306, 318, 327, 339, 348-351, 360-363, 375, 390, 405-409, 421-425, 437-441, 450, 463, 479-485, 497-503, 512, 536-561, 584, 606-629, 634, 646, 662, 678-679, 688-691, 700-703, 712, 724
+src\bestehorn_llmmanager\bedrock\models\data_structures.py                        29      6    79%   49, 82, 92, 104, 116, 127
+src\bestehorn_llmmanager\bedrock\models\deprecation.py                            27     18    33%   35-51, 81-89
+src\bestehorn_llmmanager\bedrock\models\llm_manager_constants.py                 186      0   100%
+src\bestehorn_llmmanager\bedrock\models\llm_manager_structures.py                246    109    56%   100, 103-104, 153, 155, 157, 159, 161, 168, 174, 206, 208, 212, 216, 264-266, 312-329, 338-353, 362-387, 396-402, 411-417, 426, 435, 444, 453-456, 465, 474, 483, 492, 501-503, 512-525, 534, 579, 592-621, 663, 672, 724-729, 734, 762-765
+src\bestehorn_llmmanager\bedrock\models\model_specific_structures.py              23     10    57%   42-49, 61, 80-86
+src\bestehorn_llmmanager\bedrock\models\parallel_constants.py                     66      0   100%
+src\bestehorn_llmmanager\bedrock\models\parallel_structures.py                   245    137    44%   53, 135-136, 146-160, 176-192, 201-224, 233, 257, 285-295, 307-308, 317, 356-365, 402, 416-418, 423, 462, 475, 491, 500-504, 513-527, 551-565, 579-589, 601, 619, 632, 641-647, 660-681, 702-720, 740, 756-766, 779, 849, 853-857, 861
+src\bestehorn_llmmanager\bedrock\models\reasoning_content.py                      23     12    48%   60-67, 87-102
+src\bestehorn_llmmanager\bedrock\models\stop_reason.py                            49     20    59%   80-87, 102-111, 116, 126
+src\bestehorn_llmmanager\bedrock\models\structured_output.py                       7      3    57%   36-40
+src\bestehorn_llmmanager\bedrock\models\tool_use.py                                8      1    88%   46
+src\bestehorn_llmmanager\bedrock\models\unified_constants.py                     107      0   100%
+src\bestehorn_llmmanager\bedrock\models\unified_structures.py                    145    102    30%   46-53, 62, 72, 88, 105, 123, 135, 149-164, 174-180, 198-203, 212-238, 267-287, 310-360, 383, 405-428, 433, 442, 454, 468, 484, 500, 513, 527, 536-539
+src\bestehorn_llmmanager\bedrock\parsers\__init__.py                               0      0   100%
+src\bestehorn_llmmanager\bedrock\parsers\base_parser.py                           22     12    45%   33, 70-83
+src\bestehorn_llmmanager\bedrock\parsers\bedrock_parser.py                       202    176    13%   26-28, 44-60, 72-73, 88-97, 109-124, 133-143, 155-177, 190-234, 247-302, 315-323, 336-358, 371-400, 413-419, 432-433, 446-467, 479, 491-502
+src\bestehorn_llmmanager\bedrock\parsers\cris_parser.py                          244    211    14%   62-75, 99-116, 129-130, 152-154, 171, 190-231, 252-284, 299-359, 380-404, 421-447, 459, 471-478, 490-493, 506-517, 529-532, 544-616, 632-674, 686-691
+src\bestehorn_llmmanager\bedrock\parsers\enhanced_bedrock_parser.py               64     50    22%   27-28, 41-70, 82-104, 116-129, 146-157, 166
+src\bestehorn_llmmanager\bedrock\retry\__init__.py                                 3      0   100%
+src\bestehorn_llmmanager\bedrock\retry\access_method_selector.py                  93     71    24%   63-72, 123-188, 197-202, 213-236, 264-305
+src\bestehorn_llmmanager\bedrock\retry\access_method_structures.py                32     14    56%   63-69, 85-91
+src\bestehorn_llmmanager\bedrock\retry\profile_requirement_detector.py            55     40    27%   54-82, 100-140
+src\bestehorn_llmmanager\bedrock\retry\retry_manager.py                          518    393    24%   127-138, 156-164, 168, 183-230, 242-258, 272-286, 298-307, 320-332, 347-393, 405-412, 450, 470-503, 511-518, 584, 610-614, 624-631, 654-658, 665, 698-899, 928-972, 1001-1091, 1125, 1148, 1173-1189, 1202-1228, 1245-1307, 1322-1334, 1365-1576, 1606-1652
+src\bestehorn_llmmanager\bedrock\serializers\__init__.py                           0      0   100%
+src\bestehorn_llmmanager\bedrock\serializers\json_serializer.py                   62     50    19%   29-31, 45-73, 88-99, 113-134, 151-164
+src\bestehorn_llmmanager\bedrock\streaming\__init__.py                             5      0   100%
+src\bestehorn_llmmanager\bedrock\streaming\event_handlers.py                     109     93    15%   36-45, 63-76, 95-122, 137-144, 162-170, 189-208, 233-255, 267-311, 323, 344-371
+src\bestehorn_llmmanager\bedrock\streaming\retrying_stream_iterator.py           157    129    18%   40-45, 83-105, 109, 121-165, 174-199, 216-251, 261-279, 288-298, 317, 331-359, 364, 369, 374, 379, 384, 393-423
+src\bestehorn_llmmanager\bedrock\streaming\stream_processor.py                   100     79    21%   60-91, 115-137, 155-172, 188-194, 213-247, 267-272, 283-289, 307-315, 327, 346-367
+src\bestehorn_llmmanager\bedrock\streaming\streaming_constants.py                 77      0   100%
+src\bestehorn_llmmanager\bedrock\streaming\streaming_retry_manager.py             98     77    21%   45-48, 95-154, 189-230, 256-274, 286-345, 361-369
+src\bestehorn_llmmanager\bedrock\testing\__init__.py                               4      4     0%   8-12
+src\bestehorn_llmmanager\bedrock\testing\aws_test_client.py                      264    264     0%   9-747
+src\bestehorn_llmmanager\bedrock\testing\integration_config.py                   103    103     0%   9-364
+src\bestehorn_llmmanager\bedrock\testing\integration_markers.py                   41     41     0%   8-203
+src\bestehorn_llmmanager\bedrock\tracking\__init__.py                              2      0   100%
+src\bestehorn_llmmanager\bedrock\tracking\access_method_tracker.py                85     39    54%   127-144, 168, 191-198, 213-246, 263-275
+src\bestehorn_llmmanager\bedrock\tracking\parameter_compatibility_tracker.py      57     31    46%   74-80, 97-103, 121-127, 141-152, 174-188
+src\bestehorn_llmmanager\bedrock\validators\__init__.py                            2      0   100%
+src\bestehorn_llmmanager\bedrock\validators\request_validator.py                 122    101    17%   28, 41-54, 68-81, 95, 106-115, 131-154, 167-186, 199-229, 241-261, 277-296, 310-322, 334-343, 355-369
+src\bestehorn_llmmanager\llm_manager.py                                          452    135    70%   192-193, 198-215, 229, 236, 255-256, 318, 320, 322, 327-330, 373-381, 400-415, 424-428, 437-438, 450-452, 464-494, 519, 526-528, 532-533, 537-539, 551-571, 583-615, 718, 723, 730, 761-762, 901, 906, 910-933, 1043, 1047, 1094-1101, 1138, 1321, 1331, 1333, 1342-1345, 1381, 1390-1392, 1397-1399, 1412-1423, 1458-1460
+src\bestehorn_llmmanager\message_builder.py                                      313     20    94%   172, 325-326, 334, 412, 432-433, 513, 567, 587-588, 788-804, 1183
+src\bestehorn_llmmanager\message_builder_constants.py                             47      1    98%   137
+src\bestehorn_llmmanager\message_builder_enums.py                                 48      3    94%   23, 104, 122
+src\bestehorn_llmmanager\parallel_llm_manager.py                                 237    202    15%   145-183, 198-205, 214-235, 248-263, 290-352, 373-383, 402-427, 457-499, 522-541, 588-617, 634-671, 692-796, 823-824, 833, 842, 851, 860, 870-900, 909-912
+src\bestehorn_llmmanager\util\__init__.py                                          3      0   100%
+src\bestehorn_llmmanager\util\file_type_detector\__init__.py                       4      0   100%
+src\bestehorn_llmmanager\util\file_type_detector\base_detector.py                 36      8    78%   43, 47-48, 125-126, 129-130, 192
+src\bestehorn_llmmanager\util\file_type_detector\detector_constants.py            55      5    91%   98-102
+src\bestehorn_llmmanager\util\file_type_detector\file_type_detector.py           139     88    37%   51, 100-137, 152-189, 206, 212, 217-234, 262, 270-275, 285-288, 299-304, 318-321, 344-422, 437-491, 518, 532-540, 555, 559
+src\bestehorn_llmmanager\util\streaming_display.py                               140    121    14%   30, 56-73, 85-105, 117-147, 159-173, 179-190, 194-214, 218-238, 244-259, 263-283, 287-289, 293-294, 309-310, 325-326, 339-340
+------------------------------------------------------------------------------------------------------------
+TOTAL                                                                          10234   6567    36%
+168 passed in 5.04s

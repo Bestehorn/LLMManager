@@ -1,0 +1,25 @@
+F.F...                                                                   [100%]
+================================== FAILURES ===================================
+__ TestBedrockResponseGuardrailTrace.test_get_guardrail_trace_non_streaming ___
+test\bestehorn_llmmanager\bedrock\models\test_bedrock_response.py:612: in test_get_guardrail_trace_non_streaming
+    assert response.get_guardrail_trace() == self._ASSESSMENT
+E   AssertionError: assert {'guardrail':...total': 10}}}} == {'inputAssess...'total': 10}}}
+E     
+E     Left contains 1 more item:
+E     {'guardrail': {'guardrailCoverage': {'textCharacters': {'guarded': 10,
+E                                                             'total': 10}},
+E                    'inputAssessment': {'gr-1': {'contentPolicy': {'filters': [{'action': 'BLOCKED',
+E                                                                                'type': 'HATE'}]}}}}}
+E     Right contains 2 more items:...
+E     
+E     ...Full output truncated (4 lines hidden), use '-vv' to show
+_ TestBedrockResponseGuardrailTrace.test_get_guardrail_trace_trace_without_guardrail _
+test\bestehorn_llmmanager\bedrock\models\test_bedrock_response.py:626: in test_get_guardrail_trace_trace_without_guardrail
+    assert response.get_guardrail_trace() is None
+E   AssertionError: assert {'promptRouter': {}} is None
+E    +  where {'promptRouter': {}} = get_guardrail_trace()
+E    +    where get_guardrail_trace = BedrockResponse(status=SUCCESS, model=None, region=None, attempts=0).get_guardrail_trace
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/bedrock/models/test_bedrock_response.py::TestBedrockResponseGuardrailTrace::test_get_guardrail_trace_non_streaming
+FAILED test/bestehorn_llmmanager/bedrock/models/test_bedrock_response.py::TestBedrockResponseGuardrailTrace::test_get_guardrail_trace_trace_without_guardrail
+2 failed, 4 passed in 0.98s

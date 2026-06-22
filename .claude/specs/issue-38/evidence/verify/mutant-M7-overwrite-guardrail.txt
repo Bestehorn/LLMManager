@@ -1,0 +1,10 @@
+F..                                                                      [100%]
+================================== FAILURES ===================================
+_ TestLLMManager.test_build_converse_request_stream_processing_mode_into_guardrail _
+test\bestehorn_llmmanager\test_LLMManager.py:417: in test_build_converse_request_stream_processing_mode_into_guardrail
+    assert guardrail["guardrailIdentifier"] == "gr-1"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   KeyError: 'guardrailIdentifier'
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/test_LLMManager.py::TestLLMManager::test_build_converse_request_stream_processing_mode_into_guardrail
+1 failed, 2 passed in 0.85s

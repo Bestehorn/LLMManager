@@ -102,3 +102,21 @@ class ToolResultStatusEnum(str, Enum):
     def __str__(self) -> str:
         """Return the string value of the enum."""
         return self.value
+
+
+class GuardContentQualifierEnum(str, Enum):
+    """
+    Enumeration of valid qualifiers for a guardrail ``guardContent`` text block.
+
+    Values map to the Converse ``GuardrailConverseTextBlock.qualifiers`` valid values:
+    ``grounding_source`` (a contextual-grounding source document), ``query`` (the user
+    query for grounding), and ``guard_content`` (text to assess against the guardrail).
+    """
+
+    GROUNDING_SOURCE = "grounding_source"
+    QUERY = "query"
+    GUARD_CONTENT = "guard_content"
+
+    def __str__(self) -> str:
+        """Return the string value of the enum."""
+        return self.value
