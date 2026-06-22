@@ -693,9 +693,20 @@ def converse(
     tool_config: Optional[Dict[str, Any]] = None,         # Optional: Tool use configuration
     request_metadata: Optional[Dict[str, Any]] = None,    # Optional: Request metadata
     prompt_variables: Optional[Dict[str, Any]] = None,    # Optional: Prompt template variables
-    response_validation_config: Optional[ResponseValidationConfig] = None  # Optional: Response validation
+    response_validation_config: Optional[ResponseValidationConfig] = None,  # Optional: Response validation
+    output_config: Optional[Dict[str, Any]] = None,       # Optional: Structured output (#35)
+    performance_config: Optional[Dict[str, Any]] = None,  # Optional: {"latency": "standard"|"optimized"}
+    service_tier: Optional[Dict[str, Any]] = None,        # Optional: {"type": "priority"|"default"|"flex"|"reserved"}
+    extra_request_fields: Optional[Dict[str, Any]] = None  # Optional: forward-compatible passthrough (merged last)
 ) -> BedrockResponse
 ```
+
+`performance_config` and `service_tier` are echoed back via
+`response.get_performance_config()` / `response.get_service_tier()`.
+`extra_request_fields` is a forward-compatible escape hatch: any keys it contains are
+merged into the Converse request **last** (overriding first-class params on conflict),
+so a new top-level Converse parameter can be used before the library adds a named
+argument for it. (Both `converse()` and `converse_stream()` accept all four.)
 
 **converse_stream() - Streaming conversation requests**
 ```python

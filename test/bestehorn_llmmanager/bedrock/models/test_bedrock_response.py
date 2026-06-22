@@ -591,6 +591,45 @@ class TestBedrockResponse:
         assert "FAILED" in repr_str
 
 
+class TestBedrockResponsePerformanceAndServiceTier:
+    """Tests for get_performance_config / get_service_tier accessors (issue #36)."""
+
+    def test_get_performance_config(self):
+        response_data = {
+            "output": {"message": {"content": [{"text": "ok"}]}},
+            "performanceConfig": {"latency": "optimized"},
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_performance_config() == {"latency": "optimized"}
+
+    def test_get_performance_config_absent(self):
+        response = BedrockResponse(
+            success=True, response_data={"output": {"message": {"content": [{"text": "ok"}]}}}
+        )
+        assert response.get_performance_config() is None
+
+    def test_get_performance_config_no_data(self):
+        assert BedrockResponse(success=True, response_data=None).get_performance_config() is None
+
+    def test_get_service_tier(self):
+        response_data = {
+            "output": {"message": {"content": [{"text": "ok"}]}},
+            "serviceTier": {"type": "flex"},
+        }
+        response = BedrockResponse(success=True, response_data=response_data)
+        assert response.get_service_tier() == {"type": "flex"}
+
+    def test_get_service_tier_absent(self):
+        response = BedrockResponse(
+            success=True, response_data={"output": {"message": {"content": [{"text": "ok"}]}}}
+        )
+        assert response.get_service_tier() is None
+
+    def test_get_service_tier_failed_response(self):
+        response = BedrockResponse(success=False, response_data={"serviceTier": {"type": "flex"}})
+        assert response.get_service_tier() is None
+
+
 class TestBedrockResponseStructuredOutput:
     """Tests for get_structured_output (issue #35)."""
 

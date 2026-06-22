@@ -435,6 +435,35 @@ class BedrockResponse:
         except (KeyError, TypeError, AttributeError):
             return None
 
+    def get_performance_config(self) -> Optional[Dict[str, Any]]:
+        """
+        Get the performance configuration echoed back in the response (issue #36).
+
+        Returns:
+            The ``performanceConfig`` dict (e.g. ``{"latency": "optimized"}``) if present,
+            None otherwise.
+        """
+        if not self.success or not self.response_data:
+            return None
+        try:
+            return self.response_data.get(ConverseAPIFields.PERFORMANCE_CONFIG)
+        except (KeyError, TypeError, AttributeError):
+            return None
+
+    def get_service_tier(self) -> Optional[Dict[str, Any]]:
+        """
+        Get the service tier echoed back in the response (issue #36).
+
+        Returns:
+            The ``serviceTier`` dict (e.g. ``{"type": "flex"}``) if present, None otherwise.
+        """
+        if not self.success or not self.response_data:
+            return None
+        try:
+            return self.response_data.get(ConverseAPIFields.SERVICE_TIER)
+        except (KeyError, TypeError, AttributeError):
+            return None
+
     def was_successful(self) -> bool:
         """
         Check if the request was successful.
