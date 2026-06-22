@@ -1,0 +1,22 @@
+        Get the per-TTL breakdown of cache-write tokens (``usage.cacheDetails``).
+    
+        Each entry reports how many tokens were written to cache at a given TTL. The list
+        is empty when no cache creation occurred or the response carries no usage data.
+    
+        Returns:
+            A list of :class:`CacheDetail` (input token count + TTL per segment), empty
+            if unavailable.
+        """
+        if not self.success or not self.response_data:
+            return []
+    
+        usage = self.response_data.get(ConverseAPIFields.USAGE, {})  # MUTANT 6: or[]+except removed
+        raw_details = usage.get(ConverseAPIFields.CACHE_DETAILS)
+>       return [CacheDetail.from_cache_detail(cache_detail=detail) for detail in raw_details]
+                                                                                 ^^^^^^^^^^^
+E       TypeError: 'NoneType' object is not iterable
+
+src\bestehorn_llmmanager\bedrock\models\bedrock_response.py:375: TypeError
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/bedrock/models/test_bedrock_response.py::TestBedrockResponseCacheDetails::test_no_cache_details_returns_empty
+========================= 1 failed, 5 passed in 1.29s =========================

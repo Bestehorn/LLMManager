@@ -437,6 +437,33 @@ class TestLLMManager:
             not in (request_args[ConverseAPIFields.GUARDRAIL_CONFIG])
         )
 
+    def test_build_converse_request_tool_config_with_cache_point(self, basic_llm_manager):
+        """A cachePoint appended to toolConfig.tools is passed through unchanged (issue #39).
+
+        Tool-definition caching is achieved by placing a cachePoint after the tool specs
+        in toolConfig.tools (cachePoint is a valid Tool union member). The request builder
+        forwards the tool_config verbatim, so the cache point reaches Bedrock intact.
+        """
+        from bestehorn_llmmanager.bedrock.models.cache_point import build_cache_point
+
+        tool_config = {
+            ConverseAPIFields.TOOLS: [
+                {"toolSpec": {"name": "get_weather", "inputSchema": {"json": {}}}},
+                build_cache_point(ttl="1h"),
+            ]
+        }
+        request_args = basic_llm_manager._build_converse_request(
+            messages=[{"role": "user", "content": [{"text": "Hi"}]}],
+            tool_config=tool_config,
+        )
+        forwarded_tools = request_args[ConverseAPIFields.TOOL_CONFIG][ConverseAPIFields.TOOLS]
+        assert forwarded_tools[-1] == {
+            ConverseAPIFields.CACHE_POINT: {
+                ConverseAPIFields.CACHE_TYPE: "default",
+                ConverseAPIFields.CACHE_TTL: "1h",
+            }
+        }
+
     def test_get_model_access_info_success(self, basic_llm_manager):
         """Test successful retrieval of model access information."""
         result = basic_llm_manager.get_model_access_info("Claude Haiku 4 5 20251001", "us-east-1")

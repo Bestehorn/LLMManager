@@ -57,6 +57,7 @@ class StreamingConstants:
     FIELD_TOTAL_TOKENS = "totalTokens"
     FIELD_CACHE_READ_INPUT_TOKENS = "cacheReadInputTokens"
     FIELD_CACHE_WRITE_INPUT_TOKENS = "cacheWriteInputTokens"
+    FIELD_CACHE_DETAILS = "cacheDetails"
     FIELD_METRICS = "metrics"
     FIELD_LATENCY_MS = "latencyMs"
     FIELD_TRACE = "trace"

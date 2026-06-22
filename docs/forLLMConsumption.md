@@ -441,6 +441,42 @@ stream = manager.converse_stream(
 sensitiveInformation/contextualGrounding policy results, `invocationMetrics`,
 `guardrailCoverage`) on both `BedrockResponse` and `StreamingResponse`.
 
+#### Prompt caching: TTL, tool caching, and cacheDetails
+
+Three additions to explicit prompt caching (on top of the automatic strategies and
+system-prompt caching):
+
+```python
+from bestehorn_llmmanager import build_cache_point, CachePointTTLEnum
+
+# 1. Cache-point TTL (5m | 1h). Omitting ttl uses Bedrock's default caching behavior.
+message = create_user_message()\
+    .add_text("<large reusable context>")\
+    .add_cache_point(ttl="1h")\
+    .add_text("Now answer this question.")\
+    .build()
+# ttl is validated against CachePointTTLEnum (5m / 1h); type is validated ("default").
+
+# 2. Cache tool DEFINITIONS by appending a cache point after the tool specs in
+#    toolConfig.tools (a cachePoint is a valid Tool union member).
+tool_config = {
+    "tools": [
+        {"toolSpec": {"name": "get_weather", "inputSchema": {"json": {...}}}},
+        build_cache_point(ttl="1h"),   # caches everything before it (the tool defs)
+    ]
+}
+response = manager.converse(messages=[message], tool_config=tool_config)
+
+# 3. Per-segment cache-write breakdown (usage.cacheDetails[]), typed as CacheDetail.
+for detail in response.get_cache_details():   # also on StreamingResponse
+    print(detail.ttl, detail.input_tokens)    # e.g. "1h" 1024
+```
+
+`build_cache_point(cache_type="default", ttl=None)` is the single validated factory used
+by both `add_cache_point()` and tool caching. `get_cache_details()` returns a list of
+`CacheDetail(input_tokens, ttl)` (empty when no cache creation occurred); the existing
+aggregate `get_cache_read_tokens()` / `get_cache_write_tokens()` accessors are unchanged.
+
 #### Building Messages
 
 ```python

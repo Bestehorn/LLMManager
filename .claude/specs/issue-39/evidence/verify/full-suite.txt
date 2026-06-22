@@ -1,0 +1,285 @@
+........................................................................ [  2%]
+........................................................................ [  5%]
+........................................................................ [  7%]
+........................................................................ [ 10%]
+........................................................................ [ 12%]
+........................................................................ [ 15%]
+........................................................................ [ 17%]
+........................................................................ [ 20%]
+........................................................................ [ 22%]
+........................................................................ [ 25%]
+........................................................................ [ 27%]
+........................................................................ [ 30%]
+........................................................................ [ 32%]
+........................................................................ [ 35%]
+........................................................................ [ 38%]
+........................................................................ [ 40%]
+........................................................................ [ 43%]
+........................................................................ [ 45%]
+........................................................................ [ 48%]
+........................................................................ [ 50%]
+........................................................................ [ 53%]
+........................................................................ [ 55%]
+........................................................................ [ 58%]
+........s...s...s...s....s....s.....s................................... [ 60%]
+........................................................................ [ 63%]
+........................................................................ [ 65%]
+........................................................................ [ 68%]
+........................................................................ [ 70%]
+........................................................................ [ 73%]
+........................................................................ [ 76%]
+........................................................................ [ 78%]
+........................................................................ [ 81%]
+........................................................................ [ 83%]
+........................................................................ [ 86%]
+........................................................................ [ 88%]
+........................................................................ [ 91%]
+........................................................................ [ 93%]
+........................................................................ [ 96%]
+........................................................................ [ 98%]
+................................                                         [100%]
+============================== warnings summary ===============================
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerInitialization::test_default_initialization
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:31: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager()
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerInitialization::test_custom_initialization
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:45: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerInitialization::test_components_initialization
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:59: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager()
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerInitialization::test_repr_method
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:69: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager()
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerRefreshData::test_refresh_cris_data_success
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:85: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerRefreshData::test_refresh_cris_data_no_force_download_recent_file
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:119: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerRefreshData::test_refresh_cris_data_network_error
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:152: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(use_api=False)  # Use HTML parsing path for this test
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerRefreshData::test_refresh_cris_data_parsing_error
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:168: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerRefreshData::test_refresh_cris_data_file_system_error
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:193: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(use_api=False)  # Use HTML parsing path for this test
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerLoadCachedData::test_load_cached_data_success
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:216: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(json_output_path=json_file)
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerLoadCachedData::test_load_cached_data_file_not_exists
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:246: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(json_output_path=temp_dir / "nonexistent.json")
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerLoadCachedData::test_load_cached_data_invalid_file
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:261: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(json_output_path=json_file)
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py: 19 warnings
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:279: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    self.manager = CRISManager()
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerPrivateMethods::test_download_documentation
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:469: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager()
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerPrivateMethods::test_parse_documentation
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:483: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager()
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerPrivateMethods::test_save_catalog_to_json
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:498: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager()
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerPrivateMethods::test_is_html_file_recent_file_not_exists
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:517: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(html_output_path=temp_dir / "nonexistent.html")
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerPrivateMethods::test_is_html_file_recent_file_is_recent
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:528: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(html_output_path=html_file)
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerPrivateMethods::test_is_html_file_recent_file_is_old
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:546: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(html_output_path=html_file)
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerPrivateMethods::test_is_html_file_recent_os_error
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:557: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(html_output_path=html_file)
+
+test/bestehorn_llmmanager/bedrock/test_CRISManager.py::TestCRISManagerIntegration::test_full_workflow_integration
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_CRISManager.py:577: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = CRISManager(
+
+test/bestehorn_llmmanager/bedrock/test_ModelManager.py::TestModelManager::test_init_default_configuration
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_ModelManager.py:70: DeprecationWarning: ModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = ModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_ModelManager.py::TestModelManager::test_init_custom_configuration
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_ModelManager.py:82: DeprecationWarning: ModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = ModelManager(
+
+test/bestehorn_llmmanager/bedrock/test_ModelManager.py: 24 warnings
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_ModelManager.py:61: DeprecationWarning: ModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = ModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_ModelManager.py::TestModelManagerIntegration::test_full_refresh_workflow
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_ModelManager.py:410: DeprecationWarning: ModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = ModelManager(html_output_path=html_path, json_output_path=json_path)
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_init_default_configuration
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:120: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py: 48 warnings
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\src\bestehorn_llmmanager\bedrock\UnifiedModelManager.py:193: DeprecationWarning: ModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    self._model_manager = ModelManager(download_timeout=download_timeout)
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py: 49 warnings
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\src\bestehorn_llmmanager\bedrock\UnifiedModelManager.py:194: DeprecationWarning: CRISManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog which provides unified model and CRIS data with API-based retrieval, configurable caching, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    self._cris_manager = CRISManager(download_timeout=download_timeout)
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_init_custom_configuration
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:129: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager(
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_refresh_unified_data_success
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:162: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_refresh_unified_data_force_download_override
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:191: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_refresh_unified_data_network_error
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:206: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_refresh_unified_data_parsing_error
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:234: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_refresh_unified_data_correlation_error
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:276: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_refresh_unified_data_file_system_error
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:313: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py: 29 warnings
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:113: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_model_access_info_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:369: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_recommended_access_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:404: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_is_model_available_in_region_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:494: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_models_by_region_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:521: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_models_by_provider_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:544: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_direct_access_models_by_region_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:567: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_cris_only_models_by_region_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:592: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_all_supported_regions_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:617: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_model_names_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:638: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_streaming_models_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:659: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_model_count_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:680: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_has_model_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:699: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManager::test_get_regions_for_model_no_data
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:721: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager()
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerCacheManagement::test_init_cache_age_validation_valid
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:851: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager(max_cache_age_hours=12.0)
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerCacheManagement::test_init_cache_age_validation_too_low
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:857: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    UnifiedModelManager(max_cache_age_hours=0.05)  # Below minimum
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerCacheManagement::test_init_cache_age_validation_too_high
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:862: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    UnifiedModelManager(max_cache_age_hours=200.0)  # Above maximum
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py: 18 warnings
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:836: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    return UnifiedModelManager(max_cache_age_hours=24.0)
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_strict_cache_mode_default_permissive
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_ignore_cache_age_default_respects_expiration
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_strict_cache_mode_false_uses_stale_cache
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_stale_cache_warning_message_content
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_stale_cache_fallback_when_unloadable
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_decision_matrix_scenario_hybrid
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_decision_matrix_cache_valid_and_fresh
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_decision_matrix_expired_refresh_succeeds
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_decision_matrix_cache_missing_try_refresh
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:1243: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    return UnifiedModelManager(
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_strict_cache_mode_true_fails_on_expired
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_decision_matrix_scenario_production_strict
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:1252: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    return UnifiedModelManager(
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_ignore_cache_age_true_skips_validation
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:1261: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    return UnifiedModelManager(
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_force_download_overrides_ignore_cache_age
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:1507: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager(
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_decision_matrix_scenario_workshop
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:1553: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+2833 passed, 7 skipped, 248 warnings in 325.52s (0:05:25)
+EXIT=0

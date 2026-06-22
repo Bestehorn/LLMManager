@@ -1,0 +1,8 @@
+    manager = UnifiedModelManager(
+
+test/bestehorn_llmmanager/bedrock/test_UnifiedModelManager.py::TestUnifiedModelManagerStaleCacheHandling::test_decision_matrix_scenario_workshop
+  D:\Users\bestem\CodeWorkspace\LLMManager\.claude\worktrees\issue-39\test\bestehorn_llmmanager\bedrock\test_UnifiedModelManager.py:1553: DeprecationWarning: UnifiedModelManager is deprecated and will be removed in version 4.0.0. Please migrate to BedrockModelCatalog for API-based data retrieval, configurable caching (FILE/MEMORY/NONE modes), bundled fallback data, and improved Lambda support. See migration guide: https://github.com/Bestehorn/bestehorn-llmmanager/blob/main/docs/migration_guide_v3.md
+    manager = UnifiedModelManager(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+2833 passed, 7 skipped, 248 warnings in 220.51s (0:03:40)

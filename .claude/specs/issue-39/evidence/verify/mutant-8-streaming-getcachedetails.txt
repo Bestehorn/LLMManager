@@ -1,0 +1,20 @@
+
+self = <test_bedrock_response.TestBedrockResponseCacheDetails object at 0x0000023D96CFA450>
+
+    def test_streaming_cache_details(self):
+        usage_info = {
+            "input_tokens": 2000,
+            "output_tokens": 100,
+            "total_tokens": 2100,
+            "cache_details": [{"inputTokens": 800, "ttl": "1h"}],
+        }
+        response = StreamingResponse(success=True, usage_info=usage_info)
+        details = response.get_cache_details()
+>       assert len(details) == 1
+E       assert 0 == 1
+E        +  where 0 = len([])
+
+test\bestehorn_llmmanager\bedrock\models\test_bedrock_response.py:2378: AssertionError
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/bedrock/models/test_bedrock_response.py::TestBedrockResponseCacheDetails::test_streaming_cache_details
+============================== 1 failed in 1.00s ==============================

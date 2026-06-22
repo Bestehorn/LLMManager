@@ -1,0 +1,45 @@
+        """A cachePoint appended to toolConfig.tools is passed through unchanged (issue #39).
+    
+        Tool-definition caching is achieved by placing a cachePoint after the tool specs
+        in toolConfig.tools (cachePoint is a valid Tool union member). The request builder
+        forwards the tool_config verbatim, so the cache point reaches Bedrock intact.
+        """
+        from bestehorn_llmmanager.bedrock.models.cache_point import build_cache_point
+    
+        tool_config = {
+            ConverseAPIFields.TOOLS: [
+                {"toolSpec": {"name": "get_weather", "inputSchema": {"json": {}}}},
+                build_cache_point(ttl="1h"),
+            ]
+        }
+        request_args = basic_llm_manager._build_converse_request(
+            messages=[{"role": "user", "content": [{"text": "Hi"}]}],
+            tool_config=tool_config,
+        )
+        forwarded_tools = request_args[ConverseAPIFields.TOOL_CONFIG][ConverseAPIFields.TOOLS]
+>       assert forwarded_tools[-1] == {
+            ConverseAPIFields.CACHE_POINT: {
+                ConverseAPIFields.CACHE_TYPE: "default",
+                ConverseAPIFields.CACHE_TTL: "1h",
+            }
+        }
+E       AssertionError: assert {'cachePoint'...': 'default'}} == {'cachePoint'... 'ttl': '1h'}}
+E         
+E         Differing items:
+E         {'cachePoint': {'type': 'default'}} != {'cachePoint': {'type': 'default', 'ttl': '1h'}}
+E         
+E         Full diff:
+E           {
+E               'cachePoint': {...
+E         
+E         ...Full output truncated (4 lines hidden), use '-vv' to show
+
+test\bestehorn_llmmanager\test_LLMManager.py:460: AssertionError
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/bedrock/models/test_cache_point.py::TestBuildCachePoint::test_ttl_5m_is_included
+FAILED test/bestehorn_llmmanager/bedrock/models/test_cache_point.py::TestBuildCachePoint::test_ttl_1h_is_included
+FAILED test/bestehorn_llmmanager/bedrock/models/test_cache_point.py::TestBuildCachePoint::test_ttl_enum_value_accepted
+FAILED test/bestehorn_llmmanager/test_message_builder.py::TestAddCachePointTTL::test_cache_point_with_ttl_5m
+FAILED test/bestehorn_llmmanager/test_message_builder.py::TestAddCachePointTTL::test_cache_point_with_ttl_1h
+FAILED test/bestehorn_llmmanager/test_LLMManager.py::TestLLMManager::test_build_converse_request_tool_config_with_cache_point
+========================= 6 failed, 8 passed in 2.19s =========================

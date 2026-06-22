@@ -1,0 +1,25 @@
+================================== FAILURES ===================================
+________________ TestBuildCachePoint.test_invalid_ttl_rejected ________________
+
+self = <test_cache_point.TestBuildCachePoint object at 0x000001D685A61EB0>
+
+    def test_invalid_ttl_rejected(self):
+>       with pytest.raises(RequestValidationError, match="ttl"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RequestValidationError
+
+test\bestehorn_llmmanager\bedrock\models\test_cache_point.py:32: Failed
+_________ TestAddCachePointTTL.test_cache_point_invalid_ttl_rejected __________
+
+self = <test.bestehorn_llmmanager.test_message_builder.TestAddCachePointTTL object at 0x000001D685B848A0>
+
+    def test_cache_point_invalid_ttl_rejected(self):
+>       with pytest.raises(RequestValidationError, match="ttl"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE RequestValidationError
+
+test\bestehorn_llmmanager\test_message_builder.py:1475: Failed
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/bedrock/models/test_cache_point.py::TestBuildCachePoint::test_invalid_ttl_rejected
+FAILED test/bestehorn_llmmanager/test_message_builder.py::TestAddCachePointTTL::test_cache_point_invalid_ttl_rejected
+============================== 2 failed in 2.01s ==============================

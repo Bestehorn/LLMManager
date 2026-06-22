@@ -2330,3 +2330,54 @@ class TestStreamingResponseCitations:
         ]
         self._drive(response=response, events=events)
         assert response.get_citations() == []
+
+
+class TestBedrockResponseCacheDetails:
+    """get_cache_details() per-TTL cache-write breakdown (issue #39)."""
+
+    _USAGE_WITH_DETAILS = {
+        "usage": {
+            "inputTokens": 2000,
+            "outputTokens": 100,
+            "totalTokens": 2100,
+            "cacheWriteInputTokens": 1500,
+            "cacheDetails": [
+                {"inputTokens": 1024, "ttl": "1h"},
+                {"inputTokens": 476, "ttl": "5m"},
+            ],
+        }
+    }
+
+    def test_parses_cache_details(self):
+        response = BedrockResponse(success=True, response_data=self._USAGE_WITH_DETAILS)
+        details = response.get_cache_details()
+        assert [(d.input_tokens, d.ttl) for d in details] == [(1024, "1h"), (476, "5m")]
+
+    def test_no_cache_details_returns_empty(self):
+        response = BedrockResponse(
+            success=True, response_data={"usage": {"inputTokens": 10, "outputTokens": 5}}
+        )
+        assert response.get_cache_details() == []
+
+    def test_failed_response_returns_empty(self):
+        response = BedrockResponse(success=False, response_data=self._USAGE_WITH_DETAILS)
+        assert response.get_cache_details() == []
+
+    def test_no_response_data_returns_empty(self):
+        assert BedrockResponse(success=True, response_data=None).get_cache_details() == []
+
+    def test_streaming_cache_details(self):
+        usage_info = {
+            "input_tokens": 2000,
+            "output_tokens": 100,
+            "total_tokens": 2100,
+            "cache_details": [{"inputTokens": 800, "ttl": "1h"}],
+        }
+        response = StreamingResponse(success=True, usage_info=usage_info)
+        details = response.get_cache_details()
+        assert len(details) == 1
+        assert details[0].input_tokens == 800
+        assert details[0].ttl == "1h"
+
+    def test_streaming_no_usage_returns_empty(self):
+        assert StreamingResponse(success=True, usage_info=None).get_cache_details() == []

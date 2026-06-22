@@ -49,6 +49,11 @@ class TestPackageInit:
         # Test guardrail guard-content qualifier enum
         assert hasattr(bestehorn_llmmanager, "GuardContentQualifierEnum")
 
+        # Test prompt-cache TTL enum, cache-detail type, and cache-point factory (issue #39)
+        assert hasattr(bestehorn_llmmanager, "CachePointTTLEnum")
+        assert hasattr(bestehorn_llmmanager, "CacheDetail")
+        assert hasattr(bestehorn_llmmanager, "build_cache_point")
+
     def test_version_handling_with_version_import_success(self):
         """Test version handling when _version import succeeds."""
         # This will use the actual _version.py file which should exist
@@ -121,6 +126,9 @@ class TestPackageInit:
             "Citation",
             "build_json_schema_output_config",
             "GuardContentQualifierEnum",
+            "CachePointTTLEnum",
+            "CacheDetail",
+            "build_cache_point",
         ]
 
         assert hasattr(bestehorn_llmmanager, "__all__")

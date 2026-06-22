@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
+from .cache_detail import CacheDetail
 from .citation import Citation
 from .content_block_types import ResponseContentType
 from .llm_manager_constants import ConverseAPIFields
@@ -354,6 +355,27 @@ class BedrockResponse:
         """
         usage = self.get_usage()
         return usage.get("cache_write_tokens", 0) if usage else 0
+
+    def get_cache_details(self) -> List[CacheDetail]:
+        """
+        Get the per-TTL breakdown of cache-write tokens (``usage.cacheDetails``).
+
+        Each entry reports how many tokens were written to cache at a given TTL. The list
+        is empty when no cache creation occurred or the response carries no usage data.
+
+        Returns:
+            A list of :class:`CacheDetail` (input token count + TTL per segment), empty
+            if unavailable.
+        """
+        if not self.success or not self.response_data:
+            return []
+
+        try:
+            usage = self.response_data.get(ConverseAPIFields.USAGE, {})
+            raw_details = usage.get(ConverseAPIFields.CACHE_DETAILS) or []
+            return [CacheDetail.from_cache_detail(cache_detail=detail) for detail in raw_details]
+        except (KeyError, TypeError, AttributeError):
+            return []
 
     def get_metrics(self) -> Optional[Dict[str, Union[float, int]]]:
         """
@@ -1417,6 +1439,25 @@ class StreamingResponse:
         """
         usage = self.get_usage()
         return usage.get("cache_write_tokens", 0) if usage else 0
+
+    def get_cache_details(self) -> List[CacheDetail]:
+        """
+        Get the per-TTL breakdown of cache-write tokens from streaming metadata.
+
+        Mirrors :meth:`BedrockResponse.get_cache_details`. The streaming event handlers
+        normalize ``usage.cacheDetails`` into ``usage_info["cache_details"]``.
+
+        Returns:
+            A list of :class:`CacheDetail`, empty if unavailable.
+        """
+        if not self.usage_info:
+            return []
+
+        try:
+            raw_details = self.usage_info.get("cache_details") or []
+            return [CacheDetail.from_cache_detail(cache_detail=detail) for detail in raw_details]
+        except (KeyError, TypeError, AttributeError):
+            return []
 
     def get_metrics(self) -> Optional[Dict[str, Union[float, int]]]:
         """

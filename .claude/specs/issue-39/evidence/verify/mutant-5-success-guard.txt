@@ -1,0 +1,22 @@
+_____ TestBedrockResponseCacheDetails.test_failed_response_returns_empty ______
+
+self = <test_bedrock_response.TestBedrockResponseCacheDetails object at 0x000002D8955D09D0>
+
+    def test_failed_response_returns_empty(self):
+        response = BedrockResponse(success=False, response_data=self._USAGE_WITH_DETAILS)
+>       assert response.get_cache_details() == []
+E       AssertionError: assert [CacheDetail(...76, ttl='5m')] == []
+E         
+E         Left contains 2 more items, first extra item: CacheDetail(input_tokens=1024, ttl='1h')
+E         
+E         Full diff:
+E         - []
+E         + [
+E         +     CacheDetail(...
+E         
+E         ...Full output truncated (8 lines hidden), use '-vv' to show
+
+test\bestehorn_llmmanager\bedrock\models\test_bedrock_response.py:2364: AssertionError
+=========================== short test summary info ===========================
+FAILED test/bestehorn_llmmanager/bedrock/models/test_bedrock_response.py::TestBedrockResponseCacheDetails::test_failed_response_returns_empty
+========================= 1 failed, 5 passed in 2.05s =========================

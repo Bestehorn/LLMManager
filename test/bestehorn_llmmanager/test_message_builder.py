@@ -1444,3 +1444,45 @@ class TestAddGuardContentMethod:
                 ConverseAPIFields.GUARD_CONTENT_TEXT
             ]
             assert text_block[ConverseAPIFields.GUARD_CONTENT_QUALIFIERS] == [qualifier]
+
+
+class TestAddCachePointTTL:
+    """Test cases for MessageBuilder.add_cache_point ttl support (issue #39)."""
+
+    def _content_block(self, **kwargs):
+        message = (
+            ConverseMessageBuilder(role=RolesEnum.USER)
+            .add_text(text="some cacheable prefix")
+            .add_cache_point(**kwargs)
+            .build()
+        )
+        return message[ConverseAPIFields.CONTENT][-1]
+
+    def test_default_cache_point_unchanged_without_ttl(self):
+        """Backward-compatible: omitting ttl emits the original {type: default} block."""
+        block = self._content_block()
+        assert block == {ConverseAPIFields.CACHE_POINT: {ConverseAPIFields.CACHE_TYPE: "default"}}
+
+    def test_cache_point_with_ttl_5m(self):
+        block = self._content_block(ttl="5m")
+        assert block[ConverseAPIFields.CACHE_POINT][ConverseAPIFields.CACHE_TTL] == "5m"
+
+    def test_cache_point_with_ttl_1h(self):
+        block = self._content_block(ttl="1h")
+        assert block[ConverseAPIFields.CACHE_POINT][ConverseAPIFields.CACHE_TTL] == "1h"
+
+    def test_cache_point_invalid_ttl_rejected(self):
+        with pytest.raises(RequestValidationError, match="ttl"):
+            self._content_block(ttl="2h")
+
+    def test_cache_point_invalid_type_rejected(self):
+        with pytest.raises(RequestValidationError, match="type"):
+            self._content_block(cache_type="persistent")
+
+    def test_cache_point_without_preceding_content_rejected(self):
+        with pytest.raises(RequestValidationError, match="preceding content"):
+            ConverseMessageBuilder(role=RolesEnum.USER).add_cache_point(ttl="5m")
+
+    def test_add_cache_point_returns_self(self):
+        builder = ConverseMessageBuilder(role=RolesEnum.USER).add_text(text="prefix")
+        assert builder.add_cache_point(ttl="1h") is builder
