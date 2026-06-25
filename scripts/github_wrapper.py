@@ -544,6 +544,81 @@ def cmd_delete_remote_branch(*, owner: str, repo: str, token: str, branch: str) 
     _print({"deleted_branch": branch})
 
 
+def cmd_repo_config(*, owner: str, repo: str, token: str, branch: str) -> None:
+    """Report the repo merge settings and the branch's protection / required checks.
+
+    Read-only diagnostic for verifying auto-merge prerequisites: the repo-level
+    "Allow auto-merge" toggle and a branch protection rule that requires status checks.
+    """
+    repo_info = _api_request(method="GET", path=f"/repos/{owner}/{repo}", token=token)
+
+    protection: Any = None
+    rulesets: list[Any] = []
+    try:
+        protection = _api_request(
+            method="GET",
+            path=f"/repos/{owner}/{repo}/branches/{branch}/protection",
+            token=token,
+        )
+    except GitHubAPIError as exc:
+        if exc.status_code == 404:
+            protection = {"_note": "no classic branch-protection rule on this branch"}
+        else:
+            raise
+
+    # Rulesets are the newer mechanism; surface any that apply so a check configured
+    # there (rather than as a classic rule) is still visible.
+    try:
+        rulesets = _api_request(
+            method="GET",
+            path=f"/repos/{owner}/{repo}/rulesets?includes_parents=true",
+            token=token,
+        )
+    except GitHubAPIError:
+        rulesets = []
+
+    required_checks: list[str] = []
+    if isinstance(protection, dict):
+        rsc = protection.get("required_status_checks") or {}
+        # GitHub returns either "checks" [{context,...}] or legacy "contexts" [str].
+        for c in rsc.get("checks", []) or []:
+            required_checks.append(c.get("context"))
+        for ctx in rsc.get("contexts", []) or []:
+            if ctx not in required_checks:
+                required_checks.append(ctx)
+
+    pr_reviews = (
+        protection.get("required_pull_request_reviews") if isinstance(protection, dict) else None
+    )
+    _print(
+        {
+            "default_branch": repo_info.get("default_branch"),
+            "allow_auto_merge": repo_info.get("allow_auto_merge"),
+            "allow_squash_merge": repo_info.get("allow_squash_merge"),
+            "delete_branch_on_merge": repo_info.get("delete_branch_on_merge"),
+            "branch": branch,
+            "branch_protection_enabled": isinstance(protection, dict) and "_note" not in protection,
+            "required_status_checks": required_checks,
+            "strict_up_to_date": (
+                (protection.get("required_status_checks") or {}).get("strict")
+                if isinstance(protection, dict)
+                else None
+            ),
+            "required_approving_review_count": (
+                pr_reviews.get("required_approving_review_count") if pr_reviews else 0
+            ),
+            "rulesets": [
+                {
+                    "name": r.get("name"),
+                    FIELD_STATE: r.get("enforcement"),
+                    "target": r.get("target"),
+                }
+                for r in (rulesets if isinstance(rulesets, list) else [])
+            ],
+        }
+    )
+
+
 def _add_int(sub: argparse.ArgumentParser, name: str) -> None:
     sub.add_argument(name, type=int)
 
@@ -554,6 +629,9 @@ def main() -> None:
 
     sub.add_parser("whoami", help="Verify auth and repo visibility")
     sub.add_parser("list-workflows")
+
+    p = sub.add_parser("repo-config", help="Report merge settings + branch protection")
+    p.add_argument("--branch", default="main")
 
     p = sub.add_parser("list-runs")
     p.add_argument("--limit", type=int, default=10)
@@ -626,6 +704,8 @@ def main() -> None:
         cmd_whoami(owner=owner, repo=repo, token=token)
     elif cmd == "list-workflows":
         cmd_list_workflows(owner=owner, repo=repo, token=token)
+    elif cmd == "repo-config":
+        cmd_repo_config(owner=owner, repo=repo, token=token, branch=args.branch)
     elif cmd == "list-runs":
         cmd_list_runs(owner=owner, repo=repo, token=token, limit=args.limit, branch=args.branch)
     elif cmd == "get-run":
