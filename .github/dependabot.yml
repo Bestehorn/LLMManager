@@ -17,7 +17,14 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
-    
+    # Batch routine updates into a single PR so they do not accumulate one-per-dependency.
+    # minor/patch are grouped here; majors still open individually for explicit review.
+    groups:
+      python-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
   # Enable version updates for GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -34,3 +41,9 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
+    # Batch routine action updates into a single PR (majors still open individually).
+    groups:
+      github-actions-minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"

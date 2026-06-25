@@ -431,6 +431,29 @@ def cmd_create_pr(
     )
 
 
+def cmd_list_prs(*, owner: str, repo: str, token: str, state: str) -> None:
+    params: dict[str, Any] = {FIELD_STATE: state, "sort": "created", "direction": "asc"}
+    prs = _paginate(path=f"/repos/{owner}/{repo}/pulls", token=token, params=params)
+    _print(
+        [
+            {
+                "number": pr.get("number"),
+                FIELD_TITLE: pr.get(FIELD_TITLE),
+                FIELD_STATE: pr.get(FIELD_STATE),
+                "draft": pr.get("draft"),
+                "head": pr.get("head", {}).get("ref"),
+                "base": pr.get("base", {}).get("ref"),
+                "user": pr.get("user", {}).get("login"),
+                "created_at": pr.get("created_at"),
+                "updated_at": pr.get("updated_at"),
+                "labels": [lbl.get(FIELD_NAME) for lbl in pr.get(FIELD_LABELS, [])],
+                "html_url": pr.get("html_url"),
+            }
+            for pr in prs
+        ]
+    )
+
+
 def cmd_get_pr(*, owner: str, repo: str, token: str, number: int) -> None:
     pr = _api_request(method="GET", path=f"/repos/{owner}/{repo}/pulls/{number}", token=token)
     reviews = _api_request(
@@ -575,6 +598,9 @@ def main() -> None:
     g.add_argument("--body")
     g.add_argument("--body-file")
 
+    p = sub.add_parser("list-prs")
+    p.add_argument("--state", default="open", choices=["open", "closed", "all"])
+
     for name in ("get-pr", "get-pr-checks", "approve-pr"):
         p = sub.add_parser(name)
         _add_int(p, "number")
@@ -655,6 +681,8 @@ def main() -> None:
             title=args.title,
             body=_body(args),
         )
+    elif cmd == "list-prs":
+        cmd_list_prs(owner=owner, repo=repo, token=token, state=args.state)
     elif cmd == "get-pr":
         cmd_get_pr(owner=owner, repo=repo, token=token, number=args.number)
     elif cmd == "get-pr-checks":
